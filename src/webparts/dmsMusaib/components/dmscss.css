@@ -43,7 +43,7 @@
 }
 p.folder {font-size: 14px; font-weight: 600; margin-bottom: 7px; }
 .p3rd{
-  width: 50%; float: left;
+  width: 45%; float: left;
 }
 .share-popup-header h4{    font-size: 1.25rem !important;}
 .filestatus,.filestatus2{float:right;    width: 70px;
@@ -105,7 +105,7 @@ p.folder {font-size: 14px; font-weight: 600; margin-bottom: 7px; }
         color: #333;
     }
     .btn-primary{
-      background:#1fb0e5; border-color:#1fb0e5;
+      background:#f37421; border-color:#f37421;
     }
  
 .btn-secondary {
@@ -138,7 +138,7 @@ margin-bottom: 4px;
 .mtable th {
 background: rgba(0, 135, 81, 0.15) !important;
 font-weight: 600 !important;
-color: #008751;
+color: #747171;
 font-size: 14px;
 
 min-width: 130px;
@@ -202,7 +202,7 @@ display: flex;
   border-radius: 20px;
   width: 100%;
   margin: 0px auto 0px auto;
-  border: 2px solid #54ade0;
+  border: 2px solid #f37421;
 }
 .manage-master .box1 {
   background: #fff !important;
@@ -228,7 +228,7 @@ a:hover
   text-decoration: none;
 }
 .manage-master .box1:hover {
-  border: 2px solid #54ade0;
+  border: 2px solid #f37421;
   background: #efefef !important;
 }
 
@@ -747,7 +747,7 @@ top: 0;
  
 .detail-label-approver {
   font-weight: bold;
-  color: #008751;
+  color: #747171;
 }
 .sidebardmsButton {
   background: #f7fbfc;
@@ -787,24 +787,24 @@ top: 0;
   .form-control:focus{box-shadow: none;}
   .row1{width: 33.3%; float: left;}
 .popup-menu ul li{ padding: 7px; cursor: pointer; margin-bottom: 1px;font-size: 13px;}
-.popup-menu ul li:hover{background: #f7fbfc;color: #1fb0e5;}
+.popup-menu ul li:hover{background: #f7fbfc;color: #f37421;}
 .popup-menu ul li img{width: 14px; float: left; margin-top: 2px; margin-right: 5px;}
 .sidebardmsButton:hover{background: #fff;}
 
 .popup-menu ul li:hover img{filter: sepia(100%) hue-rotate(190deg) saturate(500%);}
 #hidegidvewlistviewbutton, #hidegidvewlistviewbutton2{justify-content: end; display: flex; gap: 5px;}
 .btngridview.active {
-  background: #1fb0e5 ; color: #fff; border-color: #1fb0e5;
+  background: #f37421 ; color: #fff; border-color: #f37421;
 }
 .btngridview.active svg{color: #fff !important;}
 
 .btnlistview {
-  color: #000;  border: 1px solid #54ade0 !important;
+  color: #000;  border: 1px solid #f37421 !important;
   font-weight: 500; background: #fff ;
-  border: 1px solid #54ade0 !important;
+  border: 1px solid #f37421 !important;
 }
 #hidegidvewlistviewbutton button:hover, #hidegidvewlistviewbutton2 button:hover,#createuploadfilecont button:hover {
-  background: #008751 !important; border-color: #008751 !important; color: #fff !important;
+  background: #747171 !important; border-color: #747171 !important; color: #fff !important;
 }
 #hidegidvewlistviewbutton button:hover svg, #hidegidvewlistviewbutton2 button:hover svg, #createuploadfilecont button:hover svg{color: #fff !important ;}
 .search-container input{padding: 10px 14px;
@@ -822,7 +822,7 @@ top: 0;
     width: 32.1%; margin: 5px; float: left;
   } 
  #files-container .card {
-    border: 1px solid #54ade0 !important;
+    border: 1px solid #f37421 !important;
     border-radius: 6px !important;
     height: 94px; padding: 0.75rem; position: relative !important;
 }
@@ -843,11 +843,11 @@ top: 0;
 }
 #createuploadfilecont .mybutton1{
 
-     border: 0px solid #1fb0e5;
+     border: 0px solid #f37421;
 }
 #createuploadfilecont .mybutton2{
   background: #fff;
-    color: #000; border: 1px solid #1fb0e5;
+    color: #000; border: 1px solid #f37421;
 }
 .input-container input{height: 36px;}
 .main-containeruploadfile h1{font-size: 20px; text-align: center;}
@@ -893,12 +893,12 @@ top: 0;
     padding-left: 4px;
 }
 .cardborder {
-  border: 1px solid #54ade0 !important; border-radius: 20px !important; padding: 15px !important;
+  border: 1px solid #f37421 !important; border-radius: 20px !important; padding: 15px !important;
 }
 .css-b62m3t-container{font-size: 14px;}
 .subheader {color: #6b6b6b !important;}
 .p-31{padding: 20px !important; width: 100% !important;}
-.modal .cardborder{border: 0px solid #54ade0 !important; }
+.modal .cardborder{border: 0px solid #f37421 !important; }
 .mtbalenew{
   width: 100%;
     position: relative;
@@ -960,24 +960,28 @@ text-align: center;
   background: #ececec;
 }
 .indexdesign{
-  background: #d2effa !important;
-    color: #1fb0e5 !important;
-    width: 28px !important;
-    height:28px !important;
-    font-size: 16px !important;
-    border: none;
-    float: left;
-    line-height: 30px !important;
-  margin-left: 12px;
-    padding: 0px 1px !important;
-    border-radius: 1000px; text-align: center; font-weight: 600;
+  background: #ffe7d5 !important;
+  border: none;
+  border-radius: 1000px;
+  color: #f37421 !important;
+  display: flex
+;
+  font-size: 16px !important;
+  font-weight: 600;
+  height: 28px !important;
+  justify-content: center;
+  line-height: 30px !important;
+  margin-left: 0;
+  margin-top: 0 !important;
+  padding: 0 1px !important;
+  width: 28px !important;
 }
 .stausbg{
 
     border-radius: 4px;
     background: rgba(0, 135, 81, 0.20) !important;
     font-weight: 500 !important;
-    color: #008751;
+    color: #747171;
     padding: 1px 5px !important; text-align: center;
     
     

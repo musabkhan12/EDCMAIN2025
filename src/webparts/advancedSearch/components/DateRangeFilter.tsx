@@ -45,7 +45,7 @@ export const DateRangeFilter: React.FC<IDateRangeFilterProps> = ({ onFilterChang
     return (
         <div  className="mt-3 p-3 pt-0">
             
-            <div style={{background:"#fff",border:'1px solid #1fb0e5', borderRadius:'20px'}} className="row g-3">
+            <div style={{background:"#fff",border:'1px solid #f37421', borderRadius:'20px'}} className="row g-3">
             <div className="col-md-3">
             <h5 style={{fontWeight:'600'}} className='mb-2 mt-2 font-16 text-center'>Filter by Published Date</h5>
                 </div>

@@ -4059,8 +4059,8 @@ const createFileExtensionHtml=(FileName:any)=>{
   const fileExtension = FileName?.split(".").pop().toLowerCase(); // Get the file extension
 
   const extensionColors:any = {
-    doc: "#1fb0e5", // Blue
-    docx: "#1fb0e5",
+    doc: "#f37421", // Blue
+    docx: "#f37421",
     txt: "#28a745", // Green (Text Files)
     pdf: "#dc3545", // Red (PDFs)
     xls: "#ffc107", // Yellow (Excel)
@@ -8622,7 +8622,7 @@ window.view=(message:string)=>{
 //   switch (files.IsPrivate) {
 //     case false:
 //       fileStatusElement.style.backgroundColor = "#b5e7d3";
-//       fileStatusElement.style.color = "#008751";
+//       fileStatusElement.style.color = "#747171";
 //       break;
 //     case true:
 //       fileStatusElement.style.backgroundColor = "rgba(241, 85, 108, 0.1)";
@@ -9078,7 +9078,7 @@ window.view=(message:string)=>{
 //   switch (files.IsPrivate) {
 //     case false:
 //       fileStatusElement.style.backgroundColor = "#b5e7d3";
-//       fileStatusElement.style.color = "#008751";
+//       fileStatusElement.style.color = "#747171";
 //       break;
 //     case true:
 //       fileStatusElement.style.backgroundColor = "rgba(241, 85, 108, 0.1)";
@@ -9362,7 +9362,7 @@ const fileStatusElement = card.querySelector(".filestatus") as HTMLElement;
 switch (files.IsPrivate) {
   case false:
     fileStatusElement.style.backgroundColor = "#b5e7d3";
-    fileStatusElement.style.color = "#008751";
+    fileStatusElement.style.color = "#747171";
     break;
   case true:
     fileStatusElement.style.backgroundColor = "rgba(241, 85, 108, 0.1)";
@@ -9654,7 +9654,7 @@ window.renameFolder=(siteName:any,folderName:any,itemId:any,siteId:any)=>{
      const submitButton = document.createElement("button");
      submitButton.innerText = "Submit";
      submitButton.style.padding = "6px 20px";
-     submitButton.style.backgroundColor = "#1fb0e5";
+     submitButton.style.backgroundColor = "#f37421";
      submitButton.style.color = "#fff";
      submitButton.style.border = "none";
      submitButton.style.borderRadius = "4px";
@@ -9758,7 +9758,7 @@ window.renameColumn=async(siteName:string,documentLibraryName:string)=>{
   //         cursor: pointer; 
   //         margin-right: 10px;">Cancel</button>
   //       <button type="submit" style="
-  //         background: #1fb0e5; 
+  //         background: #f37421; 
   //         color: white; 
   //         border: none; 
   //         padding: 6px 15px; 
@@ -9793,7 +9793,7 @@ window.renameColumn=async(siteName:string,documentLibraryName:string)=>{
         cursor: pointer; 
         margin-right: 10px;">Cancel</button>
       <button type="submit" style="
-        background: #1fb0e5; 
+        background: #f37421; 
         color: white; 
         border: none; 
         padding: 6px 15px; 
@@ -10834,7 +10834,7 @@ window.toggleFavourite=async (fileId,siteId)=> {
 //         switch (file.Status) {
 //           case "Approved":
 //             fileStatusElement.style.backgroundColor = "#b5e7d3";
-//             fileStatusElement.style.color = "#008751";
+//             fileStatusElement.style.color = "#747171";
 //             break;
 //           case "Rejected":
 //             fileStatusElement.style.backgroundColor = "rgba(241, 85, 108, 0.1)";
@@ -11296,11 +11296,11 @@ const extensionHtml=createFileExtensionHtml(file.FileName);
     switch (file.Status) {
       case "Approved":
         fileStatusElement.style.backgroundColor = "#b5e7d3";
-        fileStatusElement.style.color = "#008751";
+        fileStatusElement.style.color = "#747171";
         break;
       case "Auto Approved":
         fileStatusElement.style.backgroundColor = "#b5e7d3";
-        fileStatusElement.style.color = "#008751";
+        fileStatusElement.style.color = "#747171";
         fileStatusElement.style.width = "96px";
 
         break;
@@ -11401,7 +11401,7 @@ const extensionHtml=createFileExtensionHtml(file.FileName);
 //   switch (file.Status) {
 //     case "Approved":
 //       fileStatusElement.style.backgroundColor = "#b5e7d3";
-//       fileStatusElement.style.color = "#008751";
+//       fileStatusElement.style.color = "#747171";
 //       break;
 //     case "Rejected":
 //       fileStatusElement.style.backgroundColor = "rgba(241, 85, 108, 0.1)";
@@ -15101,7 +15101,7 @@ librarydiv.appendChild(mainContainer)
     </div>
     <div className="content-page">
       <HorizontalNavbar _context={sp}  siteUrl={props.siteUrl} context={props.context} />
-      <div className="content" style={{marginLeft: `${!useHide ? '240px' : '80px'}`,marginTop:'0.8rem'}}>
+      <div className="content" style={{marginLeft: `${!useHide ? '240px' : '80px'}`,marginTop:'2.8rem'}}>
        
       <div className="container-fluid  paddb">
                 {activeComponent === "" ? (
@@ -15152,13 +15152,13 @@ librarydiv.appendChild(mainContainer)
                             
                             <div style={{display:'flex', justifyContent:'end', gap:'5px'}} className="col-lg-6 newbutton">
                               <div>
-                              <Dropdown as={ButtonGroup} style={{padding: '9.4px' , marginTop: '8px'}}>
-        <Dropdown.Toggle variant="primary" id="dropdown-left">
-        
+                              <Dropdown as={ButtonGroup} style={{padding: '9.4px 3px 0px 0px' , marginTop: '0px'}}>
+        <Dropdown.Toggle variant="primary" id="dropdown-left" className="mt-0 newho">
+        New Request
         </Dropdown.Toggle>
 
-        <Dropdown.Menu className="dropdown-menu-start">
-          <Dropdown.Item href="#/changerequest" onClick={handleDropdownItemClick}>change request Form</Dropdown.Item>
+        <Dropdown.Menu className="dropdown-menu-start newtheme font-14">
+          <Dropdown.Item href="#/changerequest" onClick={handleDropdownItemClick}>Change request Form</Dropdown.Item>
           <Dropdown.Item href="#/cancellationrequest"     
           onClick={(event) => {
             testProess2(event as any);
@@ -15176,7 +15176,7 @@ librarydiv.appendChild(mainContainer)
             testProess4(event as any);
             handleShowContent(event as any);
           }}
-          >audit plan</Dropdown.Item>
+          >Audit plan</Dropdown.Item>
           <Dropdown.Item href="#/nc"
            onClick={(event) => {
             testProess5(event as any);
@@ -15320,7 +15320,7 @@ librarydiv.appendChild(mainContainer)
                           <span className="sidebarText">My Favourite</span>
                         </button>
 
-                        <button
+                        {/* <button
                           className={`sidebardmsButton ${
                             activeButton === "MyFolder" ? "active" : ""
                           }`}
@@ -15331,10 +15331,9 @@ librarydiv.appendChild(mainContainer)
                         >
                           <span className="sidebarIcon">
                           <img className="sidebariconssmall" src={foldericon}></img>
-                            {/* <FontAwesomeIcon icon={faFolderRegular} /> */}
-                          </span>
+                                                     </span>
                           <span className="sidebarText">My Folder</span>
-                        </button>
+                        </button> */}
 
                         <button
                           className={`sidebardmsButton ${
@@ -15346,7 +15345,7 @@ librarydiv.appendChild(mainContainer)
                           }}
                         >
                           <span className="sidebarIcon">
-                            {/* <FontAwesomeIcon icon={faShareAlt} /> */}
+                            
                             <img className="sidebariconssmall" src={sharewithothericon}></img>
                           </span>
                           <span className="sidebarText">Shared with Others</span>

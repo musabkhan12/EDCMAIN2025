@@ -2056,7 +2056,7 @@ useEffect(()=>{
   {uploadedFiles.map((file, index) => (
     <li key={index}>
   <div>     {index + 1}.</div> 
-    <div className="font-14" style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap', padding:'0px 5px',  fontWeight:'500'}}>  <a style={{color:'#4fc6e1'}} href="#" onClick={() => handlePreview(file.url)}>
+    <div className="font-14" style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap', padding:'0px 5px',  fontWeight:'500'}}>  <a style={{color:'#f37421'}} href="#" onClick={() => handlePreview(file.url)}>
         {file.name}
       </a>
       </div> 

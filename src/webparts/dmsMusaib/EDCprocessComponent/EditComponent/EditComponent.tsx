@@ -54,25 +54,25 @@ export class EditComponent extends React.Component<IEditProps,IEditState> {
       var allItems = this.state.items.map((item: any,i:number) => {
         return(
           <tr>
-            <td>
+            <td style={{minWidth:'60px',maxWidth:'60px'}}>
             {i+1}
             </td>
-            <td>
+            <td style={{minWidth:'80px',maxWidth:'80px'}}>
                 {item.RequestId}                  
             </td>
             <td>
                 {item.Title}
             </td>
-            <td>
+            <td style={{minWidth:'80px',maxWidth:'80px'}}>
                 {item.ProcessName}
             </td>
-            <td>
+            <td style={{minWidth:'100px',maxWidth:'100px'}}>
             {item.ActionTakenBy.Title}
             </td>
-            <td>
+            <td style={{minWidth:'100px',maxWidth:'100px'}}>
             { new Date(item.ActionTakenOn).getDate()+"/" +new Date(item.ActionTakenOn).getMonth()+"/"+ new Date(item.ActionTakenOn).getFullYear()}                    
             </td>
-            <td>
+            <td style={{minWidth:'60px',maxWidth:'60px'}}>
             {item.Status}
             </td>
           </tr> 
@@ -81,39 +81,76 @@ export class EditComponent extends React.Component<IEditProps,IEditState> {
       });
 
     return (
-        <section>
-              <TextField label="Request Id"   id="sub"  value={this.state.reqId} disabled={true} />
-              <TextField label="Title"   id="title"  value={this.state.title}  disabled={true}/>
+        <section >
+          <div className='card card-body'>
+          <div className='row'>
+            <div className='col-sm-4 mb-3'>
+            <TextField label="Request Id"   id="sub"  value={this.state.reqId} disabled={true} />
+
+            </div>
+            <div className='col-sm-4 mb-3'>
+            <TextField label="Title"   id="title"  value={this.state.title}  disabled={true}/>
+
+              </div>
+
+              <div className='col-sm-4 mb-3'>
               <TextField label="Process Name"   id="process"  value={this.state.processName} disabled={true}/>
-              <TextField label="Requested By"   id="reqBy"  value={this.state.requestedBy} disabled={true}/>
-              <TextField label="Requested Date"   id="reqDate"  value={this.state.requestedDate}  disabled={true}/>
-              <TextField label="Status"   id="Status"  value={this.state.status} disabled={true}/>
-              <Field label="Remarks">
+
+</div>
+<div className='col-sm-4 mb-3'>
+<TextField label="Requested By"   id="reqBy"  value={this.state.requestedBy} disabled={true}/>
+
+</div>
+<div className='col-sm-4 mb-3'>
+<TextField label="Requested Date"   id="reqDate"  value={this.state.requestedDate}  disabled={true}/>
+</div>
+<div className='col-sm-4 mb-3'>
+<TextField label="Status"   id="Status"  value={this.state.status} disabled={true}/>
+</div>
+
+<div className='col-sm-12 mb-3'>
+<Field label="Remarks">
     <Textarea id="comm" value={this.state.remarks} onChange={this.onRemarksChange} />
   </Field>
-             <PrimaryButton onClick={this.approveRequest}>Approve</PrimaryButton>
-              <PrimaryButton onClick={this.rejectRequest}>Reject</PrimaryButton>
-               <PrimaryButton onClick={this.reworkRequest}>Rework</PrimaryButton>
-               <a href='#/listing'> <PrimaryButton onClick={this.cancelRequest}>Cancel</PrimaryButton></a>
 
-                <section id='audit'>
-                  <label>Audit Trial</label>
-                  <table>
+</div>
+
+
+          </div>
+             
+             
+             
+            
+            
+              
+              <div style={{display:'flex',justifyContent:'center', gap:'10px'}}>
+             <PrimaryButton className='btn btn-success' onClick={this.approveRequest}>Approve</PrimaryButton>
+              <PrimaryButton className='btn btn-danger' onClick={this.rejectRequest}>Reject</PrimaryButton>
+               <PrimaryButton className='btn btn-warning' onClick={this.reworkRequest}>Rework</PrimaryButton>
+               <a href='#/listing'> <PrimaryButton className='btn cancel-btn' onClick={this.cancelRequest}>Cancel</PrimaryButton></a>
+               </div>
+               </div>
+
+                <section style={{display:'grid'}} id='audit' className='mt-2'>
+                  <div className='card card-body'>
+                  <h3 style={{margin:'inherit'}} className='text-dark font-16 mb-3'>Audit Trial</h3>
+                  <table className='mtbalenew'>
                     <thead>
                       <tr>
-                      <th>Sl No</th>
-                        <th>Request Id</th>
+                      <th style={{minWidth:'60px',maxWidth:'60px'}}>S.No</th>
+                        <th style={{minWidth:'60px',maxWidth:'60px'}}>Request Id</th>
                         <th>Title</th>
-                        <th>Process Name</th>
-                        <th>Action Taken By</th>
-                        <th>Action Taken On</th>this.cancelR
-                        <th>Status</th>
+                        <th style={{minWidth:'80px',maxWidth:'80px'}}>Process Name</th>
+                        <th style={{minWidth:'100px',maxWidth:'100px'}}>Action Taken By</th>
+                        <th style={{minWidth:'100px',maxWidth:'100px'}}>Action Taken On</th>
+                        <th style={{minWidth:'60px',maxWidth:'60px'}}>Status</th>
                       </tr>
                     </thead>
                     <tbody>
 {allItems}
                     </tbody>
                   </table>
+                  </div>
                 </section>
         </section>
     )};

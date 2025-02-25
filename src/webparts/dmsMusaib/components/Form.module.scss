@@ -154,12 +154,12 @@ body{
     position: relative;
   }
   .sidebar .navlinks li:hover a .linkname{ 
-    color: #1fb0e5;
+    color: #f37421;
     // font-size: 15.2px;
   }
 
   .selected {
-    background-color: #1fb0e5; /* Highlight color */
+    background-color: #f37421; /* Highlight color */
     color:#ffff !important;
   }
   .selected2{
@@ -240,11 +240,11 @@ body{
   }
   .sidebar .navlinks li .submenu a:hover{
     opacity: 1;
-    color: #1fb0e5;
+    color: #f37421;
   }
   .sidebar .navlinks li .submenu a:hover img{
     opacity: 1;
-    color: #1fb0e5;
+    color: #f37421;
   }
   .sidebar.close .navlinks li .submenu{
   position: absolute;
@@ -843,7 +843,7 @@ cursor: pointer;
   text-decoration: none;
 }
 .backbuttonform1{
- background-color:  #1fb0e5;
+ background-color:  #f37421;
  display: flex;
  margin-left: 10px;
 border: none;
@@ -860,7 +860,7 @@ cursor: pointer;
 }
 .addbuttonargform{
   display: flex;
-background-color: #1fb0e5;
+background-color: #f37421;
 margin-left: 10px;
 border: none;
 color: white;

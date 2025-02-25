@@ -117,7 +117,7 @@ const AdvancedSearch: React.FC<IAdvancedSearchProps> = (props) => {
                             <DateRangeFilter onFilterChange={(e) => handleDateTimeFilter(e)}></DateRangeFilter>
                         </section>
                         <main className="mt-3 p-3 pb-0">
-                            <section style={{background:"#fff",border:'1px solid #1fb0e5', borderRadius:'20px'}} className="row">
+                            <section style={{background:"#fff",border:'1px solid #f37421', borderRadius:'20px'}} className="row">
                                 <section className="col-12">
                                     <DMSEntitySearchTreeView context={props.context} onFieldSelect={(fld) => {
                                         let selfld = [...searchQueryRefiners];

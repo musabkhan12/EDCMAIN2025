@@ -4137,7 +4137,7 @@ const ArgPoc = ({ props }: any) => {
       switch (files.IsPrivate) {
         case false:
           fileStatusElement.style.backgroundColor = "#b5e7d3";
-          fileStatusElement.style.color = "#008751";
+          fileStatusElement.style.color = "#747171";
           break;
         case true:
           fileStatusElement.style.backgroundColor = "rgba(241, 85, 108, 0.1)";
@@ -5259,11 +5259,11 @@ const ArgPoc = ({ props }: any) => {
             switch (file.Status) {
               case "Approved":
                 fileStatusElement.style.backgroundColor = "#b5e7d3";
-                fileStatusElement.style.color = "#008751";
+                fileStatusElement.style.color = "#747171";
                 break;
               case "Auto Approved":
                 fileStatusElement.style.backgroundColor = "#b5e7d3";
-                fileStatusElement.style.color = "#008751";
+                fileStatusElement.style.color = "#747171";
                 fileStatusElement.style.width = "96px";
 
                 break;

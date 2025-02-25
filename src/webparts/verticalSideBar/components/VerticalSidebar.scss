@@ -16,7 +16,7 @@
   font-size: 14px;
 }
 .search_bar span{padding-left: 20px; color: #3c3c3c !important;}
-.search_bar span:hover{color: #1fb0e5 !important;}
+.search_bar span:hover{color: #f37421 !important;}
 .tabcss {
   background: #f7fbfc !important;
   border-radius: 2rem;
@@ -83,10 +83,12 @@
   overflow: hidden;
   border-radius: 20px;
 }
-.btn-success{background: rgba(31,176,229,1) !important;    border-color: #1fb0e5 !important;
+.btn-success{background: #f37421 !important;    border-color: #f37421 !important;
 }
-
-
+.ms-TextField-fieldGroup{height: 40px !important;min-height: max-content; border-radius: 5px;}
+input[type=password][disabled], input[type=text][disabled], input[type=file][disabled], input:not([type])[disabled], textarea[disabled], select[disabled], .sp-peoplepicker-topLevelDisabled, .ms-inputBoxDisabled{
+  border: none !important;
+}
 .announcementner {
   height: 330px;
   overflow: hidden;
@@ -98,7 +100,7 @@
   display: inline-block;
   border-radius: 5px;
   background: rgba(0, 135, 81, 0.20);
-  color: #008751;
+  color: #f37421;
   font-weight: 500;
 }
 .ongoing  {
@@ -208,7 +210,7 @@ a:hover, a:active {
 .sidebar .menu_items .active svg{color:#FFF !important;}
 .sidebar.close .navlink{color:#FFF !important;}
 .page-item.active .page-link{color: #fff !important;}
-.mtable th input:focus{outline: 2px solid #1fb0e5 !important;}
+.mtable th input:focus{outline: 2px solid #f37421 !important;}
 .mtable th #myDropdown{text-align: center;width: 70px;
   min-width: 73px; padding: 5px !important; right: 1px !important;   transform: translateY(0px) !important;}
 
@@ -217,7 +219,7 @@ a:hover, a:active {
   border-radius: 4px;
   background: rgba(0, 135, 81, 0.20) !important;
   font-weight: 500 !important;
-  color: #008751;
+  color: #f37421;
   Position: absolute;
   right: 0px;
   top: 13px;
@@ -238,7 +240,7 @@ a:hover, a:active {
   width: 66px;
   margin-left: -16px;
 }
-.loadernewadd{color: #1fb0e5;display: block; text-align:center ; font-size: 18px;gap: 0px;font-weight: 700;justify-content: center;
+.loadernewadd{color: #f37421;display: block; text-align:center ; font-size: 18px;gap: 0px;font-weight: 700;justify-content: center;
   align-items: center;vertical-align: middle;}
 .alignrightl{width: 50px; margin-top: 5px;}
 
@@ -267,14 +269,14 @@ a:hover, a:active {
   top: 5px;
   color: #fff !important;
   height: 24px !important;
-  background: #1fb0e5;
+  background: #f37421;
 }
 .view-all:hover{
-  background: #008751; color: #fff !important;
+  background: #f37421; color: #fff !important;
 }
 
 .annuncementcard h4{color: #343a40 !important;}
-.ht{   border: 1px solid #54ade0 !important;    height: 36px;
+.ht{   border: 1px solid #f37421 !important;    height: 36px;
   border-radius: 30px;
   font-size: 13px;}
 // .nose p{max-height: 77px; overflow-y: hidden;}
@@ -680,7 +682,7 @@ margin-left: 0px;
 }
 .link_name1:hover
 {
-  color:#1fb0e5 !important;
+  color:#f37421 !important;
   // color: #6c757d;
 }
 .link_name1:active
@@ -731,7 +733,7 @@ span.navlink:active {
   color: #fff !important;
 }
 span.navlink:hover {
-  color: #1fb0e5  !important;
+  color: #f37421  !important;
 }
 
 // @media (min-width: 576px) { 
@@ -1047,8 +1049,8 @@ background-color: rgb(167, 30, 132);
 }
 .btn-primary{height: auto !important;}
 .btn-primary:hover{
-  background: #008751 !important;
-  border-color: #008751 !important; color: #fff !important;
+  background: #f37421 !important;
+  border-color: #f37421 !important; color: #fff !important;
 }
 .heightcard {
   height: 160px !important;
@@ -1064,7 +1066,7 @@ background-color: rgb(167, 30, 132);
   background: transparent !important; color: #6c757d;
 }
 .submenu_item .item{
-margin: 10px 0px !important ;
+margin: 0px 0px !important ;
 }
 .navlink_icon svg{    height: 22px;
   width: 22px;}
@@ -1367,13 +1369,13 @@ margin: 10px 0px !important ;
 
 }
 .sidebar .menu_items .active{
-  background: #1fb0e5 !important; 
+  background: #f37421 !important; 
 }
 .sidebar .menu_items .active .link_name1{
 color: #fff !important;
 }
 .sidebar .menu_items .active{
-  background: #1fb0e5 !important; 
+  background: #f37421 !important; 
 }
 .sidebar .menu_items .active .link_name1{
   color: #fff !important;
@@ -1411,7 +1413,7 @@ color: #fff !important;
 .newc {
   background: #d2effa !important;
   border: none;
-  color: #1fb0e5 !important;
+  color: #f37421 !important;
   display: flex;
   font-size: 12px !important;
   height: 18px !important;
@@ -1710,17 +1712,17 @@ span.navlink.active {
   color: white;
 }
 .link_name1:visited {
-  color: #54ade0;
+  color: #f37421;
 }
 .nav_link .submenu_item .link_name1 span.navlink.active {
-  color: #54ade0;
+  color: #f37421;
 }
 .rounded-circlecss {
   border-radius: 50% !important;
   height: 2rem !important;
   width: 2rem !important; margin-right: 5px;
 }
-.nav-pills .nav-link{    border: 1px solid #54ade0 ;
+.nav-pills .nav-link{    border: 1px solid #f37421 ;
   margin: 0px 5px;
   color: #3c3c3c;
   font-size: 14px}
@@ -1765,14 +1767,14 @@ span.navlink.active {
 .gfg_tooltip:hover .gfg_text {
     visibility: visible;
 }
-a:hover{color: #1fb0e5 !important; cursor: pointer;}
-.hovertext:hover{color: #1fb0e5 !important; cursor: pointer;}
-.navbar_content svg:hover{color: #1fb0e5 !important; cursor: pointer;}
+a:hover{color: #f37421 !important; cursor: pointer;}
+.hovertext:hover{color: #f37421 !important; cursor: pointer;}
+.navbar_content svg:hover{color: #f37421 !important; cursor: pointer;}
 .filter-menu a:hover{
-  background: #1fb0e5; color: #fff !important;
+  background: #f37421; color: #fff !important;
 }
 .nav-pills .nav-link.active, .nav-pills .show>.nav-link{
-  background: #1fb0e5 !important;
+  background: #f37421 !important;
 border-radius: .5rem;
 color: #fff !important;
 }
@@ -1796,7 +1798,7 @@ color: #fff !important;
   background: #d2effa !important;
   border: none;
   border-radius: 1000px;
-  color: #1fb0e5 !important;
+  color: #f37421 !important;
   float: left;
   font-size: 16px !important;
   font-weight: 600;
@@ -1810,5 +1812,5 @@ color: #fff !important;
 .mtable th{position: relative;}
 .tabcss:hover{ background: #fff !important; color: #000 !important;}
 .cursor-none{cursor: none !important;}
-.swal2-confirm{background: #1fb0e5 !important; border-color: #1fb0e5 !important;box-shadow: none !important;}
-.swal2-confirm:hover{background: #008751 !important; border-color: #008751 !important;}
+.swal2-confirm{background: #f37421 !important; border-color: #f37421 !important;box-shadow: none !important;}
+.swal2-confirm:hover{background: #f37421 !important; border-color: #f37421 !important;}

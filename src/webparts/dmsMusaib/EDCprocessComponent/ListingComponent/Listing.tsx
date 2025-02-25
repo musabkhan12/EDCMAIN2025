@@ -42,29 +42,34 @@ export class Listing extends React.Component<IListingProps,IListingState> {
             alert(item.RequestId + "item.RequestId");
             return(
               <tr>
-                <td>
-                {i+1}
+                <td style={{minWidth:'60px',maxWidth:'60px'}}>
+               <div className='indexdesign'> {i+1}</div>
                 </td>
-                <td>
+                <td style={{minWidth:'85px',maxWidth:'85px'}}>
                     {item.RequestId}                  
                 </td>
                 <td>
                     {item.Title}
                 </td>
-                <td>
+                <td style={{minWidth:'85px',maxWidth:'85px'}}>
                     {item.ProcessName}
                 </td>
-                <td>
+                <td style={{minWidth:'85px',maxWidth:'85px'}}>
                 {item.ReqName}
                 </td>
-                <td>
+                <td style={{minWidth:'85px',maxWidth:'85px'}}>
                 {item.ReqDt}                    
                 </td>
-                <td>
+                <td style={{minWidth:'75px',maxWidth:'75px'}}>
                 {item.Status}
                 </td>
-                <td>
-                <a href={path} onClick={() => this.editItem(item)}>Edit</a>
+                <td style={{minWidth:'75px',maxWidth:'75px'}}>
+
+                
+                <a href={path} onClick={() => this.editItem(item)}>
+                <img src={require("../../assets/edit.png")} className="fas fa-trash"   alt="delete" />
+
+                </a>
                
                 </td>
               </tr> 
@@ -80,18 +85,18 @@ export class Listing extends React.Component<IListingProps,IListingState> {
         <EditComponent userid={this.props.userid} context={this.props.context} />
         </div>
         : 
-        <section>
-        <table id="tabAllItems">
+        <section style={{display:'grid'}}>
+        <table id="tabAllItems" className='mtbalenew'>
             <thead>
                 <tr>
-                    <th>Sl No</th>
-                    <th>Request Id</th>
+                    <th style={{minWidth:'60px',maxWidth:'60px'}}>S.No</th>
+                    <th style={{minWidth:'85px',maxWidth:'85px'}}>Request Id</th>
                     <th>Title</th>
-                    <th>Process Name</th>
-                    <th>Requested By</th>
-                    <th>Requested Date</th>
-                    <th>Status</th>
-                    <th>Action</th>
+                    <th style={{minWidth:'85px',maxWidth:'85px'}}>Process Name</th>
+                    <th style={{minWidth:'85px',maxWidth:'85px'}}>Requested By</th>
+                    <th style={{minWidth:'85px',maxWidth:'85px'}}>Requested Date</th>
+                    <th style={{minWidth:'75px',maxWidth:'75px'}}>Status</th>
+                    <th style={{minWidth:'75px',maxWidth:'75px'}}>Action</th>
                 </tr>
             </thead>
             <tbody>

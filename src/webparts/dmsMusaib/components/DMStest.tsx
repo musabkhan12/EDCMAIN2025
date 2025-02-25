@@ -2648,7 +2648,7 @@
 //       switch (file.Status) {
 //         case "Approved":
 //           fileStatusElement.style.backgroundColor = "#b5e7d3";
-//           fileStatusElement.style.color = "#008751";
+//           fileStatusElement.style.color = "#747171";
 //           break;
 //         case "Rejected":
 //           fileStatusElement.style.backgroundColor = "rgba(241, 85, 108, 0.1)";

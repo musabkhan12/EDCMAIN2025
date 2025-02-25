@@ -324,7 +324,7 @@
   }
   :root {
     --white-color: #fff;
-    --blue-color: #1fb0e5;
+    --blue-color: #f37421;
     --grey-color: #707070;
     --grey-color-light: #aaa;
     --coloradd:#707070;
@@ -339,7 +339,7 @@
   #s4-workspace.dark {
     --white-color: #333;
     --coloradd:#fff;
-    --blue-color: #1fb0e5;
+    --blue-color: #f37421;
     --grey-color: #f2f2f2;
     --grey-color-light: #aaa;
   }
@@ -362,23 +362,23 @@
   margin-bottom: 15px;
   border-radius: 15px;
   position: relative;
-  border: 2px solid #54ade0;
+  border: 2px solid #f37421;
 }
 // .btn-primary {
 //   --ct-btn-color: #fff;
-//   --ct-btn-bg: #1fb0e5;
-//   --ct-btn-border-color: #1fb0e5;
+//   --ct-btn-bg: #f37421;
+//   --ct-btn-border-color: #f37421;
 //   --ct-btn-hover-color: #fff;
-//   --ct-btn-hover-bg: #1fb0e5;
-//   --ct-btn-hover-border-color: #1fb0e5;
+//   --ct-btn-hover-bg: #f37421;
+//   --ct-btn-hover-border-color: #f37421;
 //   --ct-btn-focus-shadow-rgb: 145, 112, 203;
 //   --ct-btn-active-color: #fff;
-//   --ct-btn-active-bg: #1fb0e5;
-//   --ct-btn-active-border-color: #1fb0e5;
+//   --ct-btn-active-bg: #f37421;
+//   --ct-btn-active-border-color: #f37421;
 //   --ct-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
 //   --ct-btn-disabled-color: #fff;
-//   --ct-btn-disabled-bg: #1fb0e5;
-//   --ct-btn-disabled-border-color: #1fb0e5;
+//   --ct-btn-disabled-bg: #f37421;
+//   --ct-btn-disabled-border-color: #f37421;
 // }
 .btn-check:checked+.btn, .btn.active, .btn.show, .btn:first-child:active, :not(.btn-check)+.btn:active {
   background-color: var(--ct-btn-active-bg);
@@ -424,20 +424,20 @@ tbody tr:nth-child(odd)
 }
 .btn-primary {
   --ct-btn-color: #fff !important;
-  --ct-btn-bg: #1fb0e5 !important;
-  --bs-btn-bg: #1fb0e5 !important;
-  --ct-btn-border-color: #1fb0e5 !important;
+  --ct-btn-bg: #f37421 !important;
+  --bs-btn-bg: #f37421 !important;
+  --ct-btn-border-color: #f37421 !important;
   --ct-btn-hover-color: #fff !important;
-  --ct-btn-hover-bg: #1fb0e5 !important;
-  --ct-btn-hover-border-color: #1fb0e5 !important;
+  --ct-btn-hover-bg: #f37421 !important;
+  --ct-btn-hover-border-color: #f37421 !important;
   --ct-btn-focus-shadow-rgb: 145, 112, 203 !important;
   --ct-btn-active-color: #fff !important;
-  --ct-btn-active-bg: #1fb0e5 !important;
-  --ct-btn-active-border-color: #1fb0e5 !important;
+  --ct-btn-active-bg: #f37421 !important;
+  --ct-btn-active-border-color: #f37421 !important;
   --ct-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125) !important;
   --ct-btn-disabled-color: #fff !important;
-  --ct-btn-disabled-bg: #1fb0e5 !important;
-  --ct-btn-disabled-border-color: #1fb0e5 !important;
+  --ct-btn-disabled-bg: #f37421 !important;
+  --ct-btn-disabled-border-color: #f37421 !important;
   font-size: 0.875rem;
   border: none;
 }

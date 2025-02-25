@@ -11,7 +11,8 @@
   float: left; margin-top: 30px;
 
 }
-.cardsearch{    border: 1px solid #54ade0 !important;
+
+.cardsearch{    border: 1px solid #f37421 !important;
   border-radius: 6px !important;
   float: left;
   height: 140px;
@@ -22,7 +23,7 @@
   .cardsearch p.mb-0{margin-bottom: 0px !important;}
   .cardsearch .p1st a{color: #000 !important;}
   .width50{width: 50% !important; float: left;}
-  .cardsearch .p1st a:hover{color: #1fb0e5 !important;}
+  .cardsearch .p1st a:hover{color: #f37421 !important;}
   .cardsearch .p2nd span{font-weight: 600; color: #000;}
   .cardsearch .newfont{font-size: 14px;}
   .cardsearch .newdes{display: flex; gap: 10px;}
@@ -43,7 +44,7 @@
   padding-right: 10px;
 }
 button:hover{
-  background-color: #1fb0e5 !important;
+  background-color: #f37421 !important;
 }
 .mainsidebardms button:hover{
   background-color: #959b95 !important; color: #fff !important;
@@ -74,7 +75,7 @@ button:hover{
         color: #333;
     }
     .btn-primary{
-      background:#1fb0e5; border-color:#1fb0e5;
+      background:#f37421; border-color:#f37421;
     }
  
 .btn-secondary {
@@ -103,10 +104,110 @@ width: 100%;
 float: left;
 margin-bottom: 4px;
 }
+.newho{
+  height:39px !important; color: #000 !important; background: #fff !important; border: 1px solid #f37421 !important;
+}
+.dropdown-item:focus, .dropdown-item:hover{
+  background: #f3f7f9;color: #f37421 !important; 
+}
+.newtheme.dropdown-item:hover{
+  color: #f37421 !important; 
+}
+.ms-Dropdown{
+  border: 1px solid #ccc !important;
+  color: #212529 !important;
+  font-size: 1rem;
+  font-size: 1rem !important;
+  font-weight: 500;opacity: 1; height: 40px;
+  padding: 0px 0px; border-radius: 4px;
+}
+
+.dateTimePicker_998a39a1 .container_998a39a1 .row_998a39a1{
+  display: block !important;
+}
+.ms-inputBoxDisabled, .sp-peoplepicker-topLevelDisabled, input:not([type])[disabled], input[type=file][disabled], input[type=password][disabled], input[type=text][disabled], select[disabled], textarea[disabled]{
+  background-color: #f3f2f1 !important;
+}
+.card{
+  border-radius: 20px !important;
+}
+.ms-Checkbox-checkmark,.ms-DatePicker-event--without-label,.ms-Dropdown-caretDown,.ms-Button-icon{font-family: "Fluent MDL2 Hybrid Icons" !important;}
+#myModal{z-index: 99999 !important;}
+.ms-BasePicker-text{
+  border: 1px solid #ccc !important;
+  color: #212529 !important;
+  font-size: 1rem;
+  font-size: 1rem !important;
+  font-weight: 500; opacity: 1; min-width: 100%; border-radius: 5px;
+}
+input[type=password], input[type=text], input[type=file], input:not([type]), textarea, .ms-inputBox{
+  border-radius: 5px;
+}
+.ms-Dropdown-caretDown{
+  padding: 4px 5px 5px !important;
+}
+.ms-Button-label{font-weight: 400;}
+.ms-DatePicker-event--without-label{
+  padding: 12px 5px 5px !important; 
+}
+.ms-BasePicker-text, .ms-Dropdown{width: 100%;}
+.newf input,.newf select{
+  height: 38px !important;
+  
+  border-radius: 5px !important;
+
+}
+.ms-Button-flexContainer{margin-top: 0px !important;}
+.input-146{
+  height: 40px !important;
+  display: flex
+;
+  flex-direction: row;
+  align-items: stretch;
+  position: relative;
+  border-radius: 4px !important;
+}
+input:not([type]){
+  border: 0px solid #ccc !important;
+}
+.ms-TextField-fieldGroup{
+  border: 1px solid #ccc !important;
+}
+.ms-TextField-fieldGroup input{
+  border: 0px solid #ccc !important;
+}
+.ms-Dropdown-item{margin-top: 0px !important;}
+.ms-Dropdown-title{
+  border: 0px solid #ccc !important; height: 38px; border-radius: 5px; padding: 5px 10px !important; color: #212529 !important;
+}
+.cancel-btn{
+  background: #d3d4d5 !important;
+    border-color: #d3d4d5 !important;
+    border-radius: .375rem !important;
+    padding: 6px 12px !important;
+}
+#comm{
+  border: 1px solid #ccc !important; 
+}
+// .ms-Dropdown:after {
+//   border-bottom: 0;
+//     border-left: .4em solid transparent;
+//     border-right: .4em solid transparent;
+//     border-top: .4em solid;
+//     content: "";
+//     display: inline-block;
+//     margin-left: .255em;
+//     vertical-align: .255em;
+//     position: absolute;
+//     right: 17px;
+//     top: 14px;
+//     background: #fff
+// }
+
 .mtable th {
 background: rgba(0, 135, 81, 0.15) !important;
 font-weight: 600 !important;
-color: #008751;
+color: #747171;
 font-size: 14px;
 
 min-width: 130px;
@@ -170,7 +271,7 @@ display: flex;
   border-radius: 20px;
   width: 100%;
   margin: 0px auto 0px auto;
-  border: 2px solid #54ade0;
+  border: 2px solid #f37421;
 }
 .manage-master .box1 {
   background: #fff !important;
@@ -196,7 +297,7 @@ a:hover
   text-decoration: none;
 }
 .manage-master .box1:hover {
-  border: 2px solid #54ade0;
+  border: 2px solid #f37421;
   background: #efefef !important;
 }
 
@@ -558,10 +659,10 @@ top: 0;
 }
  #files-container button{    position: absolute;
   right: 28px;
-  font-size: 14px; background: #1fb0e5;
+  font-size: 14px; background: #f37421;
   margin-top: 0px;}
   #files-container button:hover{
-    background: #008751;
+    background: #747171;
   }
 .row1{width: 33.3%; float: left;}
 /* Styling for form groups (Field name and type) */
@@ -727,7 +828,7 @@ label{font-size: 0.875rem !important; font-weight: 400 !important; color: #6c757
  
 .detail-label-approver {
   font-weight: bold;
-  color: #008751;
+  color: #747171;
 }
  
 
@@ -846,11 +947,11 @@ border-radius: 5px;}
   width: 32.1%; margin: 5px; float: left;
 } 
 #files-container .card {
-  border: 1px solid #54ade0 !important;
+  border: 1px solid #f37421 !important;
   border-radius: 6px !important;
   height: 107px; padding: 0.75rem; position: relative !important;
 }
-.search-container input:focus{outline: 1px solid #1fb0e5 !important;}
+.search-container input:focus{outline: 1px solid #f37421 !important;}
 @media(max-width:640px){
   .w90{width: 80% !important; float: left;}
   .w20{
@@ -908,19 +1009,23 @@ text-align: center;}
 
 .file-extension-icon{
   border-radius: 3px;
-  width: 50px;
-  height: 50px;
-  background-color: #1fb0e5;
+  width: 35px;
+  height: 35px;
+  background-color: #f37421;
   display: flex;
   color: white;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 12px;
 }
 .CardTextContainer{
-  padding-left: 10px;
+  padding-left: 0px;
 }
 
 .flexContainer-75, .ms-TooltipHost, .root-53, .root-61 {
   display: block !important;
 }
+textarea .ms-TextField-field{
+  min-height: max-content !important;
+}
+.ms-PickerItem-removeButton{margin-top: 0px !important;}

@@ -390,7 +390,7 @@ const AdvancedSearch: React.FC<IAdvancedSearchProps> = (props) => {
                             <main className="mt-3 p-3 pb-0 col-12">
                                 <div className='row mt-3 p-3'>
                                     <section className='col-sm-3'>
-                                        <div  style={{border:'1px solid #1fb0e5', borderRadius:'30px'}}  className='card'>
+                                        <div  style={{border:'1px solid #f37421', borderRadius:'30px'}}  className='card'>
                                         
                                         <DMSSearchFilterCheckedDropDown context={props.context} 
                                         
@@ -497,7 +497,7 @@ const AdvancedSearch: React.FC<IAdvancedSearchProps> = (props) => {
                                             <h5 style={{textAlign:'left', fontSize:'20px'}} className='font-16 text-dark p-0 pt-4 mb-2'>Refiners</h5>
                                             <div className='row p-2'>
                                                 {searchRefiners?.map(refiner => (
-                                                    <div  style={{border:'1px solid #1fb0e5', borderRadius:'30px'}} key={refiner.field} className="card col-12 mb-3 pt-2">
+                                                    <div  style={{border:'1px solid #f37421', borderRadius:'30px'}} key={refiner.field} className="card col-12 mb-3 pt-2">
                                                         <h6 style={{textAlign:'left', fontSize:'16px'}} className='mt-2'>{GetFieldName(refiner.field)}</h6>
 
                                                         <div className="form-check">

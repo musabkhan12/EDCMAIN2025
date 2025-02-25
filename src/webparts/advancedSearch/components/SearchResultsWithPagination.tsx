@@ -107,7 +107,7 @@ export const SearchResultsWithPagination: React.FC<SearchResultsWithPaginationPr
             <div className="row p-2 pt-0">
                 {currentItems.map((res, index) => (
                     <div key={index} className="col-sm-4 mt-0 mb-3 search-result">
-                        <div style={{border:'1px solid #1fb0e5', borderRadius:'30px'}}  className="card h-100">
+                        <div style={{border:'1px solid #f37421', borderRadius:'30px'}}  className="card h-100">
                             <div className="card-body">
                                 <a href={res.Path} target='_blank'><h5 className="card-title">{res.Title}</h5></a>
                                 {/* <p className="card-text">{res.Summary}</p> */}
