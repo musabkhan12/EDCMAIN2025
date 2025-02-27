@@ -37,8 +37,11 @@ export class Listing extends React.Component<IListingProps,IListingState> {
     public render(): React.ReactElement<IListingProps> {   
         var showform = this.state.showform;
         // alert(this.state.showform + "showform");
+        console.log(this.state.items.length, "this.state.items.length");
         var allItems = this.state.items.map((item: any,i:number) => {
-            var path='#/approve/'+item.MainListId+'/'+item.Id;
+            console.log(item.ProcessName + "item.ProcessName");
+            console.log(item.MainListId + "item.MainListId");
+            var path=`#/${item.ProcessName}/${item.MainListId}/${item.Id}`
             // alert(item.RequestId + "item.RequestId");
             return(
               <tr>

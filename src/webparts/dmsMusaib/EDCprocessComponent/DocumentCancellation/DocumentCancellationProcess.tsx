@@ -1807,47 +1807,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                 <div >
                                     <div>
                                         {/* <!-- Left sidebar --> */}
-                                        <div className="inbox-leftbar">
+                                        {/* <div className="inbox-leftbar">
 
-                                            {/* <div className="mail-list mt-0">
-                                                <a href="dossier-list.html"
-                                                    style={{ background: "#fff !important" }}
-                                                    className="list-group-item border-0  mb-0 bg-soft-secondary rounded-pill">
-                                               
-                                                    <img src={require("../../assets/list.png")} className='sidebariconsmall'></img>
-                                                    My Request
-                                                </a>
-                                                <a href="favourite-folder.html"
-                                                    style={{ background: "#f7fbfc !important" }}
-                                                    className="list-group-item mb-0 border-0 rounded-pill">
-                                                   
-                                                    <img src={require("../../assets/star.png")} className='sidebariconsmall'></img>
-                                                    My Favourite
-                                                </a>
-                                                <a href="my-folder.html"
-                                                    style={{ background: "#f7fbfc !important" }}
-                                                    className="list-group-item mb-0 border-0 rounded-pill">
-                                                  
-                                                    <img src={require("../../assets/foldericon.png")} className='sidebariconsmall'></img>
-                                                    My Folder
-                                                </a>
-                                                <a href="share-with-other.html"
-                                                    style={{ background: "#f7fbfc !important" }}
-                                                    className="list-group-item border-0 mb-0 rounded-pill">
-                                           
-                                                    <img src={require("../../assets/share.png")} className='sidebariconsmall'></img>
-                                                    Share with Other
-                                                </a>
-                                                <a href="share-with-me.html"
-                                                    style={{ background: "#f7fbfc !important" }}
-                                                    className="list-group-item border-0 mb-0 rounded-pill">
                                     
-                                                    <img src={require("../../assets/nodes.png")} className='sidebariconsmall'></img>
-                                                    Share with me
-                                                </a>
-                                            </div> */}
-
-
 
                                             <div style={{clear:'both',float:'left', width:'100%'}} className="mt-3 border-top pt-1">
                                                 <button type="button" className="accordion4">
@@ -1859,21 +1821,21 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                             <ul style={{ listStyle: "none" }} className="nested active">
                                                                 <li style={{ paddingTop: "0px" }}>
                                                                     <span style={{ cursor: "pointer" }} className="box ng-binding check-box">
-                                                                        {/* <img  src={require("../assets/folder-plus.png")} className="foldert" alt="folder" /> */}
+                                                                 
                                                                         <img  src={require("../../assets/folder-plus.png")} className="foldert" alt="folder" />
                                                                         <a href="testing.html">Change Request</a>
                                                                     </span>
                                                                 </li>
                                                                 <li style={{ paddingTop: "10px" }} className="ng-scope">
                                                                     <span style={{ cursor: "pointer" }} className="box ng-binding">
-                                                                        {/* <img  src={require("../assets/folder-plus.png")} className="foldert" alt="folder" /> */}
+                                                                      
                                                                         <img  src={require("../../assets/folder-plus.png")} className="foldert" alt="folder" />
                                                                         Cancelled Documents
                                                                     </span>
                                                                 </li>
                                                                 <li style={{ paddingTop: "10px" }} className="ng-scope">
                                                                     <span style={{ cursor: "pointer" }} className="box ng-binding">
-                                                                        {/* <img  src={require("../assets/folder-plus.png")} className="foldert" alt="folder" /> */}
+                                                                      
                                                                         <img  src={require("../../assets/folder-plus.png")} className="foldert" alt="folder" />
                                                                         Audit Planning
                                                                     </span>
@@ -1881,7 +1843,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         <li style={{ paddingTop: "10px" }} className="ng-scope">
                                                                             <a href="Hr-folder-structure.html">
                                                                                 <span style={{ cursor: "pointer" }} className="box ng-binding">
-                                                                                    {/* <img  src={require("../assets/folder-plus.png")} className="foldert" alt="folder" /> */}
+                                                                                
                                                                                     <img  src={require("../../assets/folder-plus.png")} className="foldert" alt="folder" />
                                                                                     Memos
                                                                                 </span>
@@ -1890,7 +1852,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         <li style={{ paddingTop: "10px" }} className="ng-scope">
                                                                             <a href="Hr-folder-structure.html">
                                                                                 <span style={{ cursor: "pointer" }} className="box ng-binding">
-                                                                                    {/* <img  src={require("../assets/folder-plus.png")} className="foldert" alt="folder" /> */}
+                                                                                
                                                                                     <img  src={require("../../assets/folder-plus.png")} className="foldert" alt="folder" />
                                                                                     Audit Plan
                                                                                 </span>
@@ -1899,7 +1861,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         <li style={{ paddingTop: "10px" }} className="ng-scope">
                                                                             <a href="Hr-folder-structure.html">
                                                                                 <span style={{ cursor: "pointer" }} className="box ng-binding">
-                                                                                    {/* <img  src={require("../assets/folder-plus.png")} className="foldert" alt="folder" /> */}
+                                                                                
                                                                                     <img  src={require("../../assets/folder-plus.png")} className="foldert" alt="folder" />
                                                                                     Audit Checklist
                                                                                 </span>
@@ -1914,7 +1876,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                             </div>
 
 
-                                        </div>
+                                        </div>  */}
 
 
                                         <div className="inbox-rightbar">
