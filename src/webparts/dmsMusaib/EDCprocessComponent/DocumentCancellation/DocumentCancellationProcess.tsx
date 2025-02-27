@@ -1894,7 +1894,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                         <div style={{ minHeight: '100vh', marginTop: '100px' }} className="loadernewadd mt-10">
                                                             <div>
                                                                 <img
-                                                                    src={require("../../../CustomAsset/edc-gif.gif")}
+                                                                    src={require("../../assets/edc-gif.gif")}
                                                                     className="alignrightl"
                                                                     alt="Loading..."
                                                                 />
@@ -1902,7 +1902,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                             <span>Loading </span>{" "}
                                                             <span>
                                                                 <img
-                                                                    src={require("../../../CustomAsset/edcnew.gif")}
+                                                                    src={require("../../assets/edcnew.gif")}
                                                                     className="alignrightl"
                                                                     alt="Loading..."
                                                                 />

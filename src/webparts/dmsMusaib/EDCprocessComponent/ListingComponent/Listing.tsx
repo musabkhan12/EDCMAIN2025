@@ -131,53 +131,132 @@ export class Listing extends React.Component<IListingProps,IListingState,IFormPr
         this.setState({ showform: false });
       };
 
+    // private async getAllItems() {
+    //     var _self = this;
+    //     console.log(this.props.userid, "this.props.userid");
+    
+   
+    //     const processApprovalItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList")
+    //         .items.select('Id,RequesterNameId,RequestId,Title,ProcessName,ApprovalLevelListItemId,RequesterName/Title,Status,AssignedToId,RequestedDate,AssignedToId,ListItemId')
+    //         .expand('RequesterName')
+    //         .filter("AssignedToId eq '" + String(this.props.userid) + "' and Status eq 'Pending'")();
+    
+    //     let allItems: any[] = [];
+    
+     
+    //     processApprovalItems.forEach(itm => {
+    //         allItems.push({
+    //             RequestId: itm.RequestId,
+    //             Title: itm.Title,
+    //             ProcessName: itm.ProcessName,
+    //             ReqName: itm.RequesterName ? itm.RequesterName.Title : '',
+    //             ReqDt: itm.RequestedDate ? new Date(itm.RequestedDate).toLocaleDateString() : '',
+    //             Status: itm.Status,
+    //             MainListId: itm.ListItemId,
+    //             Id: itm.Id
+    //         });
+    //     });
+    
+   
+    //     const auditItems = await spfi(this._sp).web.lists.getByTitle("AnnualAuditProgram")
+    //         .items.select('Id,MemoNumber,Title,Author/Title,Created,Status')
+    //         .expand('Author')();
+    
+    
+    //     auditItems.forEach(itm => {
+    //         allItems.push({
+    //             RequestId: itm.MemoNumber,
+    //             Title: itm.Title, 
+    //             ProcessName: "Annual Audit Program", 
+    //             ReqName: itm.Author ? itm.Author.Title : '', 
+    //             ReqDt: itm.Created ? new Date(itm.Created).toLocaleDateString() : '', 
+    //             Status: itm.Status, 
+    //             MainListId: itm.Id, 
+    //             Id: itm.Id
+    //         });
+    //     });
+    
+    //     _self.setState({ items: allItems });
+    // }
+    
     private async getAllItems() {
         var _self = this;
         console.log(this.props.userid, "this.props.userid");
-    
    
-        const processApprovalItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList")
-            .items.select('Id,RequesterNameId,RequestId,Title,ProcessName,ApprovalLevelListItemId,RequesterName/Title,Status,AssignedToId,RequestedDate,AssignedToId,ListItemId')
-            .expand('RequesterName')
-            .filter("AssignedToId eq '" + String(this.props.userid) + "' and Status eq 'Pending'")();
-    
+   
+        // const processApprovalItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList")
+        //     .items.select('Id,RequesterNameId,RequestId,Title,ProcessName,ApprovalLevelListItemId,RequesterName/Title,Status,AssignedToId,RequestedDate,AssignedToId,ListItemId')
+        //     .expand('RequesterName')
+        //     .filter("AssignedToId eq '" + String(this.props.userid) + "' and Status eq 'Pending'")();
+   
         let allItems: any[] = [];
-    
+   
      
-        processApprovalItems.forEach(itm => {
-            allItems.push({
-                RequestId: itm.RequestId,
-                Title: itm.Title,
-                ProcessName: itm.ProcessName,
-                ReqName: itm.RequesterName ? itm.RequesterName.Title : '',
-                ReqDt: itm.RequestedDate ? new Date(itm.RequestedDate).toLocaleDateString() : '',
-                Status: itm.Status,
-                MainListId: itm.ListItemId,
-                Id: itm.Id
-            });
-        });
-    
+        // processApprovalItems.forEach(itm => {
+        //     allItems.push({
+        //         RequestId: itm.RequestId,
+        //         Title: itm.Title,
+        //         ProcessName: itm.ProcessName,
+        //         ReqName: itm.RequesterName ? itm.RequesterName.Title : '',
+        //         ReqDt: itm.RequestedDate ? new Date(itm.RequestedDate).toLocaleDateString() : '',
+        //         Status: itm.Status,
+        //         MainListId: itm.ListItemId,
+        //         Id: itm.Id
+        //     });
+        // });
+   
    
         const auditItems = await spfi(this._sp).web.lists.getByTitle("AnnualAuditProgram")
             .items.select('Id,MemoNumber,Title,Author/Title,Created,Status')
             .expand('Author')();
-    
-    
+   
+   
         auditItems.forEach(itm => {
             allItems.push({
                 RequestId: itm.MemoNumber,
-                Title: itm.Title, 
-                ProcessName: "Annual Audit Program", 
-                ReqName: itm.Author ? itm.Author.Title : '', 
-                ReqDt: itm.Created ? new Date(itm.Created).toLocaleDateString() : '', 
-                Status: itm.Status, 
-                MainListId: itm.Id, 
+                Title: itm.Title,
+                ProcessName: "Annual Audit Program",
+                ReqName: itm.Author ? itm.Author.Title : '',
+                ReqDt: itm.Created ? new Date(itm.Created).toLocaleDateString() : '',
+                Status: itm.Status,
+                MainListId: itm.Id,
                 Id: itm.Id
             });
         });
-    
+ 
+        const ChangeRequestDocumentCancellationListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestDocumentCancellationList")
+        .items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode')
+        .expand('Author','RequesterName')();
+   
+        ChangeRequestDocumentCancellationListItems.forEach((item)=>{
+            allItems.push({
+                RequestId: item.DocumentCode,
+                Title: item.Title,
+                ProcessName: "Document Cancellation",
+                ReqName: item.RequesterName?.Title ? item.RequesterName?.Title : '',
+                ReqDt: item.RequestDate? new Date(item.RequestDate).toLocaleDateString() : '',
+                Status: item.Status,
+                MainListId: item.Id,
+                Id: item.Id
+            });
+        })
+ 
+        const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList")
+        .items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode')
+        .expand('Author','RequesterName')();
+ 
+        ChangeRequestListItems.forEach((item)=>{
+            allItems.push({
+                RequestId: item.DocumentCode,
+                Title: item.Title,
+                ProcessName: "Change Request",
+                ReqName: item.RequesterName?.Title ? item.RequesterName?.Title : '',
+                ReqDt: item.RequestDate? new Date(item.RequestDate).toLocaleDateString() : '',
+                Status: item.Status,
+                MainListId: item.Id,
+                Id: item.Id
+            });
+        })
         _self.setState({ items: allItems });
     }
-    
-
 } 

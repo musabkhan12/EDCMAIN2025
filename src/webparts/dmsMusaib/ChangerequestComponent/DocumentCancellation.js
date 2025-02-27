@@ -138,6 +138,34 @@ export const addItemChangeRequestList = async (itemData, _sp) => {
   }
   return resultArr;
 };
+
+// export const addItemChangeRequestList = async (itemData, _sp) => {
+//   let resultArr = [];
+//   try {
+//     // Convert date fields to ISO 8601 format
+//     const formattedItemData = {
+//       ...itemData,
+//       RequestDate: itemData.RequestDate ? new Date(itemData.RequestDate).toISOString() : null,
+//       DueDate: itemData.DueDate ? new Date(itemData.DueDate).toISOString() : null,
+//     };
+
+//     console.log("Formatted Item Data:", formattedItemData);
+
+//     const newItem = await _sp.web.lists.getByTitle("ChangeRequestList").items.add(formattedItemData);
+
+//     console.log("Item added successfully:", newItem);
+//     resultArr = newItem;
+//   } catch (error) {
+//     console.log("Error adding item:", error);
+//     resultArr = null;
+//     Swal.fire("Cancelled", "", "error");
+//   }
+//   return resultArr;
+// };
+
+
+
+
 export const addItem2 = async (itemData, _sp) => {
 
   let resultArr = []
