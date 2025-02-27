@@ -59,7 +59,7 @@ import { SPFI } from "@pnp/sp";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 // import "bootstrap//dist/"
-
+import ChangeDocumentRequestContext from '../ChangerequestComponent/ChangeDocumentRequest';
 import {SharingRole} from "@pnp/sp/sharing";
 import "../../verticalSideBar/components/VerticalSidebar2.scss";
 import VerticalSideBar from "../../verticalSideBar/components/VerticalSideBar";
@@ -10899,6 +10899,14 @@ const testProess5 = async (event:React.MouseEvent<HTMLButtonElement> ) => {
     setlistorgriddata('showGridView');
     window.location.hash = "/edit/90";
 }
+const testProess6 = async (event:React.MouseEvent<HTMLButtonElement> ) => {
+    const getfilescontainer = document.getElementById('files-container')
+    if(getfilescontainer){
+      getfilescontainer.classList.add('hidemydatacards')
+    }
+    setlistorgriddata('ChangeRequest');
+    window.location.hash = "/ChangeRequest";
+}
 const myRequest = async (event:React.MouseEvent<HTMLButtonElement>=null, siteIdToUpdate: string = null,    searchText:any=null ) => {
   entityclicktext = ''
   setdisplayuploadfileandcreatefolder(false)
@@ -15183,6 +15191,12 @@ librarydiv.appendChild(mainContainer)
             handleShowContent(event as any);
           }}
           >Change Request edit</Dropdown.Item>
+          <Dropdown.Item href="#/Change Request"
+           onClick={(event) => {
+            testProess6(event as any);
+            handleShowContent(event as any);
+          }}
+          >Change Request </Dropdown.Item>
         </Dropdown.Menu>
       </Dropdown>
                               </div>
@@ -15492,6 +15506,11 @@ librarydiv.appendChild(mainContainer)
         <Listing 
         userid={currentUserIDref.current}
          context={props.context}
+        />
+      )}
+      {listorgriddata === 'ChangeRequest' && (
+        <ChangeDocumentRequestContext 
+         {...props}
         />
       )}
     </>

@@ -32,14 +32,14 @@ export class Listing extends React.Component<IListingProps,IListingState> {
       private editItem(item: any) {
         console.log("Editing item:", item);
         this.setState({ showform: true });
-        alert(this.state.showform + "showform");
+        // alert(this.state.showform + "showform");
       }
     public render(): React.ReactElement<IListingProps> {   
         var showform = this.state.showform;
-        alert(this.state.showform + "showform");
+        // alert(this.state.showform + "showform");
         var allItems = this.state.items.map((item: any,i:number) => {
             var path='#/approve/'+item.MainListId+'/'+item.Id;
-            alert(item.RequestId + "item.RequestId");
+            // alert(item.RequestId + "item.RequestId");
             return(
               <tr>
                 <td style={{minWidth:'60px',maxWidth:'60px'}}>

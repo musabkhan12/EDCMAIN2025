@@ -290,7 +290,7 @@ export class FormComponent extends React.Component<IFormProps, IState> {
     await this.getMemoNumber();
     await this.getRequestorRole();
     this.setState({isDisabled:false})
-    alert(this.state.isDisabled);
+    // alert(this.state.isDisabled);
 
     const url = window.location.href;
     console.log("window url:", url);
@@ -307,14 +307,14 @@ export class FormComponent extends React.Component<IFormProps, IState> {
       console.log("Extracted edType:", edType);
       console.log("Extracted itemId:", itemId);
       if(edType===""){
-        alert("new form");
+        // alert("new form");
         this.getData();
         this.setState({isDisabled:false})
         this.setState({showApprove:false});
         this.setState({showSubmit: true});
       }
      else if(edType==="approve"){
-        alert("approve");
+        // alert("approve");
         this.setState({isDisabled:true})
               this.setState({showApprove:true});
               this.setState({showSubmit: false});
@@ -322,14 +322,14 @@ export class FormComponent extends React.Component<IFormProps, IState> {
       }
       else if(edType==="edit"){
    
-     alert("edit");
+    //  alert("edit");
 this.getData();
 this.setState({isDisabled:false})
 this.setState({showApprove:false});
 this.setState({showSubmit: true});
       } else if(edType==="view")
       {
-        alert("view");
+        // alert("view");
         this.getData();
       this.setState({isDisabled:true})
 this.setState({showApprove:false});
@@ -390,8 +390,8 @@ this.setState({ edType, itemId }, () => {
   // After setting state, run conditional logic
   // this.handlePageState();
 });
-alert(`this.state.edType  ${this.state.edType}` );
-alert(`this.state.itemId  ${this.state.itemId}` );
+// alert(`this.state.edType  ${this.state.edType}` );
+// alert(`this.state.itemId  ${this.state.itemId}` );
 // Listen for hash changes (if the URL updates dynamically)
 // window.addEventListener("hashchange", this.handleHashChange);
   }
@@ -659,7 +659,7 @@ alert(`this.state.itemId  ${this.state.itemId}` );
           <h3 className='text-dark font-16 mb-3'> Audit Programme Detail</h3>
           <div className='row'>
             <div className='col-sm-4 mb-3'>
-            <Dropdown placeholder="Select options" label="Type" onChange={this.onYearSelect} options={this.state.options}  selectedKey={(this.state.type)} styles={dropdownStyles} disabled={this.state.isDisabled}/>
+            <Dropdown placeholder="Select options" label="Type" onChange={this.onYearSelect} options={this.state.options}  selectedKey={(this.state.type)} styles={dropdownStyles} />
 
             </div>
             <div className='col-sm-4 mb-3'>
@@ -1822,16 +1822,16 @@ private onYearSelect=(event: React.FormEvent<HTMLDivElement>, item: IDropdownOpt
 
 private async getData()
 {
-  alert("getData");
+  // alert("getData");
   var _self= this;
   //  this.setState({itemId:parseInt(this.state.edItm)});
  const spCache = spfi(this._sp).using(Caching({store:"session"}));
  console.log(spCache , "spCache spCache" );
 
  console.log(this.state.itemId , " itemIditemIditemId")
- alert(spCache); 
+//  alert(spCache); 
   const listItems = await  spfi(this._sp).web.lists.getByTitle("AnnualAuditProgram").items.getById(this.state.itemId).select("*", "To/Name","Cc/Name,Department/Title").expand("To","Department","Cc")();
-    alert(JSON.stringify(listItems));
+    // alert(JSON.stringify(listItems));
     this.setState({department:listItems.DepartmentId});
     if(listItems.DepartmentId !="")
     this.setState({departmentVal:listItems.Department.Title});
