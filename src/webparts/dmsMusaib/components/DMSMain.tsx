@@ -93,7 +93,7 @@ import "@pnp/sp/sites";
 import "@pnp/sp/site-users/web";
 import { PermissionKind } from "@pnp/sp/security";
 import { Dropdown, ButtonGroup } from "react-bootstrap";
-
+import DocumentCancellation from '../EDCprocessComponent/DocumentCancellation/DocumentCancellationProcess'
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../../CustomCss/mainCustom.scss";
 import "../../verticalSideBar/components/VerticalSidebar2.scss";
@@ -10907,6 +10907,16 @@ const testProess6 = async (event:React.MouseEvent<HTMLButtonElement> ) => {
     setlistorgriddata('ChangeRequest');
     window.location.hash = "/ChangeRequest";
 }
+
+const testProess7 = async (event:React.MouseEvent<HTMLButtonElement> ) => {
+  const getfilescontainer = document.getElementById('files-container')
+  if(getfilescontainer){
+    getfilescontainer.classList.add('hidemydatacards')
+  }
+  setlistorgriddata('DocumentCancellation');
+  window.location.hash = "/DocumentCancellation";
+
+}
 const myRequest = async (event:React.MouseEvent<HTMLButtonElement>=null, siteIdToUpdate: string = null,    searchText:any=null ) => {
   entityclicktext = ''
   setdisplayuploadfileandcreatefolder(false)
@@ -10933,15 +10943,15 @@ const myRequest = async (event:React.MouseEvent<HTMLButtonElement>=null, siteIdT
       }
     //End 
     
-setTimeout(() => {
+// setTimeout(() => {
 
-  setlistorgriddata('');  // Update state to '' after a delay
+//   setlistorgriddata('');  // Update state to '' after a delay
 
 
-}, 100);
+// }, 100);
 
-const wait = document.getElementById('files-container')
-wait.classList.remove('hidemydatacards')
+// const wait = document.getElementById('files-container')
+// wait.classList.remove('hidemydatacards')
 setShowMyrequButtons(true)
 setShowMyfavButtons(false)
 setMyreqormyfav('Myrequest')
@@ -10949,7 +10959,7 @@ setMyreqormyfav('Myrequest')
 const hidegidvewlistviewbutton=document.getElementById("hidegidvewlistviewbutton")
 if (hidegidvewlistviewbutton) {
   console.log("enter here .....................")
-  hidegidvewlistviewbutton.style.display = 'flex'
+  hidegidvewlistviewbutton.style.display = 'none'
  
 }
 const hidegidvewlistviewbutton2=document.getElementById("hidegidvewlistviewbutton2")
@@ -10961,13 +10971,13 @@ if (hidegidvewlistviewbutton2) {
 
 
 
-console.log("searchInput",searchText);
-console.log("siteIdToUpdate",siteIdToUpdate);
+// console.log("searchInput",searchText);
+// console.log("siteIdToUpdate",siteIdToUpdate);
 
-if(event){
-  event.preventDefault();
-  event.stopPropagation();
-}
+// if(event){
+//   event.preventDefault();
+//   event.stopPropagation();
+// }
 
 
 
@@ -10990,458 +11000,459 @@ if(event) {
   event.preventDefault();
   event.stopPropagation();
 }
+testProess2(event)
 
 // console.log("myFavorite Function is called");
 
-const container = document.getElementById("files-container");
-if(siteIdToUpdate ===  null){
-    container.innerHTML="";
-    // console.log("siteToUpdate")
-}
+// const container = document.getElementById("files-container");
+// if(siteIdToUpdate ===  null){
+//     container.innerHTML="";
+//     // console.log("siteToUpdate")
+// }
 
 // console.log("beforeFetchItems");
 // Fetch the list of active entity
-const FilesItems = await sp.web.lists
-  .getByTitle("MasterSiteURL")
-  .items.select("Title", "SiteID", "FileMasterList", "Active")
-  .filter(`Active eq 'Yes'`)();
+// const FilesItems = await sp.web.lists
+//   .getByTitle("MasterSiteURL")
+//   .items.select("Title", "SiteID", "FileMasterList", "Active")
+//   .filter(`Active eq 'Yes'`)();
 
 // console.log("Active Sites List Names", FilesItems);
 
-FilesItems.forEach(async (fileItem, index) => {
-  if (fileItem.FileMasterList !== null) {
+// FilesItems.forEach(async (fileItem, index) => {
+//   if (fileItem.FileMasterList !== null) {
 
-    // console.log("FilesItesms");
-    // Skip rendering if we're updating only a specific list
-    if (siteIdToUpdate && fileItem.SiteID !== siteIdToUpdate) {
-      return;
-    }
-
-    // console.log("SiteId", fileItem.SiteID);
-    console.log("fileItem.FileMasterList",fileItem.FileMasterList);
-    // const filesData = await sp.web.lists
-    //   .getByTitle(`${fileItem.FileMasterList}`)
-    //   .items.select("ID" , "FileName", "FileUID", "FileSize", "FileVersion" ,"Status" , "SiteID","CurrentFolderPath","DocumentLibraryName","SiteName","FilePreviewURL","IsDeleted")
-    //   .filter(
-    //     `CurrentUser eq '${currentUserEmailRef.current}'`
-    //   )();
-    const filesData = await sp.web.lists
-          .getByTitle(`${fileItem.FileMasterList}`)
-          .items.select("ID" , "FileName", "FileUID", "FileSize", "FileVersion" ,"Status" , "SiteID","CurrentFolderPath","DocumentLibraryName","SiteName","FilePreviewURL","IsDeleted","MyRequest" ,"Modified" ).filter(
-            `CurrentUser eq '${currentUserEmailRef.current}' and MyRequest eq 1`
-          ).orderBy("Modified", false)();
-    console.log("My reaquest Called");
-
-    // console.log("enter in the myRequest------")
-    console.log(fileItem.FileMasterList,"- FilesData",filesData)
-  // route to different-2 sideBar
-
-  let combineArray:any[]=[];
-  // start
-  routeToDiffSideBar="myRequest";
-  let filteredFileData=[];
-  if(searchText !== null){
-        filteredFileData=filesData.filter((file: any) => file?.FileName?.toLowerCase().includes(searchText?.value?.toLowerCase()))
-        // console.log("this is filtered data",filteredFileData)
-           // New Code to show pop up when no match found start
-           combineArray=[...combineArray, ...filteredFileData]
-           if(combineArray.length === 0 && searchText !== null && FilesItems.length === index+1){
-             console.log("combineArray",combineArray);
-             fileNotFound(`No files match ${searchText.value}`);
-           }
-           // End
-           // console.log("Index",index);
-  }else{
-    filteredFileData=filesData;
-  }
-  // end 
-
-  // change the array
-  filteredFileData.forEach((file) => {
-  //  console.log(file.ID , "file.odata.id ")
-  if(file.IsDeleted === null){
-    const card = document.createElement("div");
-    const fileSizeInKB = 2048; // Example file size in KB
-    const fileSizeInMB = (fileSizeInKB / 1024).toFixed(2); // Convert to MB and round to 2 decimal places
-
-    // console.log("searchArray",searchArray);
-    let fileIcon;
-    const fileExtension = file.FileName?.split(".").pop().toLowerCase(); // Get the file extension
-    // switch (fileExtension) {
-    //   case "doc":
-    //   case "docx":
-    //     fileIcon = Docicon;
-    //     break;
-    //   case "txt":
-    //     fileIcon = Txticon;
-    //     break;
-    //   case "pdf":
-    //     fileIcon = Pdficon;
-    //     break;
-    //   case "xls":
-    //   case "xlsx":
-    //     fileIcon = Xlsicon;
-    //     break;
-    //   case "zip":
-    //     fileIcon = Zipicon;
-    //     break;
-    //   default:
-    //     fileIcon = Docicon; // Default icon if no match
-    //     break;
-    // }
-    switch (fileExtension.toLowerCase()) {
-      // Documents
-      case "doc":
-      case "docx":
-        fileIcon = Docicon;
-        break;
-      case "txt":
-        fileIcon = Txticon;
-        break;
-      case "pdf":
-        fileIcon = Pdficon;
-        break;
-      case "xls":
-      case "xlsx":
-      case "csv":
-        fileIcon = Xlsicon;
-        break;
-      case "ppt":
-      case "pptx":
-        fileIcon = Ppticon;
-        break;
-    
-      // Images
-      case "jpg":
-      case "jpeg":
-      case "png":
-      case "gif":
-      case "bmp":
-      case "tiff":
-      case "svg":
-      case "webp":
-        fileIcon = Jpgicon;
-        break;
-    
-      // Audio
-      case "mp3":
-      case "wav":
-      case "aac":
-      case "ogg":
-      case "flac":
-        fileIcon = Mp3icon;
-        break;
-    
-      // Video
-      case "mp4":
-      case "avi":
-      case "mkv":
-      case "mov":
-      case "wmv":
-      case "flv":
-      case "webm":
-        fileIcon = Mp4icon;
-        break;
-    
-      // Compressed files
-      case "zip":
-      case "rar":
-      case "7z":
-      case "tar":
-      case "gz":
-        fileIcon = Zipicon;
-        break;
-    
-      // Code files
-      case "html":
-      case "css":
-      case "js":
-      case "ts":
-      case "json":
-      case "xml":
-      case "sql":
-      case "php":
-      case "py":
-      case "java":
-      case "c":
-      case "cpp":
-      case "cs":
-      case "swift":
-      case "go":
-      case "rb":
-        fileIcon = Htmlicon;
-        break;
-    
-      // Default
-      default:
-        fileIcon = Docicon; // Default fallback icon
-        break;
-    }
-const extensionHtml=createFileExtensionHtml(file.FileName);
-    
-    card.className = "card";
-    card.innerHTML = ` 
-    <div class="row"> 
-      <div class="col-md-2 pe-0"> 
-    <div class="IMGContainer">        
-      ${extensionHtml}
-    </div>
-    </div>
-        <div class="col-md-10"> 
-         <div class="CardTextContainer">
-      <p class="p1st" style="cursor: pointer;" onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">${file.FileName}</p>
-      <p class="p2nd">${file.DocumentLibraryName}</p>
-      <p class="p3rd ">${((file.FileSize as unknown as number) / (1024 * 1024)).toFixed(2)}MB</p>
-      <p class="filestatus myrequestp3rd"> ${file.Status ? file.Status : ''}  </p>
-      </div>
-
-      <div class="three-dots" onclick="toggleMenu2('${file.FileUID}','${fileItem.SiteID}','${file.ID}' , '${fileItem.FileMasterList}')  ">
-          <span>...</span>
-      </div>
-          </div> </div>
-    `;
-    // card.innerHTML = ` 
-    // <div class="row"> 
-    //   <div class="col-md-2 pe-0"> 
-    // <div class="IMGContainer">        
-    //   <img class="filextension" src=${fileIcon} alt="${fileExtension} icon"/>
-    // </div>
-    // </div>
-    //     <div class="col-md-10"> 
-    //      <div class="CardTextContainer">
-    //   <p class="p1st" style="cursor: pointer;" onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">${file.FileName}</p>
-    //   <p class="p2nd">${file.DocumentLibraryName}</p>
-    //   <p class="p3rd ">${((file.FileSize as unknown as number) / (1024 * 1024)).toFixed(2)}MB</p>
-    //   <p class="filestatus myrequestp3rd"> ${file.Status ? file.Status : ''}  </p>
-    //   </div>
-
-    //   <div class="three-dots" onclick="toggleMenu2('${file.FileUID}','${fileItem.SiteID}','${file.ID}' , '${fileItem.FileMasterList}')  ">
-    //       <span>...</span>
-    //   </div>
-    //       </div> </div>
-    // `;
-
-    const menu = document.createElement("div");
-    // console.log(menu , "menu is here")
-    menu.id = `menu-${file.FileUID}`;
-    menu.className = "popup-menu";
-    const showaudit = <FontAwesomeIcon style={{color: "black"}} icon={faListSquares}/>
-    menu.innerHTML = `
-     <ul>
-    <li onclick="auditHistory('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}')">
-          <img src=${editIcon} alt="Edit"/>
-                      Audit History
-    </li>
-    <li onclick="shareFile('${file.FileUID}', '${file.SiteID}','${file.CurrentFolderPath}','${file.FileName}','MyRequest','${file.FileVersion}','${file.FileSize}','${file.Status}','${file.FilePreviewURL}','${file.DocumentLibraryName}')">
-      <img src=${ShareFile} alt="Share"/> Share
-    </li>
-     <li onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
-         <img src=${FilePreview} alt="Preview File"/> Preview File
-       </li>
-       <li onclick="Download('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
-         <img src=${downloadicon} alt="Download File"/> Download File
-       </li>
-     ${file.Status === "Rework" ? `
-            <li onclick="rework('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}','${file.CurrentFolderPath}/${file.FileName}')">
-
-             <img src=${editIcon} alt="Edit File"/> Edit File
-      </li>` : ''}
-
-  </ul>
-    `;
-  //   menu.innerHTML = `
-  //    <ul>
-  //   <li onclick="confirmDeleteFile('${file.FileUID}','${file.SiteID}','${false}','${fileItem.FileMasterList}')">
-  //     <img src=${deleteIcon} alt="Delete"/> Delete
-  //   </li>
-  //   <li onclick="auditHistory('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}')">
-  //         <img src=${editIcon} alt="Edit"/>
-  //                     Audit History
-  //   </li>
-  //   <li onclick="shareFile('${file.FileUID}', '${file.SiteID}','${file.CurrentFolderPath}','${file.FileName}','MyRequest','${file.FileVersion}','${file.FileSize}','${file.Status}','${file.FilePreviewURL}','${file.DocumentLibraryName}')">
-  //     <img src=${ShareFile} alt="Share"/> Share
-  //   </li>
-  //    <li onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
-  //        <img src=${viewIcon} alt="Preview File"/> Preview File
-  //      </li>
-  //      <li onclick="Download('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
-  //        <img src=${downloadicon} alt="Download File"/> Download File
-  //      </li>
-
-  // </ul>
-  //   `;
-  //   menu.innerHTML = `
-  //    <ul>
-  //   <li onclick="confirmDeleteFile('${file.FileUID}','${file.SiteID}','${false}','${fileItem.FileMasterList}')">
-  //     <img src=${deleteIcon} alt="Delete"/> Delete
-  //   </li>
-  //   <li onclick="auditHistory('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}')">
-  //         <img src=${editIcon} alt="Edit"/>
-  //                     Audit History
-  //   </li>
-  //   <li onclick="shareFile('${file.FileUID}', '${file.SiteID}','${file.CurrentFolderPath}','${file.FileName}','MyRequest','${file.FileVersion}','${file.FileSize}','${file.Status}','${file.FilePreviewURL}','${file.DocumentLibraryName}')">
-  //     <img src=${ShareFile} alt="Share"/> Share
-  //   </li>
-  //    <li onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
-  //        <img src=${viewIcon} alt="Preview File"/> Preview File
-  //      </li>
-  //      <li onclick="Download('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
-  //        <img src=${downloadicon} alt="Download File"/> Download File
-  //      </li>
-  //   ${file.Status === "Rework" ? `
-  //    <li onclick="rework('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}','${file.CurrentFolderPath}/${file.FileName}')">
-
-  //         <img src=${editIcon} alt="Edit File"/> Edit File
-  //     </li>` : ''}
-  // </ul>
-  //   `;
-    
-
-    
-    card.appendChild(menu);
-    // Change the background color and text color based on FileStatus
-    const fileStatusElement = card.querySelector(".filestatus") as HTMLElement;
-    switch (file.Status) {
-      case "Approved":
-        fileStatusElement.style.backgroundColor = "#b5e7d3";
-        fileStatusElement.style.color = "#747171";
-        break;
-      case "Auto Approved":
-        fileStatusElement.style.backgroundColor = "#b5e7d3";
-        fileStatusElement.style.color = "#747171";
-        fileStatusElement.style.width = "96px";
-
-        break;
-      case "Rejected":
-        fileStatusElement.style.backgroundColor = "rgba(241, 85, 108, 0.1)";
-        fileStatusElement.style.color = "#f1556c";
-        break;
-      case "Rework":
-        fileStatusElement.style.backgroundColor = "#ffecc4";
-        fileStatusElement.style.color = "rgba(247, 184, 75)";
-        break;
-        case "Pending":
-          fileStatusElement.style.backgroundColor = "rgb(91 156 187 / 25%)";
-          fileStatusElement.style.color = "#000b56";
-          break;
-          default:
-            fileStatusElement.style.backgroundColor = "none";
-            fileStatusElement.style.color = "none";
-            break;
-    }
-    
-    container.appendChild(card);
-    // check file status if approved hide the delete button
-    // const menu1 = document.getElementById(`menu-${file.FileUID}`);
-    // console.log("menu1",menu1);
-    // if(file.Status === "Approved" || file.Status === null){
-    //   const firstItem = menu1.children[0]?.children[0] as HTMLElement;
-    //   if (firstItem && firstItem.style.display !== "none") {
-    //       firstItem.style.display = "none";
-    //   }
-    // }
-  }
-//   const card = document.createElement("div");
-  
-//   // console.log("searchArray",searchArray);
-//   let fileIcon;
-//   const fileExtension = file.FileName?.split(".").pop().toLowerCase(); // Get the file extension
-//   switch (fileExtension) {
-//     case "doc":
-//     case "docx":
-//       fileIcon = Docicon;
-//       break;
-//     case "txt":
-//       fileIcon = Txticon;
-//       break;
-//     case "pdf":
-//       fileIcon = Pdficon;
-//       break;
-//     case "xls":
-//     case "xlsx":
-//       fileIcon = Xlsicon;
-//       break;
-//     case "zip":
-//       fileIcon = Zipicon;
-//       break;
-//     default:
-//       fileIcon = Docicon; // Default icon if no match
-//       break;
-//   }
-
-//   card.className = "card";
-//   card.innerHTML = `         
-//     <img class="filextension" src=${fileIcon} alt="${fileExtension} icon"/>
-//     <p class="p1st">${file.FileName}</p>
-//     <p class="p2nd"></p>
-//     <p class="p3rd">${file.FileSize}</p>
-//     <p class="filestatus"> ${file.Status}  </p>
-//     <div class="three-dots" onclick="toggleMenu2('${file.FileUID}','${fileItem.SiteID}','${file.ID}' , '${fileItem.FileMasterList}')  ">
-//         <span>...</span>
-//     </div>
-//   `;
-
-//   const menu = document.createElement("div");
-//   // console.log(menu , "menu is here")
-//   menu.id = `menu-${file.FileUID}`;
-//   menu.className = "popup-menu";
-//   const showaudit = <FontAwesomeIcon style={{color: "black"}} icon={faListSquares}/>
-//   menu.innerHTML = `
-//    <ul>
-//   <li onclick="confirmDeleteFile('${file.FileUID}','${file.SiteID}','${false}','${fileItem.FileMasterList}')">
-//     <img src=${deleteIcon} alt="Delete"/> Delete
-//   </li>
-//   <li onclick="auditHistory('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}')">
-//         <img src=${editIcon} alt="Edit"/>
-//                     Audit History
-//   </li>
-//   <li onclick="shareFile('${file.FileUID}', '${file.SiteID}','${file.CurrentFolderPath}','${file.FileName}','MyRequest','${file.FileVersion}','${file.FileSize}','${file.Status}','${file.FilePreviewURL}','${file.DocumentLibraryName}')">
-//     <img src=${ShareFile} alt="Share"/> Share
-//   </li>
-// </ul>
-//   `;
-  
-
-  
-//   card.appendChild(menu);
-//   // Change the background color and text color based on FileStatus
-//   const fileStatusElement = card.querySelector(".filestatus") as HTMLElement;
-//   switch (file.Status) {
-//     case "Approved":
-//       fileStatusElement.style.backgroundColor = "#b5e7d3";
-//       fileStatusElement.style.color = "#747171";
-//       break;
-//     case "Rejected":
-//       fileStatusElement.style.backgroundColor = "rgba(241, 85, 108, 0.1)";
-//       fileStatusElement.style.color = "#f1556c";
-//       break;
-//     case "Rework":
-//       fileStatusElement.style.backgroundColor = "#ffecc4";
-//       fileStatusElement.style.color = "rgba(247, 184, 75)";
-//       break;
-//       case "Pending":
-//         fileStatusElement.style.backgroundColor = "rgb(91 156 187 / 25%)";
-//         fileStatusElement.style.color = "#000b56";
-//         break;
-//         default:
-//           fileStatusElement.style.backgroundColor = "gray";
-//           fileStatusElement.style.color = "white";
-//           break;
-//   }
-  
-//   container.appendChild(card);
-//   // check file status if approved hide the delete button
-//   const menu1 = document.getElementById(`menu-${file.FileUID}`);
-//   // console.log("menu1",menu1);
-//   if(file.Status === "Approved" || file.Status === null){
-//     const firstItem = menu1.children[0]?.children[0] as HTMLElement;
-//     if (firstItem && firstItem.style.display !== "none") {
-//         firstItem.style.display = "none";
+//     // console.log("FilesItesms");
+//     // Skip rendering if we're updating only a specific list
+//     if (siteIdToUpdate && fileItem.SiteID !== siteIdToUpdate) {
+//       return;
 //     }
+
+//     // console.log("SiteId", fileItem.SiteID);
+//     console.log("fileItem.FileMasterList",fileItem.FileMasterList);
+//     // const filesData = await sp.web.lists
+//     //   .getByTitle(`${fileItem.FileMasterList}`)
+//     //   .items.select("ID" , "FileName", "FileUID", "FileSize", "FileVersion" ,"Status" , "SiteID","CurrentFolderPath","DocumentLibraryName","SiteName","FilePreviewURL","IsDeleted")
+//     //   .filter(
+//     //     `CurrentUser eq '${currentUserEmailRef.current}'`
+//     //   )();
+//     const filesData = await sp.web.lists
+//           .getByTitle(`${fileItem.FileMasterList}`)
+//           .items.select("ID" , "FileName", "FileUID", "FileSize", "FileVersion" ,"Status" , "SiteID","CurrentFolderPath","DocumentLibraryName","SiteName","FilePreviewURL","IsDeleted","MyRequest" ,"Modified" ).filter(
+//             `CurrentUser eq '${currentUserEmailRef.current}' and MyRequest eq 1`
+//           ).orderBy("Modified", false)();
+//     console.log("My reaquest Called");
+
+//     // console.log("enter in the myRequest------")
+//     console.log(fileItem.FileMasterList,"- FilesData",filesData)
+//   // route to different-2 sideBar
+
+//   let combineArray:any[]=[];
+//   // start
+//   routeToDiffSideBar="myRequest";
+//   let filteredFileData=[];
+//   if(searchText !== null){
+//         filteredFileData=filesData.filter((file: any) => file?.FileName?.toLowerCase().includes(searchText?.value?.toLowerCase()))
+//         // console.log("this is filtered data",filteredFileData)
+//            // New Code to show pop up when no match found start
+//            combineArray=[...combineArray, ...filteredFileData]
+//            if(combineArray.length === 0 && searchText !== null && FilesItems.length === index+1){
+//              console.log("combineArray",combineArray);
+//              fileNotFound(`No files match ${searchText.value}`);
+//            }
+//            // End
+//            // console.log("Index",index);
+//   }else{
+//     filteredFileData=filesData;
 //   }
-    });
-  }
-});
+//   // end 
+
+//   // change the array
+//   filteredFileData.forEach((file) => {
+//   //  console.log(file.ID , "file.odata.id ")
+//   if(file.IsDeleted === null){
+//     const card = document.createElement("div");
+//     const fileSizeInKB = 2048; // Example file size in KB
+//     const fileSizeInMB = (fileSizeInKB / 1024).toFixed(2); // Convert to MB and round to 2 decimal places
+
+//     // console.log("searchArray",searchArray);
+//     let fileIcon;
+//     const fileExtension = file.FileName?.split(".").pop().toLowerCase(); // Get the file extension
+//     // switch (fileExtension) {
+//     //   case "doc":
+//     //   case "docx":
+//     //     fileIcon = Docicon;
+//     //     break;
+//     //   case "txt":
+//     //     fileIcon = Txticon;
+//     //     break;
+//     //   case "pdf":
+//     //     fileIcon = Pdficon;
+//     //     break;
+//     //   case "xls":
+//     //   case "xlsx":
+//     //     fileIcon = Xlsicon;
+//     //     break;
+//     //   case "zip":
+//     //     fileIcon = Zipicon;
+//     //     break;
+//     //   default:
+//     //     fileIcon = Docicon; // Default icon if no match
+//     //     break;
+//     // }
+//     switch (fileExtension.toLowerCase()) {
+//       // Documents
+//       case "doc":
+//       case "docx":
+//         fileIcon = Docicon;
+//         break;
+//       case "txt":
+//         fileIcon = Txticon;
+//         break;
+//       case "pdf":
+//         fileIcon = Pdficon;
+//         break;
+//       case "xls":
+//       case "xlsx":
+//       case "csv":
+//         fileIcon = Xlsicon;
+//         break;
+//       case "ppt":
+//       case "pptx":
+//         fileIcon = Ppticon;
+//         break;
+    
+//       // Images
+//       case "jpg":
+//       case "jpeg":
+//       case "png":
+//       case "gif":
+//       case "bmp":
+//       case "tiff":
+//       case "svg":
+//       case "webp":
+//         fileIcon = Jpgicon;
+//         break;
+    
+//       // Audio
+//       case "mp3":
+//       case "wav":
+//       case "aac":
+//       case "ogg":
+//       case "flac":
+//         fileIcon = Mp3icon;
+//         break;
+    
+//       // Video
+//       case "mp4":
+//       case "avi":
+//       case "mkv":
+//       case "mov":
+//       case "wmv":
+//       case "flv":
+//       case "webm":
+//         fileIcon = Mp4icon;
+//         break;
+    
+//       // Compressed files
+//       case "zip":
+//       case "rar":
+//       case "7z":
+//       case "tar":
+//       case "gz":
+//         fileIcon = Zipicon;
+//         break;
+    
+//       // Code files
+//       case "html":
+//       case "css":
+//       case "js":
+//       case "ts":
+//       case "json":
+//       case "xml":
+//       case "sql":
+//       case "php":
+//       case "py":
+//       case "java":
+//       case "c":
+//       case "cpp":
+//       case "cs":
+//       case "swift":
+//       case "go":
+//       case "rb":
+//         fileIcon = Htmlicon;
+//         break;
+    
+//       // Default
+//       default:
+//         fileIcon = Docicon; // Default fallback icon
+//         break;
+//     }
+// const extensionHtml=createFileExtensionHtml(file.FileName);
+    
+//     card.className = "card";
+//     card.innerHTML = ` 
+//     <div class="row"> 
+//       <div class="col-md-2 pe-0"> 
+//     <div class="IMGContainer">        
+//       ${extensionHtml}
+//     </div>
+//     </div>
+//         <div class="col-md-10"> 
+//          <div class="CardTextContainer">
+//       <p class="p1st" style="cursor: pointer;" onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">${file.FileName}</p>
+//       <p class="p2nd">${file.DocumentLibraryName}</p>
+//       <p class="p3rd ">${((file.FileSize as unknown as number) / (1024 * 1024)).toFixed(2)}MB</p>
+//       <p class="filestatus myrequestp3rd"> ${file.Status ? file.Status : ''}  </p>
+//       </div>
+
+//       <div class="three-dots" onclick="toggleMenu2('${file.FileUID}','${fileItem.SiteID}','${file.ID}' , '${fileItem.FileMasterList}')  ">
+//           <span>...</span>
+//       </div>
+//           </div> </div>
+//     `;
+//     // card.innerHTML = ` 
+//     // <div class="row"> 
+//     //   <div class="col-md-2 pe-0"> 
+//     // <div class="IMGContainer">        
+//     //   <img class="filextension" src=${fileIcon} alt="${fileExtension} icon"/>
+//     // </div>
+//     // </div>
+//     //     <div class="col-md-10"> 
+//     //      <div class="CardTextContainer">
+//     //   <p class="p1st" style="cursor: pointer;" onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">${file.FileName}</p>
+//     //   <p class="p2nd">${file.DocumentLibraryName}</p>
+//     //   <p class="p3rd ">${((file.FileSize as unknown as number) / (1024 * 1024)).toFixed(2)}MB</p>
+//     //   <p class="filestatus myrequestp3rd"> ${file.Status ? file.Status : ''}  </p>
+//     //   </div>
+
+//     //   <div class="three-dots" onclick="toggleMenu2('${file.FileUID}','${fileItem.SiteID}','${file.ID}' , '${fileItem.FileMasterList}')  ">
+//     //       <span>...</span>
+//     //   </div>
+//     //       </div> </div>
+//     // `;
+
+//     const menu = document.createElement("div");
+//     // console.log(menu , "menu is here")
+//     menu.id = `menu-${file.FileUID}`;
+//     menu.className = "popup-menu";
+//     const showaudit = <FontAwesomeIcon style={{color: "black"}} icon={faListSquares}/>
+//     menu.innerHTML = `
+//      <ul>
+//     <li onclick="auditHistory('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}')">
+//           <img src=${editIcon} alt="Edit"/>
+//                       Audit History
+//     </li>
+//     <li onclick="shareFile('${file.FileUID}', '${file.SiteID}','${file.CurrentFolderPath}','${file.FileName}','MyRequest','${file.FileVersion}','${file.FileSize}','${file.Status}','${file.FilePreviewURL}','${file.DocumentLibraryName}')">
+//       <img src=${ShareFile} alt="Share"/> Share
+//     </li>
+//      <li onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
+//          <img src=${FilePreview} alt="Preview File"/> Preview File
+//        </li>
+//        <li onclick="Download('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
+//          <img src=${downloadicon} alt="Download File"/> Download File
+//        </li>
+//      ${file.Status === "Rework" ? `
+//             <li onclick="rework('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}','${file.CurrentFolderPath}/${file.FileName}')">
+
+//              <img src=${editIcon} alt="Edit File"/> Edit File
+//       </li>` : ''}
+
+//   </ul>
+//     `;
+//   //   menu.innerHTML = `
+//   //    <ul>
+//   //   <li onclick="confirmDeleteFile('${file.FileUID}','${file.SiteID}','${false}','${fileItem.FileMasterList}')">
+//   //     <img src=${deleteIcon} alt="Delete"/> Delete
+//   //   </li>
+//   //   <li onclick="auditHistory('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}')">
+//   //         <img src=${editIcon} alt="Edit"/>
+//   //                     Audit History
+//   //   </li>
+//   //   <li onclick="shareFile('${file.FileUID}', '${file.SiteID}','${file.CurrentFolderPath}','${file.FileName}','MyRequest','${file.FileVersion}','${file.FileSize}','${file.Status}','${file.FilePreviewURL}','${file.DocumentLibraryName}')">
+//   //     <img src=${ShareFile} alt="Share"/> Share
+//   //   </li>
+//   //    <li onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
+//   //        <img src=${viewIcon} alt="Preview File"/> Preview File
+//   //      </li>
+//   //      <li onclick="Download('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
+//   //        <img src=${downloadicon} alt="Download File"/> Download File
+//   //      </li>
+
+//   // </ul>
+//   //   `;
+//   //   menu.innerHTML = `
+//   //    <ul>
+//   //   <li onclick="confirmDeleteFile('${file.FileUID}','${file.SiteID}','${false}','${fileItem.FileMasterList}')">
+//   //     <img src=${deleteIcon} alt="Delete"/> Delete
+//   //   </li>
+//   //   <li onclick="auditHistory('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}')">
+//   //         <img src=${editIcon} alt="Edit"/>
+//   //                     Audit History
+//   //   </li>
+//   //   <li onclick="shareFile('${file.FileUID}', '${file.SiteID}','${file.CurrentFolderPath}','${file.FileName}','MyRequest','${file.FileVersion}','${file.FileSize}','${file.Status}','${file.FilePreviewURL}','${file.DocumentLibraryName}')">
+//   //     <img src=${ShareFile} alt="Share"/> Share
+//   //   </li>
+//   //    <li onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
+//   //        <img src=${viewIcon} alt="Preview File"/> Preview File
+//   //      </li>
+//   //      <li onclick="Download('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
+//   //        <img src=${downloadicon} alt="Download File"/> Download File
+//   //      </li>
+//   //   ${file.Status === "Rework" ? `
+//   //    <li onclick="rework('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}','${file.CurrentFolderPath}/${file.FileName}')">
+
+//   //         <img src=${editIcon} alt="Edit File"/> Edit File
+//   //     </li>` : ''}
+//   // </ul>
+//   //   `;
+    
+
+    
+//     card.appendChild(menu);
+//     // Change the background color and text color based on FileStatus
+//     const fileStatusElement = card.querySelector(".filestatus") as HTMLElement;
+//     switch (file.Status) {
+//       case "Approved":
+//         fileStatusElement.style.backgroundColor = "#b5e7d3";
+//         fileStatusElement.style.color = "#747171";
+//         break;
+//       case "Auto Approved":
+//         fileStatusElement.style.backgroundColor = "#b5e7d3";
+//         fileStatusElement.style.color = "#747171";
+//         fileStatusElement.style.width = "96px";
+
+//         break;
+//       case "Rejected":
+//         fileStatusElement.style.backgroundColor = "rgba(241, 85, 108, 0.1)";
+//         fileStatusElement.style.color = "#f1556c";
+//         break;
+//       case "Rework":
+//         fileStatusElement.style.backgroundColor = "#ffecc4";
+//         fileStatusElement.style.color = "rgba(247, 184, 75)";
+//         break;
+//         case "Pending":
+//           fileStatusElement.style.backgroundColor = "rgb(91 156 187 / 25%)";
+//           fileStatusElement.style.color = "#000b56";
+//           break;
+//           default:
+//             fileStatusElement.style.backgroundColor = "none";
+//             fileStatusElement.style.color = "none";
+//             break;
+//     }
+    
+//     container.appendChild(card);
+//     // check file status if approved hide the delete button
+//     // const menu1 = document.getElementById(`menu-${file.FileUID}`);
+//     // console.log("menu1",menu1);
+//     // if(file.Status === "Approved" || file.Status === null){
+//     //   const firstItem = menu1.children[0]?.children[0] as HTMLElement;
+//     //   if (firstItem && firstItem.style.display !== "none") {
+//     //       firstItem.style.display = "none";
+//     //   }
+//     // }
+//   }
+// //   const card = document.createElement("div");
+  
+// //   // console.log("searchArray",searchArray);
+// //   let fileIcon;
+// //   const fileExtension = file.FileName?.split(".").pop().toLowerCase(); // Get the file extension
+// //   switch (fileExtension) {
+// //     case "doc":
+// //     case "docx":
+// //       fileIcon = Docicon;
+// //       break;
+// //     case "txt":
+// //       fileIcon = Txticon;
+// //       break;
+// //     case "pdf":
+// //       fileIcon = Pdficon;
+// //       break;
+// //     case "xls":
+// //     case "xlsx":
+// //       fileIcon = Xlsicon;
+// //       break;
+// //     case "zip":
+// //       fileIcon = Zipicon;
+// //       break;
+// //     default:
+// //       fileIcon = Docicon; // Default icon if no match
+// //       break;
+// //   }
+
+// //   card.className = "card";
+// //   card.innerHTML = `         
+// //     <img class="filextension" src=${fileIcon} alt="${fileExtension} icon"/>
+// //     <p class="p1st">${file.FileName}</p>
+// //     <p class="p2nd"></p>
+// //     <p class="p3rd">${file.FileSize}</p>
+// //     <p class="filestatus"> ${file.Status}  </p>
+// //     <div class="three-dots" onclick="toggleMenu2('${file.FileUID}','${fileItem.SiteID}','${file.ID}' , '${fileItem.FileMasterList}')  ">
+// //         <span>...</span>
+// //     </div>
+// //   `;
+
+// //   const menu = document.createElement("div");
+// //   // console.log(menu , "menu is here")
+// //   menu.id = `menu-${file.FileUID}`;
+// //   menu.className = "popup-menu";
+// //   const showaudit = <FontAwesomeIcon style={{color: "black"}} icon={faListSquares}/>
+// //   menu.innerHTML = `
+// //    <ul>
+// //   <li onclick="confirmDeleteFile('${file.FileUID}','${file.SiteID}','${false}','${fileItem.FileMasterList}')">
+// //     <img src=${deleteIcon} alt="Delete"/> Delete
+// //   </li>
+// //   <li onclick="auditHistory('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}')">
+// //         <img src=${editIcon} alt="Edit"/>
+// //                     Audit History
+// //   </li>
+// //   <li onclick="shareFile('${file.FileUID}', '${file.SiteID}','${file.CurrentFolderPath}','${file.FileName}','MyRequest','${file.FileVersion}','${file.FileSize}','${file.Status}','${file.FilePreviewURL}','${file.DocumentLibraryName}')">
+// //     <img src=${ShareFile} alt="Share"/> Share
+// //   </li>
+// // </ul>
+// //   `;
+  
+
+  
+// //   card.appendChild(menu);
+// //   // Change the background color and text color based on FileStatus
+// //   const fileStatusElement = card.querySelector(".filestatus") as HTMLElement;
+// //   switch (file.Status) {
+// //     case "Approved":
+// //       fileStatusElement.style.backgroundColor = "#b5e7d3";
+// //       fileStatusElement.style.color = "#747171";
+// //       break;
+// //     case "Rejected":
+// //       fileStatusElement.style.backgroundColor = "rgba(241, 85, 108, 0.1)";
+// //       fileStatusElement.style.color = "#f1556c";
+// //       break;
+// //     case "Rework":
+// //       fileStatusElement.style.backgroundColor = "#ffecc4";
+// //       fileStatusElement.style.color = "rgba(247, 184, 75)";
+// //       break;
+// //       case "Pending":
+// //         fileStatusElement.style.backgroundColor = "rgb(91 156 187 / 25%)";
+// //         fileStatusElement.style.color = "#000b56";
+// //         break;
+// //         default:
+// //           fileStatusElement.style.backgroundColor = "gray";
+// //           fileStatusElement.style.color = "white";
+// //           break;
+// //   }
+  
+// //   container.appendChild(card);
+// //   // check file status if approved hide the delete button
+// //   const menu1 = document.getElementById(`menu-${file.FileUID}`);
+// //   // console.log("menu1",menu1);
+// //   if(file.Status === "Approved" || file.Status === null){
+// //     const firstItem = menu1.children[0]?.children[0] as HTMLElement;
+// //     if (firstItem && firstItem.style.display !== "none") {
+// //         firstItem.style.display = "none";
+// //     }
+// //   }
+//     });
+//   }
+// });
 
 };
     // Show Error Message on file not Found start
@@ -15197,6 +15208,12 @@ librarydiv.appendChild(mainContainer)
             handleShowContent(event as any);
           }}
           >Change Request </Dropdown.Item>
+          <Dropdown.Item href="#/Document Cancellation"
+           onClick={(event) => {
+            testProess7(event as any);
+            handleShowContent(event as any);
+          }}
+          >Document Cancellation </Dropdown.Item>
         </Dropdown.Menu>
       </Dropdown>
                               </div>
@@ -15510,6 +15527,11 @@ librarydiv.appendChild(mainContainer)
       )}
       {listorgriddata === 'ChangeRequest' && (
         <ChangeDocumentRequestContext 
+         {...props}
+        />
+      )}
+      {listorgriddata === 'DocumentCancellation' && (
+        <DocumentCancellation 
          {...props}
         />
       )}
