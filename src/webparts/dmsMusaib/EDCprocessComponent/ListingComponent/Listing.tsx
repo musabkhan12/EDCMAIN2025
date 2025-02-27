@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { IListingProps } from './IListingProps';
 import { IListingState } from './IListingState';
+import {FormComponent} from '../FormComponent/Form';
+
 import { Profiles } from "@pnp/sp/profiles";
 // import { getSP } from "../PNPJsConfig";
 import { getSP } from "../../loc/pnpjsConfig";
@@ -12,12 +14,14 @@ import "@pnp/sp/files";
 import "@pnp/sp/folders";
 import { SPFI, spfi } from "@pnp/sp";
 import { EditComponent } from '../EditComponent/EditComponent';
-export class Listing extends React.Component<IListingProps,IListingState> {
+import type { IFormProps } from '../FormComponent/IFormProps';
+export class Listing extends React.Component<IListingProps,IListingState,IFormProps> {
       private _sp: SPFI;
     constructor (props : IListingProps, state:  IListingState){
         super(props);
          this._sp = getSP();
        this.state={
+        edItm: null,
         items:[],
         showform:false
        }
@@ -41,8 +45,15 @@ export class Listing extends React.Component<IListingProps,IListingState> {
         var allItems = this.state.items.map((item: any,i:number) => {
             console.log(item.ProcessName + "item.ProcessName");
             console.log(item.MainListId + "item.MainListId");
-            var path=`#/${item.ProcessName}/${item.MainListId}/${item.Id}`
+            var path=`#/${item.ProcessName}/${item.MainListId}`
+            // var path=`#/${item.ProcessName}/${item.MainListId}/${item.Id}`;
             // alert(item.RequestId + "item.RequestId");
+
+            //here iam  condionally creating path
+            
+    let actionType = (item.Status === "Save As Draft") ? "Edit" : "View";
+
+    var path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
             return(
               <tr>
                 <td style={{minWidth:'60px',maxWidth:'60px'}}>
@@ -85,7 +96,8 @@ export class Listing extends React.Component<IListingProps,IListingState> {
         <div>
         {showform ? 
         <div>
-        <EditComponent userid={this.props.userid} context={this.props.context} />
+        {/* <EditComponent userid={this.props.userid} context={this.props.context} /> */}
+        <FormComponent userDisplayName={''} userid={this.props.userid} context={this.props.context} item={this.state.edItm} onClose={this.closeForm} /> 
         </div>
         : 
         <section style={{display:'grid'}}>
@@ -115,44 +127,57 @@ export class Listing extends React.Component<IListingProps,IListingState> {
     
     )};
 
+    closeForm = () => {
+        this.setState({ showform: false });
+      };
 
-
- private async getAllItems(){
-    var _self= this;
-   // const spCache = spfi(this._sp).using(Caching({store:"session"}));
-   console.log(this.props.userid , "this.props.userid ");
-
-    // const user = await spfi(this._sp).web.ensureUser(this.props.userid);
-    // console.log(user.data.Id, "user.data.Id");
-    const listItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('Id,RequesterNameId,RequestId,Title,ProcessName,ApprovalLevelListItemId,RequesterName/Title,Status,AssignedToId,RequestedDate,AssignedToId,ListItemId').expand('RequesterName').filter("AssignedToId eq '"+String(this.props.userid)+"' and Status eq 'Pending'")();
-     console.log(listItems, "listItems in list");
-  
-    var allItems: any[]=[];
-    listItems.forEach( function(itm){
-    // var itemId = await spCache.web.lists.getByTitle("AllProcessApprovalLevelList").items.select('Id,MainListID').filter("Id eq '"+itm.ApprovalLevelListItemId+"'")();
-
-    if(itm.RequesterNameId != "")
-    {
-        itm["ReqName"]= itm.RequesterName.Title;
+    private async getAllItems() {
+        var _self = this;
+        console.log(this.props.userid, "this.props.userid");
+    
+   
+        const processApprovalItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList")
+            .items.select('Id,RequesterNameId,RequestId,Title,ProcessName,ApprovalLevelListItemId,RequesterName/Title,Status,AssignedToId,RequestedDate,AssignedToId,ListItemId')
+            .expand('RequesterName')
+            .filter("AssignedToId eq '" + String(this.props.userid) + "' and Status eq 'Pending'")();
+    
+        let allItems: any[] = [];
+    
+     
+        processApprovalItems.forEach(itm => {
+            allItems.push({
+                RequestId: itm.RequestId,
+                Title: itm.Title,
+                ProcessName: itm.ProcessName,
+                ReqName: itm.RequesterName ? itm.RequesterName.Title : '',
+                ReqDt: itm.RequestedDate ? new Date(itm.RequestedDate).toLocaleDateString() : '',
+                Status: itm.Status,
+                MainListId: itm.ListItemId,
+                Id: itm.Id
+            });
+        });
+    
+   
+        const auditItems = await spfi(this._sp).web.lists.getByTitle("AnnualAuditProgram")
+            .items.select('Id,MemoNumber,Title,Author/Title,Created,Status')
+            .expand('Author')();
+    
+    
+        auditItems.forEach(itm => {
+            allItems.push({
+                RequestId: itm.MemoNumber,
+                Title: itm.Title, 
+                ProcessName: "Annual Audit Program", 
+                ReqName: itm.Author ? itm.Author.Title : '', 
+                ReqDt: itm.Created ? new Date(itm.Created).toLocaleDateString() : '', 
+                Status: itm.Status, 
+                MainListId: itm.Id, 
+                Id: itm.Id
+            });
+        });
+    
+        _self.setState({ items: allItems });
     }
-    else{
-        itm["ReqName"]='';
-    }
-    if(itm.RequestedDate !=''){
-        itm["ReqDt"] = new Date(itm.RequestedDate).getDate()+"/"+new Date(itm.RequestedDate).getMonth()+"/"+new Date(itm.RequestedDate).getFullYear();
- 
-    }
-    else{
-        itm["ReqDt"] ='';
-    }
-    itm["MainListId"]= itm.ListItemId;
-   // var item= itemId[0].MainListID;
-  //  itm["MainListId"]=item;
-    allItems.push(itm);
-    _self.setState({items: allItems});
-   })
-  
-
-    }
+    
 
 } 

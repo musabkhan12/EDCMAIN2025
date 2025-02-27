@@ -292,108 +292,139 @@ export class FormComponent extends React.Component<IFormProps, IState> {
     this.setState({isDisabled:false})
     // alert(this.state.isDisabled);
 
-    const url = window.location.href;
-    console.log("window url:", url);
-    const path = url.split(".aspx")[1] || ""; // Extract part after .aspx
-    console.log("window url path:", path);
-    if (path.startsWith("#/")) {
-      const segments = path.replace("#/", "").split("/"); // Remove "#" and split URL
-      console.log("window url segments:", segments);
-      const edType = segments[0]; // "approve", "edit", or "view"
-      console.log("window url Extracted edType:", edType);
-      const itemId = segments[1] ? parseInt(segments[1]) : null; // Extract itemId (23)
-      console.log("window url Extracted itemId:", itemId);
-      this.setState({ edType, itemId });
-      console.log("Extracted edType:", edType);
-      console.log("Extracted itemId:", itemId);
-      if(edType===""){
-        // alert("new form");
-        this.getData();
-        this.setState({isDisabled:false})
-        this.setState({showApprove:false});
-        this.setState({showSubmit: true});
-      }
-     else if(edType==="approve"){
-        // alert("approve");
-        this.setState({isDisabled:true})
-              this.setState({showApprove:true});
-              this.setState({showSubmit: false});
-        this.getData();
-      }
-      else if(edType==="edit"){
+//     const url = window.location.href;
+//     console.log("window url:", url);
+//     const path = url.split(".aspx")[1] || ""; // Extract part after .aspx
+//     console.log("window url path:", path);
+//     if (path.startsWith("#/")) {
+//       const segments = path.replace("#/", "").split("/"); // Remove "#" and split URL
+//       console.log("window url segments:", segments);
+//       const edType = segments[0]; // "approve", "edit", or "view"
+//       console.log("window url Extracted edType:", edType);
+//       const itemId = segments[1] ? parseInt(segments[1]) : null; // Extract itemId (23)
+//       console.log("window url Extracted itemId:", itemId);
+//       this.setState({ edType, itemId });
+//       console.log("Extracted edType:", edType);
+//       console.log("Extracted itemId:", itemId);
+//       if(edType===""){
+//         // alert("new form");
+//         this.getData();
+//         this.setState({isDisabled:false})
+//         this.setState({showApprove:false});
+//         this.setState({showSubmit: true});
+//       }
+//      else if(edType==="approve"){
+//         // alert("approve");
+//         this.setState({isDisabled:true})
+//               this.setState({showApprove:true});
+//               this.setState({showSubmit: false});
+//         this.getData();
+//       }
+//       else if(edType==="edit"){
    
-    //  alert("edit");
-this.getData();
-this.setState({isDisabled:false})
-this.setState({showApprove:false});
-this.setState({showSubmit: true});
-      } else if(edType==="view")
-      {
-        // alert("view");
-        this.getData();
-      this.setState({isDisabled:true})
-this.setState({showApprove:false});
-this.setState({showSubmit: false});
-      }
-      else{
-
-      }
-    }
-
-//     if(this.state.edType=="approve"){
-//     //  alert("approve");
-//       this.getData();
-//       this.setState({isDisabled:true})
-//       this.setState({showApprove:true});
-//       this.setState({showSubmit: false});
-
-//     }
-//     else if(this.state.edType =="edit"){
-// //alert("edit");
+//     //  alert("edit");
 // this.getData();
 // this.setState({isDisabled:false})
 // this.setState({showApprove:false});
 // this.setState({showSubmit: true});
-//     }
-//     else if(this.state.edType=="view"){
-//       this.getData();
+//       } else if(edType==="view")
+//       {
+//         // alert("view");
+//         this.getData();
 //       this.setState({isDisabled:true})
 // this.setState({showApprove:false});
 // this.setState({showSubmit: false});
+//       }
+//       else{
 
+//       }
 //     }
-//     else{
-// //alert("new");
 
-//     }
+// new code by musaib
 
-const hash = window.location.hash; // Get the URL hash
-console.log("window url hash:", hash);
-const pathParts = hash.split("/"); // Split the URL by "/"
-console.log("window url pathParts:", pathParts);
-// Extract the action type (approve/edit/view) and itemId
-let edType :any = "";
-let itemId :any = 0;
+const url = window.location.href;
+console.log("window url:", url);
 
-if (pathParts.length >= 3) {
-  edType = pathParts[1]; // Get the action type (approve/edit/view)
-  itemId = parseInt(pathParts[2], 10); // Get the itemId
-  console.log("window url edType:", edType);
-  console.log("window url itemId:", itemId);
+// 🔹 Extract part after `.aspx`
+const path = url.split(".aspx")[1] || "";
+console.log("window url path:", path);
+
+if (path.startsWith("#/")) {
+  // 🔹 Remove "#" and split URL segments
+  const segments = path.replace("#/", "").split("/");
+  console.log("window url segments:", segments);
+
+  // 🔹 Extract Process Name, Action Type, and Item ID
+  const processName = segments[0]; // e.g., "Annual Audit Program"
+  const edType = segments[1]; // "View" or "Edit"
+  const itemId = segments[2] ? parseInt(segments[2]) : null; // Extract itemId
+
+  console.log("Extracted processName:", processName);
+  console.log("Extracted edType:", edType);
+  console.log("Extracted itemId:", itemId);
+
+  this.setState({ edType, itemId });
+
+  // 🔹 Handling Different Cases Based on `edType`
+  if (!edType) {
+    // 🔹 New Form Case
+    this.getData();
+    this.setState({
+      isDisabled: false,
+      showApprove: false,
+      showSubmit: true
+    });
+  } else if (edType.toLowerCase() === "approve") {
+    // 🔹 Approval Mode
+    this.setState({
+      isDisabled: true,
+      showApprove: true,
+      showSubmit: false
+    });
+    this.getData();
+  } else if (edType.toLowerCase() === "edit") {
+    // 🔹 Edit Mode
+    this.getData();
+    this.setState({
+      isDisabled: false,
+      showApprove: false,
+      showSubmit: true
+    });
+  } else if (edType.toLowerCase() === "view") {
+    // 🔹 View Mode
+    this.getData();
+    this.setState({
+      isDisabled: true,
+      showApprove: false,
+      showSubmit: false
+    });
+  }
 }
 
-console.log("URL Action Type:", edType);
-console.log("Item ID:", itemId);
+// const hash = window.location.hash; // Get the URL hash
+// console.log("window url hash:", hash);
+// const pathParts = hash.split("/"); // Split the URL by "/"
+// console.log("window url pathParts:", pathParts);
+// // Extract the action type (approve/edit/view) and itemId
+// let edType :any = "";
+// let itemId :any = 0;
 
-// Update the state based on the URL
-this.setState({ edType, itemId }, () => {
-  // After setting state, run conditional logic
-  // this.handlePageState();
-});
-// alert(`this.state.edType  ${this.state.edType}` );
-// alert(`this.state.itemId  ${this.state.itemId}` );
-// Listen for hash changes (if the URL updates dynamically)
-// window.addEventListener("hashchange", this.handleHashChange);
+// if (pathParts.length >= 3) {
+//   edType = pathParts[1]; // Get the action type (approve/edit/view)
+//   itemId = parseInt(pathParts[2], 10); // Get the itemId
+//   console.log("window url edType:", edType);
+//   console.log("window url itemId:", itemId);
+// }
+
+// console.log("URL Action Type:", edType);
+// console.log("Item ID:", itemId);
+
+// // Update the state based on the URL
+// this.setState({ edType, itemId }, () => {
+//   // After setting state, run conditional logic
+//   // this.handlePageState();
+// });
+
   }
 
   componentWillReceiveProps() {  
