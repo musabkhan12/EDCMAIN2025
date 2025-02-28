@@ -2604,7 +2604,9 @@ const myrequestbuttonclick =()=>{
 // end
   const getdoclibdata = async (FolderPath: any , siteID:any , docLibName:any) => {
     setlistorgriddata('');
-    
+    setlistorgriddata('');
+  const wait = document.getElementById('files-container')
+  wait.classList.remove('hidemydatacards')
     const noFileMessage = document.createElement("p");
     
     //  ismyrequordoclibforfilepreview = "getdoclibdata"
@@ -5482,6 +5484,9 @@ const ShareWithOther=async(event:React.MouseEvent<HTMLButtonElement>=null,search
    entityclicktext = ''
   setdisplayuploadfileandcreatefolder(false)
   ismyrequordoclibforfilepreview  = "sharewithothers";
+  setlistorgriddata('');
+  const wait = document.getElementById('files-container')
+  wait.classList.remove('hidemydatacards')
 if(event){
   event.preventDefault();
   event.stopPropagation();
@@ -6191,6 +6196,9 @@ const ShareWithMe=async(event:React.MouseEvent<HTMLButtonElement>=null,searchTex
    entityclicktext = ''
   setdisplayuploadfileandcreatefolder(false)
    ismyrequordoclibforfilepreview = "sharewithme"
+   setlistorgriddata('');
+  const wait = document.getElementById('files-container')
+  wait.classList.remove('hidemydatacards')
 
 if(event){
   event.preventDefault();
@@ -6824,6 +6832,9 @@ if (!isClickInsideMenu && !isClickInsideThreeDots) {
 const Recyclebin=async (event:React.MouseEvent<HTMLButtonElement>=null, siteIdToUpdate: string = null,    searchText:any = null)=>{
   entityclicktext = ''
   setdisplayuploadfileandcreatefolder(false)
+  setlistorgriddata('');
+  const wait = document.getElementById('files-container')
+  wait.classList.remove('hidemydatacards')
 if(event){
   event.preventDefault();
   event.stopPropagation();

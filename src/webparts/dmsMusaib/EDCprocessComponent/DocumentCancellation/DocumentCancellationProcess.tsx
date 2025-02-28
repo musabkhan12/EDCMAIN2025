@@ -45,7 +45,7 @@ import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-con
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
-
+let myloader  = '../../'
 interface ForwardTo {
     id: number;
     role: number;
@@ -83,6 +83,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     const [selectedRole, setSelectedRole] = React.useState(null);
     const [ValidDraft, setValidDraft] = React.useState(true);
     const [ValidSubmit, setValidSubmit] = React.useState(true);
+    const [ValidCancelReason, setValidCancelReason] = React.useState(true);
+    const [ValidForwardTo, setValidForwardTo] = React.useState(true);
     const [RequesterRoleId, setRequesterRoleId] = React.useState(null);
     const [RequestTypeId, setRequestTypeId] = React.useState(null);
     const [FormNameId, setFormNameId] = React.useState(null);
@@ -143,7 +145,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         setRequestTypeId(await getRequestTypeID(sp));
         var ReqId = await getRequestTypeID(sp)
 
-        const path1 = window.location.pathname;
+        const path1 = window.location.href;
 
         if (path1.includes("/view/") || path1.includes("/approve/")) {
             setInputDisabled(true);
@@ -238,7 +240,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         //     setFormItemId(Number(formitemid));
         //   }
 
-            const path = window.location.pathname;
+            const path = window.location.href;
             const segments = path.split('/').filter(Boolean); // Remove empty elements
 
             // Check if "edit" or "view" exists in the URL
@@ -531,7 +533,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     }, [useHide]);
 
     const handleCancel = () => {
-        window.location.href = `${siteUrl}/SitePages/EDCMAIN.aspx`;
+        window.location.reload();
         // debugger
         // if(pageValue == "MyRequest"){
         //   window.location.href = `${siteUrl}/SitePages/MyRequests.aspx`;
@@ -581,37 +583,15 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         const { RequesterName, RequesterDesignation, RequestDate, DocumentCode, IssueNumber, RevisionNumber, ReferenceNumber } = formData;
         // const { description } = richTextValues;
         let valid = true;
+        let valid1 = true;
         // let validateOverview:boolean = false;
         // let validatetitlelength = false;
         // let validateTitle = false;
         setValidDraft(true);
         setValidSubmit(true);
-        // if (title!== "") {
-        //  validatetitlelength = title.length <= 255;
-        //   validateTitle = title !== "" && await allowstringonly(title);
-        // }
-        // if (overview !==""){
-        //   validateOverview = overview! == "" && await allowstringonly(overview);
-        // }
-
-
+        setValidCancelReason(true);
         let errormsg = "";
-        // console.log("validateTitleup", validateTitle, "validatetitlelength", validatetitlelength, title !== "", overview !== "","overview", overview, validateOverview);
-        // if (title !== "" && !validateTitle && validatetitlelength) {
-        //   errormsg = "No special character allowed in Title";
-        //   valid = false;
-        // } else if (title !== "" && validateTitle && !validatetitlelength) {
-        //   errormsg = "Title must be less than 255 characters";
-        //   valid = false;
-        // }
-        // else if (overview !== "" && !validateOverview) {
-        //   errormsg = "No special character allowed in Overview";
-        //   valid = false;
-        //}
-        // else if ((ImagepostArr.length > 0 && ImagepostArr.length > 5) || ( ImagepostArr1.length > 0 && ImagepostArr1.length > 5)){
-        //     errormsg = "More than 5 attachments not allowed";
-        //     valid = false;
-        //   }
+        
         if (fmode == FormSubmissionMode.SUBMIT) {
             if (!RequesterName) {
                 //Swal.fire('Error', 'Title is required!', 'error');
@@ -630,11 +610,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             }
             else if(cancellReason.length>0 && cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "")==false){
                 // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
-                valid = false;
+                valid1 = false;
             }
             else if(cancellReason.length == 0){
                 // const isValid = rows.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
-                valid = false;
+                valid1 = false;
             }
             else if (IssueNumber === "") {
                 //Swal.fire('Error', 'Entity is required!', 'error');
@@ -650,6 +630,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
               }
 
             setValidSubmit(valid);
+            setValidCancelReason(valid1);
 
         }
         else {
@@ -664,35 +645,37 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 //Swal.fire('Error', 'Entity is required!', 'error');
                 valid = false;
             }
+            else if(cancellReason.length>0 && cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "")==false){
+                // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
+                valid1 = false;
+            }
 
             setValidDraft(valid);
+            setValidCancelReason(valid1);
 
         }
        
-
-       
-
-   
-        //else if (!overview) {
-        //   Swal.fire('Error', 'Overview is required!', 'error');
-        //   valid = false;
-        // } else if (!description) {
-        //   Swal.fire('Error', 'Description is required!', 'error');
-        //   valid = false;
-        // } else if (!FeaturedAnnouncement) {
-        //   Swal.fire('Error', 'Featured Announcement is required!', 'error');
-        //   valid = false;
-        // }
         // console.log("validateTitle", validateTitle,"errormsg", errormsg,"valid,", valid, ImagepostArr.length);
         if (!valid && fmode == FormSubmissionMode.SUBMIT)
             Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
         // else if (!valid && fmode == FormSubmissionMode.SUBMIT && rows.length >0){
         //     Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
         // }
+       else if (!valid1 && fmode == FormSubmissionMode.SUBMIT)
+            Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
         else if (!valid && fmode == FormSubmissionMode.DRAFT) {
-            Swal.fire(errormsg !== "" ? errormsg : 'Please fill the mandatory fields for draft - Title and Type');
+            Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
         }
-        return valid;
+        else if (!valid1 && fmode == FormSubmissionMode.DRAFT) {
+            Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
+        }
+        if(valid == false ||valid1 ==false){
+           return false
+        }
+        else{
+            return true 
+        }
+        // return valid;
     };
     //#region  Submit Form
     const handleFormSubmit = async () => {
@@ -840,7 +823,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         Swal.fire('Submitted successfully.', '', 'success');
                         sessionStorage.removeItem("DocumentCancelId")
                         setTimeout(() => {
-                            window.location.href = `${siteUrl}/SitePages/EDCMAIN.aspx`;
+                            window.location.reload();
                         }, 500);
                         // }
                     }
@@ -967,7 +950,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         Swal.fire('Submitted successfully.', '', 'success');
                         // sessionStorage.removeItem("bannerId")
                         setTimeout(() => {
-                            window.location.href = `${siteUrl}/SitePages/EDCMAIN.aspx`;
+                            window.location.reload();
                         }, 500);
                         // }
 
@@ -1089,7 +1072,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         Swal.fire('Saved successfully.', '', 'success');
                         sessionStorage.removeItem("DocumentCancelId")
                         setTimeout(() => {
-                            window.location.href = `${siteUrl}/SitePages/EDCMAIN.aspx`;
+                            window.location.reload();
                         }, 1000);
                         // }
                     }
@@ -1178,7 +1161,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         Swal.fire('Saved successfully.', '', 'success');
                         // sessionStorage.removeItem("bannerId")
                         setTimeout(() => {
-                            window.location.href = `${siteUrl}/SitePages/EDCMAIN.aspx`;
+                            window.location.reload();
                         }, 1000);
                     }
                 })
@@ -1200,7 +1183,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         let valid = true;
         let actionMessage = "";
         let successMessage = "";
-        setValidSubmit(true);
+        // setValidSubmit(true);
+        setValidForwardTo(true);
         switch (status) {
             case "Forward":
                 actionMessage = "Do you want to forward this request?";
@@ -1233,7 +1217,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             if (!valid) {
                 Swal.fire('Please fill all the mandatory fields.');
                 // setValidDraft(true);
-            setValidSubmit(false);
+            // setValidSubmit(false);
+            setValidForwardTo(false);
                 return;
             }
 
@@ -2086,7 +2071,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         <td>
                                                                             <textarea id="simpleinput" disabled={InputDisabled}
                                                                                 // className="form-control"                                                                      
-                                                                                className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                className={`newse ${(!ValidCancelReason) ? "border-on-error" : ""}`}
 
                                                                                 value={row.description}
                                                                                 onChange={(e) => {
@@ -2103,7 +2088,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         <td>
                                                                             <textarea id="simpleinput" disabled={InputDisabled}
                                                                                 //  className="form-control"
-                                                                                className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                className={`newse ${(!ValidCancelReason) ? "border-on-error" : ""}`}
 
                                                                                 value={row.reason}
                                                                                 onChange={(e) => {
@@ -2176,7 +2161,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                             <td className="ng-binding">
                                                                                 <select
                                                                                     // className="form-select"
-                                                                                    className={`form-select newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                    className={`form-select newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
 
                                                                                     onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={editID.CurrentUserRole !== "OES"}>
 
@@ -2200,7 +2185,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                     isMulti
                                                                                     value={row.approvers}
                                                                                     name="Approvers"
-                                                                                    className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                    className={`newse ${(!ValidForwardTo) ? "border-on-error" : ""}`}
                                                                                     // onChange={(selectedOption: any) => onSelect(selectedOption)}
                                                                                     onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
                                                                                     placeholder="Enter Approver Name"
@@ -2215,7 +2200,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 {/* {editID.CurrentUserRole === "OES"? <img src={require("../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} />:
                                                                                 <img src={require("../assets/recycle-bin.png")}  className='sidebariconsmall' />} */}
                                                                                 {editID.CurrentUserRole === "OES"? <img src={require("../../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} />:
-                                                                                <img src={require("../assets/recycle-bin.png")}  className='sidebariconsmall' />}
+                                                                                <img src={require("../../recycle-bin.png")}  className='sidebariconsmall' />}
 
                                                                             </td>
                                                                         </tr>
@@ -2328,7 +2313,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                     {/* </a> */}
                                                     {/* <a href="../sites/edcspfx/SitePages/EDCMAIN.aspx">       */}
                                                     {/* {((modeValue === "" || modeValue === "edit"|| modeValue === "view") ||(editID !== null && editID.IsInitiator == "Yes")) &&
-                                                        <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
+                                     
                                                         className='me-1' alt="x" /> Cancel</button>
                                                     } */}
                                                     {((modeValue === "" || modeValue === "edit"|| modeValue === "view") ||(editID !== null && editID.IsInitiator == "Yes")) &&
@@ -2365,8 +2350,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                             <tr>
                                                                                 <td style={{minWidth:'50px', maxWidth:'50px'}} className='text-center'>1</td>
                                                                                 <td onClick={() => OpenFile(DocumentLink)} style={{ color: "blue", cursor: "pointer" }}>{DocumentLink?.FileLeafRef}</td>
-                                                                                {/* <td className='text-right'>{file.fileSize}</td>
-                                                                                <td className='text-center'> <img src={require("../../../CustomAsset/trashed.svg")} style={{ width: '15px' }} onClick={() => deleteLocalFile(index, DocumentpostArr1, "docs")} /> </td> */}
+                                                                               
                                                                             </tr>
                                                                         )}
                                                                     </tbody>

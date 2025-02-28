@@ -38,7 +38,7 @@ import { CONTENTTYPE_ChangeDocument, CONTENTTYPE_DocumentCancel, LIST_TITLE_Chan
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDownload, faPaperclip } from '@fortawesome/free-solid-svg-icons';
-import { uploadFile } from '../../../APISearvice/MediaService';
+// import { uploadFile } from '../../../APISearvice/MediaService';
 import { Modal } from 'react-bootstrap';
 import { Link } from '@fluentui/react';
 import moment from 'moment';

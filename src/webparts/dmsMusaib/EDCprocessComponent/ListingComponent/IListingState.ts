@@ -3,4 +3,5 @@ export interface IListingState {
   items: any[];  
   showform:boolean;
   process:string;
+  siteUrl: string;
 }

@@ -21,18 +21,19 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
     private _sp: SPFI;
     constructor(props: IListingProps, state: IListingState) {
         super(props);
-        this._sp = getSP();
-        this.state = {
-            edItm: null,
-            items: [],
-            showform: false,
-            process: "",
-        }
-        this.getAllItems = this.getAllItems.bind(this);
-        this.editItem = this.editItem.bind(this);
-    }
-
-    async componentDidMount() {
+         this._sp = getSP();
+       this.state={
+        edItm: null,
+        items:[],
+        showform:false,
+        process: "",
+        siteUrl: ""
+       }
+       this.getAllItems=this.getAllItems.bind(this);
+       this.editItem = this.editItem.bind(this);
+      }
+ 
+      async componentDidMount(){
         await this.getAllItems();
     }
 
@@ -53,35 +54,34 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             // alert(item.RequestId + "item.RequestId");
 
             //here iam  condionally creating path
+            
+    let actionType = (item.Status === "Save As Draft" || item.Status === "Rework" || item.Status === "Save as draft") ? "edit" : "view";
 
-            let actionType = (item.Status === "Save as draft" || item.Status === "Rework") ? "edit" : "view";
-            //let path1 = window.location.pathname;
-            var path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
-           // var pathCRDC = `${path1}/${actionType}/${item.MainListId}`
-            return (
-                <tr>
-                    <td style={{ minWidth: '60px', maxWidth: '60px' }}>
-                        <div className='indexdesign'> {i + 1}</div>
-                    </td>
-                    <td style={{ minWidth: '85px', maxWidth: '85px' }}>
-                        {item.RequestId}
-                    </td>
-                    <td>
-                        {item.Title}
-                    </td>
-                    <td style={{ minWidth: '85px', maxWidth: '85px' }}>
-                        {item.ProcessName}
-                    </td>
-                    <td style={{ minWidth: '85px', maxWidth: '85px' }}>
-                        {item.ReqName}
-                    </td>
-                    <td style={{ minWidth: '85px', maxWidth: '85px' }}>
-                        {item.ReqDt}
-                    </td>
-                    <td style={{ minWidth: '75px', maxWidth: '75px' }}>
-                        {item.Status}
-                    </td>
-                    <td style={{ minWidth: '75px', maxWidth: '75px' }}>
+    var path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
+            return(
+              <tr>
+                <td style={{minWidth:'60px',maxWidth:'60px'}}>
+               <div className='indexdesign'> {i+1}</div>
+                </td>
+                <td style={{minWidth:'85px',maxWidth:'85px'}}>
+                    {item.RequestId}                  
+                </td>
+                <td>
+                    {item.Title}
+                </td>
+                <td style={{minWidth:'85px',maxWidth:'85px'}}>
+                    {item.ProcessName}
+                </td>
+                <td style={{minWidth:'85px',maxWidth:'85px'}}>
+                {item.ReqName}
+                </td>
+                <td style={{minWidth:'85px',maxWidth:'85px'}}>
+                {item.ReqDt}                    
+                </td>
+                <td style={{minWidth:'75px',maxWidth:'75px'}}>
+                {item.Status}
+                </td>
+                <td style={{minWidth:'75px',maxWidth:'75px'}}>
 
 
                         <a href={path} onClick={() => this.editItem(item)}>

@@ -582,6 +582,7 @@ if (path.startsWith("#/")) {
       <section>
       
           <section style={{borderRadius:'20px'}} className='card card-body newf'>
+          <button onClick={this.props.onClose}>back</button>
             <fieldset disabled={this.state.isDisabled}>
             <h3 className='text-dark font-16 mb-0'>Memo Details</h3>
             <label className='sub-header'>For Information</label> 
