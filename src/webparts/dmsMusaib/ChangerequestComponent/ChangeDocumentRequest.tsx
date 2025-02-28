@@ -18,7 +18,15 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "../../verticalSideBar/components/VerticalSidebar.scss";
 import "./changeDocumentRequest.scss";
 import { allowstringonly, getCurrentUser } from '../../../APISearvice/CustomService';
-import { addAllProcessItem, addApprovalItem, addItem, addItem2, addItemChangeRequestList, getAllAmendmentType, getAllClassificationMaster, getAllDocumentCode, getAllProcessData, getAllRequestType, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getFormNameID, getItemByID, getItemByID2, getItemByIDCR, getListNameID, GetQueryString, getRequesterID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, updateItemChangeRequestList } from './DocumentCancellation';
+import {
+  addAllProcessItem, addApprovalItem, addItem, addItemChangeRequestReasonlist,
+  addItemChangeRequestList, getAllAmendmentType, getAllClassificationMaster, getAllDocumentCode,
+  getAllProcessData, getAllRequestType, getApprovalByID, getApprovalByID2, getDataRoles,
+  getDocumentLinkByID, getFormNameID, getItemByID, getItemByIDChangeRequest, getItemByIDCR,
+  getListNameID, GetQueryString, getRequesterID, UpdateAllProcessItem, updateApprovalItem,
+  updateItem, updateItemChangeRequestReasonList, updateItemChangeRequestList,
+  getDocumentCodeselected, getDocumentLinkByIDarr
+} from './DocumentCancellation';
 import Select from "react-select";
 import Swal from 'sweetalert2';
 // import { FormSubmissionMode } from '../../../Shared/Interfaces';
@@ -29,25 +37,25 @@ import { WorkflowAuditHistory } from './WorkflowAuditHistory/WorkflowAuditHistor
 import { CONTENTTYPE_ChangeDocument, CONTENTTYPE_DocumentCancel, LIST_TITLE_ChangeRequest, Tenant_URL } from './Constants';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { uploadFile } from '../../../APISearvice/MediaService';
 import { Modal } from 'react-bootstrap';
 import { Link } from '@fluentui/react';
+import moment from 'moment';
 let newfileupload: any
 let newfilepreview: any
-export enum FormSubmissionMode
-{
-   DRAFT,SUBMIT
+export enum FormSubmissionMode {
+  DRAFT, SUBMIT
 }
 export interface IChangeDocumentRequestProps {
-    description: string;
-    isDarkTheme: boolean;
-    environmentMessage: string;
-    hasTeamsContext: boolean;
-    userDisplayName: string;
-    context: any;
-    siteUrl: string;
-  }
+  description: string;
+  isDarkTheme: boolean;
+  environmentMessage: string;
+  hasTeamsContext: boolean;
+  userDisplayName: string;
+  context: any;
+  siteUrl: string;
+}
 interface ForwardTo {
   id: number;
   role: number;
@@ -135,6 +143,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [docCode, setdocCode] = React.useState("");
   const [serialNo, setserialNo] = React.useState("");
   const [issueNo, setissueNo] = React.useState("");
+  const [revisionNo, setrevisionNo] = React.useState("");
   const [pageValue, setpage] = React.useState("");
   const [cancellReason, setcancellReason] = React.useState([{ id: 0, description: "", reason: "" }]);
   const [cancellReasonEdit, setcancellReasonEdit] = React.useState([]);
@@ -227,7 +236,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     let custodianoptions = await fetchCustodian();
     let documenttypeoptions = await fetchDocumentTypes();
     const AllUserRoles = await getDataRoles(sp);
-    const setRolesValue = AllUserRoles.map((item:any) => ({
+    const setRolesValue = AllUserRoles.map((item: any) => ({
       value: item.Id,
       label: item.Role,
 
@@ -291,12 +300,16 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
 
     let formitemid;
+    let ProcessItemId: any
     //#region getdataByID
     if (sessionStorage.getItem("ChangeRequestId") != undefined) {
       const iD = sessionStorage.getItem("ChangeRequestId")
       let iDs = decryptId(iD)
       formitemid = Number(iDs);
-      setFormItemId(Number(iDs))
+      setFormItemId(Number(iDs));
+      setEditID(await getApprovalByID(sp, Number(iDs), CONTENTTYPE_ChangeDocument));
+      ProcessItemId = await getApprovalByID(sp, Number(iDs), CONTENTTYPE_ChangeDocument);
+      setInputDisabled(await getApprovalByID2(sp, Number(iDs), CONTENTTYPE_ChangeDocument));
     }
     else {
       //   let formitemidparam = getUrlParameterValue('contentid');
@@ -305,12 +318,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       //     setFormItemId(Number(formitemid));
       //   }
 
-      const path = window.location.pathname;
+      const path = window.location.hash;
       const segments = path.split('/').filter(Boolean); // Remove empty elements
 
       // Check if "edit" or "view" exists in the URL
       const paramIndex = segments.findIndex(seg => seg === "edit" || seg === "view" || seg === "approve");
-
+      console.log("segmentssegments", segments,paramIndex)
       //let segmentsnew = GetQueryString("mode");
       if (paramIndex !== -1 && segments[paramIndex + 1]) {
         setmode(segments[paramIndex])
@@ -319,7 +332,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         if (segments[paramIndex + 2] !== undefined) {
 
           setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_ChangeDocument));
-          var ProcessItemId: any = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_ChangeDocument);
+          ProcessItemId = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_ChangeDocument);
           setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_ChangeDocument));
         }
       }
@@ -338,6 +351,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         setMainEditItem(setBannerById[0]);
         // setCategoryData(await getCategory(sp, Number(setBannerById[0]?.TypeMaster))) // Category
         if (setBannerById[0].AttachmentId) {
+          let arrn = await getDocumentLinkByIDarr(sp, setBannerById[0].AttachmentId);
+          //let arraynew: any[];
+          //arraynew.push(arrn)
+          console.log("arrrrrrnh", arrn);
+          setAttachmentarr(arrn);
           setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId))
         }
         if (ProcessItemId && ProcessItemId.Level === 0 && ProcessItemId.CurrentUserRole === "OES" && ProcessItemId.IsInitiator == "No") {
@@ -384,6 +402,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           SubmitStatus: setBannerById[0].SubmitStatus,
           value: setBannerById[0].DocumentCode,
           label: setBannerById[0].DocumentCode,
+          RequestTypeId: setBannerById[0].RequestTypeId,
           // Status: "Pending",
           // DocumentName: "",
           // IsRework: false,
@@ -449,6 +468,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           SubmiitedDate: setBannerById[0].SubmiitedDate,
           SubmitStatus: setBannerById[0].SubmitStatus,
           DocumentCode: setBannerById[0].DocumentCode,
+          RequestTypeId: setBannerById[0].RequestTypeId,
           DocumentTypeId: setBannerById[0].DocumentTypeId,
           Department: setBannerById[0].Department,
           AttachmentId: setBannerById[0].AttachmentId,
@@ -465,20 +485,27 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         const selectedDocumentType = documenttypeoptions.filter((docType: { documentTypeId: any; }) => docType.documentTypeId === setBannerById[0].DocumentTypeId)[0] || null;
         const selectedAmendment = optionsamendment.filter((amend: { value: any; }) => amend.value === setBannerById[0].AmendmentTypeId)[0] || null;
         const selectedClassifiction = optionsclassification.filter((classi: { value: any; }) => classi.value === setBannerById[0].ClassificationId)[0] || null;
+        const selectedRequesttype = optionsreq.filter((cust: { value: any; }) => cust.value === setBannerById[0].RequestTypeId)[0] || null;
         setselectedOptionDoctype(selectedDocumentType);
         setSelectedOptionClassification(selectedClassifiction);
         setSelectedOptionAmend(selectedAmendment);
         setselectedOptionCusto(selectedCustodian);
         setselectedOptionLoc(selectedLocation);
-        setselectedCheckboxIds(setBannerById[0].ChangeRequestTypeId)
+        setselectedCheckboxIds(setBannerById[0].ChangeRequestTypeId);
+        setSelectedOptionReq(selectedRequesttype);
 
         if (setBannerById[0].AttachmentId) {
-          setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId))
+          setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId));
+          let arrn = await getDocumentLinkByIDarr(sp, setBannerById[0].AttachmentId);
+          //let arraynew: any[];
+          //arraynew.push(arrn)
+          console.log("arrrrrrnty", arrn);
+          setAttachmentarr(arrn);
         }
         else {
           setDocumentLink(null);
         }  // Set the selected users
-        const rowData: any[] = await getItemByID2(sp, Number(setBannerById[0].ID)) //baseUrl
+        const rowData: any[] = await getItemByIDChangeRequest(sp, Number(setBannerById[0].ID)) //baseUrl
         const initialRows = rowData.map((item: any) => ({
           id: item.Id,
           description: item.ChangeDescription,
@@ -525,12 +552,20 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       // Format as YYYY-MM-DD
     }));
     setSelectedOption(selectedList);
-
+    const rowData: any[] = await getItemByIDChangeRequest(sp, Number(selectedList.ID)) //baseUrl
+    const initialRows = rowData.map((item: any) => ({
+      id: item.Id,
+      description: item.ChangeDescription,
+      reason: item.ReasonforChange,
+    }));
+    setcancellReason(initialRows);
+    setcancellReasonEdit(initialRows);
     const selectedLocation = LocationOpt.filter((loc: { locationId: any; }) => loc.locationId === selectedList.LocationId)[0] || null;
     const selectedCustodian = Custodianopt.filter((cust: { custodianId: any; }) => cust.custodianId === selectedList.CustodianId)[0] || null;
     const selectedDocumentType = DocumentTypeOpt.filter((docType: { documentTypeId: any; }) => docType.documentTypeId === selectedList.DocumentTypeId)[0] || null;
     const selectedAmendment = Amendtype.filter((cust: { value: any; }) => cust.value === selectedList.AmendmentTypeId)[0] || null;
     const selectedClassifiction = Classificationopt.filter((docType: { value: any; }) => docType.value === selectedList.ClassificationId)[0] || null;
+    //const selectedRequesttype = optionsreq.filter((cust: { value: any; }) => cust.value === selectedList.RequestTypeId)[0] || null;
     setselectedOptionDoctype(selectedDocumentType);
     setSelectedOptionClassification(selectedClassifiction);
     setSelectedOptionAmend(selectedAmendment);
@@ -538,6 +573,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     setselectedOptionLoc(selectedLocation);
     setselectedCheckboxIds(selectedList.ChangeRequestTypeId)
     if (selectedList.AttachmentId) {
+      let arrn = await getDocumentLinkByIDarr(sp, selectedList.AttachmentId);
+      //let arraynew: any[];
+      //arraynew.push(arrn)
+      console.log("arrrrrrn56", arrn);
+      setAttachmentarr(arrn);
       setDocumentLink(await getDocumentLinkByID(sp, selectedList.AttachmentId))
     }
     else {
@@ -698,11 +738,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   //     setSelectedRole(selectedList);  // Set the selected users
   // };
 
-  const onSelectRole = (event: React.ChangeEvent<HTMLSelectElement>, id: number) => {
+  const onSelectRole = (event: React.ChangeEvent<HTMLSelectElement>, lvl: number) => {
     const updatedArr = forwardToArr.map(row =>
-      row.id === id ? { ...row, role: Number(event.target.value) } : row
+      row.level === lvl ? { ...row, role: Number(event.target.value) } : row
     );
     setForwardToArr(updatedArr);
+    setUserRoles(UserRoles.filter((x: any) => x.label !== event.target.value))
   };
 
 
@@ -802,41 +843,46 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       }
       else if (!selectedOptionLoc) {
         //Swal.fire('Error', 'Category is required!', 'error');
-        errormsg = "Please select Location"
+        //errormsg = "Please select Location"
         valid = false;
       }
       else if (!selectedOptionCusto) {
         //Swal.fire('Error', 'Category is required!', 'error');
-        errormsg = "Please select Custodian"
+        //errormsg = "Please select Custodian"
         valid = false;
       }
       else if (!selectedOptionDoctype) {
-        errormsg = "Please select Document Type"
+        //errormsg = "Please select Document Type"
         //Swal.fire('Error', 'Category is required!', 'error');
         valid = false;
       }
       else if (!selectedOptionClass) {
-        errormsg = "Please select Classification"
+        //errormsg = "Please select Classification"
+        //Swal.fire('Error', 'Category is required!', 'error');
+        valid = false;
+      }
+      else if (!selectedOptionReq) {
+        //errormsg = "Please select Classification"
         //Swal.fire('Error', 'Category is required!', 'error');
         valid = false;
       }
       else if (selectedOptionReq.label != "Change Request for New Addition" && !selectedOption.value) {
-        errormsg = "Please select Document code"
+        //errormsg = "Please select Document code"
         //Swal.fire('Error', 'Entity is required!', 'error');
         valid = false;
       }
       else if (!selectedOptionAmend) {
-        errormsg = "Please select Amendment Type"
+        //errormsg = "Please select Amendment Type"
         //Swal.fire('Error', 'Category is required!', 'error');
         valid = false;
       }
       else if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" && row.reason.trim() !== "") == false) {
         // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
-        errormsg = "Please enter Description and Reason"
+        //errormsg = "Please enter Description and Reason"
         valid = false;
       }
       else if (cancellReason.length == 0) {
-        errormsg = "Please enter atleast one Description and Reason"
+        //errormsg = "Please enter atleast one Description and Reason"
         // const isValid = rows.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
         valid = false;
       }
@@ -866,7 +912,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         //Swal.fire('Error', 'Type is required!', 'error');
         valid = false;
       }
-
+      else if (!selectedOptionReq) {
+        //errormsg = "Please select Classification"
+        //Swal.fire('Error', 'Category is required!', 'error');
+        valid = false;
+      }
       setValidDraft(valid);
 
     }
@@ -885,9 +935,32 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const handleFormSubmit = async () => {
     if (await validateForm(FormSubmissionMode.SUBMIT)) {
       debugger
-
-      setissueNo(issueNo == "" ? "01" : issueNo);
-      setserialNo(serialNo == "" ? "01" : serialNo)
+      let serialnumber = await getDocumentCodeselected(sp, selectedOptionLoc.locationId, selectedOptionCusto.custodianId, selectedOptionDoctype.documentTypeId)
+      let issueno = "";
+      let serialno = "";
+      let revisionno = "";
+      if (selectedOptionReq.label == "Change Request for New Addition") {
+        if (serialnumber.length > 0) {
+          issueno = serialnumber[0].IssueNo;
+          serialno = serialnumber[0].SerialNo;
+          revisionno = serialnumber[0].RevisionNo;
+          setissueNo(serialnumber[0].IssueNo);
+          setserialNo(serialnumber[0].SerialNo);
+          setrevisionNo(serialnumber[0].RevisionNo)
+        } else {
+          issueno = issueNo == "" ? "01" : issueNo;
+          serialno = serialNo == "" ? "01" : serialNo;
+          revisionno = revisionNo == "" ? "00" : revisionNo;
+          setissueNo(issueNo == "" ? "01" : issueNo);
+          setserialNo(serialNo == "" ? "01" : serialNo);
+        }
+      } else {
+        issueno = selectedOption.IssueNumber + 1;
+        serialno = selectedOption.SerialNumber + 1;
+        revisionno = selectedOption.RevisionNumber + 1;
+        setissueNo(issueNo == "" ? "01" : issueNo);
+        setserialNo(serialNo == "" ? "01" : serialNo);
+      }
       let doccode = await generateDocCode();
       let referencecode = await generateReferenceCode();
       console.log("doccode doccode", doccode, referencecode);
@@ -907,6 +980,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
+            debugger
             const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
@@ -935,28 +1009,28 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               Department: formData.Department,
               RequestDate: new Date(formData.RequestDate).toISOString(),
               IssueDate: new Date(formData.IssueDate).toISOString(),
-              LocationId: selectedOption.LocationId,
-              CustodianId: selectedOption.CustodianId,
-              SerialNumber: selectedOption.SerialNumber,
-              IssueNumber: selectedOption.IssueNumber,
-              RevisionNumber: selectedOption.RevisionNumber,
-              RevisionDate: selectedOption.RevisionDate,
-              DocumentCode: selectedOption.value,
-              ReferenceNumber: selectedOption.ReferenceNumber,
-              AmendmentTypeId: selectedOption.AmendmentTypeId,
-              // RequestTypeId: selectedOption.RequestTypeId,
-              ClassificationId: selectedOption.ClassificationId,
-              ChangeRequestTypeId: selectedOption.ChangeRequestTypeId,
-              SubmiitedDate: new Date(selectedOption.RequestDate).toISOString(),
+              LocationId: formData.LocationId,
+              CustodianId: formData.CustodianId,
+              SerialNumber: Number(serialno),
+              IssueNumber: Number(issueno),
+              RevisionNumber: Number(revisionno),
+              RevisionDate: formData.RevisionDate,
+              DocumentCode: doccode,
+              ReferenceNumber: referencecode,
+              RequestTypeId: formData.RequestTypeId,
+              AmendmentTypeId: formData.AmendmentTypeId,
+              ChangeRequestTypeId: selectedCheckboxIds,
+              ClassificationId: formData.ClassificationId,
+              SubmiitedDate: new Date(formData.RequestDate).toISOString(),
               SubmitStatus: "Yes",
               Status: "Pending",
               OESSubmitStatus: "No",
               InitiatorSubmitStatus: "Yes",
               CurrentUserRole: "OES",
-              DocumentName: DocumentName,
-              DocumentTypeId: selectedOption.DocumentTypeId,
-              AttachmentId: attachmentIds,
-              AttachmentJson: JSON.stringify(bannerImageArray)
+              DocumentName: attachmentIds.length != 0 ? DocumentName:formData.DocumentName,
+              DocumentTypeId: formData.DocumentTypeId,
+              AttachmentId: attachmentIds.length != 0 ? attachmentIds :formData.AttachmentId,
+              AttachmentJson: attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson 
             }
             const postResult = await updateItemChangeRequestList(arr, sp, editItemID);
             const postId = postResult?.data?.ID;
@@ -972,7 +1046,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
               if (!row.id) {
 
-                const postResult2 = await addItem2(postPayload2, sp);
+                const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
                 const postId2 = postResult2?.data?.ID;
                 // debugger
                 if (!postId2) {
@@ -982,7 +1056,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
               }
               else if (row.id > 0) {
-                const postResult2 = await updateItem2(postPayload2, sp, row.id);
+                const postResult2 = await updateItemChangeRequestReasonList(postPayload2, sp, row.id);
                 const postId2 = postResult2?.data?.ID;
               }
 
@@ -1010,8 +1084,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Submitted successfully.', '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              //window.location.href = `${siteUrl}/SitePages/EDCMAIN.aspx`;
-            }, 500);
+              window.location.href = `${siteUrl}/SitePages/EDCMAIN.aspx`;
+            }, 1000);
             // }
           }
 
@@ -1063,15 +1137,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               //IssueDate: formData.IssueDate,
               LocationId: formData.LocationId,
               CustodianId: formData.CustodianId,
-              SerialNumber: Number("01"),
-              IssueNumber: Number("01"),
-              RevisionNumber: Number("00"),
+              SerialNumber: Number(serialno),
+              IssueNumber: Number(issueno),
+              RevisionNumber: Number(revisionno),
               //RevisionNumber: selectedOption.RevisionNumber,
               RevisionDate: new Date().toISOString(),
               DocumentCode: doccode,
               ReferenceNumber: referencecode,
               AmendmentTypeId: formData.AmendmentTypeId,
-              //   RequestTypeId: selectedOption.RequestTypeId,
+              RequestTypeId: formData.RequestTypeId,
               ClassificationId: formData.ClassificationId,
               ChangeRequestTypeId: selectedCheckboxIds,
               //SubmiitedDate: selectedOption.SubmiitedDate,
@@ -1104,7 +1178,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 ReasonforChange: row.reason,
               }
 
-              const postResult2 = await addItem2(postPayload2, sp);
+              const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
               const postId2 = postResult2?.data?.ID;
               // debugger
               if (!postId2) {
@@ -1119,8 +1193,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Submitted successfully.', '', 'success');
             // sessionStorage.removeItem("bannerId")
             setTimeout(() => {
-              //window.location.href = `${siteUrl}/SitePages/EDCMAIN.aspx`;
-            }, 500);
+              window.location.href = `${siteUrl}/SitePages/EDCMAIN.aspx`;
+            }, 1000);
             // }
 
           }
@@ -1224,7 +1298,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               DocumentCode: formData.DocumentCode,
               ReferenceNumber: formData.ReferenceNumber,
               AmendmentTypeId: formData.AmendmentTypeId,
-              // RequestTypeId: selectedOption.RequestTypeId,
+              RequestTypeId: formData.RequestTypeId,
               ClassificationId: formData.ClassificationId,
               ChangeRequestTypeId: formData.ChangeRequestTypeId,
               //SubmiitedDate: selectedOption.SubmiitedDate,
@@ -1255,7 +1329,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
               if (!row.id) {
 
-                const postResult2 = await addItem2(postPayload2, sp);
+                const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
                 const postId2 = postResult2?.data?.ID;
                 // debugger
                 if (!postId2) {
@@ -1265,7 +1339,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
               }
               else if (row.id > 0) {
-                const postResult2 = await updateItem2(postPayload2, sp, row.id);
+                const postResult2 = await updateItemChangeRequestReasonList(postPayload2, sp, row.id);
                 const postId2 = postResult2?.data?.ID;
               }
 
@@ -1322,6 +1396,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let DocumentName: string = "";
             let attachmentIds = [];
             const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
+            debugger
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
@@ -1349,12 +1424,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RequesterDesignation: formData.RequesterDesignation,
               Department: formData.Department,
               RequestDate: new Date().toISOString(),
-              IssueDate: formData.IssueDate,
+              IssueDate: new Date().toISOString(),
               LocationId: formData.LocationId,
               CustodianId: formData.CustodianId,
-              SerialNumber: Number("01"),
-              IssueNumber: Number("01"),
-              RevisionNumber: Number("00"),
+              // SerialNumber: Number("01"),
+              // IssueNumber: Number("01"),
+              // RevisionNumber: Number("00"),
+              RequestTypeId: formData.RequestTypeId,
               AmendmentTypeId: formData.AmendmentTypeId,
               ClassificationId: formData.ClassificationId,
               ChangeRequestTypeId: selectedCheckboxIds,
@@ -1384,7 +1460,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 ReasonforChange: row.reason,
               }
 
-              const postResult2 = await addItem2(postPayload2, sp);
+              const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
               const postId2 = postResult2?.data?.ID;
               // debugger
               if (!postId2) {
@@ -1775,7 +1851,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               DocumentCode: selectedOption.value,
               ReferenceNumber: selectedOption.ReferenceNumber,
               AmendmentTypeId: selectedOption.AmendmentTypeId,
-              // RequestTypeId: selectedOption.RequestTypeId,
+              RequestTypeId: selectedOption.RequestTypeId,
               ClassificationId: selectedOption.ClassificationId,
               ChangeRequestTypeId: selectedOption.ChangeRequestTypeId,
               SubmiitedDate: selectedOption.SubmiitedDate,
@@ -1810,7 +1886,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
               if (!row.id) {
 
-                const postResult2 = await addItem2(postPayload2, sp);
+                const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
                 const postId2 = postResult2?.data?.ID;
                 // debugger
                 if (!postId2) {
@@ -1820,7 +1896,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
               }
               else if (row.id > 0) {
-                const postResult2 = await updateItem2(postPayload2, sp, row.id);
+                const postResult2 = await updateItemChangeRequestReasonList(postPayload2, sp, row.id);
                 const postId2 = postResult2?.data?.ID;
               }
 
@@ -1900,7 +1976,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               DocumentCode: selectedOption.value,
               ReferenceNumber: selectedOption.ReferenceNumber,
               AmendmentTypeId: selectedOption.AmendmentTypeId,
-              // RequestTypeId: selectedOption.RequestTypeId,
+              RequestTypeId: selectedOption.RequestTypeId,
               ClassificationId: selectedOption.ClassificationId,
               ChangeRequestTypeId: selectedOption.ChangeRequestTypeId,
               SubmiitedDate: selectedOption.SubmiitedDate,
@@ -1935,7 +2011,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
               if (!row.id) {
 
-                const postResult2 = await addItem2(postPayload2, sp);
+                const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
                 const postId2 = postResult2?.data?.ID;
                 // debugger
                 if (!postId2) {
@@ -1945,7 +2021,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
               }
               else if (row.id > 0) {
-                const postResult2 = await updateItem2(postPayload2, sp, row.id);
+                const postResult2 = await updateItemChangeRequestReasonList(postPayload2, sp, row.id);
                 const postId2 = postResult2?.data?.ID;
               }
 
@@ -2139,23 +2215,23 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         {/* <VerticalSideBar _context={sp} /> 
       </div> */}
       {/* <div className="content-page"> */}
-        {/* <HorizontalNavbar _context={sp} siteUrl={siteUrl} /> */}
-        {/* <div className="content" style={{ marginLeft: `${!useHide ? '240px' : '80px'}`, marginTop: '2.3rem' }}> */}
-          <div className="container-fluid  paddb">
-            <div className="row">
-              <div className="col-lg-4">
-                {/* <CustomBreadcrumb Breadcrumb={Breadcrumb} /> */}
-              </div>
+      {/* <HorizontalNavbar _context={sp} siteUrl={siteUrl} /> */}
+      {/* <div className="content" style={{ marginLeft: `${!useHide ? '240px' : '80px'}`, marginTop: '2.3rem' }}> */}
+      <div className="container-fluid  paddb">
+        <div className="row">
+          <div className="col-lg-4">
+            {/* <CustomBreadcrumb Breadcrumb={Breadcrumb} /> */}
+          </div>
 
-            </div>
-            <div className="row mt-0">
+        </div>
+        <div className="row mt-0">
 
-              {/* <!-- Right Sidebar --> */}
-              <div className="col-12">
-                <div >
-                  <div>
-                    {/* <!-- Left sidebar --> */}
-                    {/* <div className="inbox-leftbar">
+          {/* <!-- Right Sidebar --> */}
+          <div className="col-12">
+            <div >
+              <div>
+                {/* <!-- Left sidebar --> */}
+                {/* <div className="inbox-leftbar">
 
                       <div className="mail-list mt-0">
                         <a href="dossier-list.html"
@@ -2249,236 +2325,247 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                     </div> */}
 
 
-                    <div className="inbox-rightbar">
-                      <div className="card">
-                        <div className="card-body">
+                <div className="inbox-rightbar">
+                  <div className="card">
+                    <div className="card-body">
 
-                          <h4 className="header-title text-dark font-16 mb-3">Requested By</h4>
-                          {/* <p className="sub-header">
+                      <h4 className="header-title text-dark font-16 mb-3">Requested By</h4>
+                      {/* <p className="sub-header">
                                                         Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aspernatur, itaque.
                                                     </p> */}
-                          {Loading ?
-                            // <div className="loadercss" role="status">Loading...
-                            //   <img src={require('../../../Assets/ExtraImage/loader.gif')} style={{ height: '80px', width: '70px' }} alt="Check" />
-                            // </div>
-                            <div style={{ minHeight: '100vh', marginTop: '100px' }} className="loadernewadd mt-10">
-                              <div>
-                                <img
-                                  src={require("../assets/edc-gif.gif")}
-                                  className="alignrightl"
-                                  alt="Loading..."
-                                />
-                              </div>
-                              <span>Loading </span>{" "}
-                              <span>
-                                <img
-                                  src={require("../assets/edcnew.gif")}
-                                  className="alignrightl"
-                                  alt="Loading..."
-                                />
-                              </span>
+                      {Loading ?
+                        // <div className="loadercss" role="status">Loading...
+                        //   <img src={require('../../../Assets/ExtraImage/loader.gif')} style={{ height: '80px', width: '70px' }} alt="Check" />
+                        // </div>
+                        <div style={{ minHeight: '100vh', marginTop: '100px' }} className="loadernewadd mt-10">
+                          <div>
+                            <img
+                              src={require("../assets/edc-gif.gif")}
+                              className="alignrightl"
+                              alt="Loading..."
+                            />
+                          </div>
+                          <span>Loading </span>{" "}
+                          <span>
+                            <img
+                              src={require("../assets/edcnew.gif")}
+                              className="alignrightl"
+                              alt="Loading..."
+                            />
+                          </span>
+                        </div>
+                        :
+                        <div className="row">
+                          <div className="col-lg-4">
+
+
+                            <div className="mb-3">
+                              <label htmlFor="RequesterName" className="form-label">Name:</label>
+                              <input type="text" id="Name" name="RequesterName" className="form-control" value={formData.RequesterName} disabled={true} />
                             </div>
-                            :
-                            <div className="row">
-                              <div className="col-lg-4">
+                          </div>
+                          <div className="col-lg-4">
 
 
-                                <div className="mb-3">
-                                  <label htmlFor="RequesterName" className="form-label">Name:</label>
-                                  <input type="text" id="Name" name="RequesterName" className="form-control" value={formData.RequesterName} disabled={true} />
-                                </div>
+                            <div className="mb-3">
+                              <label htmlFor="RequesterDesignation" className="form-label">Designation:</label>
+                              <input type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" value={formData.RequesterDesignation} disabled={true} />
+                            </div>
+                          </div>
+                          <div className="col-lg-4">
+
+                            <div className="mb-3">
+                              <label htmlFor="RequestDate" className="form-label">Request Date:</label>
+                              <input type="date" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDate} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} />
+                            </div>
+                          </div>
+
+                          <div className="col-lg-4">
+
+                            <div className="mb-3">
+                              <label htmlFor="DocumentCode" className="form-label">Request Type:<span className="text-danger">*</span></label>
+                              {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                              <Select
+                                options={ReqType}
+                                value={selectedOptionReq}
+                                name="Request Type"
+                                className={`form-control ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                onChange={(selectedOption: any) => onSelectReq(selectedOption)}
+                                placeholder="Search Request Type" isDisabled={InputDisabled}
+                              />
+                            </div>
+                          </div>
+                          <div className="col-lg-4">
+                            {console.log("selectedOptionReqselectedOptionReq", selectedOptionReq)}
+                            <div className="mb-3">
+                              <label htmlFor="DocumentCode" className="form-label">Document Code:</label>
+                              {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                              <Select
+                                options={rows}
+                                value={selectedOption}
+                                name="DocumentCode"
+                                isClearable={true}
+                                //isOptionDisabled={() => selectedOptionReq.label == "Change Request for New Addition"}
+                                isSearchable={true}
+                                className={`form-control ${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidSubmit) ? "border-on-error" : ""}`}
+                                onChange={(selectedOption: any) => onSelectDocCode(selectedOption)}
+                                placeholder="Search Document Code"
+                                isDisabled={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.label == "Change Request for New Addition")}
+                              />
+                            </div>
+                          </div>
+                          <div className="col-lg-4">
+
+                            <div className="mb-3">
+                              <label htmlFor="example-email" className="form-label">Issue No:</label>
+                              <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.IssueNumber} />
+                            </div>
+                          </div>
+
+                          <div className="col-lg-4">
+
+                            <div className="mb-3">
+                              <label htmlFor="example-email" className="form-label">Revision No:</label>
+                              <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.RevisionNumber} />
+                            </div>
+                          </div>
+                          <div className="col-lg-4">
+
+                            <div className="mb-3">
+                              <label htmlFor="example-email" className="form-label">Reference No:</label>
+                              <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.ReferenceNumber} />
+                            </div>
+                          </div>
+                          <div className="col-lg-4">
+
+                            <div className="mb-3">
+                              <label htmlFor="DocumentCode" className="form-label">Amendment Type:<span className="text-danger">*</span></label>
+                              {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                              <Select
+                                options={Amendtype}
+                                value={selectedOptionAmend}
+                                name="Amendment Type"
+                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                onChange={(selectedOption: any) => onSelectAmend(selectedOption)}
+                                placeholder="Search Amendment Type" isDisabled={InputDisabled}
+                              />
+                            </div>
+                          </div>
+                          <div className="col-lg-4">
+
+                            <div className="mb-3">
+                              <label htmlFor="DocumentCode" className="form-label">Classification:<span className="text-danger">*</span></label>
+                              {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                              <Select
+                                options={Classificationopt}
+                                value={selectedOptionClass}
+                                name="Classification"
+                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                onChange={(selectedOption: any) => onSelectClassification(selectedOption)}
+                                placeholder="Search Classification" isDisabled={InputDisabled}
+                              />
+                            </div>
+                          </div>
+                          <div className="col-lg-4">
+
+                            <div className="mb-3">
+                              <label htmlFor="DocumentCode" className="form-label">Location:<span className="text-danger">*</span></label>
+                              {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                              <Select
+                                options={LocationOpt}
+                                value={selectedOptionLoc}
+                                name="Location"
+                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                onChange={(selectedOption: any) => onSelectLocation(selectedOption)}
+                                placeholder="Search Location" isDisabled={InputDisabled}
+                              />
+                            </div>
+                          </div>
+                          <div className="col-lg-4">
+
+                            <div className="mb-3">
+                              <label htmlFor="DocumentCode" className="form-label">Custodian:<span className="text-danger">*</span></label>
+                              {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                              <Select
+                                options={Custodianopt}
+                                value={selectedOptionCusto}
+                                name="Custodian"
+                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                onChange={(selectedOption: any) => onSelectCustodian(selectedOption)}
+                                placeholder="Search Custodian" isDisabled={InputDisabled}
+                              />
+                            </div>
+                          </div>
+                          <div className="col-lg-4">
+
+                            <div className="mb-3">
+                              <label htmlFor="DocumentCode" className="form-label">Document Type:<span className="text-danger">*</span></label>
+                              {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                              <Select
+                                options={DocumentTypeOpt}
+                                value={selectedOptionDoctype}
+                                name="Document Type"
+                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                onChange={(selectedOption: any) => onSelectDocumentType(selectedOption)}
+                                placeholder="Search Document Type" isDisabled={InputDisabled}
+                              />
+                            </div>
+                          </div>
+                          {editID == null &&
+                            <div className="col-lg-4">
+
+                              <div className="mb-3">
+                                <label htmlFor="DocumentCode" className="form-label">Attachment:<span className="text-danger">*</span></label>
+                                {Attachmentarr[0] != false && Attachmentarr.length > 0 &&
+                                  Attachmentarr != undefined ? Attachmentarr.length == 1 &&
+                                (<a style={{ fontSize: '0.875rem' }}
+                                  //onClick={() => handlePreviewClick(Attachmentarr[0])}
+                                  onClick={() => setShowModal(true)}>
+                                  <FontAwesomeIcon icon={faPaperclip} />1 file Attached
+                                </a>) : ""
+                                }
+                                <input
+                                  type="file"
+                                  id="attachment"
+                                  name="attachment"
+                                  //disabled={handleSectionState('requestedBySection')}
+                                  className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                  onChange={(e) => onFileChange(e, "bannerimg", "Document")}
+                                />
                               </div>
-                              <div className="col-lg-4">
+                            </div>
+                          }
+                          {(editID != null || (selectedOptionReq != null && selectedOptionReq?.label !== "Change Request for New Addition")) &&
+                            // <div className="col-lg-8">
+
+                            //                                                                 <div className="mb-3">
+                            //                                                                     <label htmlFor="example-email" className="form-label">Document Link:</label>
 
 
-                                <div className="mb-3">
-                                  <label htmlFor="RequesterDesignation" className="form-label">Designation:</label>
-                                  <input type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" value={formData.RequesterDesignation} disabled={true} />
+                            //                                                                     <div className="text-dark mt-0"> <span onClick={() => OpenFile(DocumentLink)} style={{ color: "blue", cursor: "pointer" }}>{DocumentLink ? `${Tenant_URL}${DocumentLink?.FileRef}` : ""}</span>
+                            //                                                                     </div>
+
+                            //                                                                 </div>
+                            //                                                             </div>
+
+                            <div className="col-lg-4">
+                              <div className="mb-3">
+                                <label htmlFor="DocumentCode" className="form-label">Document Link:</label>
+                                {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+
+                                <div className="text-dark mt-0"> <span >
+                                  <a onClick={() => setShowModal(true)} ><FontAwesomeIcon icon={faPaperclip} />1 file Attached</a>
+
+                                </span>
                                 </div>
-                              </div>
-                              <div className="col-lg-4">
-
-                                <div className="mb-3">
-                                  <label htmlFor="RequestDate" className="form-label">Request Date:</label>
-                                  <input type="date" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDate} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} />
-                                </div>
-                              </div>
-
-                              <div className="col-lg-4">
-
-                                <div className="mb-3">
-                                  <label htmlFor="DocumentCode" className="form-label">Request Type:</label>
-                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={ReqType}
-                                    value={selectedOptionReq}
-                                    name="Request Type"
-                                    className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectReq(selectedOption)}
-                                    placeholder="Search Request Type" isDisabled={InputDisabled}
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-4">
-                                {console.log("selectedOptionReqselectedOptionReq", selectedOptionReq)}
-                                <div className="mb-3">
-                                  <label htmlFor="DocumentCode" className="form-label">Document Code:</label>
-                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={rows}
-                                    value={selectedOption}
-                                    name="DocumentCode"
-                                    isClearable={true}
-                                    //isOptionDisabled={() => selectedOptionReq.label == "Change Request for New Addition"}
-                                    isSearchable={true}
-                                    className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectDocCode(selectedOption)}
-                                    placeholder="Search Document Code"
-                                    isDisabled={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.label == "Change Request for New Addition")}
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-4">
-
-                                <div className="mb-3">
-                                  <label htmlFor="example-email" className="form-label">Issue No:</label>
-                                  <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.IssueNumber} />
-                                </div>
-                              </div>
-
-                              <div className="col-lg-4">
-
-                                <div className="mb-3">
-                                  <label htmlFor="example-email" className="form-label">Revision No:</label>
-                                  <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.RevisionNumber} />
-                                </div>
-                              </div>
-                              <div className="col-lg-4">
-
-                                <div className="mb-3">
-                                  <label htmlFor="example-email" className="form-label">Reference No:</label>
-                                  <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.ReferenceNumber} />
-                                </div>
-                              </div>
-                              <div className="col-lg-4">
-
-                                <div className="mb-3">
-                                  <label htmlFor="DocumentCode" className="form-label">Amendment Type:</label>
-                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={Amendtype}
-                                    value={selectedOptionAmend}
-                                    name="Amendment Type"
-                                    className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectAmend(selectedOption)}
-                                    placeholder="Search Amendment Type" isDisabled={InputDisabled}
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-4">
-
-                                <div className="mb-3">
-                                  <label htmlFor="DocumentCode" className="form-label">Classification:</label>
-                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={Classificationopt}
-                                    value={selectedOptionClass}
-                                    name="Classification"
-                                    className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectClassification(selectedOption)}
-                                    placeholder="Search Classification" isDisabled={InputDisabled}
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-4">
-
-                                <div className="mb-3">
-                                  <label htmlFor="DocumentCode" className="form-label">Location:</label>
-                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={LocationOpt}
-                                    value={selectedOptionLoc}
-                                    name="Location"
-                                    className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectLocation(selectedOption)}
-                                    placeholder="Search Location" isDisabled={InputDisabled}
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-4">
-
-                                <div className="mb-3">
-                                  <label htmlFor="DocumentCode" className="form-label">Custodian:</label>
-                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={Custodianopt}
-                                    value={selectedOptionCusto}
-                                    name="Custodian"
-                                    className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectCustodian(selectedOption)}
-                                    placeholder="Search Custodian" isDisabled={InputDisabled}
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-4">
-
-                                <div className="mb-3">
-                                  <label htmlFor="DocumentCode" className="form-label">Document Type:</label>
-                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={DocumentTypeOpt}
-                                    value={selectedOptionDoctype}
-                                    name="Document Type"
-                                    className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectDocumentType(selectedOption)}
-                                    placeholder="Search Document Type" isDisabled={InputDisabled}
-                                  />
-                                </div>
-                              </div>
-                              {editID == null &&
-                                <div className="col-lg-4">
-
-                                  <div className="mb-3">
-                                    <label htmlFor="DocumentCode" className="form-label">Attachment:</label>
-                                    {Attachmentarr[0] != false && Attachmentarr.length > 0 &&
-                                      Attachmentarr != undefined ? Attachmentarr.length == 1 &&
-                                    (<a style={{ fontSize: '0.875rem' }}
+                                {/* <a style={{ fontSize: '0.875rem' }}
                                       //onClick={() => handlePreviewClick(Attachmentarr[0])}
                                       onClick={() => setShowModal(true)}>
                                       <FontAwesomeIcon icon={faPaperclip} />1 file Attached
-                                    </a>) : ""
-                                    }
-                                    <input
-                                      type="file"
-                                      id="attachment"
-                                      name="attachment"
-                                      //disabled={handleSectionState('requestedBySection')}
-                                      className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                      onChange={(e) => onFileChange(e, "bannerimg", "Document")}
-                                    />
-                                  </div>
-                                </div>
-                              }
-                              {(editID != null || (selectedOptionReq != null && selectedOptionReq?.label !== "Change Request for New Addition")) &&
-                                // <div className="col-lg-8">
-
-                                //                                                                 <div className="mb-3">
-                                //                                                                     <label htmlFor="example-email" className="form-label">Document Link:</label>
-
-
-                                //                                                                     <div className="text-dark mt-0"> <span onClick={() => OpenFile(DocumentLink)} style={{ color: "blue", cursor: "pointer" }}>{DocumentLink ? `${Tenant_URL}${DocumentLink?.FileRef}` : ""}</span>
-                                //                                                                     </div>
-
-                                //                                                                 </div>
-                                //                                                             </div>
-
-                                <div className="col-lg-4">
-                                  <div className="mb-3">
-                                    <label htmlFor="DocumentCode" className="form-label">Document Link:</label>
-                                    {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                    <div className="text-dark mt-0"> <span onClick={() => OpenFile(DocumentLink)} style={{ color: "blue", cursor: "pointer" }}>{DocumentLink ? `${Tenant_URL}${DocumentLink?.FileRef}` : ""}</span>
-                                    </div>
-                                    {/* <Link
+                                    </a> */}
+                                {/* <div className="text-dark mt-0"> <span onClick={() => OpenFile(DocumentLink)} style={{ color: "blue", cursor: "pointer" }}>{DocumentLink ? `${Tenant_URL}${DocumentLink?.FileRef}` : ""}</span>
+                                    </div> */}
+                                {/* <Link
                                       href={selectedOption != null && formData.AttachmentJson != "" && (JSON.parse(formData.AttachmentJson)?.serverUrl +
                                         JSON.parse(formData.AttachmentJson)?.serverRelativeUrl)}
                                       className="anchor"
@@ -2488,310 +2575,332 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         JSON.parse(formData.AttachmentJson)?.serverRelativeUrl)}
                                     </Link> */}
 
-                                  </div>
-                                </div>
-                              }
+                              </div>
                             </div>
                           }
                         </div>
-                      </div>
+                      }
+                    </div>
+                  </div>
 
-                      <div className="card">
-                        <div className="card-body">
-                          <div className='row'>
-                            <div className='col-sm-12'>
-                              <h4 className="header-title text-dark font-16 mb-3">Request Details</h4>
-                              <h6>Change Request Type</h6>
-                              <div className="row"> {renderCheckboxes()}</div>
-                            </div>
+                  <div className="card">
+                    <div className="card-body">
+                      <div className='row'>
+                        <div className='col-sm-12'>
+                          <h4 className="header-title text-dark font-16 mb-3">Request Details</h4>
+                          <h6>Change Request Type</h6>
+                          <div className="row"> {renderCheckboxes()}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="card">
+                    <div className="card-body">
+                      <div className='row'>
+                        <div className='col-sm-8'>
+                          <h4 className="header-title text-dark font-16 mb-3">Description</h4>
+
+                        </div>
+
+                        <div className='col-sm-4'>
+                          <div style={{ textAlign: "right" }} className="mt-2 float-end text-right">
+                            {/* <i style={{ cursor: "pointer" }} onClick={addField}  className="fe-plus-circle  font-20 text-warning"></i> */}
+                            {/* <i style={{ cursor: "pointer" }} className="fe-plus-circle  font-20 text-warning"></i> */}
+                            {!InputDisabled && <img style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} src={require("../assets/plus.png")} onClick={addCancelReason} className=''></img>}
+
+
                           </div>
                         </div>
                       </div>
 
-                      <div className="card">
-                        <div className="card-body">
-                          <div className='row'>
-                            <div className='col-sm-8'>
-                              <h4 className="header-title text-dark font-16 mb-3">Description</h4>
-
-                            </div>
-
-                            <div className='col-sm-4'>
-                              <div style={{ textAlign: "right" }} className="mt-2 float-end text-right">
-                                {/* <i style={{ cursor: "pointer" }} onClick={addField}  className="fe-plus-circle  font-20 text-warning"></i> */}
-                                {/* <i style={{ cursor: "pointer" }} className="fe-plus-circle  font-20 text-warning"></i> */}
-                                {!InputDisabled && <img style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} src={require("../assets/plus.png")} onClick={addCancelReason} className=''></img>}
-
-
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* <p className="sub-header">
+                      {/* <p className="sub-header">
                                                         Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s
                                                     </p> */}
 
-                          <div className="row">
-                            <table className="mtbalenew table-centered table-nowrap table-borderless mb-0" id="tbl">
-                              <thead>
-                                <tr>
-                                  <th style={{ minWidth: "30px", maxWidth: "30px" }}>S.No</th>
-                                  <th>Change Description</th>
-                                  <th>Reason for Change</th>
-                                  <th>Action</th>
-                                </tr>
+                      <div className="row">
+                        <table className="mtbalenew table-centered table-nowrap table-borderless mb-0" id="tbl">
+                          <thead>
+                            <tr>
+                              <th style={{ minWidth: "30px", maxWidth: "30px" }}>S.No</th>
+                              <th>Change Description</th>
+                              <th>Reason for Change</th>
+                              <th>Action</th>
+                            </tr>
 
-                              </thead>
-                              <tbody >
-                                {console.log("cancellReasonn", cancellReason)}
-                                {cancellReason.map((row, index) => (
-                                  <tr key={index}> <td style={{ minWidth: "30px", maxWidth: "30px" }}>
-                                    <div
-                                      style={{ marginLeft: "20px" }}
-                                      className="indexdesign"
-                                    >
-                                      {index + 1}</div></td>
-                                    <td><input type="text" id="simpleinput" disabled={InputDisabled} className="form-control"
-                                      value={row.description}
-                                      onChange={(e) => {
-                                        const newRowscancellReason = [...cancellReason];
-                                        newRowscancellReason[index].description = e.target.value;
-                                        setcancellReason(newRowscancellReason);
-                                      }}
-                                    />
+                          </thead>
+                          <tbody >
+                            {console.log("cancellReasonn", cancellReason)}
+                            {cancellReason.map((row, index) => (
+                              <tr key={index}> <td style={{ minWidth: "30px", maxWidth: "30px" }}>
+                                <div
+                                  style={{ marginLeft: "20px" }}
+                                  className="indexdesign"
+                                >
+                                  {index + 1}</div></td>
+                                <td><input type="text" id="simpleinput" disabled={InputDisabled}
+                                  value={row.description}
+                                  className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                  onChange={(e) => {
+                                    const newRowscancellReason = [...cancellReason];
+                                    newRowscancellReason[index].description = e.target.value;
+                                    setcancellReason(newRowscancellReason);
+                                  }}
+                                />
 
-                                    </td>
-                                    <td><input type="text" id="simpleinput" disabled={InputDisabled} className="form-control"
-                                      value={row.reason}
-                                      onChange={(e) => {
-                                        const newRowscancellReason = [...cancellReason];
-                                        newRowscancellReason[index].reason = e.target.value;
-                                        setcancellReason(newRowscancellReason);
-                                      }}
-                                    /></td>
-                                    {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td>
-                                      <img src={require("../assets/recycle-bin.png")} className='sidebariconsmall' onClick={() => deleteLocalFile(index, cancellReason)}></img>
-                                    </td>
-                                    }
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-
-
-                          </div>
-
-
-                        </div>
+                                </td>
+                                <td><input type="text" id="simpleinput" disabled={InputDisabled}
+                                  className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                  value={row.reason}
+                                  onChange={(e) => {
+                                    const newRowscancellReason = [...cancellReason];
+                                    newRowscancellReason[index].reason = e.target.value;
+                                    setcancellReason(newRowscancellReason);
+                                  }}
+                                /></td>
+                                {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td>
+                                  <img src={require("../assets/recycle-bin.png")} className='sidebariconsmall' onClick={() => deleteLocalFile(index, cancellReason)}></img>
+                                </td>
+                                }
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
 
 
                       </div>
-                      {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
-                      {console.log("editiiiiifhifassignmentt", editID, modeValue, InputDisabled)}
-                      {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" &&
-                        <div className="card">
-                          <div className="card-body">
-                            <h4 className="header-title mb-0">Forward Approval To</h4>
-                            <div className="table-responsive mt-3 pt-0">
-                              <table className="mtbale table-centered table-nowrap table-borderless mb-0" id="myTabl">
-                                <thead className="table-light">
-                                  <tr>
-                                    <th style={{ borderBottomLeftRadius: "0px" }}>Role</th>
-                                    <th >Level</th>
-                                    <th >Approver Name</th>
-                                    <th >Action</th>
-                                  </tr>
-                                </thead>
-                                <tbody style={{ maxHeight: "8007px" }}>
-                                  {forwardToArr.map((row, index) => (
-                                    <tr>
-                                      <td className="text-dark ng-binding">
-                                        <select className="form-select" onChange={(e) => onSelectRole(e, row.id)}>
-                                          <option value="" selected>Select Role</option>
-                                          {UserRoles.map((role: any, index: number) => (
-                                            <option key={index} value={role.value}>{role.label}</option>
-                                          ))}
-                                        </select>
-
-                                      </td>
-                                      <td >Level {index + 1}</td>
-                                      <td >
-
-                                        <Select
-                                          options={rows1}
-                                          isMulti
-                                          value={row.approvers}
-                                          name="Approvers"
-                                          className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                          // onChange={(selectedOption: any) => onSelect(selectedOption)}
-                                          onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.id)}
-                                          placeholder="Enter Approver Name"
-                                        />
 
 
+                    </div>
 
-                                      </td>
-                                      <td >
-                                        {/* <i className="fe-trash-2 text-danger"></i> */}
-                                        <img src={require("../assets/recycle-bin.png")} onClick={() => handleDeleteRow(index)} className='sidebariconsmall' />
 
-                                      </td>
-                                    </tr>
+                  </div>
+                  {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
+                  {console.log("editiiiiifhifassignmentt", editID, modeValue, InputDisabled)}
+                  {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" &&
+                    <div className="card">
+                      <div className="card-body">
+                        <div className='row'>
+                          <div className='col-sm-8'>
+                            <h4 className="header-title text-dark font-16 mb-3 ">Forward Approval To</h4>
 
-                                  ))}
-
-                                </tbody>
-                              </table>
-                            </div>
-
-                            <div className="mt-2 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
-                              <img src={require("../assets/plus.png")} onClick={handleAddRow} className='sidebariconsmall' />
+                          </div>
+                          <div className='col-sm-4'>
+                            <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
+                              <img style={{ width: '34px' }} src={require("../assets/plus.png")} onClick={handleAddRow} className='' />
 
                               {/* <i style={{ cursor: "pointer" }} onClick={handleAddRow} className="fe-plus-circle font-20 text-warning"></i> */}
                             </div>
+                          </div>
 
-                            <div className="row mt-3">
-                              <div className="col-12 text-center">
-                                {/* <a href="my-approval.html"> */}
-                                <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardApproval("Forward")} >
-                                  <i className="fe-check-circle me-1"></i> Forward
-                                </button>
-                                {/* </a> */}
-                                {/* <a href="#"> */}
-                                <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={() => ForwardApproval("Rework")} >
-                                  <i className="fe-corner-up-left me-1"></i> Rework
-                                </button>
-                                {/* </a> */}
-                                {/* <a href="#"> */}
-                                <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={() => ForwardApproval("Rejected")} >
-                                  <i className="fe-x me-1"></i> Reject
-                                </button>
-                                {/* </a> */}
-                                {/* <a href="my-approval.html"> */}
-                                <button type="button" className="btn btn-light waves-effect waves-light m-1" onClick={handleCancel}>
-                                  <i className="fe-x me-1"></i> Cancel
-                                </button>
-                                {/* </a> */}
-                              </div>
-                            </div>
+                        </div>
+
+                        <div style={{ overflow: 'inherit' }} className="table-responsive mt-3 pt-0">
+                          <table className="mtbalenew  table-centered table-nowrap table-borderless mb-0 newtabledc" id="myTabl">
+                            <thead >
+                              <tr>
+                                <th style={{ borderBottomLeftRadius: "0px" }}>Role</th>
+                                <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level</th>
+                                <th >Approver Name</th>
+                                <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
+                              </tr>
+                            </thead>
+                            <tbody style={{ maxHeight: "8007px" }}>
+                              {forwardToArr.map((row, index) => (
+                                <tr>
+                                  <td className="ng-binding">
+                                    <select className="form-select" onChange={(e) => onSelectRole(e, row.level)} value={row.role}>
+                                      <option value="" selected>Select Role</option>
+                                      {UserRoles
+                                        .filter((role: any) =>
+                                          !forwardToArr.some(r => r.role === role.value)  // Filter out roles that are already selected
+                                        ).map((role: any, index: number) => (
+                                        <option key={index} value={role.value}>{role.label}</option>
+                                      ))}
+                                    </select>
+
+                                  </td>
+                                  <td style={{ minWidth: '70px', maxWidth: '70px' }}>Level {index + 1}</td>
+                                  <td >
+
+                                    <Select
+                                      options={rows1}
+                                      isMulti
+                                      value={row.approvers}
+                                      name="Approvers"
+                                      //className={`form-control ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                      // onChange={(selectedOption: any) => onSelect(selectedOption)}
+                                      onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
+                                      placeholder="Enter Approver Name"
+                                    />
+
+
+
+                                  </td>
+                                  <td style={{ minWidth: '70px', maxWidth: '70px' }}>
+                                    {/* <i className="fe-trash-2 text-danger"></i> */}
+                                    <img src={require("../assets/recycle-bin.png")} onClick={() => handleDeleteRow(index)} className='sidebariconsmall' />
+
+                                  </td>
+                                </tr>
+
+                              ))}
+
+                            </tbody>
+                          </table>
+                        </div>
+
+
+
+                        <div className="row mt-3">
+                          <div className="col-12 text-center">
+                            {/* <a href="my-approval.html"> */}
+                            <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardApproval("Forward")} >
+                              <i className="fe-check-circle me-1"></i> Forward
+                            </button>
+                            {/* </a> */}
+                            {/* <a href="#"> */}
+                            <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={() => ForwardApproval("Rework")} >
+                              <i className="fe-corner-up-left me-1"></i> Rework
+                            </button>
+                            {/* </a> */}
+                            {/* <a href="#"> */}
+                            <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={() => ForwardApproval("Rejected")} >
+                              <i className="fe-x me-1"></i> Reject
+                            </button>
+                            {/* </a> */}
+                            {/* <a href="my-approval.html"> */}
+                            <button type="button" className="btn btn-light waves-effect waves-light m-1" onClick={handleCancel}>
+                              <i className="fe-x me-1"></i> Cancel
+                            </button>
+                            {/* </a> */}
                           </div>
                         </div>
-                      }
-                      {console.log("editiiiiifhifapprovee", editID, modeValue, InputDisabled)}
-                      {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" && (
-                        <div className="card">
-                          <div className="card-body">
-                            <h4 className="header-title mb-0">Remarks</h4>
-                            <textarea
-                              className="form-control"
-                              value={remark}
-                              onChange={(e) => setRemark(e.target.value)}
-                              placeholder="Enter your remarks here..."
-                            ></textarea>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* ////////////Approval card */}
-                      {console.log("editiiiiifhif", editID, modeValue, InputDisabled)}
-                      {
-                        //let forrework=ApprovalRequestItem && ApprovalRequestItem.IsRework=='Yes'&& ApprovalRequestItem.LevelSequence!=0;
-                        // (InputDisabled && ApprovalRequestItem) || (ApprovalRequestItem && ApprovalRequestItem.IsRework == 'Yes' && ApprovalRequestItem.LevelSequence != 0) ? (
-                        (InputDisabled && editID != null && modeValue === "approve" && editID.ApprovalType === "Approval" && editID.Status === "Pending") ? (
-                          <WorkflowAction currentItem={editID} ctx={props.context} ContentType={CONTENTTYPE_ChangeDocument}
-                            DisableApproval={false} DisableCancel={false}
-                          // DisableApproval={ApprovalRequestItem && ApprovalRequestItem.IsRework == 'Yes' && ApprovalRequestItem.LevelSequence != 0}
-                          // DisableCancel={ApprovalRequestItem && ApprovalRequestItem.IsRework == 'Yes' && ApprovalRequestItem.LevelSequence != 0}
-                          //DisableReject={ApprovalRequestItem && ApprovalRequestItem.IsRework=='Yes'&& ApprovalRequestItem.LevelSequence!=0}
-                          />
-                        ) : (<div></div>)
-                      }
-
-                      {/* ////////////Audit History card */}
-                      {editID !== null && editID.length != 0 && modeValue === "approve" &&
-                        <WorkflowAuditHistory ContentItemId={editID} ContentType={CONTENTTYPE_ChangeDocument} ctx={props.context} />
-                      }
-                      {/* ////////////Audit History card */}
-
-                      {/* ////////////Approval card */}
-
-
-                      {/* </div> */}
-                      {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
-
-                    </div>
-                    {console.log("ediiiiitiitiititID", editID, InputDisabled, editItemID, MainEditItem, modeValue)}
-                    <div className="row mt-3">
-                      <div className="col-12 text-center">
-                        {/* <a href="my-approval.html">   */}
-                        {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}><i className="fe-check-circle me-1"></i> Save As Draft</button>}
-
-                        {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}><i className="fe-check-circle me-1"></i> Submit</button>}
-                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}><i className="fe-check-circle me-1"></i> Save As Draft</button>}
-
-                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><i className="fe-check-circle me-1"></i> Submit</button>}
-
-                        {/* </a> */}
-                        {/* <a href="../sites/edcspfx/SitePages/EDCMAIN.aspx">       */}
-                        <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}><i className="fe-x me-1"></i> Cancel</button>
-                        {/* </a> */}
                       </div>
                     </div>
+                  }
+                  {console.log("editiiiiifhifapprovee", editID, modeValue, InputDisabled)}
+                  {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" && (
+                    <div className="card">
+                      <div className="card-body">
+                        <h4 className="header-title mb-0">Remarks</h4>
+                        <textarea
+                          className="form-control"
+                          value={remark}
+                          onChange={(e) => setRemark(e.target.value)}
+                          placeholder="Enter your remarks here..."
+                        ></textarea>
+                      </div>
+                    </div>
+                  )}
 
+                  {/* ////////////Approval card */}
+                  {console.log("editiiiiifhif", editID, modeValue, InputDisabled)}
+                  {
+                    //let forrework=ApprovalRequestItem && ApprovalRequestItem.IsRework=='Yes'&& ApprovalRequestItem.LevelSequence!=0;
+                    // (InputDisabled && ApprovalRequestItem) || (ApprovalRequestItem && ApprovalRequestItem.IsRework == 'Yes' && ApprovalRequestItem.LevelSequence != 0) ? (
+                    (InputDisabled && editID != null && modeValue === "approve" && editID.ApprovalType === "Approval" && editID.Status === "Pending") ? (
+                      <WorkflowAction currentItem={editID} ctx={props.context} ContentType={CONTENTTYPE_ChangeDocument}
+                        DisableApproval={false} DisableCancel={false}
+                      // DisableApproval={ApprovalRequestItem && ApprovalRequestItem.IsRework == 'Yes' && ApprovalRequestItem.LevelSequence != 0}
+                      // DisableCancel={ApprovalRequestItem && ApprovalRequestItem.IsRework == 'Yes' && ApprovalRequestItem.LevelSequence != 0}
+                      //DisableReject={ApprovalRequestItem && ApprovalRequestItem.IsRework=='Yes'&& ApprovalRequestItem.LevelSequence!=0}
+                      />
+                    ) : (<div></div>)
+                  }
+
+                  {/* ////////////Audit History card */}
+                  {editID !== null && editID.length != 0 && modeValue === "approve" &&
+                    <WorkflowAuditHistory ContentItemId={editID} ContentType={CONTENTTYPE_ChangeDocument} ctx={props.context} />
+                  }
+                  {/* ////////////Audit History card */}
+
+                  {/* ////////////Approval card */}
+
+
+                  {/* </div> */}
+                  {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
+
+                </div>
+                {console.log("ediiiiitiitiititID", editID, InputDisabled, editItemID, MainEditItem, modeValue)}
+                <div className="row mt-3">
+                  <div className="col-12 text-center">
+                    {/* <a href="my-approval.html">   */}
+                    {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}><i className="fe-check-circle me-1"></i> Save As Draft</button>}
+
+                    {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}><i className="fe-check-circle me-1"></i> Submit</button>}
+                    {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}><i className="fe-check-circle me-1"></i> Save As Draft</button>}
+
+                    {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><i className="fe-check-circle me-1"></i> Submit</button>}
+
+                    {/* </a> */}
+                    {/* <a href="../sites/edcspfx/SitePages/EDCMAIN.aspx">       */}
+                    <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}><i className="fe-x me-1"></i> Cancel</button>
+                    {/* </a> */}
                   </div>
                 </div>
 
               </div>
             </div>
 
-            <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
-              <Modal.Header closeButton>
-                <Modal.Title>Attachments</Modal.Title>
-                {/* {ImagepostArr1.length > 0 && showBannerModal && <Modal.Title>Media Images</Modal.Title>} */}
-              </Modal.Header>
-              <Modal.Body className="scrollbar" id="style-5">
-                <>
-                  <table className="mtable table-bordered" style={{ fontSize: '0.75rem' }}>
-                    <thead style={{ background: '#eef6f7' }}>
-                      <tr>
-                        <th>Serial No.</th>
-                        <th > Image </th>
-                        <th>File Name</th>
-                        <th>File Size</th>
-                        {/* {modeValue == null && */}
-                        <th className='text-center'>Action</th>
-                        {/* } */}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Attachmentarr.map((file: any, index: number) => (
-                        <tr key={index}>
-                          <td className='text-center'>{index + 1}</td>
-                          <td>
-                            <Link
+          </div>
+        </div>
+
+        <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+          <Modal.Header closeButton>
+            <Modal.Title>
+              <FontAwesomeIcon icon={faPaperclip} style={{ width: '70px', height: '50px' }} />
+              Attachment Details</Modal.Title>
+            {/* {ImagepostArr1.length > 0 && showBannerModal && <Modal.Title>Media Images</Modal.Title>} */}
+          </Modal.Header>
+          <Modal.Body className="scrollbar" id="style-5">
+            <>
+              <table className="mtable table-bordered" style={{ fontSize: '0.75rem' }}>
+                <thead style={{ background: '#eef6f7' }}>
+                  <tr>
+                    <th>File Name</th>
+                    <th > File Link </th>
+
+                    <th>Upload date</th>
+                    {/* {modeValue == null && */}
+                    {/* <th className='text-center'>Action</th> */}
+                    {/* } */}
+                  </tr>
+                </thead>
+                <tbody>
+                  {console.log("Attachmentarrnmnm", Attachmentarr, DocumentLink)}
+                  {/* {Attachmentarr.map((file: any, index: number) => ( */}
+                  <tr >
+                    {/* <td className='text-center'>{index + 1}</td> */}
+                    <td>{DocumentLink ? `${Tenant_URL}${DocumentLink?.FileLeafRef}` : Attachmentarr && Attachmentarr[0]?.fileName}</td>
+                    <td>
+                      <FontAwesomeIcon icon={faDownload} style={{ width: '35px', height: '30px' }}
+                        onClick={() => OpenFile(DocumentLink ? DocumentLink : Attachmentarr && Attachmentarr[0]?.fileUrl)} />
+                      {/* <Link
                               href={file.fileUrl}
                               className="anchor"
                               target="_blank"
                             >
                               {file.fileUrl}
-                            </Link>
-                          </td>
-                          <td>{file.fileName}</td>
-                          <td className='text-right'>{file.fileSize}</td>
-                          <td className='text-center'>
+                            </Link> */}
+                    </td>
+                    <td>{DocumentLink ? moment(DocumentLink?.Created).format("DD-MMM-YYYY") : Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD-MMM-YYYY")}</td>
+                    {/* <td>{file.fileName}</td>
+                          <td className='text-right'>{file.fileSize}</td> */}
+                    {/* <td className='text-center'>
                             <img src={require("../../../CustomAsset/trashed.svg")} style={{ width: '15px' }}
-                              onClick={() => deleteLocalFileAttachment(index, Attachmentarr, "Gallery")} /> </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </>
-              </Modal.Body>
-            </Modal>
-          </div>
-        {/* </div> */}
-      {/* </div> */}
-    </div >
+                              onClick={() => deleteLocalFileAttachment(index, Attachmentarr, "Gallery")} /> </td> */}
+                  </tr>
+                  {/* ))} */}
+                </tbody>
+              </table>
+            </>
+          </Modal.Body>
+        </Modal>
+      </div>
+    </div>
+    //   </div >
+    // </div >
   );
 }
 
