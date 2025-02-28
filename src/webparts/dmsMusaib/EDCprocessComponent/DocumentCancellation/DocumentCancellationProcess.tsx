@@ -1777,8 +1777,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             </div> */}
             <div className="content-page">
                 {/* <HorizontalNavbar _context={sp} siteUrl={siteUrl} /> */}
-                <div className="content" style={{ marginLeft: `${!useHide ? '240px' : '80px'}`, marginTop: '2.3rem' }}>
-                    <div className="container-fluid  paddb">
+                {/* <div className="content" style={{ marginLeft: `${!useHide ? '0px' : '80px'}`, marginTop: '2.3rem' }}> */}
+                <div>
+                    <div className="">
                         <div className="row">
                             {/* <div className="col-lg-4">
                                 <CustomBreadcrumb Breadcrumb={Breadcrumb} />
@@ -1864,11 +1865,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                         </div>  */}
 
 
-                                        <div className="inbox-rightbar">
+                                        <div style={{width:'100%'}} className="inbox-rightbar">
                                             <div className="card">
                                                 <div className="card-body">
                                                   
-                                                    <h4 className="header-title text-dark font-16 mb-3">Requested By</h4>
+                                                    <h3 className="text-dark font-16 mb-3">Requested By</h3>
                                                     {/* <p className="sub-header">
                                                         Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aspernatur, itaque.
                                                     </p> */}
@@ -1925,7 +1926,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                             <div className="col-lg-4">
 
                                                                 <div className="mb-3">
-                                                                    <label htmlFor="DocumentCode" className="form-label">Document Code <span className="text-danger">*</span></label>
+                                                                    <label htmlFor="DocumentCode" className="form-label">Document Code <span className="text-danger1">*</span></label>
                                                                     {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
                                                                     <Select
                                                                         options={rows}
@@ -2025,11 +2026,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
 
-                                            <div className="card">
+                                            <div className="card mt-2">
                                                 <div className="card-body">
                                                   <div className='row'>
                                                     <div className='col-sm-8'>
-                                                    <h4 className="header-title text-dark font-16 mb-3">Description</h4>
+                                                    <h3 className="text-dark font-16 mb-3">Description</h3>
 
                                                     </div>
 
@@ -2056,7 +2057,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                     <th style={{ minWidth: "30px", maxWidth: "30px" }}>S.No</th>
                                                                     <th>Description</th>
                                                                     <th>Reason for Cancellation</th>
-                                                                    {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: "50px", maxWidth: "50px" }}>Action</th>}
+                                                                    {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: "80px", maxWidth: "80px" }}>Action</th>}
                                                                 </tr>
 
                                                             </thead>
@@ -2064,14 +2065,14 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                 {cancellReason.map((row, index) => (
                                                                     <tr key={index}> <td style={{ minWidth: "30px", maxWidth: "30px" }}>
                                                                         <div
-                                                                            style={{ marginLeft: "20px" }}
+                                                                            style={{ marginLeft: "5px" }}
                                                                             className="indexdesign"
                                                                         >
                                                                             {index + 1}</div></td>
                                                                         <td>
                                                                             <textarea id="simpleinput" disabled={InputDisabled}
                                                                                 // className="form-control"                                                                      
-                                                                                className={`newse ${(!ValidCancelReason) ? "border-on-error" : ""}`}
+                                                                                className={`newse mb-0 ${(!ValidCancelReason) ? "border-on-error" : ""}`}
 
                                                                                 value={row.description}
                                                                                 onChange={(e) => {
@@ -2088,7 +2089,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         <td>
                                                                             <textarea id="simpleinput" disabled={InputDisabled}
                                                                                 //  className="form-control"
-                                                                                className={`newse ${(!ValidCancelReason) ? "border-on-error" : ""}`}
+                                                                                className={`newse mb-0 ${(!ValidCancelReason) ? "border-on-error" : ""}`}
 
                                                                                 value={row.reason}
                                                                                 onChange={(e) => {
@@ -2102,7 +2103,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                             {/* <input type="text"
                                                                         /> */}
                                                                         </td>
-                                                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "50px", maxWidth: "50px", textAlign:'center' }}>
+                                                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "80px", maxWidth: "80px", textAlign:'center' }}>
                                                                             {/* <img src={require("../../../CustomAsset/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img> */}
                                                                             <img src={require("../../../../CustomAsset/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img>
 
@@ -2200,7 +2201,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 {/* {editID.CurrentUserRole === "OES"? <img src={require("../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} />:
                                                                                 <img src={require("../assets/recycle-bin.png")}  className='sidebariconsmall' />} */}
                                                                                 {editID.CurrentUserRole === "OES"? <img src={require("../../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} />:
-                                                                                <img src={require("../../recycle-bin.png")}  className='sidebariconsmall' />}
+                                                                                <img src={require("../../assets/recycle-bin.png")}  className='sidebariconsmall' />}
 
                                                                             </td>
                                                                         </tr>

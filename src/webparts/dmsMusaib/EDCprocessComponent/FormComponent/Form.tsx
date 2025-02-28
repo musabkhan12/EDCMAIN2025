@@ -582,9 +582,9 @@ if (path.startsWith("#/")) {
       <section>
       
           <section style={{borderRadius:'20px'}} className='card card-body newf'>
-          <button onClick={this.props.onClose}>back</button>
+         
             <fieldset disabled={this.state.isDisabled}>
-            <h3 className='text-dark font-16 mb-0'>Memo Details</h3>
+            <h3 className='text-dark font-16 mb-0'>Memo Details  <div style={{float:'right'}} className='btn btn-secondary' onClick={this.props.onClose}>Back</div></h3>
             <label className='sub-header'>For Information</label> 
           <div className='row'>
 
@@ -796,7 +796,7 @@ styles={dropdownStyles} onChange={this.onMonthChange}
                 </section>
 
    {this.state.showSubmit &&  <section style={{display:'flex', justifyContent:'center', gap:'10px'}} id="editDetails">
-      <PrimaryButton onClick={this.createDraft}>Save As Draft</PrimaryButton>
+      <PrimaryButton  className='btn btn-primary' onClick={this.createDraft}>Save As Draft</PrimaryButton>
       <PrimaryButton className='btn btn-primary' onClick={this.submitDraft}>Submit</PrimaryButton> 
       </section>}
       {this.state.showApprove &&
@@ -2100,3 +2100,4 @@ private async getRequestorRole(){
       }
 
 }
+

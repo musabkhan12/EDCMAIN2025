@@ -201,9 +201,11 @@ let routeToDiffSideBar="";
 
 
 
+let returnFromMyRequest=false;
 const ArgPoc = ({ props }: any) => {
   const sp: SPFI = getSP();
   // console.log(sp, "sp");
+ 
   let locationPath=window.location.pathname.match(/\/sites\/[^\/]+/)[0];
   const [showDeletepopup, setShowDeletepopup] = useState(false);
  const [activeButton] = React.useState<string>("");
@@ -218,7 +220,7 @@ const ArgPoc = ({ props }: any) => {
   //   setShowFirstDiv(false);
   // };
 
-
+//  useEffect for navbar
   React.useEffect(() => {
     // console.log("This function is called only once", useHide);
 
@@ -258,7 +260,7 @@ const ArgPoc = ({ props }: any) => {
   }, [useHide]);
   // Media query to check if the screen width is less than 768px
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
-
+  
   React.useEffect(() => {
     // console.log("This function is called only once", useHide);
 
@@ -311,32 +313,32 @@ const ArgPoc = ({ props }: any) => {
 
   // to render different process 
   const [dropdownClicked, setDropdownClicked] = useState(false);
-  useEffect(() => { 
-    const params = new URLSearchParams(window.location.search);   
-    const url = window.location.href;
-    // const matches = url.match(/\/([^\/]+)\.aspx/);
-    let extractedPart = url.split('.aspx')[1]; 
-    let parameters = extractedPart.split('?')
+  // useEffect(() => { 
+  //   const params = new URLSearchParams(window.location.search);   
+  //   const url = window.location.href;
+  //   // const matches = url.match(/\/([^\/]+)\.aspx/);
+  //   let extractedPart = url.split('.aspx')[1]; 
+  //   let parameters = extractedPart.split('?')
     
-    console.log("extractedPart",extractedPart);
-    console.log("parameters",parameters);
-    //  alert(dropdownClicked)
-     if(extractedPart  === '#/changerequest'){
-       alert("Change Request")
+  //   console.log("extractedPart",extractedPart);
+  //   console.log("parameters",parameters);
+  //   //  alert(dropdownClicked)
+  //   const arrayToStoreURLParameter=extractedPart.split('/');
+  //   arrayToStoreURLParameter[1]  === 'Change%20Request'
+  //   console.log("arrayToStoreURLParameter",arrayToStoreURLParameter)
+  //   if(arrayToStoreURLParameter[1] === 'Change%20Request'){
 
-      const get = document.getElementById('files-container')
-      get.innerHTML = null
-      setlistorgriddata('showGridView') // === 'showGridView'
-      setSelectedText('Change Request')
+  //     const get = document.getElementById('files-container')
+  //     get.innerHTML = null
+  //     setlistorgriddata('ChangeDocumentRequest') // === 'showGridView'
+  //     setSelectedText('Change Request url')
 
-      activeButton === "MyRequest" ? "active" : ""
-     
-     }
-    if(parameters[1] === "MyRequest"){
-      alert("MyRequest")
-    }
-  }, [dropdownClicked]);
+  //   }
+
+  // }, [dropdownClicked]);
   // Function to handle dropdown toggle click
+ 
+ 
   const handleDropdownToggle = () => {
     setDropdownClicked(prev => !prev);
   };
@@ -347,19 +349,95 @@ const ArgPoc = ({ props }: any) => {
   };
 
   // code to route to different document library and folder start
+// useEffect(() => {
+
+//   const url = window.location.href;
+
+//   let extractedPart = url.split('.aspx')[1]; 
+//   let parameters = extractedPart.split('?')
+  
+//   console.log("extractedPart",extractedPart);
+//   console.log("parameters",parameters);
+
+//   if(parameters[1] === "MyRequest"){
+//     alert("MyRequest")
+//   }
+//   let path="";
+//   let siteId="";
+//   let folderName="";
+//   let devision="";
+//   let department="";
+//   if(parameters.length>1){
+//   parameters.forEach((items,index)=>{
+//     console.log(`items[${index}]`,items)
+
+//     if(index ==1){
+//       if(items.includes('%20')){
+//         console.log("Clean Url")
+//         const cleanUrl = items.replace(/%20/g, ' '); 
+//         path=cleanUrl;
+//       }else{
+//         path=items;
+//       } 
+      
+//     }
+//     if(index ==2){
+//       if(items.includes('%20')){
+//         console.log("Clean path")
+//         const cleanUrl = items.replace(/%20/g, ' '); 
+//         folderName=cleanUrl;
+//       }else{
+//         folderName=items;
+//       } 
+//       // folderName=items;
+//     }
+//     if(index ==3){
+//       siteId=items;
+//     }
+//     if(index == 4){
+//       if(items.includes('%20')){
+//         console.log("Clean devision")
+//         const cleanDevision = items.replace(/%20/g, ' '); 
+//         devision=cleanDevision;
+//       }else{
+//         devision=items;
+//       } 
+//     }
+//     if(index == 5){
+//       if(items.includes('%20')){
+//         console.log("Clean deaprtment")
+//         const cleanDepartment = items.replace(/%20/g, ' '); 
+//         department=cleanDepartment;
+//       }else{
+//         department=items;
+//       } 
+//     }
+//   })
+//   console.log("path",path)
+//   console.log("siteId",siteId)
+//   console.log("folderName",folderName)
+//   console.log("department",department)
+//   console.log("devision",devision)
+//   currentDepartment=department;
+//   currentDevision=devision;
+//   cleanUrlInMyRequest=true;
+//   getdoclibdata(path,siteId,folderName);
+//   }
+  
+// }, []);
 useEffect(() => {
   // const params = new URLSearchParams(window.location.search);
   const url = window.location.href;
   // const matches = url.match(/\/([^\/]+)\.aspx/);
-  let extractedPart = url.split('.aspx')[1]; 
+  let extractedPart = url.split('.aspx')[1];
   let parameters = extractedPart.split('?')
-  
+ 
   console.log("extractedPart",extractedPart);
   console.log("parameters",parameters);
-
-  if(parameters[1] === "MyRequest"){
-    alert("MyRequest")
-  }
+ 
+  // if(parameters[1] === "MyRequest"){
+  //   alert("MyRequest")
+  // }
   let path="";
   let siteId="";
   let folderName="";
@@ -368,25 +446,25 @@ useEffect(() => {
   if(parameters.length>1){
   parameters.forEach((items,index)=>{
     console.log(`items[${index}]`,items)
-
+ 
     if(index ==1){
       if(items.includes('%20')){
         console.log("Clean Url")
-        const cleanUrl = items.replace(/%20/g, ' '); 
+        const cleanUrl = items.replace(/%20/g, ' ');
         path=cleanUrl;
       }else{
         path=items;
-      } 
-      
+      }
+     
     }
     if(index ==2){
       if(items.includes('%20')){
         console.log("Clean path")
-        const cleanUrl = items.replace(/%20/g, ' '); 
+        const cleanUrl = items.replace(/%20/g, ' ');
         folderName=cleanUrl;
       }else{
         folderName=items;
-      } 
+      }
       // folderName=items;
     }
     if(index ==3){
@@ -395,20 +473,20 @@ useEffect(() => {
     if(index == 4){
       if(items.includes('%20')){
         console.log("Clean devision")
-        const cleanDevision = items.replace(/%20/g, ' '); 
+        const cleanDevision = items.replace(/%20/g, ' ');
         devision=cleanDevision;
       }else{
         devision=items;
-      } 
+      }
     }
     if(index == 5){
       if(items.includes('%20')){
         console.log("Clean deaprtment")
-        const cleanDepartment = items.replace(/%20/g, ' '); 
+        const cleanDepartment = items.replace(/%20/g, ' ');
         department=cleanDepartment;
       }else{
         department=items;
-      } 
+      }
     }
   })
   console.log("path",path)
@@ -420,8 +498,34 @@ useEffect(() => {
   currentDevision=devision;
   cleanUrlInMyRequest=true;
   getdoclibdata(path,siteId,folderName);
+  }else{
+       const arrayToStoreURLParameter=extractedPart.split('/');
+       if(arrayToStoreURLParameter[1] === 'Change%20Request'){
+        // alert("Change Request")
+        const get = document.getElementById('files-container')
+        get.innerHTML = '';
+        cleanUrlInMyRequest=true;
+        returnFromMyRequest=true;
+        setlistorgriddata('ChangeDocumentRequest') // === 'showGridView'
+        // setSelectedText('Change Request url')
+ 
+    }else if(arrayToStoreURLParameter[1] === 'Document%20Cancellation'){
+      // alert("Document Camcetllation")
+      const get = document.getElementById('files-container')
+      get.innerHTML = '';
+      cleanUrlInMyRequest=true;
+      returnFromMyRequest=true;
+      setlistorgriddata('DocumentCancellation')
+    }else if(arrayToStoreURLParameter[1] === 'Annual%20Audit%20Program' ){
+      //  alert("Document Camcetllation")
+      const get = document.getElementById('files-container')
+      get.innerHTML = '';
+      cleanUrlInMyRequest=true;
+      returnFromMyRequest=true;
+      setlistorgriddata('AnnualAuditProgram')
+    }
   }
-  
+ 
 }, []);
 // end
 /////////////////// DMS Code start / ////////////////////////////////////
@@ -4538,7 +4642,7 @@ window.versionHistory=async(fileName:string,folderPath:string,siteId:string,flag
 //       event.preventDefault()
 //       event.stopPropagation()
 
-//       myRequest()
+// 
 //   });
   
 //   }
@@ -4923,10 +5027,7 @@ window.versionHistory=async(fileName:string,folderPath:string,siteId:string,flag
 //                     container.appendChild(card);
 //                 });
 //           }else{
-//               if( routeToDiffSideBar === "myRequest" ){
-//                   myRequest(null,null,searchInput);
-//               }
-            
+//          
 //               if( routeToDiffSideBar === "myFavourite" ){
 
 //                     // console.log("myFavourite");
@@ -5449,8 +5550,7 @@ const searchFiles = async (event: React.FormEvent) => {
 //                 container.appendChild(card);
 //             });
 //       }else{
-//           if( routeToDiffSideBar === "myRequest" ){
-//               myRequest(null,null,searchInput);
+//       
 //           }
          
 //           else if( routeToDiffSideBar === "myFavourite" ){
@@ -10339,6 +10439,11 @@ const DocumentCancellationfunc = async (event:React.MouseEvent<HTMLButtonElement
 
 }
 const myRequest = async (event:React.MouseEvent<HTMLButtonElement>=null, siteIdToUpdate: string = null,    searchText:any=null ) => {
+  // alert('this function is calling')
+  if(returnFromMyRequest){
+    returnFromMyRequest=false;
+    return;
+  }
   MainListView(event)
   entityclicktext = ''
   setdisplayuploadfileandcreatefolder(false)
@@ -10405,7 +10510,7 @@ if (hidegidvewlistviewbutton2) {
 
 
 
-// call this function onClick of the myRequest
+// call this function onClick of the 
 // handleShowContent(event)
 
 
@@ -12294,7 +12399,7 @@ const showReplaceMessage=(message:any)=>{
 //   if(iframe){
 //     iframe.style.display='none';
 //   }
-//   // myRequest(null,null,null);
+
 //  })
 //  replaceButton.textContent="Replace"
 
@@ -12426,7 +12531,7 @@ const showReplaceMessage=(message:any)=>{
 // //   const file =sp.web.getFileByServerRelativePath(filePath);
  
  
-// //   // myRequest(null,null,null);
+
 // //  })
 // // submitButton.addEventListener('click', async (event) => {
 // //   event.preventDefault();
@@ -12595,7 +12700,7 @@ const showReplaceMessage=(message:any)=>{
 //               console.log("uploadResult",uploadResult);
 //             }
 //           showReplaceMessage('File replaced successfully.');
-//           myRequest(null,null,null);
+
 //       }else{
 
 //         const folderInWhichWeUploadTheFile=web.getFolderByServerRelativePath(folderPath);
@@ -12740,12 +12845,12 @@ const showReplaceMessage=(message:any)=>{
 //         console.log("uploadResult",uploadResult);
 //       }
 //       showReplaceMessage('File updated successfully.')
-//       myRequest(null,null,null);
+
 //     }
 //     // const file =sp.web.getFileByServerRelativePath(filePath);
    
    
-//     // myRequest(null,null,null);
+
 //    })
 
 
@@ -13036,7 +13141,7 @@ if (input) {
     if(iframe){
       iframe.style.display='none';
     }
-    // myRequest(null,null,null);
+ 
    })
    replaceButton.textContent="Replace"
   
@@ -13168,7 +13273,7 @@ if (input) {
   //   const file =sp.web.getFileByServerRelativePath(filePath);
    
     
-  //   // myRequest(null,null,null);
+  
   //  })
   // submitButton.addEventListener('click', async (event) => {
   //   event.preventDefault();
@@ -13337,7 +13442,7 @@ if (input) {
         //         console.log("uploadResult",uploadResult);
         //       }
         //     showReplaceMessage('File replaced successfully.');
-        //     myRequest(null,null,null);
+    
         // }else{
           // alert("file extension are not same");
           const folderInWhichWeUploadTheFile=web.getFolderByServerRelativePath(folderPath);
@@ -13514,7 +13619,7 @@ if (input) {
     // const file =sp.web.getFileByServerRelativePath(filePath);
    
    
-    // myRequest(null,null,null);
+
    })
 
 

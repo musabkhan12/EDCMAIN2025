@@ -2146,7 +2146,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     return changeRequestCheckboxes.map((checkbox) => (
 
       <div className="col-lg-3">
-        <div key={checkbox.id} className="form-check">
+        <div key={checkbox.id} className="form-check mb-3">
           <input
             type="checkbox"
             className="form-check-input"
@@ -2217,7 +2217,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       {/* <div className="content-page"> */}
       {/* <HorizontalNavbar _context={sp} siteUrl={siteUrl} /> */}
       {/* <div className="content" style={{ marginLeft: `${!useHide ? '240px' : '80px'}`, marginTop: '2.3rem' }}> */}
-      <div className="container-fluid  paddb">
+      <div className="">
         <div className="row">
           <div className="col-lg-4">
             {/* <CustomBreadcrumb Breadcrumb={Breadcrumb} /> */}
@@ -2325,11 +2325,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                     </div> */}
 
 
-                <div className="inbox-rightbar">
+                <div style={{width:'100%'}} className="inbox-rightbar">
                   <div className="card">
                     <div className="card-body">
 
-                      <h4 className="header-title text-dark font-16 mb-3">Requested By</h4>
+                      <h3 className="text-dark font-16 mb-3">Requested By</h3>
                       {/* <p className="sub-header">
                                                         Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aspernatur, itaque.
                                                     </p> */}
@@ -2383,13 +2383,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                           <div className="col-lg-4">
 
                             <div className="mb-3">
-                              <label htmlFor="DocumentCode" className="form-label">Request Type:<span className="text-danger">*</span></label>
+                              <label htmlFor="DocumentCode" className="form-label">Request Type:<span className="text-danger1">*</span></label>
                               {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
                               <Select
                                 options={ReqType}
                                 value={selectedOptionReq}
                                 name="Request Type"
-                                className={`form-control ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                className={`${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                 onChange={(selectedOption: any) => onSelectReq(selectedOption)}
                                 placeholder="Search Request Type" isDisabled={InputDisabled}
                               />
@@ -2407,7 +2407,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 isClearable={true}
                                 //isOptionDisabled={() => selectedOptionReq.label == "Change Request for New Addition"}
                                 isSearchable={true}
-                                className={`form-control ${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidSubmit) ? "border-on-error" : ""}`}
+                                className={`${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidSubmit) ? "border-on-error" : ""}`}
                                 onChange={(selectedOption: any) => onSelectDocCode(selectedOption)}
                                 placeholder="Search Document Code"
                                 isDisabled={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.label == "Change Request for New Addition")}
@@ -2439,28 +2439,28 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                           <div className="col-lg-4">
 
                             <div className="mb-3">
-                              <label htmlFor="DocumentCode" className="form-label">Amendment Type:<span className="text-danger">*</span></label>
+                              <label htmlFor="DocumentCode" className="form-label">Amendment Type:<span className="text-danger1">*</span></label>
                               {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
                               <Select
                                 options={Amendtype}
                                 value={selectedOptionAmend}
                                 name="Amendment Type"
-                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                className={`${(!ValidSubmit) ? "border-on-error" : ""}`}
                                 onChange={(selectedOption: any) => onSelectAmend(selectedOption)}
-                                placeholder="Search Amendment Type" isDisabled={InputDisabled}
+                                placeholder="Search" isDisabled={InputDisabled}
                               />
                             </div>
                           </div>
                           <div className="col-lg-4">
 
                             <div className="mb-3">
-                              <label htmlFor="DocumentCode" className="form-label">Classification:<span className="text-danger">*</span></label>
+                              <label htmlFor="DocumentCode" className="form-label">Classification:<span className="text-danger1">*</span></label>
                               {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
                               <Select
                                 options={Classificationopt}
                                 value={selectedOptionClass}
                                 name="Classification"
-                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                className={`${(!ValidSubmit) ? "border-on-error" : ""}`}
                                 onChange={(selectedOption: any) => onSelectClassification(selectedOption)}
                                 placeholder="Search Classification" isDisabled={InputDisabled}
                               />
@@ -2469,13 +2469,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                           <div className="col-lg-4">
 
                             <div className="mb-3">
-                              <label htmlFor="DocumentCode" className="form-label">Location:<span className="text-danger">*</span></label>
+                              <label htmlFor="DocumentCode" className="form-label">Location:<span className="text-danger1">*</span></label>
                               {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
                               <Select
                                 options={LocationOpt}
                                 value={selectedOptionLoc}
                                 name="Location"
-                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                className={` ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                 onChange={(selectedOption: any) => onSelectLocation(selectedOption)}
                                 placeholder="Search Location" isDisabled={InputDisabled}
                               />
@@ -2484,13 +2484,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                           <div className="col-lg-4">
 
                             <div className="mb-3">
-                              <label htmlFor="DocumentCode" className="form-label">Custodian:<span className="text-danger">*</span></label>
+                              <label htmlFor="DocumentCode" className="form-label">Custodian:<span className="text-danger1">*</span></label>
                               {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
                               <Select
                                 options={Custodianopt}
                                 value={selectedOptionCusto}
                                 name="Custodian"
-                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                className={` ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                 onChange={(selectedOption: any) => onSelectCustodian(selectedOption)}
                                 placeholder="Search Custodian" isDisabled={InputDisabled}
                               />
@@ -2499,13 +2499,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                           <div className="col-lg-4">
 
                             <div className="mb-3">
-                              <label htmlFor="DocumentCode" className="form-label">Document Type:<span className="text-danger">*</span></label>
+                              <label htmlFor="DocumentCode" className="form-label">Document Type:<span className="text-danger1">*</span></label>
                               {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
                               <Select
                                 options={DocumentTypeOpt}
                                 value={selectedOptionDoctype}
                                 name="Document Type"
-                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                className={` ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                 onChange={(selectedOption: any) => onSelectDocumentType(selectedOption)}
                                 placeholder="Search Document Type" isDisabled={InputDisabled}
                               />
@@ -2515,15 +2515,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                             <div className="col-lg-4">
 
                               <div className="mb-3">
-                                <label htmlFor="DocumentCode" className="form-label">Attachment:<span className="text-danger">*</span></label>
-                                {Attachmentarr[0] != false && Attachmentarr.length > 0 &&
-                                  Attachmentarr != undefined ? Attachmentarr.length == 1 &&
-                                (<a style={{ fontSize: '0.875rem' }}
-                                  //onClick={() => handlePreviewClick(Attachmentarr[0])}
-                                  onClick={() => setShowModal(true)}>
-                                  <FontAwesomeIcon icon={faPaperclip} />1 file Attached
-                                </a>) : ""
-                                }
+                                <label htmlFor="DocumentCode" className="form-label">Attachment:<span className="text-danger1">*</span></label>
+                               
                                 <input
                                   type="file"
                                   id="attachment"
@@ -2532,6 +2525,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                   onChange={(e) => onFileChange(e, "bannerimg", "Document")}
                                 />
+                                 {Attachmentarr[0] != false && Attachmentarr.length > 0 &&
+                                  Attachmentarr != undefined ? Attachmentarr.length == 1 &&
+                                (<a style={{ fontSize: '0.875rem' }}
+                                  //onClick={() => handlePreviewClick(Attachmentarr[0])}
+                                  onClick={() => setShowModal(true)}>
+                                  <FontAwesomeIcon icon={faPaperclip} />1 file Attached
+                                </a>) : ""
+                                }
                               </div>
                             </div>
                           }
@@ -2583,23 +2584,23 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                     </div>
                   </div>
 
-                  <div className="card">
+                  <div className="card mt-2">
                     <div className="card-body">
                       <div className='row'>
                         <div className='col-sm-12'>
-                          <h4 className="header-title text-dark font-16 mb-3">Request Details</h4>
-                          <h6>Change Request Type</h6>
+                          <h3 className="text-dark font-16 mb-3">Request Details</h3>
+                          <label className="form-label">Change Request Type</label>
                           <div className="row"> {renderCheckboxes()}</div>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="card">
+                  <div className="card mt-2">
                     <div className="card-body">
                       <div className='row'>
                         <div className='col-sm-8'>
-                          <h4 className="header-title text-dark font-16 mb-3">Description</h4>
+                          <h3 className="text-dark font-16 mb-3">Description</h3>
 
                         </div>
 
@@ -2622,10 +2623,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                         <table className="mtbalenew table-centered table-nowrap table-borderless mb-0" id="tbl">
                           <thead>
                             <tr>
-                              <th style={{ minWidth: "30px", maxWidth: "30px" }}>S.No</th>
+                              <th style={{ minWidth: "40px", maxWidth: "40px" }}>S.No</th>
                               <th>Change Description</th>
                               <th>Reason for Change</th>
-                              <th>Action</th>
+                              <th style={{ minWidth: "80px", maxWidth: "80px" }}>Action</th>
                             </tr>
 
                           </thead>
@@ -2634,7 +2635,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                             {cancellReason.map((row, index) => (
                               <tr key={index}> <td style={{ minWidth: "30px", maxWidth: "30px" }}>
                                 <div
-                                  style={{ marginLeft: "20px" }}
+                                  style={{ marginLeft: "0px" }}
                                   className="indexdesign"
                                 >
                                   {index + 1}</div></td>
@@ -2658,8 +2659,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     setcancellReason(newRowscancellReason);
                                   }}
                                 /></td>
-                                {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td>
-                                  <img src={require("../assets/recycle-bin.png")} className='sidebariconsmall' onClick={() => deleteLocalFile(index, cancellReason)}></img>
+                                {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "80px", maxWidth: "80px", textAlign:'center' }}>
+                                  <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFile(index, cancellReason)}></img>
                                 </td>
                                 }
                               </tr>
@@ -2678,11 +2679,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                   {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
                   {console.log("editiiiiifhifassignmentt", editID, modeValue, InputDisabled)}
                   {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" &&
-                    <div className="card">
+                    <div className="card mt-2">
                       <div className="card-body">
                         <div className='row'>
                           <div className='col-sm-8'>
-                            <h4 className="header-title text-dark font-16 mb-3 ">Forward Approval To</h4>
+                            <h3 className="header-title text-dark font-16 mb-3 ">Forward Approval To</h3>
 
                           </div>
                           <div className='col-sm-4'>
@@ -2824,7 +2825,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 </div>
                 {console.log("ediiiiitiitiititID", editID, InputDisabled, editItemID, MainEditItem, modeValue)}
                 <div className="row mt-3">
-                  <div className="col-12 text-center">
+                  <div className="col-12 text-center mt-2">
                     {/* <a href="my-approval.html">   */}
                     {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}><i className="fe-check-circle me-1"></i> Save As Draft</button>}
 
@@ -2846,17 +2847,17 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           </div>
         </div>
 
-        <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+        <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" className='newmobmodal'>
           <Modal.Header closeButton>
             <Modal.Title>
-              <FontAwesomeIcon icon={faPaperclip} style={{ width: '70px', height: '50px' }} />
+              <FontAwesomeIcon icon={faPaperclip} style={{ width: '27px', height: '23px' }} />
               Attachment Details</Modal.Title>
             {/* {ImagepostArr1.length > 0 && showBannerModal && <Modal.Title>Media Images</Modal.Title>} */}
           </Modal.Header>
-          <Modal.Body className="scrollbar" id="style-5">
+          <Modal.Body className="" id="style-5">
             <>
-              <table className="mtable table-bordered" style={{ fontSize: '0.75rem' }}>
-                <thead style={{ background: '#eef6f7' }}>
+              <table className="mtbalenew" >
+                <thead>
                   <tr>
                     <th>File Name</th>
                     <th > File Link </th>
@@ -2873,7 +2874,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                   <tr >
                     {/* <td className='text-center'>{index + 1}</td> */}
                     <td>{DocumentLink ? `${Tenant_URL}${DocumentLink?.FileLeafRef}` : Attachmentarr && Attachmentarr[0]?.fileName}</td>
-                    <td>
+                    <td style={{textAlign:'center'}}>
                       <FontAwesomeIcon icon={faDownload} style={{ width: '35px', height: '30px' }}
                         onClick={() => OpenFile(DocumentLink ? DocumentLink : Attachmentarr && Attachmentarr[0]?.fileUrl)} />
                       {/* <Link

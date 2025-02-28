@@ -7,7 +7,7 @@
 input::placeholder {
     color: #6b6b6b !important;
 }
-
+.text-danger1{color: red;}
 #tbl tbody td:nth-child(1) {
     min-width: 30px;
     max-width: 30px;
@@ -598,23 +598,34 @@ a.nav-linkcss.px-4.py-3 {
     height: 500px;
 }
 
-.modal-header {
-    padding: 0px !important;
-    border: 0px !important;
-    position: absolute;
-    width: 42px;
-    background: #fff;
-    right: 22px;
-    height: 42px;
-    border-radius: 1000px !important;
-    z-index: 999;
-    top: 27px;
-}
+
 
 .btn-close {
     position: absolute;
 }
+.newmobmodal{
 
+}
+.modal-header{position: relative !important; width: 100% !important;
+    height: auto !important;
+    padding: 20px !important;
+    right: auto !important;
+    top: auto !important;
+    border-radius: 0px !important;
+    border-top-left-radius: 20px !important;
+    border-top-right-radius: 20px !important;
+    border-bottom: 1px solid #ccc !important;  
+    z-index:1 !important;
+}
+.btn-close{right:26px;top:15px;}
+
+.newmobmodal .modal-title{
+    display: flex
+;
+    gap: 3px;
+    align-items: center;
+    font-size: 18px;
+}
 .small-image {
     grid-column: 2 / 3;
     /* Occupies the second column */
@@ -946,7 +957,12 @@ textarea:focus {
 .bg-light {
     background-color: #ececec !important;
 }
-
+.btn-primary{
+    padding:8px 12px !important;
+}
+.ms-BasePicker-text{height: 40px; overflow: hidden;    background: transparent;
+    padding: 7px;}
+.cancel-btn {padding:4px 12px !important;}
 .sidebariconsmall {
     width: 14px;
     margin-right: 5px;
@@ -954,7 +970,7 @@ textarea:focus {
 
 .css-hlgwow {
     height: 37px;
-    padding: 0px 8px !important;
+    padding: 0px 8px !important;line-height: 22px;
 }
 
 .css-19bb58m {

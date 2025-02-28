@@ -61,7 +61,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             return(
               <tr>
                 <td style={{minWidth:'60px',maxWidth:'60px'}}>
-               <div className='indexdesign'> {i+1}</div>
+               <div style={{marginLeft:'10px'}} className='indexdesign'> {i+1}</div>
                 </td>
                 <td style={{minWidth:'85px',maxWidth:'85px'}}>
                     {item.RequestId}                  
