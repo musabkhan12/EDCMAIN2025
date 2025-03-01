@@ -69,7 +69,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
     e.preventDefault();
     let postPayload = {}
     let postPayload2 = {}
-
+    let postPayloadapp = {}
 
     if (props.ContentType == "Document Cancellation" || props.ContentType == "Change Request") {
       const currentUser = await sp.web.currentUser();
@@ -92,9 +92,12 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         InitiatorSubmitStatus: "No",
         CurrentUserRole: "Initiator",
         SubmitStatus: "No",
+        //ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
+      };
+      postPayloadapp = {
+        Status: Status,
         ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
       };
-
     }
     else {
       postPayload = {
@@ -140,7 +143,6 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         var postResult;
         var postResult2;
         if (props.ContentType == "Document Cancellation" || props.ContentType == "Change Request") {
-          postResult = await updateItemApproval2(postPayload, sp, props.currentItem.Id);
           if (Status == 'Rework') {
             if (props.ContentType == "Document Cancellation") {
               postResult2 = await updateItem(postPayload2, sp, Number(props.currentItem.ListItemId))
@@ -151,7 +153,12 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
             //   await updateItemChangeRequestList(postPayload2, sp, Number(props.currentItem.ListItemId))
             // props.ContentType == "Change Request"
 
+          } else if (Status == 'Approved') {
+            postResult2 = await updateItemChangeRequestList(postPayloadapp, sp, Number(props.currentItem.ListItemId))
           }
+
+          postResult = await updateItemApproval2(postPayload, sp, props.currentItem.Id);
+
           // const postId = postResult?.data?.ID;
 
         }
@@ -160,18 +167,18 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
         }
 
-        if (postResult) {
-          Swal.fire(resultmessage, '', 'success');
-          setTimeout(() => {
+        //if (postResult) {
+        Swal.fire(resultmessage, '', 'success');
+        setTimeout(() => {
 
-            // window.location.reload()
+          // window.location.reload()
 
-            window.location.href = `${url}/SitePages/MyApprovals.aspx`;
+          window.location.href = `${url}/SitePages/MyApprovals.aspx`;
 
-          }, 1000);
+        }, 1000);
 
 
-        }
+
 
       }
     })
