@@ -53,7 +53,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
   const [IsHistoryData, setIsHistoryData] = React.useState(false);
 
-  const siteUrl = props.ctx.pageContext.site.absoluteUrl;
+  // const siteUrl = props.ctx.pageContext.site.absoluteUrl;
 
 
   const sp = getSP(props.ctx);

@@ -26,7 +26,7 @@ export const getAllDocumentCode = async (_sp) => {
 };
 export const getDocumentCodeselected = async (_sp, locId, custoId, doctypeId) => {
   let arr = [];
-
+ 
   await _sp.web.lists.getByTitle("ChangeRequestList").items
     .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title")
     .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")
@@ -34,7 +34,7 @@ export const getDocumentCodeselected = async (_sp, locId, custoId, doctypeId) =>
     .orderBy("Modified", false)() // Order by Modified descending to get latest first
     .then((res) => {
       console.log(res);
-
+ 
       // Filter only latest entry for each unique DocumentCode
       // const latestDocuments = res.reduce((acc, item) => {
       //   if (!acc[item.DocumentCode]) {

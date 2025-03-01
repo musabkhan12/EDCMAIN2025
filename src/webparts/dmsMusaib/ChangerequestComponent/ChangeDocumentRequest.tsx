@@ -61,6 +61,7 @@ interface ForwardTo {
   role: number;
   level: number;
   approvers: any[]; // Or a more specific type like `string[]` or `SPUser[]`
+  approvaltype: number
 }
 interface ChangeRequestCheckbox {
   id: number;
@@ -182,7 +183,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
   const [showModal, setShowModal] = React.useState(false);
   const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
-    { id: 0, role: 0, level: 1, approvers: [] } // Default row
+    { id: 0, role: 0, level: 1, approvers: [], approvaltype: 0 } // Default row
   ]);
   const [forwardToArrEdit, setForwardToArrEdit] = React.useState<ForwardTo[]>([]);
   const [changeRequestCheckboxes, setChangeRequestCheckboxes] = React.useState<ChangeRequestCheckbox[]>([]);
@@ -260,7 +261,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       RequesterNameId: Currusers?.Id || "",
       RequesterDesignation: userProfile?.Title || "",
       RequesterName: userProfile?.DisplayName || "",
-      RequestDate: new Date().toLocaleDateString("en-CA")
+      RequestDate: new Date().toLocaleDateString("en-CA"),
+      Department: userProfile?.Department
       //RequestedDate: new Date().toISOString().split("T")[0] // Format as YYYY-MM-DD
 
     }));
@@ -323,7 +325,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
       // Check if "edit" or "view" exists in the URL
       const paramIndex = segments.findIndex(seg => seg === "edit" || seg === "view" || seg === "approve");
-      console.log("segmentssegments", segments,paramIndex)
+      console.log("segmentssegments", segments, paramIndex)
       //let segmentsnew = GetQueryString("mode");
       if (paramIndex !== -1 && segments[paramIndex + 1]) {
         setmode(segments[paramIndex])
@@ -351,12 +353,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         setMainEditItem(setBannerById[0]);
         // setCategoryData(await getCategory(sp, Number(setBannerById[0]?.TypeMaster))) // Category
         if (setBannerById[0].AttachmentId) {
-          let arrn = await getDocumentLinkByIDarr(sp, setBannerById[0].AttachmentId);
+          let arrn = await getDocumentLinkByIDarr(sp, setBannerById[0].AttachmentId[0]);
           //let arraynew: any[];
           //arraynew.push(arrn)
           console.log("arrrrrrnh", arrn);
           setAttachmentarr(arrn);
-          setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId))
+          setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId[0]))
         }
         if (ProcessItemId && ProcessItemId.Level === 0 && ProcessItemId.CurrentUserRole === "OES" && ProcessItemId.IsInitiator == "No") {
           const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_ChangeDocument, setBannerById[0].DocumentCode)
@@ -365,11 +367,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
             const EditApprowData = ApprowData.map((item: any) => ({
               id: item.ID,
+              approvaltype: item.LevelType,
               role: item.ApproverRole?.Id || 0, // Assuming role comes from ApproverRole
               level: item.Level || 1, // Default to 1 if missing
               approvers: item.Approvers?.map((approver: any) => ({
                 value: approver.Id,
                 label: approver.Title,
+
               })) || []
             }));
             setForwardToArr(EditApprowData);
@@ -495,8 +499,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         setSelectedOptionReq(selectedRequesttype);
 
         if (setBannerById[0].AttachmentId) {
-          setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId));
-          let arrn = await getDocumentLinkByIDarr(sp, setBannerById[0].AttachmentId);
+          setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId[0]));
+          let arrn = await getDocumentLinkByIDarr(sp, setBannerById[0].AttachmentId[0]);
           //let arraynew: any[];
           //arraynew.push(arrn)
           console.log("arrrrrrnty", arrn);
@@ -573,12 +577,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     setselectedOptionLoc(selectedLocation);
     setselectedCheckboxIds(selectedList.ChangeRequestTypeId)
     if (selectedList.AttachmentId) {
-      let arrn = await getDocumentLinkByIDarr(sp, selectedList.AttachmentId);
+      let arrn = await getDocumentLinkByIDarr(sp, selectedList.AttachmentId[0]);
       //let arraynew: any[];
       //arraynew.push(arrn)
       console.log("arrrrrrn56", arrn);
       setAttachmentarr(arrn);
-      setDocumentLink(await getDocumentLinkByID(sp, selectedList.AttachmentId))
+      setDocumentLink(await getDocumentLinkByID(sp, selectedList.AttachmentId[0]))
     }
     else {
       setDocumentLink(null);
@@ -743,9 +747,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       row.level === lvl ? { ...row, role: Number(event.target.value) } : row
     );
     setForwardToArr(updatedArr);
-    setUserRoles(UserRoles.filter((x: any) => x.label !== event.target.value))
+    //setUserRoles(UserRoles.filter((x: any) => x.label !== event.target.value))
   };
-
+  const onSelectApprovalType = (event: React.ChangeEvent<HTMLSelectElement>, lvl: number) => {
+    const updatedArr1 = forwardToArr.map(row =>
+      row.level === lvl ? { ...row, approvaltype: Number(event.target.value) } : row
+    );
+    setForwardToArr(updatedArr1);
+    //setUserRoles(UserRoles.filter((x: any) => x.label !== event.target.value))
+  };
 
   // const handleAddRow = () => {
   //     const newRow: ForwardTo = { id: Date.now(), role: 0, level: "", approvers: [] };
@@ -754,7 +764,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const handleAddRow = () => {
     setForwardToArr((prev) => [
       ...prev,
-      { id: 0, role: 0, level: prev.length + 1, approvers: [] }
+      { id: 0, role: 0, level: prev.length + 1, approvers: [], approvaltype: 0 }
     ]);
   };
 
@@ -817,7 +827,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       window.open(fileUrl, "_blank"); // Open PDF and other files normally
     }
   }
+  const ApprovalTypeOptions = [
+    { value: 'One', label: 'One' },
+    { value: 'All', label: 'All' }
 
+  ];
   const addCancelReason = () => {
     setcancellReason([...cancellReason, { id: 0, description: "", reason: "" }]);
   };
@@ -933,6 +947,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   };
   //#region  Submit Form
   const handleFormSubmit = async () => {
+    console.log("topp submit", editItemID, cancellReason);
     if (await validateForm(FormSubmissionMode.SUBMIT)) {
       debugger
       let serialnumber = await getDocumentCodeselected(sp, selectedOptionLoc.locationId, selectedOptionCusto.custodianId, selectedOptionDoctype.documentTypeId)
@@ -942,11 +957,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       if (selectedOptionReq.label == "Change Request for New Addition") {
         if (serialnumber.length > 0) {
           issueno = serialnumber[0].IssueNo;
-          serialno = serialnumber[0].SerialNo;
+          serialno = (Number(serialnumber[0].SerialNo) + 1).toString();
           revisionno = serialnumber[0].RevisionNo;
           setissueNo(serialnumber[0].IssueNo);
-          setserialNo(serialnumber[0].SerialNo);
-          setrevisionNo(serialnumber[0].RevisionNo)
+          setserialNo(serialno);
+          setrevisionNo(serialnumber[0].RevisionNo);
         } else {
           issueno = issueNo == "" ? "01" : issueNo;
           serialno = serialNo == "" ? "01" : serialNo;
@@ -955,14 +970,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           setserialNo(serialNo == "" ? "01" : serialNo);
         }
       } else {
-        issueno = selectedOption.IssueNumber + 1;
-        serialno = selectedOption.SerialNumber + 1;
-        revisionno = selectedOption.RevisionNumber + 1;
-        setissueNo(issueNo == "" ? "01" : issueNo);
-        setserialNo(serialNo == "" ? "01" : serialNo);
+        issueno = (Number(selectedOption.IssueNumber) + 1).toString();
+        serialno = selectedOption.SerialNumber;
+        revisionno = (Number(selectedOption.RevisionNumber) + 1).toString();
+        setissueNo(issueno);
+        setserialNo(serialno);
+        setrevisionNo(revisionno);
       }
-      let doccode = await generateDocCode();
-      let referencecode = await generateReferenceCode();
+      let doccode = selectedOptionReq.label == "Change Request for New Addition" ? await generateDocCode(serialno) : selectedOption.DocumentCode;
+      let referencecode = await generateReferenceCode(serialno, issueno);
       console.log("doccode doccode", doccode, referencecode);
       if (editForm) {
         Swal.fire({
@@ -1015,7 +1031,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               IssueNumber: Number(issueno),
               RevisionNumber: Number(revisionno),
               RevisionDate: formData.RevisionDate,
-              DocumentCode: doccode,
+              DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption.DocumentCode,
               ReferenceNumber: referencecode,
               RequestTypeId: formData.RequestTypeId,
               AmendmentTypeId: formData.AmendmentTypeId,
@@ -1027,10 +1043,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               OESSubmitStatus: "No",
               InitiatorSubmitStatus: "Yes",
               CurrentUserRole: "OES",
-              DocumentName: attachmentIds.length != 0 ? DocumentName:formData.DocumentName,
+              DocumentName: attachmentIds.length != 0 ? DocumentName : formData.DocumentName,
               DocumentTypeId: formData.DocumentTypeId,
-              AttachmentId: attachmentIds.length != 0 ? attachmentIds :formData.AttachmentId,
-              AttachmentJson: attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson 
+              AttachmentId: attachmentIds.length != 0 ? attachmentIds : formData.AttachmentId,
+              AttachmentJson: attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson
             }
             const postResult = await updateItemChangeRequestList(arr, sp, editItemID);
             const postId = postResult?.data?.ID;
@@ -1142,7 +1158,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RevisionNumber: Number(revisionno),
               //RevisionNumber: selectedOption.RevisionNumber,
               RevisionDate: new Date().toISOString(),
-              DocumentCode: doccode,
+              DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption.DocumentCode,
               ReferenceNumber: referencecode,
               AmendmentTypeId: formData.AmendmentTypeId,
               RequestTypeId: formData.RequestTypeId,
@@ -1204,10 +1220,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     }
 
   }
-  const generateDocCode = async () => {
+  const generateDocCode = async (serialno: any) => {
     debugger
-    //const { selectedLocationId, selectedCustodianId, selectedDocumentTypeId, locations, custodians, documentTypes } = this.state;
-
+    //const { seconsole.log("iiii",issueno,issueNo,serialno,serialNo)lectedLocationId, selectedCustodianId, selectedDocumentTypeId, locations, custodians, documentTypes } = this.state;
+    console.log("doccode", serialno, serialNo)
     // Use filter to find the selected items
     const selectedLocation = LocationOpt.filter((loc: { locationId: any; }) => loc.locationId === selectedOptionLoc.locationId)[0] || null;
     const selectedCustodian = Custodianopt.filter((cust: { custodianId: any; }) => cust.custodianId === selectedOptionCusto.custodianId)[0] || null;
@@ -1215,7 +1231,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
     // If all selections are available, generate the document code
     if (selectedLocation && selectedCustodian && selectedDocumentType) {
-      const docCode = `${selectedCustodian.custodianCode}.${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.${issueNo == "" ? "01" : issueNo}`;
+      const docCode = `${selectedCustodian.custodianCode}.${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.${serialno}`;
       setdocCode(docCode)
       return docCode;
       // Store docCode in state
@@ -1225,14 +1241,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       return;
     }
   };
-  const generateReferenceCode = async () => {
+  const generateReferenceCode = async (serialno: any, issueno: any) => {
     debugger
+    console.log("iiii", issueno, issueNo, serialno, serialNo)
     //const { selectedLocationId, selectedCustodianId, selectedDocumentTypeId, locations, custodians, documentTypes } = this.state;
     const selectedLocation = LocationOpt.filter((loc: { locationId: any; }) => loc.locationId === selectedOptionLoc.locationId)[0] || null;
     const selectedCustodian = Custodianopt.filter((cust: { custodianId: any; }) => cust.custodianId === selectedOptionCusto.custodianId)[0] || null;
     const selectedDocumentType = DocumentTypeOpt.filter((docType: { documentTypeId: any; }) => docType.documentTypeId === selectedOptionDoctype.documentTypeId)[0] || null;
     if (selectedLocation && selectedCustodian && selectedDocumentType) {
-      const referencedocCode = `${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.${selectedCustodian.custodianCode}.TMP-${serialNo == "" ? "01" : serialNo}.${issueNo == "" ? "01" : issueNo}`;
+      const referencedocCode = `${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.${selectedCustodian.custodianCode}.TMP-${serialno}.${issueno}`;
       setreferencedocCode(referencedocCode);
       return referencedocCode;
       // Store docCode in state
@@ -1245,6 +1262,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
   }
   const handleSaveAsDraft = async () => {
+    console.log("topp draft", editItemID, cancellReason);
     if (await validateForm(FormSubmissionMode.DRAFT)) {
       if (editForm) {
         Swal.fire({
@@ -1291,12 +1309,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RequestDate: new Date().toISOString(),
               LocationId: formData.LocationId,
               CustodianId: formData.CustodianId,
-              SerialNumber: formData.SerialNumber,
-              IssueNumber: formData.IssueNumber,
-              RevisionNumber: formData.RevisionNumber,
+              //SerialNumber: formData.SerialNumber,
+              //IssueNumber: formData.IssueNumber,
+              //RevisionNumber: formData.RevisionNumber,
               //RevisionDate: formData.RevisionDate,
-              DocumentCode: formData.DocumentCode,
-              ReferenceNumber: formData.ReferenceNumber,
+              //DocumentCode: formData.DocumentCode,
+              //ReferenceNumber: formData.ReferenceNumber,
               AmendmentTypeId: formData.AmendmentTypeId,
               RequestTypeId: formData.RequestTypeId,
               ClassificationId: formData.ClassificationId,
@@ -1314,7 +1332,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               AttachmentJson: selectedOption.AttachmentJson
 
             }
-            console.log("postPayloaddrafttedit", arr, editItemID);
+            console.log("postPayloaddrafttedit", arr, editItemID, cancellReason);
             const postResult = await updateItemChangeRequestList(arr, sp, editItemID);
             const postId = postResult?.data?.ID;
 
@@ -1609,11 +1627,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               });
 
               let arr2 = {
+                Title: currentUser.Title,
+                ContentTitle: selectedOption.ReferenceNumber,
                 MainListNameId: ListNameId,
                 ApproverRoleId: item.role,
                 Level: Number(item.level),
                 ApproversId: approversIds,
-                LevelType: "One",
+                LevelType: item.approvaltype,
                 SubmitStatus: "Yes",
                 Maxlevel: item.approvers?.length,
                 // ContentTitle:,
@@ -1718,11 +1738,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 }
               });
               let arr2 = {
+                Title: currentUser.Title,
+                ContentTitle: selectedOption.ReferenceNumber,
                 MainListNameId: ListNameId,
                 ApproverRoleId: item.role,
                 Level: Number(item.level),
                 ApproversId: approversIds,
-                LevelType: "One",
+                LevelType: item.approvaltype,
                 SubmitStatus: "Yes",
                 Maxlevel: item.approvers?.length,
                 // ContentTitle:,
@@ -2325,7 +2347,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                     </div> */}
 
 
-                <div style={{width:'100%'}} className="inbox-rightbar">
+                <div style={{ width: '100%' }} className="inbox-rightbar">
                   <div className="card">
                     <div className="card-body">
 
@@ -2516,7 +2538,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                               <div className="mb-3">
                                 <label htmlFor="DocumentCode" className="form-label">Attachment:<span className="text-danger1">*</span></label>
-                               
+
                                 <input
                                   type="file"
                                   id="attachment"
@@ -2525,7 +2547,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                   onChange={(e) => onFileChange(e, "bannerimg", "Document")}
                                 />
-                                 {Attachmentarr[0] != false && Attachmentarr.length > 0 &&
+                                {Attachmentarr[0] != false && Attachmentarr.length > 0 &&
                                   Attachmentarr != undefined ? Attachmentarr.length == 1 &&
                                 (<a style={{ fontSize: '0.875rem' }}
                                   //onClick={() => handlePreviewClick(Attachmentarr[0])}
@@ -2555,7 +2577,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
 
                                 <div className="text-dark mt-0"> <span >
-                                  <a onClick={() => setShowModal(true)} ><FontAwesomeIcon icon={faPaperclip} />1 file Attached</a>
+                                  <a onClick={() => setShowModal(true)} ><FontAwesomeIcon icon={faPaperclip} />{DocumentLink && "1 file Attached"}</a>
 
                                 </span>
                                 </div>
@@ -2659,7 +2681,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     setcancellReason(newRowscancellReason);
                                   }}
                                 /></td>
-                                {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "80px", maxWidth: "80px", textAlign:'center' }}>
+                                {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "80px", maxWidth: "80px", textAlign: 'center' }}>
                                   <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFile(index, cancellReason)}></img>
                                 </td>
                                 }
@@ -2716,8 +2738,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         .filter((role: any) =>
                                           !forwardToArr.some(r => r.role === role.value)  // Filter out roles that are already selected
                                         ).map((role: any, index: number) => (
-                                        <option key={index} value={role.value}>{role.label}</option>
-                                      ))}
+                                          <option key={index} value={role.value}>{role.label}</option>
+                                        ))}
                                     </select>
 
                                   </td>
@@ -2736,6 +2758,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     />
 
 
+
+                                  </td>
+                                  <td className="ng-binding">
+                                    <select className="form-select" onChange={(e) => onSelectApprovalType(e, row.level)} value={row.role}>
+                                      <option value="" selected>Select Role</option>
+                                      {ApprovalTypeOptions.map((role: any, index: number) => (
+                                        <option key={index} value={role.value}>{role.label}</option>
+                                      ))}
+                                    </select>
 
                                   </td>
                                   <td style={{ minWidth: '70px', maxWidth: '70px' }}>
@@ -2874,7 +2905,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                   <tr >
                     {/* <td className='text-center'>{index + 1}</td> */}
                     <td>{DocumentLink ? `${Tenant_URL}${DocumentLink?.FileLeafRef}` : Attachmentarr && Attachmentarr[0]?.fileName}</td>
-                    <td style={{textAlign:'center'}}>
+                    <td style={{ textAlign: 'center' }}>
                       <FontAwesomeIcon icon={faDownload} style={{ width: '35px', height: '30px' }}
                         onClick={() => OpenFile(DocumentLink ? DocumentLink : Attachmentarr && Attachmentarr[0]?.fileUrl)} />
                       {/* <Link

@@ -54,10 +54,20 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             // alert(item.RequestId + "item.RequestId");
 
             //here iam  condionally creating path
-            
-    let actionType = (item.Status === "Save As Draft" || item.Status === "Rework" || item.Status === "Save as draft") ? "edit" : "view";
+     if(item.ProcessName =="Document Cancellation" && item.Status =="Rework"){
+        let actionType ="approve";
+        
 
-    var path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
+        var path = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId}`;
+
+     } 
+     else{
+        let actionType = (item.Status === "Save As Draft" || item.Status === "Rework" || item.Status === "Save as draft") ? "edit" : "view";
+
+        var path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
+
+     }      
+    
             return(
               <tr>
                 <td style={{minWidth:'60px',maxWidth:'60px'}}>
@@ -241,17 +251,49 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             .items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode')
             .expand('Author', 'RequesterName')();
 
-        ChangeRequestDocumentCancellationListItems.forEach((item) => {
-            allItems.push({
-                RequestId: item.DocumentCode,
-                Title: item.Title,
-                ProcessName: "Document Cancellation",
-                ReqName: item.RequesterName?.Title ? item.RequesterName?.Title : '',
-                ReqDt: item.RequestDate ? new Date(item.RequestDate).toLocaleDateString() : '',
-                Status: item.Status,
-                MainListId: item.Id,
-                Id: item.Id
-            });
+        ChangeRequestDocumentCancellationListItems.forEach(async (item) => {
+
+            if(item.Status =="Rework"){
+
+                const processItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList")
+                .items.select('*,Title,Author/Title,Created,Status')
+                .expand('Author').filter("IsInitiator eq 'Yes' and Status eq 'Pending' and ProcessName eq 'Document Cancellation' and ListItemId eq '"+item.Id+"'")();
+        
+        
+                processItems.forEach(itm => {
+                    allItems.push({
+                        RequestId: item.DocumentCode,
+                        Title: item.Title,
+                        ProcessName: "Document Cancellation",
+                        ReqName: item.RequesterName?.Title ? item.RequesterName?.Title : '',
+                        ReqDt: item.RequestDate ? new Date(item.RequestDate).toLocaleDateString() : '',
+                        Status: item.Status,
+                        MainListId: item.Id,
+                        Id: item.Id,
+                        ProcessItemId:itm.Id
+                    })
+                
+                 });
+               
+
+            }
+            else{
+
+                allItems.push({
+                    RequestId: item.DocumentCode,
+                    Title: item.Title,
+                    ProcessName: "Document Cancellation",
+                    ReqName: item.RequesterName?.Title ? item.RequesterName?.Title : '',
+                    ReqDt: item.RequestDate ? new Date(item.RequestDate).toLocaleDateString() : '',
+                    Status: item.Status,
+                    MainListId: item.Id,
+                    Id: item.Id
+                });
+
+            }
+
+           
+           
         })
 
         const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList")
@@ -271,5 +313,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             });
         })
         _self.setState({ items: allItems });
+
+
+       
     }
 } 
