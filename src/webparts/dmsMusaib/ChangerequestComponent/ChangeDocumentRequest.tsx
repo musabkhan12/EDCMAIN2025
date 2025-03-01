@@ -2776,7 +2776,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   </td>
                                   <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                     {/* <i className="fe-trash-2 text-danger"></i> */}
-                                    <img src={require("../../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} className='sidebariconsmall' />
+                                    <img src={require("../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} className='sidebariconsmall' />
 
                                   </td>
                                 </tr>

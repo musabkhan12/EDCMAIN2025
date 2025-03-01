@@ -2065,7 +2065,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                             </td>
                                                                             {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "80px", maxWidth: "80px", textAlign: 'center' }}>
                                                                                 {/* <img src={require("../../../CustomAsset/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img> */}
-                                                                                <img src={require("../../../../CustomAsset/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img>
+                                                                                <img src={require("../../../CustomAsset/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img>
 
                                                                                 {/* <img src={require("../../../CustomAsset/del.png")} className='sidebariconsmall' style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img> */}
                                                                             </td>
@@ -2175,7 +2175,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                     {/* <i className="fe-trash-2 text-danger"></i> */}
                                                                                     {/* {editID.CurrentUserRole === "OES"? <img src={require("../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} />:
                                                                                 <img src={require("../assets/recycle-bin.png")}  className='sidebariconsmall' />} */}
-                                                                                    {editID.CurrentUserRole === "OES" ? <img src={require("../../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} /> :
+                                                                                    {editID.CurrentUserRole === "OES" ? <img src={require("../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} /> :
                                                                                         <img src={require("../../assets/recycle-bin.png")} className='sidebariconsmall' />}
 
                                                                                 </td>
