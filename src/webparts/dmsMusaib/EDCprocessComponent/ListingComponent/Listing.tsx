@@ -258,73 +258,126 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             });
         });
 
-        const ChangeRequestDocumentCancellationListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestDocumentCancellationList")
-            .items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode')
-            .expand('Author', 'RequesterName')();
+        // const ChangeRequestDocumentCancellationListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestDocumentCancellationList")
+        //     .items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode')
+        //     .expand('Author', 'RequesterName')();
 
-        ChangeRequestDocumentCancellationListItems.forEach(async (item) => {
+        // ChangeRequestDocumentCancellationListItems.forEach(async (item) => {
 
-            if (item.Status == "Rework") {
+        //     if (item.Status == "Rework") {
 
-                const processItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList")
-                    .items.select('*,Title,Author/Title,Created,Status')
-                    .expand('Author').filter("IsInitiator eq 'Yes' and Status eq 'Pending' and ProcessName eq 'Document Cancellation' and ListItemId eq '" + item.Id + "'")();
-
-
-                if (processItems.length > 0) {
-                    processItems.forEach(itm => {
-                        allItems.push({
-                            RequestId: item.DocumentCode,
-                            Title: item.Title,
-                            ProcessName: "Document Cancellation",
-                            ReqName: item.RequesterName?.Title ? item.RequesterName?.Title : '',
-                            ReqDt: item.RequestDate ? new Date(item.RequestDate).toLocaleDateString() : '',
-                            Status: item.Status,
-                            MainListId: item.Id,
-                            Id: item.Id,
-                            ProcessItemId: itm.Id
-                        })
-
-                    });
-
-                }
-                else {
-
-                    allItems.push({
-                        RequestId: item.DocumentCode,
-                        Title: item.Title,
-                        ProcessName: "Document Cancellation",
-                        ReqName: item.RequesterName?.Title ? item.RequesterName?.Title : '',
-                        ReqDt: item.RequestDate ? new Date(item.RequestDate).toLocaleDateString() : '',
-                        Status: item.Status,
-                        MainListId: item.Id,
-                        Id: item.Id,
-
-                    })
+        //         const processItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList")
+        //             .items.select('*,Title,Author/Title,Created,Status')
+        //             .expand('Author').filter("IsInitiator eq 'Yes' and Status eq 'Pending' and ProcessName eq 'Document Cancellation' and ListItemId eq '" + item.Id + "'")();
 
 
-                }
+        //         if (processItems.length > 0) {
+        //             processItems.forEach(itm => {
+        //                 allItems.push({
+        //                     RequestId: item.DocumentCode,
+        //                     Title: item.Title,
+        //                     ProcessName: "Document Cancellation",
+        //                     ReqName: item.RequesterName?.Title ? item.RequesterName?.Title : '',
+        //                     ReqDt: item.RequestDate ? new Date(item.RequestDate).toLocaleDateString() : '',
+        //                     Status: item.Status,
+        //                     MainListId: item.Id,
+        //                     Id: item.Id,
+        //                     ProcessItemId: itm.Id
+        //                 })
+
+        //             });
+
+        //         }
+        //         else {
+
+        //             allItems.push({
+        //                 RequestId: item.DocumentCode,
+        //                 Title: item.Title,
+        //                 ProcessName: "Document Cancellation",
+        //                 ReqName: item.RequesterName?.Title ? item.RequesterName?.Title : '',
+        //                 ReqDt: item.RequestDate ? new Date(item.RequestDate).toLocaleDateString() : '',
+        //                 Status: item.Status,
+        //                 MainListId: item.Id,
+        //                 Id: item.Id,
+
+        //             })
 
 
-            }
-            else {
+        //         }
 
+
+        //     }
+        //     else {
+
+        //         allItems.push({
+        //             RequestId: item.DocumentCode,
+        //             Title: item.Title,
+        //             ProcessName: "Document Cancellation",
+        //             ReqName: item.RequesterName?.Title ? item.RequesterName?.Title : '',
+        //             ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
+        //             Status: item.Status,
+        //             MainListId: item.Id,
+        //             Id: item.Id
+        //         });
+
+        //     }
+
+
+
+        // })
+        const ChangeRequestDocumentCancellationListItems = await spfi(this._sp).web.lists
+    .getByTitle("ChangeRequestDocumentCancellationList")
+    .items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode')
+    .expand('Author', 'RequesterName')();
+
+for (const item of ChangeRequestDocumentCancellationListItems) {
+    if (item.Status === "Rework") {
+        const processItems = await spfi(this._sp).web.lists
+            .getByTitle("ProcessApprovalList")
+            .items.select('*,Title,Author/Title,Created,Status')
+            .expand('Author')
+            .filter(`IsInitiator eq 'Yes' and Status eq 'Pending' and ProcessName eq 'Document Cancellation' and ListItemId eq ${item.Id}`)(); // Fixed filter
+
+        if (processItems.length > 0) {
+            for (const itm of processItems) {
                 allItems.push({
                     RequestId: item.DocumentCode,
                     Title: item.Title,
                     ProcessName: "Document Cancellation",
-                    ReqName: item.RequesterName?.Title ? item.RequesterName?.Title : '',
+                    ReqName: item.RequesterName?.Title || '',
                     ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
                     Status: item.Status,
                     MainListId: item.Id,
-                    Id: item.Id
+                    Id: item.Id,
+                    ProcessItemId: itm.Id
                 });
-
             }
+        } else {
+            allItems.push({
+                RequestId: item.DocumentCode,
+                Title: item.Title,
+                ProcessName: "Document Cancellation",
+                ReqName: item.RequesterName?.Title || '',
+                ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
+                Status: item.Status,
+                MainListId: item.Id,
+                Id: item.Id
+            });
+        }
+    } else {
+        allItems.push({
+            RequestId: item.DocumentCode,
+            Title: item.Title,
+            ProcessName: "Document Cancellation",
+            ReqName: item.RequesterName?.Title || '',
+            ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
+            Status: item.Status,
+            MainListId: item.Id,
+            Id: item.Id
+        });
+    }
+}
 
-
-
-        })
 
         const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList")
             .items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode')
