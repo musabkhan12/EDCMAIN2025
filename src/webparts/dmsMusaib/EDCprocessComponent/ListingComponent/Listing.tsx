@@ -17,23 +17,24 @@ import { EditComponent } from '../EditComponent/EditComponent';
 import type { IFormProps } from '../FormComponent/IFormProps';
 import ChangeDocumentRequest from '../../ChangerequestComponent/ChangeDocumentRequest';
 import DocumentCancellationProcess from '../DocumentCancellation/DocumentCancellationProcess';
+import moment from 'moment';
 export class Listing extends React.Component<IListingProps, IListingState, IFormProps> {
     private _sp: SPFI;
     constructor(props: IListingProps, state: IListingState) {
         super(props);
-         this._sp = getSP();
-       this.state={
-        edItm: null,
-        items:[],
-        showform:false,
-        process: "",
-        siteUrl: ""
-       }
-       this.getAllItems=this.getAllItems.bind(this);
-       this.editItem = this.editItem.bind(this);
-      }
- 
-      async componentDidMount(){
+        this._sp = getSP();
+        this.state = {
+            edItm: null,
+            items: [],
+            showform: false,
+            process: "",
+            siteUrl: ""
+        }
+        this.getAllItems = this.getAllItems.bind(this);
+        this.editItem = this.editItem.bind(this);
+    }
+
+    async componentDidMount() {
         await this.getAllItems();
     }
 
@@ -54,44 +55,54 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             // alert(item.RequestId + "item.RequestId");
 
             //here iam  condionally creating path
-     if(item.ProcessName =="Document Cancellation" && item.Status =="Rework"){
-        let actionType ="approve";
-        
+            if (item.ProcessName == "Document Cancellation" && item.Status == "Rework") {
+                if (item.ProcessItemId) {
+                    let actionType = "approve";
 
-        var path = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId}`;
 
-     } 
-     else{
-        let actionType = (item.Status === "Save As Draft" || item.Status === "Rework" || item.Status === "Save as draft") ? "edit" : "view";
+                    var path = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId}`;
 
-        var path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
+                }
+                else {
+                    let actionType = "view";
 
-     }      
-    
-            return(
-              <tr>
-                <td style={{minWidth:'60px',maxWidth:'60px'}}>
-               <div style={{marginLeft:'10px'}} className='indexdesign'> {i+1}</div>
-                </td>
-                <td style={{minWidth:'85px',maxWidth:'85px'}}>
-                    {item.RequestId}                  
-                </td>
-                <td>
-                    {item.Title}
-                </td>
-                <td style={{minWidth:'85px',maxWidth:'85px'}}>
-                    {item.ProcessName}
-                </td>
-                <td style={{minWidth:'85px',maxWidth:'85px'}}>
-                {item.ReqName}
-                </td>
-                <td style={{minWidth:'85px',maxWidth:'85px'}}>
-                {item.ReqDt}                    
-                </td>
-                <td style={{minWidth:'75px',maxWidth:'75px'}}>
-                {item.Status}
-                </td>
-                <td style={{minWidth:'75px',maxWidth:'75px'}}>
+
+                    var path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
+                }
+
+
+            }
+            else {
+                let actionType = (item.Status === "Save As Draft" || item.Status === "Rework" || item.Status === "Save as draft") ? "edit" : "view";
+
+                var path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
+
+            }
+
+            return (
+                <tr>
+                    <td style={{ minWidth: '60px', maxWidth: '60px' }}>
+                        <div style={{ marginLeft: '10px' }} className='indexdesign'> {i + 1}</div>
+                    </td>
+                    <td style={{ minWidth: '85px', maxWidth: '85px' }}>
+                        {item.RequestId}
+                    </td>
+                    <td>
+                        {item.Title}
+                    </td>
+                    <td style={{ minWidth: '85px', maxWidth: '85px' }}>
+                        {item.ProcessName}
+                    </td>
+                    <td style={{ minWidth: '85px', maxWidth: '85px' }}>
+                        {item.ReqName}
+                    </td>
+                    <td style={{ minWidth: '85px', maxWidth: '85px' }}>
+                        {item.ReqDt}
+                    </td>
+                    <td style={{ minWidth: '75px', maxWidth: '75px' }}>
+                        {item.Status}
+                    </td>
+                    <td style={{ minWidth: '75px', maxWidth: '75px' }}>
 
 
                         <a href={path} onClick={() => this.editItem(item)}>
@@ -240,7 +251,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 Title: itm.Title,
                 ProcessName: "Annual Audit Program",
                 ReqName: itm.Author ? itm.Author.Title : '',
-                ReqDt: itm.Created ? new Date(itm.Created).toLocaleDateString() : '',
+                ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
                 Status: itm.Status,
                 MainListId: itm.Id,
                 Id: itm.Id
@@ -253,14 +264,32 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
         ChangeRequestDocumentCancellationListItems.forEach(async (item) => {
 
-            if(item.Status =="Rework"){
+            if (item.Status == "Rework") {
 
                 const processItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList")
-                .items.select('*,Title,Author/Title,Created,Status')
-                .expand('Author').filter("IsInitiator eq 'Yes' and Status eq 'Pending' and ProcessName eq 'Document Cancellation' and ListItemId eq '"+item.Id+"'")();
-        
-        
-                processItems.forEach(itm => {
+                    .items.select('*,Title,Author/Title,Created,Status')
+                    .expand('Author').filter("IsInitiator eq 'Yes' and Status eq 'Pending' and ProcessName eq 'Document Cancellation' and ListItemId eq '" + item.Id + "'")();
+
+
+                if (processItems.length > 0) {
+                    processItems.forEach(itm => {
+                        allItems.push({
+                            RequestId: item.DocumentCode,
+                            Title: item.Title,
+                            ProcessName: "Document Cancellation",
+                            ReqName: item.RequesterName?.Title ? item.RequesterName?.Title : '',
+                            ReqDt: item.RequestDate ? new Date(item.RequestDate).toLocaleDateString() : '',
+                            Status: item.Status,
+                            MainListId: item.Id,
+                            Id: item.Id,
+                            ProcessItemId: itm.Id
+                        })
+
+                    });
+
+                }
+                else {
+
                     allItems.push({
                         RequestId: item.DocumentCode,
                         Title: item.Title,
@@ -270,21 +299,22 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         Status: item.Status,
                         MainListId: item.Id,
                         Id: item.Id,
-                        ProcessItemId:itm.Id
+
                     })
-                
-                 });
-               
+
+
+                }
+
 
             }
-            else{
+            else {
 
                 allItems.push({
                     RequestId: item.DocumentCode,
                     Title: item.Title,
                     ProcessName: "Document Cancellation",
                     ReqName: item.RequesterName?.Title ? item.RequesterName?.Title : '',
-                    ReqDt: item.RequestDate ? new Date(item.RequestDate).toLocaleDateString() : '',
+                    ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
                     Status: item.Status,
                     MainListId: item.Id,
                     Id: item.Id
@@ -292,8 +322,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
             }
 
-           
-           
+
+
         })
 
         const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList")
@@ -306,7 +336,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 Title: item.Title,
                 ProcessName: "Change Request",
                 ReqName: item.RequesterName?.Title ? item.RequesterName?.Title : '',
-                ReqDt: item.RequestDate ? new Date(item.RequestDate).toLocaleDateString() : '',
+                ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
                 Status: item.Status,
                 MainListId: item.Id,
                 Id: item.Id
@@ -315,6 +345,6 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
         _self.setState({ items: allItems });
 
 
-       
+
     }
 } 

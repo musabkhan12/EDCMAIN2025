@@ -61,7 +61,7 @@ interface ForwardTo {
   role: number;
   level: number;
   approvers: any[]; // Or a more specific type like `string[]` or `SPUser[]`
-  approvaltype: number
+  leveltype: string
 }
 interface ChangeRequestCheckbox {
   id: number;
@@ -183,8 +183,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
   const [showModal, setShowModal] = React.useState(false);
   const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
-    { id: 0, role: 0, level: 1, approvers: [], approvaltype: 0 } // Default row
+    { id: 0, role: 0, level: 1, approvers: [], leveltype: "" } // Default row
   ]);
+  const [currentUserDept, setcurrentUserDept] = React.useState("");
   const [forwardToArrEdit, setForwardToArrEdit] = React.useState<ForwardTo[]>([]);
   const [changeRequestCheckboxes, setChangeRequestCheckboxes] = React.useState<ChangeRequestCheckbox[]>([]);
   const [employeeDetails, setemployeeDetails] = React.useState<IEmployeeDetails[] | null>([]);
@@ -253,6 +254,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       UserName: item.Title,
       UserEmail: item.Email
     }));
+    //const userProfile = await sp.profiles.myProperties();
+    setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
+    const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
+
 
     setRows1(Selectedoptions);
 
@@ -262,7 +267,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       RequesterDesignation: userProfile?.Title || "",
       RequesterName: userProfile?.DisplayName || "",
       RequestDate: new Date().toLocaleDateString("en-CA"),
-      Department: userProfile?.Department
+      Department: UserDept
       //RequestedDate: new Date().toISOString().split("T")[0] // Format as YYYY-MM-DD
 
     }));
@@ -282,7 +287,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       SerialNumber: item.SerialNumber,
       RevisionDate: item.RevisionDate,
       AmendmentTypeId: item.AmendmentTypeId,
-
+      DocumentCode: item.DocumentCode,
       ClassificationId: item.ClassificationId,
       ChangeRequestTypeId: item.ChangeRequestTypeId,
       SubmiitedDate: item.SubmiitedDate,
@@ -290,7 +295,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       DocumentTypeId: item.DocumentTypeId,
       Department: item.Department,
       AttachmentId: item.AttachmentId,
-      AttachmentJson: item.AttachmentJson
+      AttachmentJson: item.AttachmentJson,
+      ID: item.ID
       // DocumentName: "",
       // IsRework: false,
       // DigitalSignStatus: false,
@@ -367,7 +373,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
             const EditApprowData = ApprowData.map((item: any) => ({
               id: item.ID,
-              approvaltype: item.LevelType,
+              leveltype: item.LevelType,
               role: item.ApproverRole?.Id || 0, // Assuming role comes from ApproverRole
               level: item.Level || 1, // Default to 1 if missing
               approvers: item.Approvers?.map((approver: any) => ({
@@ -531,63 +537,68 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
   };
   const onSelectDocCode = async (selectedList: any) => {
+    debugger
     console.log(selectedList, "selectedList");
-    setFormData(prevData => ({
-      ...prevData,
-      IssueNumber: selectedList.IssueNumber,
-      ReferenceNumber: selectedList.ReferenceNumber,
-      RevisionNumber: selectedList.RevisionNumber,
-      ChangeRequestID: selectedList.ChangeRequestID,
-      IssueDate: selectedList.IssueDate,
-      LocationId: selectedList.LocationId,
-      CustodianId: selectedList.CustodianId,
-      SerialNumber: selectedList.SerialNumber,
-      RevisionDate: selectedList.RevisionDate,
-      AmendmentTypeId: selectedList.AmendmentTypeId,
-      ClassificationId: selectedList.ClassificationId,
-      ChangeRequestTypeId: selectedList.ChangeRequestTypeId,
-      SubmiitedDate: selectedList.SubmiitedDate,
-      SubmitStatus: selectedList.SubmitStatus,
-      DocumentCode: selectedList.value,
-      DocumentTypeId: selectedList.DocumentTypeId,
-      Department: selectedList.Department,
-      AttachmentId: selectedList.AttachmentId,
-      AttachmentJson: selectedList.AttachmentJson
-      // Format as YYYY-MM-DD
-    }));
-    setSelectedOption(selectedList);
-    const rowData: any[] = await getItemByIDChangeRequest(sp, Number(selectedList.ID)) //baseUrl
-    const initialRows = rowData.map((item: any) => ({
-      id: item.Id,
-      description: item.ChangeDescription,
-      reason: item.ReasonforChange,
-    }));
-    setcancellReason(initialRows);
-    setcancellReasonEdit(initialRows);
-    const selectedLocation = LocationOpt.filter((loc: { locationId: any; }) => loc.locationId === selectedList.LocationId)[0] || null;
-    const selectedCustodian = Custodianopt.filter((cust: { custodianId: any; }) => cust.custodianId === selectedList.CustodianId)[0] || null;
-    const selectedDocumentType = DocumentTypeOpt.filter((docType: { documentTypeId: any; }) => docType.documentTypeId === selectedList.DocumentTypeId)[0] || null;
-    const selectedAmendment = Amendtype.filter((cust: { value: any; }) => cust.value === selectedList.AmendmentTypeId)[0] || null;
-    const selectedClassifiction = Classificationopt.filter((docType: { value: any; }) => docType.value === selectedList.ClassificationId)[0] || null;
-    //const selectedRequesttype = optionsreq.filter((cust: { value: any; }) => cust.value === selectedList.RequestTypeId)[0] || null;
-    setselectedOptionDoctype(selectedDocumentType);
-    setSelectedOptionClassification(selectedClassifiction);
-    setSelectedOptionAmend(selectedAmendment);
-    setselectedOptionCusto(selectedCustodian);
-    setselectedOptionLoc(selectedLocation);
-    setselectedCheckboxIds(selectedList.ChangeRequestTypeId)
-    if (selectedList.AttachmentId) {
-      let arrn = await getDocumentLinkByIDarr(sp, selectedList.AttachmentId[0]);
-      //let arraynew: any[];
-      //arraynew.push(arrn)
-      console.log("arrrrrrn56", arrn);
-      setAttachmentarr(arrn);
-      setDocumentLink(await getDocumentLinkByID(sp, selectedList.AttachmentId[0]))
+    if (selectedList != null ){
+      setFormData(prevData => ({
+        ...prevData,
+        IssueNumber: selectedList.IssueNumber,
+        ReferenceNumber: selectedList.ReferenceNumber,
+        RevisionNumber: selectedList.RevisionNumber,
+        ChangeRequestID: selectedList.ChangeRequestID,
+        IssueDate: selectedList.IssueDate,
+        LocationId: selectedList.LocationId,
+        CustodianId: selectedList.CustodianId,
+        SerialNumber: selectedList.SerialNumber,
+        RevisionDate: selectedList.RevisionDate,
+        AmendmentTypeId: selectedList.AmendmentTypeId,
+        ClassificationId: selectedList.ClassificationId,
+        ChangeRequestTypeId: selectedList.ChangeRequestTypeId,
+        SubmiitedDate: selectedList.SubmiitedDate,
+        SubmitStatus: selectedList.SubmitStatus,
+        DocumentCode: selectedList.value,
+        DocumentTypeId: selectedList.DocumentTypeId,
+        Department: selectedList.Department,
+        AttachmentId: selectedList.AttachmentId,
+        AttachmentJson: selectedList.AttachmentJson
+        // Format as YYYY-MM-DD
+      }));
+      setSelectedOption(selectedList);
+      const rowData: any[] = await getItemByIDChangeRequest(sp, Number(selectedList.ID)) //baseUrl
+      const initialRows = rowData.map((item: any) => ({
+        id: item.Id,
+        description: item.ChangeDescription,
+        reason: item.ReasonforChange,
+      }));
+      setcancellReason(initialRows);
+      setcancellReasonEdit(initialRows);
+      const selectedLocation = LocationOpt.filter((loc: { locationId: any; }) => loc.locationId === selectedList.LocationId)[0] || null;
+      const selectedCustodian = Custodianopt.filter((cust: { custodianId: any; }) => cust.custodianId === selectedList.CustodianId)[0] || null;
+      const selectedDocumentType = DocumentTypeOpt.filter((docType: { documentTypeId: any; }) => docType.documentTypeId === selectedList.DocumentTypeId)[0] || null;
+      const selectedAmendment = Amendtype.filter((cust: { value: any; }) => cust.value === selectedList.AmendmentTypeId)[0] || null;
+      const selectedClassifiction = Classificationopt.filter((docType: { value: any; }) => docType.value === selectedList.ClassificationId)[0] || null;
+      //const selectedRequesttype = optionsreq.filter((cust: { value: any; }) => cust.value === selectedList.RequestTypeId)[0] || null;
+      setselectedOptionDoctype(selectedDocumentType);
+      setSelectedOptionClassification(selectedClassifiction);
+      setSelectedOptionAmend(selectedAmendment);
+      setselectedOptionCusto(selectedCustodian);
+      setselectedOptionLoc(selectedLocation);
+      setselectedCheckboxIds(selectedList.ChangeRequestTypeId)
+      if (selectedList.AttachmentId) {
+        let arrn = await getDocumentLinkByIDarr(sp, selectedList.AttachmentId[0]);
+        //let arraynew: any[];
+        //arraynew.push(arrn)
+        console.log("arrrrrrn56", arrn);
+        setAttachmentarr(arrn);
+        setDocumentLink(await getDocumentLinkByID(sp, selectedList.AttachmentId[0]))
+      }
+      else {
+        setDocumentLink(null);
+      }  // Set the selected users
+    };
     }
-    else {
-      setDocumentLink(null);
-    }  // Set the selected users
-  };
+   
+   
   // const onSelectDocCode = (selectedList: any) => {
   //   console.log(selectedList, "selectedList");
   //   setFormData(prevData => ({
@@ -743,15 +754,18 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   // };
 
   const onSelectRole = (event: React.ChangeEvent<HTMLSelectElement>, lvl: number) => {
+    debugger
     const updatedArr = forwardToArr.map(row =>
       row.level === lvl ? { ...row, role: Number(event.target.value) } : row
     );
     setForwardToArr(updatedArr);
-    //setUserRoles(UserRoles.filter((x: any) => x.label !== event.target.value))
+    setSelectedRole(forwardToArr.map(r => r.role).filter(role => role))
   };
+
   const onSelectApprovalType = (event: React.ChangeEvent<HTMLSelectElement>, lvl: number) => {
+    debugger
     const updatedArr1 = forwardToArr.map(row =>
-      row.level === lvl ? { ...row, approvaltype: Number(event.target.value) } : row
+      row.level === lvl ? { ...row, leveltype: event.target.value } : row
     );
     setForwardToArr(updatedArr1);
     //setUserRoles(UserRoles.filter((x: any) => x.label !== event.target.value))
@@ -764,7 +778,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const handleAddRow = () => {
     setForwardToArr((prev) => [
       ...prev,
-      { id: 0, role: 0, level: prev.length + 1, approvers: [], approvaltype: 0 }
+      { id: 0, role: 0, level: prev.length + 1, approvers: [], leveltype: "" }
     ]);
   };
 
@@ -900,6 +914,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         // const isValid = rows.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
         valid = false;
       }
+
       // else if (IssueNumber === "") {
       //   //Swal.fire('Error', 'Entity is required!', 'error');
       //   valid = false;
@@ -929,6 +944,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       else if (!selectedOptionReq) {
         //errormsg = "Please select Classification"
         //Swal.fire('Error', 'Category is required!', 'error');
+        valid = false;
+      }
+      else if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" && row.reason.trim() !== "") == false) {
+        // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
         valid = false;
       }
       setValidDraft(valid);
@@ -1017,6 +1036,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 attachmentIds.push(itemId);
               }
             }
+            let Attachmentidsss = attachmentIds.length != 0 ? attachmentIds : formData.AttachmentId;
+            let AttachmentJso = attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson
             // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
             let arr = {
               Title: formData.RequesterName,
@@ -1045,22 +1066,22 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               CurrentUserRole: "OES",
               DocumentName: attachmentIds.length != 0 ? DocumentName : formData.DocumentName,
               DocumentTypeId: formData.DocumentTypeId,
-              AttachmentId: attachmentIds.length != 0 ? attachmentIds : formData.AttachmentId,
-              AttachmentJson: attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson
+              AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption.AttachmentId,
+              AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson
             }
             const postResult = await updateItemChangeRequestList(arr, sp, editItemID);
             const postId = postResult?.data?.ID;
             console.log("postPayload edit arr", arr, postResult);
-
+            debugger
             for (const row of cancellReason) {
 
               const postPayload2 = {
-                ChangeRequestIDId: postId, // Assuming "Title" column exists
+                ChangeRequestIDId: editItemID, // Assuming "Title" column exists
                 ChangeDescription: row.description,
                 ReasonforChange: row.reason,
               }
 
-              if (!row.id) {
+              if (!row.id || row.id == 0) {
 
                 const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
                 const postId2 = postResult2?.data?.ID;
@@ -1100,7 +1121,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Submitted successfully.', '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `${siteUrl}/SitePages/EDCMAIN.aspx`;
+              window.history.back();
             }, 1000);
             // }
           }
@@ -1144,6 +1165,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 attachmentIds.push(itemId);
               }
             }
+            let Attachmentidsss = attachmentIds.length != 0 ? attachmentIds : formData.AttachmentId;
+            let AttachmentJso = attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson;
             const postPayload = {
               Title: formData.RequesterName,
               RequesterNameId: formData.RequesterNameId,
@@ -1173,8 +1196,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               CurrentUserRole: "OES",
               DocumentName: DocumentName,
               DocumentTypeId: formData.DocumentTypeId,
-              AttachmentId: attachmentIds,
-              AttachmentJson: JSON.stringify(bannerImageArray)
+              AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption.AttachmentId,
+              AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson
             };
             console.log("postPayload new", postPayload);
 
@@ -1209,7 +1232,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Submitted successfully.', '', 'success');
             // sessionStorage.removeItem("bannerId")
             setTimeout(() => {
-              window.location.href = `${siteUrl}/SitePages/EDCMAIN.aspx`;
+              window.history.back();
             }, 1000);
             // }
 
@@ -1249,7 +1272,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     const selectedCustodian = Custodianopt.filter((cust: { custodianId: any; }) => cust.custodianId === selectedOptionCusto.custodianId)[0] || null;
     const selectedDocumentType = DocumentTypeOpt.filter((docType: { documentTypeId: any; }) => docType.documentTypeId === selectedOptionDoctype.documentTypeId)[0] || null;
     if (selectedLocation && selectedCustodian && selectedDocumentType) {
-      const referencedocCode = `${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.${selectedCustodian.custodianCode}.TMP-${serialno}.${issueno}`;
+      const referencedocCode = `${selectedCustodian.custodianCode}.${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.TMP-${serialno}.${issueno}`;
       setreferencedocCode(referencedocCode);
       return referencedocCode;
       // Store docCode in state
@@ -1390,7 +1413,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Saved successfully.', '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `${siteUrl}/SitePages/EDCMAIN.aspx`;
+              window.history.back();
             }, 1000);
             // }
           }
@@ -1492,7 +1515,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Saved successfully.', '', 'success');
             // sessionStorage.removeItem("bannerId")
             setTimeout(() => {
-              window.location.href = `${siteUrl}/SitePages/EDCMAIN.aspx`;
+              window.history.back();
             }, 1000);
           }
         })
@@ -1577,7 +1600,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         valid = false;
       }
 
-      const isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0);
+      const isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 && row.leveltype != "");
 
       if (!isValid) {
         // alert("Each row must have a role selected and at least one approver.");
@@ -1633,7 +1656,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 ApproverRoleId: item.role,
                 Level: Number(item.level),
                 ApproversId: approversIds,
-                LevelType: item.approvaltype,
+                LevelType: item.leveltype,
                 SubmitStatus: "Yes",
                 Maxlevel: item.approvers?.length,
                 // ContentTitle:,
@@ -1690,7 +1713,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `${siteUrl}/SitePages/Dashboard.aspx`;
+              window.history.back();
             }, 1000);
             // }
           }
@@ -1744,7 +1767,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 ApproverRoleId: item.role,
                 Level: Number(item.level),
                 ApproversId: approversIds,
-                LevelType: item.approvaltype,
+                LevelType: item.leveltype,
                 SubmitStatus: "Yes",
                 Maxlevel: item.approvers?.length,
                 // ContentTitle:,
@@ -1797,7 +1820,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `${siteUrl}/SitePages/Dashboard.aspx`;
+              window.history.back();
             }, 1000);
             // }
           }
@@ -1942,7 +1965,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `${siteUrl}/SitePages/EDCMAIN.aspx`;
+              window.history.back();
             }, 1000);
 
           }
@@ -2068,7 +2091,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `${siteUrl}/SitePages/EDCMAIN.aspx`;
+              window.history.back();
             }, 1000);
             // }
           }
@@ -2558,18 +2581,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                               </div>
                             </div>
                           }
-                          {(editID != null || (selectedOptionReq != null && selectedOptionReq?.label !== "Change Request for New Addition")) &&
-                            // <div className="col-lg-8">
-
-                            //                                                                 <div className="mb-3">
-                            //                                                                     <label htmlFor="example-email" className="form-label">Document Link:</label>
-
-
-                            //                                                                     <div className="text-dark mt-0"> <span onClick={() => OpenFile(DocumentLink)} style={{ color: "blue", cursor: "pointer" }}>{DocumentLink ? `${Tenant_URL}${DocumentLink?.FileRef}` : ""}</span>
-                            //                                                                     </div>
-
-                            //                                                                 </div>
-                            //                                                             </div>
+                          {modeValue == "view" || modeValue == "edit" || modeValue == "approve" &&
 
                             <div className="col-lg-4">
                               <div className="mb-3">
@@ -2581,22 +2593,6 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                                 </span>
                                 </div>
-                                {/* <a style={{ fontSize: '0.875rem' }}
-                                      //onClick={() => handlePreviewClick(Attachmentarr[0])}
-                                      onClick={() => setShowModal(true)}>
-                                      <FontAwesomeIcon icon={faPaperclip} />1 file Attached
-                                    </a> */}
-                                {/* <div className="text-dark mt-0"> <span onClick={() => OpenFile(DocumentLink)} style={{ color: "blue", cursor: "pointer" }}>{DocumentLink ? `${Tenant_URL}${DocumentLink?.FileRef}` : ""}</span>
-                                    </div> */}
-                                {/* <Link
-                                      href={selectedOption != null && formData.AttachmentJson != "" && (JSON.parse(formData.AttachmentJson)?.serverUrl +
-                                        JSON.parse(formData.AttachmentJson)?.serverRelativeUrl)}
-                                      className="anchor"
-                                      target="_blank"
-                                    >
-                                      {selectedOption != null && formData.AttachmentJson != "" && (JSON.parse(formData.AttachmentJson)?.serverUrl +
-                                        JSON.parse(formData.AttachmentJson)?.serverRelativeUrl)}
-                                    </Link> */}
 
                               </div>
                             </div>
@@ -2699,7 +2695,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                   </div>
                   {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
-                  {console.log("editiiiiifhifassignmentt", editID, modeValue, InputDisabled)}
+                  {console.log("editiiiiifhifassignmentt", editID, modeValue, InputDisabled, ApprovalTypeOptions)}
                   {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" &&
                     <div className="card mt-2">
                       <div className="card-body">
@@ -2725,21 +2721,22 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 <th style={{ borderBottomLeftRadius: "0px" }}>Role</th>
                                 <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level</th>
                                 <th >Approver Name</th>
+                                <th >Level Type</th>
                                 <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
                               </tr>
                             </thead>
                             <tbody style={{ maxHeight: "8007px" }}>
+                              {console.log("forwardToArrforwardToArrforwardToArr", forwardToArr, UserRoles, ApprovalTypeOptions)}
                               {forwardToArr.map((row, index) => (
                                 <tr>
                                   <td className="ng-binding">
                                     <select className="form-select" onChange={(e) => onSelectRole(e, row.level)} value={row.role}>
                                       <option value="" selected>Select Role</option>
-                                      {UserRoles
-                                        .filter((role: any) =>
-                                          !forwardToArr.some(r => r.role === role.value)  // Filter out roles that are already selected
-                                        ).map((role: any, index: number) => (
-                                          <option key={index} value={role.value}>{role.label}</option>
-                                        ))}
+                                      {UserRoles.filter((role: any) =>
+                                        !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
+                                      ).map((role: any, index: number) => (
+                                        <option key={index} value={role.value}>{role.label}</option>
+                                      ))}
                                     </select>
 
                                   </td>
@@ -2761,10 +2758,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                                   </td>
                                   <td className="ng-binding">
-                                    <select className="form-select" onChange={(e) => onSelectApprovalType(e, row.level)} value={row.role}>
-                                      <option value="" selected>Select Role</option>
-                                      {ApprovalTypeOptions.map((role: any, index: number) => (
-                                        <option key={index} value={role.value}>{role.label}</option>
+                                    <select className="form-select"
+                                      onChange={(e) => onSelectApprovalType(e, row.level)}
+                                      value={row.leveltype}>
+                                      <option value="" selected>Select Type</option>
+                                      {ApprovalTypeOptions.map((x: any, index: number) => (
+                                        <option key={index} value={x.value}>{x.label}</option>
                                       ))}
                                     </select>
 
@@ -2812,7 +2811,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                     </div>
                   }
                   {console.log("editiiiiifhifapprovee", editID, modeValue, InputDisabled)}
-                  {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" && (
+                  {/* {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" && (
                     <div className="card">
                       <div className="card-body">
                         <h4 className="header-title mb-0">Remarks</h4>
@@ -2824,7 +2823,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                         ></textarea>
                       </div>
                     </div>
-                  )}
+                  )} */}
 
                   {/* ////////////Approval card */}
                   {console.log("editiiiiifhif", editID, modeValue, InputDisabled)}
@@ -2840,11 +2839,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                       />
                     ) : (<div></div>)
                   }
-
+                  {console.log("MainEditItemMainEditItem", MainEditItem)}
                   {/* ////////////Audit History card */}
-                  {editID !== null && editID.length != 0 && modeValue === "approve" &&
-                    <WorkflowAuditHistory ContentItemId={editID} ContentType={CONTENTTYPE_ChangeDocument} ctx={props.context} />
+                  {MainEditItem !== null && MainEditItem.length != 0 && MainEditItem.Status != "Save as draft" &&
+                    <WorkflowAuditHistory ContentItemId={MainEditItem} ContentType={CONTENTTYPE_ChangeDocument} ctx={props.context} />
                   }
+                  {/* {editID !== null && editID.length != 0 && modeValue === "approve" &&
+                    <WorkflowAuditHistory ContentItemId={editID} ContentType={CONTENTTYPE_ChangeDocument} ctx={props.context} />
+                  } */}
                   {/* ////////////Audit History card */}
 
                   {/* ////////////Approval card */}

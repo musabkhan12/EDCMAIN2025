@@ -26,15 +26,15 @@ export const getAllDocumentCode = async (_sp) => {
 };
 export const getDocumentCodeselected = async (_sp, locId, custoId, doctypeId) => {
   let arr = [];
- 
+
   await _sp.web.lists.getByTitle("ChangeRequestList").items
     .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title")
     .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")
-    .filter(`LocationId eq '${locId}' and CustodianId eq '${custoId}' and DocumentTypeId eq '${doctypeId}' and Status ne 'Save as draft'`)
-    .orderBy("Modified", false)() // Order by Modified descending to get latest first
+    .filter(`LocationId eq '${locId}' and CustodianId eq '${custoId}' and DocumentTypeId eq '${doctypeId}'`)
+    .orderBy("SerialNumber", false).top(1)() // Order by Modified descending to get latest first
     .then((res) => {
       console.log(res);
- 
+
       // Filter only latest entry for each unique DocumentCode
       // const latestDocuments = res.reduce((acc, item) => {
       //   if (!acc[item.DocumentCode]) {
@@ -45,8 +45,8 @@ export const getDocumentCodeselected = async (_sp, locId, custoId, doctypeId) =>
       let SnoArr = [];
       if (res.length > 0) {
         SnoArr.push({
-          SerialNo: Number(res[0].SerialNumber) + 1,
-          IssueNo: Number(res[0].IssueNumber) + 1,
+          SerialNo: Number(res[0].SerialNumber),
+          IssueNo: Number(res[0].IssueNumber),
           RevisionNo: Number(res[0].RevisionNumber)
         })
       }
@@ -301,7 +301,26 @@ export const updateItemChangeRequestReasonList = async (itemData, _sp, id) => {
   let resultArr = []
   try {
     const newItem = await _sp.web.lists.getByTitle('ChangeRequestReasonList').items.getById(id).update(itemData);
+    debugger
     console.log('Item added successfully:', newItem);
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+  }
+  return resultArr;
+};
+export const getallProcessApprovalitems = async (_sp, id) => {
+  let resultArr = []
+  try {
+    const newItem = await _sp.web.lists.getByTitle('ProcessApprovalList').items
+      .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title")
+      .expand("Author,RequesterName,AssignedTo")
+      .filter(`ListItemId eq ${id} and Status eq 'Pending'`)
+      ();
+    console.log('all process itemss:', newItem);
     resultArr = newItem
     // Perform any necessary actions after successful addition
   } catch (error) {

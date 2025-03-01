@@ -5,7 +5,7 @@ import { updateItemApproval, updateItemApproval2 } from "./ApprovalService";
 import { getSP } from "../loc/pnpjsConfig";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import Swal from "sweetalert2";
-import { updateItem, updateItemChangeRequestList } from "./DocumentCancellation";
+import { getallProcessApprovalitems, getItemByIDCR, updateItem, updateItemChangeRequestList } from "./DocumentCancellation";
 
 export interface IWorkflowActionProps {
   currentItem: any;
@@ -46,6 +46,24 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
     window.location.href = `${siteUrl}/SitePages/MyApprovals.aspx`;
   }
   const handleFromSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, Status: string) => {
+    debugger
+    let currentchangerequest = await getItemByIDCR(sp, Number(props.currentItem.ListItemId));
+    let allprocessitems = await getallProcessApprovalitems(sp, Number(props.currentItem.ListItemId));
+
+    let currentReferenceNo = currentchangerequest[0].ReferenceNumber;
+    let arrrr = currentReferenceNo.split('.')
+    for (let i = 0; i < arrrr.length; i++) {
+      if (arrrr[i].includes("TMP")) {
+        arrrr[i] = arrrr[i].replace("TMP", "RRF");
+      }
+    }
+    let test = arrrr.join('.');
+    console.log("arrrr", arrrr, test);
+    if (props.currentItem.Maxlevel == props.currentItem.Level) {
+      if ((props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One") {
+        currentReferenceNo = test
+      }
+    }
 
     e.preventDefault();
     let postPayload = {}
@@ -62,8 +80,8 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         Status: Status,
 
         ActionTakenById: currentUser.Id,
-        ActionTakenOn: new Date().toLocaleDateString("en-CA")
-
+        ActionTakenOn: new Date().toISOString(),
+        ContentTitle: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
       };
 
       postPayload2 = {
@@ -73,7 +91,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         InitiatorSubmitStatus: "No",
         CurrentUserRole: "Initiator",
         SubmitStatus: "No",
-
+        ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
       };
 
     }
@@ -140,7 +158,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
             // window.location.reload()
 
-            location.href = `${siteUrl}/SitePages/MyApprovals.aspx`;
+            // location.href = `${siteUrl}/SitePages/MyApprovals.aspx`;
 
           }, 1000);
 
@@ -190,7 +208,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
               <div className="col-12 text-center">
 
-                {!props.DisableApproval ? (<a href="my-approval.html">
+                {!props.DisableApproval ? (<a >
 
                   <button type="button" className="btn btn-success waves-effect waves-light m-1" onClick={(e) => handleFromSubmit(e, 'Approved')}>
 
@@ -200,7 +218,9 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
                 </a>) : (<div></div>)}
 
-                {!props.DisableApproval ? (<a href="my-approval.html">
+                {!props.DisableApproval ? (<a
+                //href="my-approval.html"
+                >
 
                   <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={(e) => handleFromSubmit(e, 'Rework')}>
 
@@ -210,7 +230,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
                 </a>) : (<div></div>)}
 
-                {!props.DisableApproval ? (<a href="my-approval.html">
+                {!props.DisableApproval ? (<a >
 
                   <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={(e) => handleFromSubmit(e, 'Rejected')}>
 

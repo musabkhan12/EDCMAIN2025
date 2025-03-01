@@ -51,7 +51,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
   const [IsHistoryData, setIsHistoryData] = React.useState(false);
 
-  const siteUrl = props.ctx.pageContext.site.absoluteUrl;
+  //const siteUrl = props.ctx.pageContext.site.absoluteUrl;
 
 
   const sp = getSP(props.ctx);
@@ -133,8 +133,8 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
           .select("*,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title,ActionTakenBy/Id,ActionTakenBy/Title")
           .expand("AssignedTo,RequesterName,ActionTakenBy")
           .filter(
-
-            "ListItemId eq " + props.ContentItemId.ListItemId +
+            "ListItemId eq " + props.ContentItemId.Id +
+            // "ListItemId eq " + props.ContentItemId.ListItemId +
             " and ProcessName eq '" + props.ContentType + "'"
           )
           .orderBy('Created')().then(datarows => {
@@ -310,7 +310,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                                   ? row.Level === 0
                                     ? row.CurrentUserRole === "OES"
                                       ? "OES"
-                                      : row.CurrentUserRole == null
+                                      : row.CurrentUserRole == null || row.CurrentUserRole == "Initiator"
                                         ? "Initiator"
                                         : `Level ${row.Level}`
                                     : `Level ${row.Level}`
@@ -325,7 +325,30 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                         <td> {row.Requester ? row.Requester.Title : row.RequesterName.Title}</td>
 
-                        <td> {(new Date(row.Created)).toLocaleString()}</td>
+                        <td title={row.Status !== 'Pending'
+                          ? `${new Intl.DateTimeFormat('en-GB', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                          }).format(new Date(row.Created)).replace(/ /g, "/")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                          })}`
+                          : ""}>
+                          {/* {new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.Created))} */}
+                          {row.Status !== 'Pending'
+                            ? `${new Intl.DateTimeFormat('en-GB', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric'
+                            }).format(new Date(row.Created)).replace(/ /g, "/")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false
+                            })}`
+                            : ""}
+                        </td>
 
                         {/* <td> {(row.Status != 'Pending') ? (row.Approver?.Title ? row.Approver.Title:(row.ActionTakenBy.Title?row.ActionTakenBy.Title:"")) : ""}</td> */}
                         <td>
@@ -334,9 +357,32 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                             : ""}
                         </td>
 
-                        <td>{(row.Status != 'Pending') ? ((new Date(row.Modified)).toLocaleString()) : ""}</td>
+                        <td title={row.Status !== 'Pending'
+                          ? `${new Intl.DateTimeFormat('en-GB', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                          }).format(new Date(row.Modified)).replace(/ /g, "/")} ${new Date(row.Modified).toLocaleTimeString('en-GB', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                          })}`
+                          : ""}>
+                          {/* {(row.Status != 'Pending') ?(new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.Modified))):""} */}
+                          {row.Status !== 'Pending'
+                            ? `${new Intl.DateTimeFormat('en-GB', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric'
+                            }).format(new Date(row.Modified)).replace(/ /g, "/")} ${new Date(row.Modified).toLocaleTimeString('en-GB', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false
+                            })}`
+                            : ""}
+                        </td>
 
-                        <td> {row.Remark}</td>
+                        <td title={row.Remark}> {row.Remark}</td>
 
                         <td> <div className="btn  btn-status">{row.Status}</div> </td>
 
