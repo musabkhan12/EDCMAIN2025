@@ -201,7 +201,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   };
 
   const ApiCallFunc = async () => {
-    const path1 = window.location.hash;
+    const path1 = window.location.href;
 
     if (path1.includes("/view/") || path1.includes("/approve/")) {
       setInputDisabled(true);
@@ -808,7 +808,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   }, [useHide]);
 
   const handleCancel = () => {
-    window.location.href = `${siteUrl}/SitePages/EDCMAIN.aspx`;
+    window.history.back();
+    // window.location.reload();
+    setTimeout(() => {
+      location.reload();
+    }, 100);
 
   }
 
@@ -850,6 +854,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     setcancellReason([...cancellReason, { id: 0, description: "", reason: "" }]);
   };
   const validateForm = async (fmode: FormSubmissionMode) => {
+    debugger
     const { RequesterName, RequesterDesignation, RequestDate, DocumentCode, IssueNumber, RevisionNumber, ReferenceNumber } = formData;
     // const { description } = richTextValues;
     let valid = true;
@@ -946,10 +951,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         //Swal.fire('Error', 'Category is required!', 'error');
         valid = false;
       }
-      else if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" && row.reason.trim() !== "") == false) {
-        // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
-        valid = false;
-      }
+      // else if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" && row.reason.trim() !== "") == false) {
+      //   // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
+      //   valid = false;
+      // }
       setValidDraft(valid);
 
     }
@@ -1122,7 +1127,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Submitted successfully.', '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-
+              window.location.reload();
               window.location.href = `${url}/SitePages/EDCMAIN.aspx`;
             }, 1000);
             // }
@@ -1234,6 +1239,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Submitted successfully.', '', 'success');
             // sessionStorage.removeItem("bannerId")
             setTimeout(() => {
+              window.location.reload();
               window.location.href = `${url}/SitePages/EDCMAIN.aspx`;
             }, 1000);
             // }
@@ -1416,6 +1422,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Saved successfully.', '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
+              window.location.reload();
               window.location.href = `${url}/SitePages/EDCMAIN.aspx`;
             }, 1000);
             // }
@@ -1518,6 +1525,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Saved successfully.', '', 'success');
             // sessionStorage.removeItem("bannerId")
             setTimeout(() => {
+              window.location.reload();
               window.location.href = `${url}/SitePages/EDCMAIN.aspx`;
             }, 1000);
           }
@@ -2776,7 +2784,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   </td>
                                   <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                     {/* <i className="fe-trash-2 text-danger"></i> */}
-                                    <img src={require("../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} className='sidebariconsmall' />
+                                    {editID.CurrentUserRole === "OES" ? <img src={require("../assets/del.png")} onClick={() => handleDeleteRow(index)} /> :
+                                      <img src={require("../assets/recycle-bin.png")} className='sidebariconsmall' />}
+                                    {/* <img src={require("../assets/del.png")} onClick={() => handleDeleteRow(index)} className='sidebariconsmall' /> */}
 
                                   </td>
                                 </tr>
