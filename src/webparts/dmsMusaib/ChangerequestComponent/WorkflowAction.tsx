@@ -46,6 +46,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
     window.location.href = `${siteUrl}/SitePages/MyApprovals.aspx`;
   }
   const handleFromSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, Status: string) => {
+    let url = window.location.href.split('/sites/')[0];
     debugger
     let currentchangerequest = await getItemByIDCR(sp, Number(props.currentItem.ListItemId));
     let allprocessitems = await getallProcessApprovalitems(sp, Number(props.currentItem.ListItemId));
@@ -133,15 +134,22 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
       cancelButtonText: "No"
 
     }).then(async (result) => {
+      debugger
       console.log(result)
       if (result.isConfirmed) {
         var postResult;
+        var postResult2;
         if (props.ContentType == "Document Cancellation" || props.ContentType == "Change Request") {
           postResult = await updateItemApproval2(postPayload, sp, props.currentItem.Id);
           if (Status == 'Rework') {
-            const postResult2 = props.ContentType == "Document Cancellation" ? await updateItem(postPayload2, sp, Number(props.currentItem.ListItemId)) :
-              await updateItemChangeRequestList(postPayload2, sp, Number(props.currentItem.ListItemId))
-
+            if (props.ContentType == "Document Cancellation") {
+              postResult2 = await updateItem(postPayload2, sp, Number(props.currentItem.ListItemId))
+            } else if (props.ContentType == "Change Request") {
+              postResult2 = await updateItemChangeRequestList(postPayload2, sp, Number(props.currentItem.ListItemId))
+            }
+            // postResult2 = props.ContentType == "Document Cancellation" ? await updateItem(postPayload2, sp, Number(props.currentItem.ListItemId)) :
+            //   await updateItemChangeRequestList(postPayload2, sp, Number(props.currentItem.ListItemId))
+            // props.ContentType == "Change Request"
 
           }
           // const postId = postResult?.data?.ID;
@@ -158,7 +166,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
             // window.location.reload()
 
-            // location.href = `${siteUrl}/SitePages/MyApprovals.aspx`;
+            window.location.href = `${url}/SitePages/MyApprovals.aspx`;
 
           }, 1000);
 

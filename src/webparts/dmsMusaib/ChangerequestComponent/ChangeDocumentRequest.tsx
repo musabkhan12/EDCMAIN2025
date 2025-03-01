@@ -201,7 +201,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   };
 
   const ApiCallFunc = async () => {
-    const path1 = window.location.pathname;
+    const path1 = window.location.hash;
 
     if (path1.includes("/view/") || path1.includes("/approve/")) {
       setInputDisabled(true);
@@ -539,7 +539,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const onSelectDocCode = async (selectedList: any) => {
     debugger
     console.log(selectedList, "selectedList");
-    if (selectedList != null ){
+    if (selectedList != null) {
       setFormData(prevData => ({
         ...prevData,
         IssueNumber: selectedList.IssueNumber,
@@ -596,9 +596,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         setDocumentLink(null);
       }  // Set the selected users
     };
-    }
-   
-   
+  }
+
+
   // const onSelectDocCode = (selectedList: any) => {
   //   console.log(selectedList, "selectedList");
   //   setFormData(prevData => ({
@@ -966,6 +966,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   };
   //#region  Submit Form
   const handleFormSubmit = async () => {
+    let url = window.location.href.split('/sites/')[0];
     console.log("topp submit", editItemID, cancellReason);
     if (await validateForm(FormSubmissionMode.SUBMIT)) {
       debugger
@@ -982,11 +983,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           setserialNo(serialno);
           setrevisionNo(serialnumber[0].RevisionNo);
         } else {
-          issueno = issueNo == "" ? "01" : issueNo;
-          serialno = serialNo == "" ? "01" : serialNo;
-          revisionno = revisionNo == "" ? "00" : revisionNo;
-          setissueNo(issueNo == "" ? "01" : issueNo);
-          setserialNo(serialNo == "" ? "01" : serialNo);
+          issueno = issueNo == "" || issueNo == null ? "01" : issueNo;
+          serialno = serialNo == "" || issueNo == null ? "01" : serialNo;
+          revisionno = revisionNo == "" || issueNo == null ? "00" : revisionNo;
+          setissueNo(issueNo == "" || issueNo == null ? "01" : issueNo);
+          setserialNo(serialNo == "" || issueNo == null ? "01" : serialNo);
         }
       } else {
         issueno = (Number(selectedOption.IssueNumber) + 1).toString();
@@ -1121,7 +1122,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Submitted successfully.', '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.history.back();
+
+              window.location.href = `${url}/SitePages/EDCMAIN.aspx`;
             }, 1000);
             // }
           }
@@ -1232,7 +1234,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Submitted successfully.', '', 'success');
             // sessionStorage.removeItem("bannerId")
             setTimeout(() => {
-              window.history.back();
+              window.location.href = `${url}/SitePages/EDCMAIN.aspx`;
             }, 1000);
             // }
 
@@ -1254,7 +1256,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
     // If all selections are available, generate the document code
     if (selectedLocation && selectedCustodian && selectedDocumentType) {
-      const docCode = `${selectedCustodian.custodianCode}.${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.${serialno}`;
+      const docCode = `${selectedCustodian.custodianCode}.${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.${serialno.toString().padStart(2, '0') }`;
       setdocCode(docCode)
       return docCode;
       // Store docCode in state
@@ -1272,7 +1274,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     const selectedCustodian = Custodianopt.filter((cust: { custodianId: any; }) => cust.custodianId === selectedOptionCusto.custodianId)[0] || null;
     const selectedDocumentType = DocumentTypeOpt.filter((docType: { documentTypeId: any; }) => docType.documentTypeId === selectedOptionDoctype.documentTypeId)[0] || null;
     if (selectedLocation && selectedCustodian && selectedDocumentType) {
-      const referencedocCode = `${selectedCustodian.custodianCode}.${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.TMP-${serialno}.${issueno}`;
+      const referencedocCode = `${selectedCustodian.custodianCode}.${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.TMP-${serialno.toString().padStart(2, '0')}.${issueno.toString().padStart(2, '0') }`;
       setreferencedocCode(referencedocCode);
       return referencedocCode;
       // Store docCode in state
@@ -1285,6 +1287,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
   }
   const handleSaveAsDraft = async () => {
+    let url = window.location.href.split('/sites/')[0];
     console.log("topp draft", editItemID, cancellReason);
     if (await validateForm(FormSubmissionMode.DRAFT)) {
       if (editForm) {
@@ -1413,7 +1416,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Saved successfully.', '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.history.back();
+              window.location.href = `${url}/SitePages/EDCMAIN.aspx`;
             }, 1000);
             // }
           }
@@ -1515,7 +1518,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Saved successfully.', '', 'success');
             // sessionStorage.removeItem("bannerId")
             setTimeout(() => {
-              window.history.back();
+              window.location.href = `${url}/SitePages/EDCMAIN.aspx`;
             }, 1000);
           }
         })
@@ -1577,6 +1580,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     }
   }
   const ForwardApproval = (status: string) => {
+    let url = window.location.href.split('/sites/')[0];
+    console.log("topp draf fprt", editItemID, cancellReason, url);
     let valid = true;
     let actionMessage = "";
     let successMessage = "";
@@ -1713,7 +1718,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.history.back();
+              window.location.href = `${url}/SitePages/MyApprovals.aspx`;
             }, 1000);
             // }
           }
@@ -1820,7 +1825,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.history.back();
+              window.location.href = `${url}/SitePages/MyApprovals.aspx`;
             }, 1000);
             // }
           }
@@ -1830,6 +1835,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   }
 
   const ForwardInitiatorApproval = async (status: string) => {
+    let url = window.location.href.split('/sites/')[0];
     // let valid = true;
     let actionMessage = "";
     let successMessage = "";
@@ -1965,7 +1971,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.history.back();
+              window.location.href = `${url}/SitePages/EDCMAIN.aspx`;
             }, 1000);
 
           }
@@ -2091,7 +2097,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.history.back();
+              window.location.href = `${url}/SitePages/EDCMAIN.aspx`;
             }, 1000);
             // }
           }
@@ -2770,7 +2776,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   </td>
                                   <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                     {/* <i className="fe-trash-2 text-danger"></i> */}
-                                    <img src={require("../assets/recycle-bin.png")} onClick={() => handleDeleteRow(index)} className='sidebariconsmall' />
+                                    <img src={require("../../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} className='sidebariconsmall' />
 
                                   </td>
                                 </tr>

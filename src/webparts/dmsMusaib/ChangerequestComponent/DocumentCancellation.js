@@ -30,7 +30,7 @@ export const getDocumentCodeselected = async (_sp, locId, custoId, doctypeId) =>
   await _sp.web.lists.getByTitle("ChangeRequestList").items
     .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title")
     .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")
-    .filter(`LocationId eq '${locId}' and CustodianId eq '${custoId}' and DocumentTypeId eq '${doctypeId}'`)
+    .filter(`LocationId eq '${locId}' and CustodianId eq '${custoId}' and DocumentTypeId eq '${doctypeId}' and Status ne 'Save as draft'`)
     .orderBy("SerialNumber", false).top(1)() // Order by Modified descending to get latest first
     .then((res) => {
       console.log(res);
@@ -270,6 +270,7 @@ export const updateItemchangeRequestReasonlist = async (itemData, _sp, id) => {
   return resultArr;
 };
 export const updateItemChangeRequestList = async (itemData, _sp, id) => {
+  debugger
   let resultArr = []
   try {
     const newItem = await _sp.web.lists.getByTitle('ChangeRequestList').items.getById(id).update(itemData);
