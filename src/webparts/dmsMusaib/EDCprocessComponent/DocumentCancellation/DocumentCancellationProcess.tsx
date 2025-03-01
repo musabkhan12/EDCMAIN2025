@@ -37,8 +37,8 @@ import { decryptId } from '../../../../APISearvice/CryptoService';
 import { getUrlParameterValue } from '../../../../Shared/Helper';
 // import { WorkflowAction } from '../../../CustomJSComponents/WorkflowAction/WorkflowAction';
 import { WorkflowAction } from '../../../../CustomJSComponents/WorkflowAction/WorkflowAction';
-// import { WorkflowAuditHistory } from '../../../CustomJSComponents/WorkflowAuditHistory/WorkflowAuditHistory';
-import { WorkflowAuditHistory } from '../../ChangerequestComponent/WorkflowAuditHistory/WorkflowAuditHistory';
+import { WorkflowAuditHistory } from '../../../../CustomJSComponents/WorkflowAuditHistory/WorkflowAuditHistory';
+// import { WorkflowAuditHistory } from '../../ChangerequestComponent/WorkflowAuditHistory/WorkflowAuditHistory';
 // import { CONTENTTYPE_DocumentCancel, LIST_TITLE_DocCancel, Tenant_URL } from '../../../Shared/Constants';
 import { CONTENTTYPE_DocumentCancel, LIST_TITLE_DocCancel, Tenant_URL } from '../../../../Shared/Constants';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
@@ -1180,15 +1180,15 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         switch (status) {
             case "Forward":
                 actionMessage = "Do you want to forward this request?";
-                successMessage = "Request forwarded successfully.";
+                successMessage = "Forwarded successfully.";
                 break;
             case "Rejected":
                 actionMessage = "Do you want to reject this request?";
-                successMessage = "Request rejected successfully.";
+                successMessage = 'Rejected successfully.'
                 break;
             case "Rework":
-                actionMessage = "Do you want to send this request for rework?";
-                successMessage = "Request sent for rework successfully.";
+                actionMessage = "Do you want to rework this request?";
+                successMessage = 'Sent for rework.'
                 break;
         }
 
@@ -1344,24 +1344,25 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
         }
         else {
+            let isValid =true;
 
             if (forwardToArr.length) {
-                const isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
+                 isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
                     row.approvalType.trim() !== "");
 
-                if (!isValid) {
-                    // alert("Each row must have a role selected and at least one approver.");
-                    valid = false;
-                }
+                // if (!isValid) {
+                //     // alert("Each row must have a role selected and at least one approver.");
+                //     valid = false;
+                // }
 
 
 
-                if (!valid) {
-                    Swal.fire('Please fill all the mandatory fields.');
-                    // setValidSubmit(false);
-                    setValidForwardTo(false);
-                    return;
-                }
+                // if (!valid) {
+                //     Swal.fire('Please fill all the mandatory fields.');
+                //     // setValidSubmit(false);
+                //     setValidForwardTo(false);
+                //     return;
+                // }
 
             }
 
@@ -1393,54 +1394,59 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         const postResult = await updateApprovalItem(arr, sp, editID.Id);
                         const postId = postResult?.data?.ID;
 
-                        for (const item of forwardToArr) {
+                         if (isValid) {
+                            for (const item of forwardToArr) {
 
-                            const approversIds: any[] = [];
-                            item.approvers.forEach((user: any) => {
-                                if (user?.value) {
-                                    approversIds.push(user.value);
+                                const approversIds: any[] = [];
+                                item.approvers.forEach((user: any) => {
+                                    if (user?.value) {
+                                        approversIds.push(user.value);
+                                    }
+                                });
+    
+                                let arr2 = {
+                                    Title: currentUser.Title,
+                                    ContentTitle: selectedOption.ReferenceNumber,
+    
+                                    MainListNameId: ListNameId,
+                                    ApproverRoleId: item.role,
+                                    Level: Number(item.level),
+                                    ApproversId: approversIds,
+                                    // LevelType: "One",
+                                    LevelType: item.approvalType,
+                                    SubmitStatus: "Yes",
+                                    Maxlevel: item.approvers?.length,
+                                    // ContentTitle:,
+                                    MainListID: String(editItemID),
+                                    RequestId: selectedOption.DocumentCode,
+                                    // RequestId:String(editID.Id),
+                                    RequesterNameId: currentUser.Id,
+                                    RequestedDate: new Date().toLocaleDateString("en-CA"),
+                                    RequesterRoleId: RequesterRoleId,
+                                    ProcessName: "Document Cancellation",
+                                    FormNameId: FormNameId,
+                                    ApprovalType: "Approval",
+                                    IsApprovalGenerated: "No"
+                                    // RedirectionLink:,
+    
+    
+    
                                 }
-                            });
-
-                            let arr2 = {
-                                Title: currentUser.Title,
-                                ContentTitle: selectedOption.ReferenceNumber,
-
-                                MainListNameId: ListNameId,
-                                ApproverRoleId: item.role,
-                                Level: Number(item.level),
-                                ApproversId: approversIds,
-                                // LevelType: "One",
-                                LevelType: item.approvalType,
-                                SubmitStatus: "Yes",
-                                Maxlevel: item.approvers?.length,
-                                // ContentTitle:,
-                                MainListID: String(editItemID),
-                                RequestId: selectedOption.DocumentCode,
-                                // RequestId:String(editID.Id),
-                                RequesterNameId: currentUser.Id,
-                                RequestedDate: new Date().toLocaleDateString("en-CA"),
-                                RequesterRoleId: RequesterRoleId,
-                                ProcessName: "Document Cancellation",
-                                FormNameId: FormNameId,
-                                ApprovalType: "Approval",
-                                IsApprovalGenerated: "No"
-                                // RedirectionLink:,
-
-
-
+                                if (item.id) {
+                                    const postResult2 = await UpdateAllProcessItem(arr2, sp, item.id);
+                                    const postId2 = postResult2?.data?.ID;
+    
+                                }
+                                else {
+                                    const postResult2 = await addAllProcessItem(arr2, sp);
+                                    const postId2 = postResult2?.data?.ID;
+                                }
+    
                             }
-                            if (item.id) {
-                                const postResult2 = await UpdateAllProcessItem(arr2, sp, item.id);
-                                const postId2 = postResult2?.data?.ID;
+                
+                         }
 
-                            }
-                            else {
-                                const postResult2 = await addAllProcessItem(arr2, sp);
-                                const postId2 = postResult2?.data?.ID;
-                            }
-
-                        }
+                        
 
                         let arr2 = {
                             // ActionTakenById: currentUser.Id,
@@ -2299,7 +2305,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                 <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
                                                     <Modal.Header closeButton>
-                                                        <Modal.Title> Attachment Details</Modal.Title>
+                                                        <Modal.Title> Attachment Details</Modal.Title><br></br>
+                                                        <p>Below are the attachment details for document cancellation
+                                                        </p>
 
                                                     </Modal.Header>
                                                     <Modal.Body className="" id="style-5">
@@ -2321,7 +2329,10 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 <tr>
                                                                                     <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
                                                                                     <td>{DocumentLink?.FileLeafRef}</td>
-                                                                                    <td ><span onClick={() => OpenFile(DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faDownload} /></span> <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span> </td>
+                                                                                    <td >
+                                                                                        {/* <span onClick={() => OpenFile(DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                        <FontAwesomeIcon icon={faDownload} /></span> */}
+                                                                                         <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span> </td>
                                                                                     <td>{DocumentLink.Created
                                                                                         ? new Intl.DateTimeFormat('en-GB', {
                                                                                             day: '2-digit',

@@ -329,26 +329,64 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                         <td style={{ minWidth: '70px', maxWidth: '70px' }}> {row.Requester ? row.Requester.Title : row.RequesterName.Title}</td>
 
                          {/* <td  style={{ minWidth: '70px', maxWidth: '70px' }}> {(new Date(row.Created)).toLocaleString()}</td> */}
-                        <td style={{ minWidth: '70px', maxWidth: '70px' }}>
-                          {new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.Created))}
+                        <td style={{ minWidth: '70px', maxWidth: '70px',cursor:'pointer' }} title={`${new Intl.DateTimeFormat('en-GB', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric'
+                            }).format(new Date(row.Created)).replace(/ /g, "/")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false
+                            })}`}>
+                          {/* {new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.Created))} */}
+                          {new Intl.DateTimeFormat('en-GB', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric'
+                            }).format(new Date(row.Created)).replace(/ /g, "/")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false
+                            })}
                         </td>
 
                         {/* <td> {(row.Status != 'Pending') ? (row.Approver?.Title ? row.Approver.Title:(row.ActionTakenBy.Title?row.ActionTakenBy.Title:"")) : ""}</td> */}
-                        <td style={{ minWidth: '70px', maxWidth: '70px' }}>
+                        <td style={{ minWidth: '70px', maxWidth: '70px',cursor:'pointer' }}>
                           {row.Status !== "Pending"
                             ? row.Approver?.Title || row.ActionTakenBy?.Title || ""
                             : ""}
                         </td>
 
                         {/* <td style={{ minWidth: '70px', maxWidth: '70px' }}>{(row.Status != 'Pending') ? ((new Date(row.Modified)).toLocaleString()) : ""}</td> */}
-                        <td style={{ minWidth: '70px', maxWidth: '70px' }}>
-                          {(row.Status != 'Pending') ?(new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.Modified))):""}
+                        <td style={{ minWidth: '70px', maxWidth: '70px',cursor:'pointer' }} title={row.Status !== 'Pending'
+                          ? `${new Intl.DateTimeFormat('en-GB', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                          }).format(new Date(row.Modified)).replace(/ /g, "/")} ${new Date(row.Modified).toLocaleTimeString('en-GB', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                          })}`
+                          : ""}>
+                            {row.Status !== 'Pending'
+                            ? `${new Intl.DateTimeFormat('en-GB', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric'
+                            }).format(new Date(row.Modified)).replace(/ /g, "/")} ${new Date(row.Modified).toLocaleTimeString('en-GB', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false
+                            })}`
+                            : ""}
+                          {/* {(row.Status != 'Pending') ?(new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.Modified))):""} */}
                         </td>
 
 
-                        <td style={{ minWidth: '70px', maxWidth: '70px' }}> {row.Remark}</td>
+                        <td style={{ minWidth: '70px', maxWidth: '70px' ,cursor:'pointer'}} title={row.Remark}> {row.Remark}</td>
 
-                        <td style={{ minWidth: '70px', maxWidth: '70px' }}> <div className="btn  btn-status">{row.Status}</div> </td>
+                        <td style={{ minWidth: '70px', maxWidth: '70px' ,cursor:'pointer'}}> <div className="btn  btn-status">{row.Status}</div> </td>
 
 
                       </tr>
