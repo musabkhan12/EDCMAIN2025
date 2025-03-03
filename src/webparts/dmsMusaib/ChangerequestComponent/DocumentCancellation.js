@@ -421,7 +421,7 @@ export const getApprovalByID = async (_sp, id, processName) => {
   await _sp.web.lists.getByTitle("ProcessApprovalList").items.getById(id)
     .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
     .then((res) => {
-      console.log(res, ' let arrs=[]');
+      console.log(res, 'ghghghghgh let arrs=[]');
       if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName) {
         arr = res;
       }

@@ -42,6 +42,7 @@ import { faDownload, faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { Link } from '@fluentui/react';
 import moment from 'moment';
+import { DatePicker } from 'office-ui-fabric-react';
 let newfileupload: any
 let newfilepreview: any
 export enum FormSubmissionMode {
@@ -135,9 +136,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [selectedRole, setSelectedRole] = React.useState(null);
   const [ValidDraft, setValidDraft] = React.useState(true);
   const [ValidSubmit, setValidSubmit] = React.useState(true);
+  const [Validforward, setValidforward] = React.useState(true);
   const [RequesterRoleId, setRequesterRoleId] = React.useState(null);
   const [FormNameId, setFormNameId] = React.useState(null);
   const [ListNameId, setListNameId] = React.useState(null);
+
+  const [showdate, setshowdate] = React.useState(false);
   const [editForm, setEditForm] = React.useState(false);
   const [modeValue, setmode] = React.useState("");
   const [referencedocCode, setreferencedocCode] = React.useState("");
@@ -202,13 +206,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
   const ApiCallFunc = async () => {
     const path1 = window.location.href;
-
+    debugger
     if (path1.includes("/view/") || path1.includes("/approve/")) {
       setInputDisabled(true);
     }
     else {
       setInputDisabled(false);
     }
+    console.log("inpt diasba", InputDisabled, path1, path1.includes("/view/"))
     var ReqTypeArr = await getAllRequestType(sp);
     const optionsreq = ReqTypeArr.map((item: any) => ({
       value: item.ID,
@@ -260,7 +265,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
 
     setRows1(Selectedoptions);
-
+    //Swal.fire('Error', 'Entity is required!', 'error');
+    console.log("rerere", userProfile)
     setFormData(prevData => ({
       ...prevData,
       RequesterNameId: Currusers?.Id || "",
@@ -296,7 +302,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       Department: item.Department,
       AttachmentId: item.AttachmentId,
       AttachmentJson: item.AttachmentJson,
-      ID: item.ID
+      ID: item.ID,
+      Status: item.Status
       // DocumentName: "",
       // IsRework: false,
       // DigitalSignStatus: false,
@@ -320,15 +327,16 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       setInputDisabled(await getApprovalByID2(sp, Number(iDs), CONTENTTYPE_ChangeDocument));
     }
     else {
-      //   let formitemidparam = getUrlParameterValue('contentid');
-      //   if (formitemidparam) {
-      //     formitemid = Number(formitemidparam);
-      //     setFormItemId(Number(formitemid));
-      //   }
-
       const path = window.location.hash;
       const segments = path.split('/').filter(Boolean); // Remove empty elements
-
+      let pathnew = window.location.href;
+      debugger
+      if (pathnew.includes("/view/") || pathnew.includes("/approve/")) {
+        setInputDisabled(true);
+      }
+      else {
+        setInputDisabled(false);
+      }
       // Check if "edit" or "view" exists in the URL
       const paramIndex = segments.findIndex(seg => seg === "edit" || seg === "view" || seg === "approve");
       console.log("segmentssegments", segments, paramIndex)
@@ -337,6 +345,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         setmode(segments[paramIndex])
         // mode = segments[paramIndex]; // Will be "edit" or "view"
         formitemid = segments[paramIndex + 1]; // Get the ID
+        setFormItemId(segments[paramIndex + 1]);
         if (segments[paramIndex + 2] !== undefined) {
 
           setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_ChangeDocument));
@@ -350,7 +359,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     // formitemid =20;
     if (formitemid) {
       setEditItemID(Number(formitemid));
-
+      let pathnew1 = window.location.href;
+      debugger
+      if (pathnew1.includes("/view/") || pathnew1.includes("/approve/")) {
+        setInputDisabled(true);
+      }
+      else {
+        setInputDisabled(false);
+      }
       const setBannerById = await getItemByIDCR(sp, Number(formitemid))
       // setEditID(Number(setBannerById[0].ID))
       if (setBannerById.length > 0) {
@@ -363,7 +379,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           //let arraynew: any[];
           //arraynew.push(arrn)
           console.log("arrrrrrnh", arrn);
-          setAttachmentarr(arrn);
+          if (setBannerById[0].Status != "Rework") {
+            setAttachmentarr(arrn);
+          }
+
           setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId[0]))
         }
         if (ProcessItemId && ProcessItemId.Level === 0 && ProcessItemId.CurrentUserRole === "OES" && ProcessItemId.IsInitiator == "No") {
@@ -413,6 +432,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           value: setBannerById[0].DocumentCode,
           label: setBannerById[0].DocumentCode,
           RequestTypeId: setBannerById[0].RequestTypeId,
+          Status: setBannerById[0].Status,
           // Status: "Pending",
           // DocumentName: "",
           // IsRework: false,
@@ -425,40 +445,6 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
         }
 
-        // let arr2 = {
-
-        //   RequesterName: setBannerById[0].RequesterName,
-        //   RequesterNameId: setBannerById[0].RequesterNameId,
-        //   RequesterDesignation: setBannerById[0].RequesterDesignation,
-        //   Department: setBannerById[0].Department,
-        //   RequestDate: setBannerById[0].RequestDate,
-        //   IssueDate: setBannerById[0].IssueDate,
-        //   LocationId: setBannerById[0].LocationId,
-        //   CustodianId: setBannerById[0].CustodianId,
-        //   SerialNumber: setBannerById[0].SerialNumber,
-        //   IssueNumber: setBannerById[0].IssueNumber,
-        //   RevisionNumber: setBannerById[0].RevisionNumber,
-        //   RevisionDate: setBannerById[0].RevisionDate,
-        //   DocumentCode: setBannerById[0].value,
-        //   ReferenceNumber: setBannerById[0].ReferenceNumber,
-        //   AmendmentTypeId: setBannerById[0].AmendmentTypeId,
-        //   ClassificationId: setBannerById[0].ClassificationId,
-        //   ChangeRequestTypeId: setBannerById[0].ChangeRequestTypeId,
-        //   SubmiitedDate: setBannerById[0].SubmiitedDate,
-        //   SubmitStatus: setBannerById[0].SubmitStatus,
-        //   // value: setBannerById[0].DocumentCode,
-        //   // label: setBannerById[0].DocumentCode,
-        //   // Status: "Pending",
-        //   // DocumentName: "",
-        //   // IsRework: false,
-        //   // DigitalSignStatus: false,
-        //   ChangeRequestIDId: setBannerById[0].ChangeRequestIDId,
-        //   DocumentTypeId: setBannerById[0].DocumentTypeId,
-        //   AttachmentId: setBannerById[0].AttachmentId,
-        //   AttachmentJson: setBannerById[0].AttachmentJson
-
-
-        // }
         setissueNo(setBannerById[0].IssueNumber);
         setserialNo(setBannerById[0].SerialNumber);
         setFormData(prevData => ({
@@ -467,6 +453,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           ReferenceNumber: setBannerById[0].ReferenceNumber,
           RevisionNumber: setBannerById[0].RevisionNumber,
           ChangeRequestID: setBannerById[0].ID,
+          RequestDate: setBannerById[0].RequestDate,
           IssueDate: setBannerById[0].IssueDate,
           LocationId: setBannerById[0].LocationId,
           CustodianId: setBannerById[0].CustodianId,
@@ -482,8 +469,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           DocumentTypeId: setBannerById[0].DocumentTypeId,
           Department: setBannerById[0].Department,
           AttachmentId: setBannerById[0].AttachmentId,
-          AttachmentJson: setBannerById[0].AttachmentJson
-
+          AttachmentJson: setBannerById[0].AttachmentJson,
+          Status: setBannerById[0].Status
           // Format as YYYY-MM-DD
         }));
 
@@ -510,7 +497,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           //let arraynew: any[];
           //arraynew.push(arrn)
           console.log("arrrrrrnty", arrn);
-          setAttachmentarr(arrn);
+
+          if (setBannerById[0].Status != "Rework") {
+            setAttachmentarr(arrn);
+          }
         }
         else {
           setDocumentLink(null);
@@ -589,7 +579,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         //let arraynew: any[];
         //arraynew.push(arrn)
         console.log("arrrrrrn56", arrn);
-        setAttachmentarr(arrn);
+        //setAttachmentarr(arrn);
         setDocumentLink(await getDocumentLinkByID(sp, selectedList.AttachmentId[0]))
       }
       else {
@@ -797,13 +787,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
   React.useEffect(() => {
     ApiCallFunc();
-    // const path = window.location.pathname;
-    //if (path.includes("/view/") || path.includes("/approve/")) {
-    // setInputDisabled(true);
-    // }
-    //else {
-    // setInputDisabled(false);
-    //}
+    const path = window.location.href;
+    if (path.includes("/view/") || path.includes("/approve/")) {
+      setInputDisabled(true);
+    }
+    else {
+      setInputDisabled(false);
+    }
     // formData.title = currentUser.Title;
   }, [useHide]);
 
@@ -870,10 +860,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       if (!RequesterName) {
         //Swal.fire('Error', 'Title is required!', 'error');
         valid = false;
-      } else if (!RequesterDesignation) {
-        //Swal.fire('Error', 'Type is required!', 'error');
-        valid = false;
       }
+      //  else if (!RequesterDesignation) {
+      //   //Swal.fire('Error', 'Type is required!', 'error');
+      //   valid = false;
+      // }
       else if (!selectedOptionLoc) {
         //Swal.fire('Error', 'Category is required!', 'error');
         //errormsg = "Please select Location"
@@ -942,10 +933,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       if (!RequesterName) {
         //Swal.fire('Error', 'Title is required!', 'error');
         valid = false;
-      } else if (!RequesterDesignation) {
-        //Swal.fire('Error', 'Type is required!', 'error');
-        valid = false;
       }
+      // else if (!RequesterDesignation) {
+      //   //Swal.fire('Error', 'Type is required!', 'error');
+      //   valid = false;
+      // }
       else if (!selectedOptionReq) {
         //errormsg = "Please select Classification"
         //Swal.fire('Error', 'Category is required!', 'error');
@@ -1127,8 +1119,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Submitted successfully.', '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.reload();
-              window.location.href = `${url}/SitePages/EDCMAIN.aspx`;
+              //window.location.reload();
+              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             }, 1000);
             // }
           }
@@ -1239,8 +1231,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Submitted successfully.', '', 'success');
             // sessionStorage.removeItem("bannerId")
             setTimeout(() => {
-              window.location.reload();
-              window.location.href = `${url}/SitePages/EDCMAIN.aspx`;
+              //window.location.reload();
+              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             }, 1000);
             // }
 
@@ -1262,7 +1254,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
     // If all selections are available, generate the document code
     if (selectedLocation && selectedCustodian && selectedDocumentType) {
-      const docCode = `${selectedCustodian.custodianCode}.${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.${serialno.toString().padStart(2, '0') }`;
+      const docCode = `${selectedCustodian.custodianCode}.${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.${serialno.toString().padStart(2, '0')}`;
       setdocCode(docCode)
       return docCode;
       // Store docCode in state
@@ -1280,7 +1272,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     const selectedCustodian = Custodianopt.filter((cust: { custodianId: any; }) => cust.custodianId === selectedOptionCusto.custodianId)[0] || null;
     const selectedDocumentType = DocumentTypeOpt.filter((docType: { documentTypeId: any; }) => docType.documentTypeId === selectedOptionDoctype.documentTypeId)[0] || null;
     if (selectedLocation && selectedCustodian && selectedDocumentType) {
-      const referencedocCode = `${selectedCustodian.custodianCode}.${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.TMP-${serialno.toString().padStart(2, '0')}.${issueno.toString().padStart(2, '0') }`;
+      const referencedocCode = `${selectedCustodian.custodianCode}.${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.TMP-${serialno.toString().padStart(2, '0')}.${issueno.toString().padStart(2, '0')}`;
       setreferencedocCode(referencedocCode);
       return referencedocCode;
       // Store docCode in state
@@ -1338,7 +1330,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
               Department: formData.Department,
-              RequestDate: new Date().toISOString(),
+              RequestDate: new Date(formData.RequestDate).toISOString(),
               LocationId: formData.LocationId,
               CustodianId: formData.CustodianId,
               //SerialNumber: formData.SerialNumber,
@@ -1422,8 +1414,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Saved successfully.', '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.reload();
-              window.location.href = `${url}/SitePages/EDCMAIN.aspx`;
+              //window.location.reload();
+              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             }, 1000);
             // }
           }
@@ -1474,7 +1466,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
               Department: formData.Department,
-              RequestDate: new Date().toISOString(),
+              RequestDate: new Date(formData.RequestDate).toISOString(),
               IssueDate: new Date().toISOString(),
               LocationId: formData.LocationId,
               CustodianId: formData.CustodianId,
@@ -1525,8 +1517,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire('Saved successfully.', '', 'success');
             // sessionStorage.removeItem("bannerId")
             setTimeout(() => {
-              window.location.reload();
-              window.location.href = `${url}/SitePages/EDCMAIN.aspx`;
+              //window.location.reload();
+              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             }, 1000);
           }
         })
@@ -1598,7 +1590,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         actionMessage = "Do you want to forward this request?";
         successMessage = "Request forwarded successfully.";
         break;
-      case "Reject":
+      case "Rejected":
         actionMessage = "Do you want to reject this request?";
         successMessage = "Request rejected successfully.";
         break;
@@ -1619,7 +1611,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         // alert("Each row must have a role selected and at least one approver.");
         valid = false;
       }
-
+      setValidforward(valid)
       if (!valid) {
         Swal.fire('Please fill all the mandatory fields.');
         return;
@@ -1726,7 +1718,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `${url}/SitePages/MyApprovals.aspx`;
+              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
             }, 1000);
             // }
           }
@@ -1833,7 +1825,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `${url}/SitePages/MyApprovals.aspx`;
+              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
             }, 1000);
             // }
           }
@@ -1979,7 +1971,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `${url}/SitePages/EDCMAIN.aspx`;
+              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             }, 1000);
 
           }
@@ -2105,7 +2097,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `${url}/SitePages/EDCMAIN.aspx`;
+              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             }, 1000);
             // }
           }
@@ -2212,6 +2204,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             id={`checkbox-${checkbox.id}`}
             // disabled={this.state.isReadonly} // Make the checkbox readonly if the condition is true
             // Use indexOf instead of includes
+            disabled={InputDisabled && formData?.Status != "Rework"}
             checked={selectedCheckboxIds.indexOf(checkbox.id) !== -1}
             onChange={() => handleCheckboxChange(checkbox.id)}
           />
@@ -2265,6 +2258,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       console.error("Error deleting file:", error);
       Swal.fire("Error", error.message, "error");
     }
+  };
+  const onDateChange = (date: Date) => {
+    // Format the selected date to DD-MMM-YYYY format
+    const formattedDate = moment(date).format('DD-MMM-YYYY');
+    setFormData({ ...formData, RequestDate: formattedDate });
   };
   return (
     <div id="wrapper" ref={elementRef}>
@@ -2385,35 +2383,36 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
 
                 <div style={{ width: '100%' }} className="inbox-rightbar">
-                  <div className="card">
-                    <div className="card-body">
+                  {Loading ?
+                    // <div className="loadercss" role="status">Loading...
+                    //   <img src={require('../../../Assets/ExtraImage/loader.gif')} style={{ height: '80px', width: '70px' }} alt="Check" />
+                    // </div>
+                    <div style={{ minHeight: '100vh', marginTop: '180px' }} className="loadernewadd mt-10">
+                      <div>
+                        <img
+                          src={require("../assets/edc-gif.gif")}
+                          className="alignrightl"
+                          alt="Loading..."
+                        />
+                      </div>
+                      <span>Loading </span>{" "}
+                      <span>
+                        <img
+                          src={require("../assets/edcnew.gif")}
+                          className="alignrightl"
+                          alt="Loading..."
+                        />
+                      </span>
+                    </div>
+                    :
+                    <div className="card">
+                      <div className="card-body">
 
-                      <h3 className="text-dark font-16 mb-3">Requested By</h3>
-                      {/* <p className="sub-header">
+                        <h3 className="text-dark font-16 mb-3">Requested By</h3>
+                        {/* <p className="sub-header">
                                                         Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aspernatur, itaque.
                                                     </p> */}
-                      {Loading ?
-                        // <div className="loadercss" role="status">Loading...
-                        //   <img src={require('../../../Assets/ExtraImage/loader.gif')} style={{ height: '80px', width: '70px' }} alt="Check" />
-                        // </div>
-                        <div style={{ minHeight: '100vh', marginTop: '100px' }} className="loadernewadd mt-10">
-                          <div>
-                            <img
-                              src={require("../assets/edc-gif.gif")}
-                              className="alignrightl"
-                              alt="Loading..."
-                            />
-                          </div>
-                          <span>Loading </span>{" "}
-                          <span>
-                            <img
-                              src={require("../assets/edcnew.gif")}
-                              className="alignrightl"
-                              alt="Loading..."
-                            />
-                          </span>
-                        </div>
-                        :
+
                         <div className="row">
                           <div className="col-lg-4">
 
@@ -2432,10 +2431,21 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                             </div>
                           </div>
                           <div className="col-lg-4">
-
+                            {console.log("formDataformData", formData, formData?.RequestDate)}
                             <div className="mb-3">
                               <label htmlFor="RequestDate" className="form-label">Request Date:</label>
-                              <input type="date" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDate} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} />
+                              <DatePicker
+                                value={formData?.RequestDate ? new Date(moment(formData?.RequestDate).format('DD-MMM-YYYY')) : null} // Convert the date to Date object
+                                onSelectDate={onDateChange}
+                                disabled={InputDisabled && formData?.Status != "Rework"}
+                                //defaultValue={new Date().toDateString()}
+                                formatDate={(date) => moment(date).format('DD-MMM-YYYY')} // Custom date format for display
+                              />
+
+                              {/* <input type="date" id="RequestDate" name="RequestDate" className="form-control" value={formData?.RequestDate} 
+                              onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} />
+                              <input type="text" id="RequestDate" name="RequestDate" className="form-control" value={formData?.RequestDate} onClick={(e)=> setshowdate(true)}
+                              onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} /> */}
                             </div>
                           </div>
 
@@ -2450,7 +2460,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 name="Request Type"
                                 className={`${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                 onChange={(selectedOption: any) => onSelectReq(selectedOption)}
-                                placeholder="Search Request Type" isDisabled={InputDisabled}
+                                placeholder="Search Request Type" isDisabled={InputDisabled && formData?.Status != "Rework"}
                               />
                             </div>
                           </div>
@@ -2506,7 +2516,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 name="Amendment Type"
                                 className={`${(!ValidSubmit) ? "border-on-error" : ""}`}
                                 onChange={(selectedOption: any) => onSelectAmend(selectedOption)}
-                                placeholder="Search" isDisabled={InputDisabled}
+                                placeholder="Search" isDisabled={InputDisabled && formData?.Status != "Rework"}
                               />
                             </div>
                           </div>
@@ -2521,7 +2531,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 name="Classification"
                                 className={`${(!ValidSubmit) ? "border-on-error" : ""}`}
                                 onChange={(selectedOption: any) => onSelectClassification(selectedOption)}
-                                placeholder="Search Classification" isDisabled={InputDisabled}
+                                placeholder="Search Classification" isDisabled={InputDisabled && formData?.Status != "Rework"}
                               />
                             </div>
                           </div>
@@ -2536,7 +2546,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 name="Location"
                                 className={` ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                 onChange={(selectedOption: any) => onSelectLocation(selectedOption)}
-                                placeholder="Search Location" isDisabled={InputDisabled}
+                                placeholder="Search Location" isDisabled={InputDisabled && formData?.Status != "Rework"}
                               />
                             </div>
                           </div>
@@ -2551,7 +2561,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 name="Custodian"
                                 className={` ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                 onChange={(selectedOption: any) => onSelectCustodian(selectedOption)}
-                                placeholder="Search Custodian" isDisabled={InputDisabled}
+                                placeholder="Search Custodian" isDisabled={InputDisabled && formData?.Status != "Rework"}
                               />
                             </div>
                           </div>
@@ -2566,11 +2576,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 name="Document Type"
                                 className={` ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                 onChange={(selectedOption: any) => onSelectDocumentType(selectedOption)}
-                                placeholder="Search Document Type" isDisabled={InputDisabled}
+                                placeholder="Search Document Type" isDisabled={InputDisabled && formData?.Status != "Rework"}
                               />
                             </div>
                           </div>
-                          {editID == null &&
+                          {console.log("FormItemIdFormItemIdFormItemId", FormItemId, modeValue, selectedOption)}
+                          {/* //modeValue != "view" || modeValue == "edit" || modeValue != "approve"  && */}
+                          {(FormItemId == null || (FormItemId != null && modeValue == "edit") || (modeValue != "view" && modeValue != "approve")
+                            || (modeValue == "approve" && formData?.Status == "Rework")) &&
                             <div className="col-lg-4">
 
                               <div className="mb-3">
@@ -2580,6 +2593,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   type="file"
                                   id="attachment"
                                   name="attachment"
+                                  disabled={InputDisabled && formData?.Status != "Rework"}
                                   //disabled={handleSectionState('requestedBySection')}
                                   className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                   onChange={(e) => onFileChange(e, "bannerimg", "Document")}
@@ -2595,7 +2609,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                               </div>
                             </div>
                           }
-                          {modeValue == "view" || modeValue == "edit" || modeValue == "approve" &&
+                          {(modeValue == "view" || modeValue == "approve" ||
+                            (selectedOptionReq?.label != "Change Request for New Addition" && selectedOption)) &&
 
                             <div className="col-lg-4">
                               <div className="mb-3">
@@ -2612,105 +2627,108 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                             </div>
                           }
                         </div>
-                      }
-                    </div>
-                  </div>
 
-                  <div className="card mt-2">
-                    <div className="card-body">
-                      <div className='row'>
-                        <div className='col-sm-12'>
-                          <h3 className="text-dark font-16 mb-3">Request Details</h3>
-                          <label className="form-label">Change Request Type</label>
-                          <div className="row"> {renderCheckboxes()}</div>
-                        </div>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="card mt-2">
-                    <div className="card-body">
-                      <div className='row'>
-                        <div className='col-sm-8'>
-                          <h3 className="text-dark font-16 mb-3">Description</h3>
-
-                        </div>
-
-                        <div className='col-sm-4'>
-                          <div style={{ textAlign: "right" }} className="mt-2 float-end text-right">
-                            {/* <i style={{ cursor: "pointer" }} onClick={addField}  className="fe-plus-circle  font-20 text-warning"></i> */}
-                            {/* <i style={{ cursor: "pointer" }} className="fe-plus-circle  font-20 text-warning"></i> */}
-                            {!InputDisabled && <img style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} src={require("../assets/plus.png")} onClick={addCancelReason} className=''></img>}
-
-
+                  }
+                  {!Loading &&
+                    <div className="card mt-2">
+                      <div className="card-body">
+                        <div className='row'>
+                          <div className='col-sm-12'>
+                            <h3 className="text-dark font-16 mb-3">Request Details</h3>
+                            <label className="form-label">Change Request Type</label>
+                            <div className="row"> {renderCheckboxes()}</div>
                           </div>
                         </div>
                       </div>
+                    </div>
+                  }
+                  {!Loading &&
+                    <div className="card mt-2">
+                      <div className="card-body">
+                        <div className='row'>
+                          <div className='col-sm-8'>
+                            <h3 className="text-dark font-16 mb-3">Description</h3>
 
-                      {/* <p className="sub-header">
+                          </div>
+
+                          <div className='col-sm-4'>
+                            <div style={{ textAlign: "right" }} className="mt-2 float-end text-right">
+                              {/* <i style={{ cursor: "pointer" }} onClick={addField}  className="fe-plus-circle  font-20 text-warning"></i> */}
+                              {/* <i style={{ cursor: "pointer" }} className="fe-plus-circle  font-20 text-warning"></i> */}
+                              {!InputDisabled && <img style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} src={require("../assets/plus.png")} onClick={addCancelReason} className=''></img>}
+
+
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* <p className="sub-header">
                                                         Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s
                                                     </p> */}
 
-                      <div className="row">
-                        <table className="mtbalenew table-centered table-nowrap table-borderless mb-0" id="tbl">
-                          <thead>
-                            <tr>
-                              <th style={{ minWidth: "40px", maxWidth: "40px" }}>S.No</th>
-                              <th>Change Description</th>
-                              <th>Reason for Change</th>
-                              <th style={{ minWidth: "80px", maxWidth: "80px" }}>Action</th>
-                            </tr>
-
-                          </thead>
-                          <tbody >
-                            {console.log("cancellReasonn", cancellReason)}
-                            {cancellReason.map((row, index) => (
-                              <tr key={index}> <td style={{ minWidth: "30px", maxWidth: "30px" }}>
-                                <div
-                                  style={{ marginLeft: "0px" }}
-                                  className="indexdesign"
-                                >
-                                  {index + 1}</div></td>
-                                <td><input type="text" id="simpleinput" disabled={InputDisabled}
-                                  value={row.description}
-                                  className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                  onChange={(e) => {
-                                    const newRowscancellReason = [...cancellReason];
-                                    newRowscancellReason[index].description = e.target.value;
-                                    setcancellReason(newRowscancellReason);
-                                  }}
-                                />
-
-                                </td>
-                                <td><input type="text" id="simpleinput" disabled={InputDisabled}
-                                  className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                  value={row.reason}
-                                  onChange={(e) => {
-                                    const newRowscancellReason = [...cancellReason];
-                                    newRowscancellReason[index].reason = e.target.value;
-                                    setcancellReason(newRowscancellReason);
-                                  }}
-                                /></td>
-                                {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "80px", maxWidth: "80px", textAlign: 'center' }}>
-                                  <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFile(index, cancellReason)}></img>
-                                </td>
-                                }
+                        <div className="row">
+                          <table className="mtbalenew table-centered table-nowrap table-borderless mb-0" id="tbl">
+                            <thead>
+                              <tr>
+                                <th style={{ minWidth: "40px", maxWidth: "40px" }}>S.No</th>
+                                <th>Change Description</th>
+                                <th>Reason for Change</th>
+                                <th style={{ minWidth: "80px", maxWidth: "80px" }}>Action</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+
+                            </thead>
+                            <tbody >
+                              {console.log("cancellReasonn", cancellReason)}
+                              {cancellReason.map((row, index) => (
+                                <tr key={index}> <td style={{ minWidth: "30px", maxWidth: "30px" }}>
+                                  <div
+                                    style={{ marginLeft: "0px" }}
+                                    className="indexdesign"
+                                  >
+                                    {index + 1}</div></td>
+                                  <td><input type="text" id="simpleinput" disabled={InputDisabled && formData?.Status != "Rework"}
+                                    value={row.description}
+                                    className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                    onChange={(e) => {
+                                      const newRowscancellReason = [...cancellReason];
+                                      newRowscancellReason[index].description = e.target.value;
+                                      setcancellReason(newRowscancellReason);
+                                    }}
+                                  />
+
+                                  </td>
+                                  <td><input type="text" id="simpleinput" disabled={InputDisabled && formData?.Status != "Rework"}
+                                    className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                    value={row.reason}
+                                    onChange={(e) => {
+                                      const newRowscancellReason = [...cancellReason];
+                                      newRowscancellReason[index].reason = e.target.value;
+                                      setcancellReason(newRowscancellReason);
+                                    }}
+                                  /></td>
+                                  {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "80px", maxWidth: "80px", textAlign: 'center' }}>
+                                    <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFile(index, cancellReason)}></img>
+                                  </td>
+                                  }
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+
+
+                        </div>
 
 
                       </div>
 
 
                     </div>
-
-
-                  </div>
+                  }
                   {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
                   {console.log("editiiiiifhifassignmentt", editID, modeValue, InputDisabled, ApprovalTypeOptions)}
-                  {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" &&
+                  {!Loading && modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" &&
                     <div className="card mt-2">
                       <div className="card-body">
                         <div className='row'>
@@ -2749,7 +2767,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       {UserRoles.filter((role: any) =>
                                         !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
                                       ).map((role: any, index: number) => (
-                                        <option key={index} value={role.value}>{role.label}</option>
+                                        <option key={index} value={role.value} className={` ${(!Validforward) ? "border-on-error" : ""}`}>{role.label}</option>
                                       ))}
                                     </select>
 
@@ -2762,6 +2780,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       isMulti
                                       value={row.approvers}
                                       name="Approvers"
+                                      className={` ${(!Validforward) ? "border-on-error" : ""}`}
                                       //className={`form-control ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                       // onChange={(selectedOption: any) => onSelect(selectedOption)}
                                       onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
@@ -2777,7 +2796,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       value={row.leveltype}>
                                       <option value="" selected>Select Type</option>
                                       {ApprovalTypeOptions.map((x: any, index: number) => (
-                                        <option key={index} value={x.value}>{x.label}</option>
+                                        <option key={index} value={x.value} className={` ${(!Validforward) ? "border-on-error" : ""}`}>{x.label}</option>
                                       ))}
                                     </select>
 
@@ -2857,7 +2876,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                   }
                   {console.log("MainEditItemMainEditItem", MainEditItem)}
                   {/* ////////////Audit History card */}
-                  {MainEditItem !== null && MainEditItem.length != 0 && MainEditItem.Status != "Save as draft" &&
+                  {!Loading && MainEditItem !== null && MainEditItem.length != 0 && MainEditItem.Status != "Save as draft" &&
                     <WorkflowAuditHistory ContentItemId={MainEditItem} ContentType={CONTENTTYPE_ChangeDocument} ctx={props.context} />
                   }
                   {/* {editID !== null && editID.length != 0 && modeValue === "approve" &&
@@ -2873,23 +2892,24 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                 </div>
                 {console.log("ediiiiitiitiititID", editID, InputDisabled, editItemID, MainEditItem, modeValue)}
-                <div className="row mt-3">
-                  <div className="col-12 text-center mt-2">
-                    {/* <a href="my-approval.html">   */}
-                    {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}><i className="fe-check-circle me-1"></i> Save As Draft</button>}
+                {!Loading &&
+                  <div className="row mt-3">
+                    <div className="col-12 text-center mt-2">
+                      {/* <a href="my-approval.html">   */}
+                      {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}><i className="fe-check-circle me-1"></i> Save As Draft</button>}
 
-                    {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}><i className="fe-check-circle me-1"></i> Submit</button>}
-                    {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}><i className="fe-check-circle me-1"></i> Save As Draft</button>}
+                      {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}><i className="fe-check-circle me-1"></i> Submit</button>}
+                      {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}><i className="fe-check-circle me-1"></i> Save As Draft</button>}
 
-                    {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><i className="fe-check-circle me-1"></i> Submit</button>}
+                      {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><i className="fe-check-circle me-1"></i> Submit</button>}
 
-                    {/* </a> */}
-                    {/* <a href="../sites/edcspfx/SitePages/EDCMAIN.aspx">       */}
-                    <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}><i className="fe-x me-1"></i> Cancel</button>
-                    {/* </a> */}
+                      {/* </a> */}
+                      {/* <a href="../sites/edcspfx/SitePages/EDCMAIN.aspx">       */}
+                      <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}><i className="fe-x me-1"></i> Cancel</button>
+                      {/* </a> */}
+                    </div>
                   </div>
-                </div>
-
+                }
               </div>
             </div>
 
@@ -2922,7 +2942,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                   {/* {Attachmentarr.map((file: any, index: number) => ( */}
                   <tr >
                     {/* <td className='text-center'>{index + 1}</td> */}
-                    <td>{DocumentLink ? `${Tenant_URL}${DocumentLink?.FileLeafRef}` : Attachmentarr && Attachmentarr[0]?.fileName}</td>
+                    <td>{DocumentLink ? `${DocumentLink?.FileLeafRef}` : Attachmentarr && Attachmentarr[0]?.fileName}</td>
                     <td style={{ textAlign: 'center' }}>
                       <FontAwesomeIcon icon={faDownload} style={{ width: '35px', height: '30px' }}
                         onClick={() => OpenFile(DocumentLink ? DocumentLink : Attachmentarr && Attachmentarr[0]?.fileUrl)} />

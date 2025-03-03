@@ -103,7 +103,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
           .select("*,Requester/Id,Requester/Title,Approver/Id,Approver/Title")
           .expand("Approver,Requester")
           .filter('ContentId eq ' + props.ContentItemId + "and ProcessName eq '" + props.ContentType + "'")
-          .orderBy('Created')().then(datarows => {
+          .orderBy('Created',false)().then(datarows => {
 
           if (datarows.length == 0) {
 

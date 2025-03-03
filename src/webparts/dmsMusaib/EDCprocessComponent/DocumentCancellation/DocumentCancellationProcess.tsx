@@ -330,7 +330,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                 let arr = {
 
-                    RequesterName: setBannerById[0].RequesterName,
+                    RequesterName: setBannerById[0].Title,
                     RequesterNameId: setBannerById[0].RequesterNameId,
                     RequesterDesignation: setBannerById[0].RequesterDesignation,
                     Department: setBannerById[0].Department,
@@ -409,6 +409,15 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                 setFormData(prevData => ({
                     ...prevData,
+                    RequesterName: setBannerById[0].Title,
+                    RequesterNameId: setBannerById[0].RequesterNameId,
+                    RequesterDesignation: setBannerById[0].RequesterDesignation,
+                    RequestDate: setBannerById[0].RequestDate,
+                    RequestDateNew: new Date(setBannerById[0].RequestDate).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric"
+                    }).replace(/ /g, "/"),
                     IssueNumber: setBannerById[0].IssueNumber,
                     ReferenceNumber: setBannerById[0].ReferenceNumber,
                     RevisionNumber: setBannerById[0].RevisionNumber,
@@ -734,13 +743,13 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     console.log(result)
                     if (result.isConfirmed) {
                         setLoading(true);
-
+                        debugger
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
-                            Title: formData.RequesterName,
-                            RequesterNameId: formData.RequesterNameId,
-                            RequesterDesignation: formData.RequesterDesignation,
-                            Department: formData.Department,
+                            // Title: formData.RequesterName,
+                            // RequesterNameId: formData.RequesterNameId,
+                            // RequesterDesignation: formData.RequesterDesignation,
+                            // Department: formData.Department,
                             RequestDate: formData.RequestDate,
                             IssueDate: formData.IssueDate,
                             LocationId: selectedOption.LocationId,
@@ -861,7 +870,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     //console.log("Form Submitted:", formValues, bannerImages, galleryImages, documents);
                     if (result.isConfirmed) {
                         setLoading(true);
-
+                        debugger
                         const postPayload = {
                             Title: formData.RequesterName,
                             RequesterNameId: formData.RequesterNameId,
@@ -963,13 +972,13 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     console.log(result)
                     if (result.isConfirmed) {
                         setLoading(true);
-
+                        debugger
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
-                            Title: formData.RequesterName,
-                            RequesterNameId: formData.RequesterNameId,
-                            RequesterDesignation: formData.RequesterDesignation,
-                            Department: formData.Department,
+                            // Title: formData.RequesterName,
+                            // RequesterNameId: formData.RequesterNameId,
+                            // RequesterDesignation: formData.RequesterDesignation,
+                            // Department: formData.Department,
                             RequestDate: formData.RequestDate,
                             IssueDate: formData.IssueDate,
                             LocationId: selectedOption.LocationId,
@@ -1083,7 +1092,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     //console.log("Form Submitted:", formValues, bannerImages, galleryImages, documents);
                     if (result.isConfirmed) {
                         setLoading(true);
-
+                        debugger
 
                         const postPayload = {
                             Title: formData.RequesterName,
@@ -1344,10 +1353,10 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
         }
         else {
-            let isValid =true;
+            let isValid = true;
 
             if (forwardToArr.length) {
-                 isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
+                isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
                     row.approvalType.trim() !== "");
 
                 // if (!isValid) {
@@ -1394,7 +1403,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         const postResult = await updateApprovalItem(arr, sp, editID.Id);
                         const postId = postResult?.data?.ID;
 
-                         if (isValid) {
+                        if (isValid) {
                             for (const item of forwardToArr) {
 
                                 const approversIds: any[] = [];
@@ -1403,11 +1412,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                         approversIds.push(user.value);
                                     }
                                 });
-    
+
                                 let arr2 = {
                                     Title: currentUser.Title,
                                     ContentTitle: selectedOption.ReferenceNumber,
-    
+
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role,
                                     Level: Number(item.level),
@@ -1428,25 +1437,25 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                     ApprovalType: "Approval",
                                     IsApprovalGenerated: "No"
                                     // RedirectionLink:,
-    
-    
-    
+
+
+
                                 }
                                 if (item.id) {
                                     const postResult2 = await UpdateAllProcessItem(arr2, sp, item.id);
                                     const postId2 = postResult2?.data?.ID;
-    
+
                                 }
                                 else {
                                     const postResult2 = await addAllProcessItem(arr2, sp);
                                     const postId2 = postResult2?.data?.ID;
                                 }
-    
-                            }
-                
-                         }
 
-                        
+                            }
+
+                        }
+
+
 
                         let arr2 = {
                             // ActionTakenById: currentUser.Id,
@@ -1549,10 +1558,10 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                         // //////////////Update Document cancellation List when Submitted
                         let arr3 = {
-                            Title: formData.RequesterName,
-                            RequesterNameId: formData.RequesterNameId,
-                            RequesterDesignation: formData.RequesterDesignation,
-                            Department: formData.Department,
+                            // Title: formData.RequesterName,
+                            // RequesterNameId: formData.RequesterNameId,
+                            // RequesterDesignation: formData.RequesterDesignation,
+                            // Department: formData.Department,
                             RequestDate: formData.RequestDate,
                             IssueDate: formData.IssueDate,
                             LocationId: selectedOption.LocationId,
@@ -1679,10 +1688,10 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                         // //////////////Update Document cancellation List when Submitted
                         let arr3 = {
-                            Title: formData.RequesterName,
-                            RequesterNameId: formData.RequesterNameId,
-                            RequesterDesignation: formData.RequesterDesignation,
-                            Department: formData.Department,
+                            // Title: formData.RequesterName,
+                            // RequesterNameId: formData.RequesterNameId,
+                            // RequesterDesignation: formData.RequesterDesignation,
+                            // Department: formData.Department,
                             RequestDate: formData.RequestDate,
                             IssueDate: formData.IssueDate,
                             LocationId: selectedOption.LocationId,
@@ -1766,6 +1775,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         setTimeout(() => {
                             // window.location.href = `${siteUrl}/SitePages/MyTasks.aspx`;
                             window.history.back();
+                            setTimeout(() => {
+                                location.reload();
+                            }, 100);
                         }, 1000);
                         // }
                     }
@@ -2332,7 +2344,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                     <td >
                                                                                         {/* <span onClick={() => OpenFile(DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                                                                         <FontAwesomeIcon icon={faDownload} /></span> */}
-                                                                                         <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span> </td>
+                                                                                        <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span> </td>
                                                                                     <td>{DocumentLink.Created
                                                                                         ? new Intl.DateTimeFormat('en-GB', {
                                                                                             day: '2-digit',

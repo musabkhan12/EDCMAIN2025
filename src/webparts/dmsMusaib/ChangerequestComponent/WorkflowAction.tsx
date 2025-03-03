@@ -173,7 +173,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
           // window.location.reload()
 
-          window.location.href = `${url}/SitePages/MyApprovals.aspx`;
+          window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
 
         }, 1000);
 
