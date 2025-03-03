@@ -103,25 +103,25 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
           .select("*,Requester/Id,Requester/Title,Approver/Id,Approver/Title")
           .expand("Approver,Requester")
           .filter('ContentId eq ' + props.ContentItemId + "and ProcessName eq '" + props.ContentType + "'")
-          .orderBy('Created',false)().then(datarows => {
+          .orderBy('Created', false)().then(datarows => {
 
-          if (datarows.length == 0) {
+            if (datarows.length == 0) {
 
-            setIsHistoryData(true);
+              setIsHistoryData(true);
 
-            setLoading(false);
+              setLoading(false);
 
-          }
+            }
 
-          if (datarows.length > 0) {
+            if (datarows.length > 0) {
 
-            setLoading(false);
+              setLoading(false);
 
-            setIsHistoryData(true);
+              setIsHistoryData(true);
 
-          }
+            }
 
-          setAuditHistoryRows(datarows);
+            setAuditHistoryRows(datarows);
 
 
           });
@@ -140,7 +140,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
             "ListItemId eq " + props.ContentItemId.Id +
             " and ProcessName eq '" + props.ContentType + "'"
           )
-          .orderBy('Created')().then(datarows => {
+          .orderBy('Created', false)().then(datarows => {
 
             if (datarows.length == 0) {
 
@@ -192,7 +192,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
           {console.log("AuditHistoryRows", AuditHistoryRows)}
 
-          <div style={{display:'grid'}} className="table-responsive pt-0">
+          <div style={{ display: 'grid' }} className="table-responsive pt-0">
 
 
             <table
@@ -233,7 +233,11 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                     Requester Name
 
                   </th>
+                  <th style={{ minWidth: '70px', maxWidth: '70px' }}>
 
+                    Role
+
+                  </th>
                   <th style={{ minWidth: '70px', maxWidth: '70px' }}>
 
                     Requested Date
@@ -302,63 +306,63 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                         <td style={{ minWidth: '60px', maxWidth: '60px' }}> {index + 1}</td>
 
-                      
-                          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
-                            {
-                              row.LevelId !== undefined && row.LevelId !== null
-                                ? row.LevelId === 0
-                                  ? "Initiator"
-                                  : `Level ${row.LevelId}`
-                                : row.Level !== undefined && row.Level !== null
-                                  ? row.Level === 0
-                                    ? row.CurrentUserRole === "OES"
-                                      ? "OES"
-                                      : row.CurrentUserRole == null || row.CurrentUserRole == "Initiator"
-                                        ? "Initiator"
-                                        : `Level ${row.Level}`
-                                    : `Level ${row.Level}`
-                                  : ""
-                            }
 
-                          </td>
+                        <td style={{ minWidth: '70px', maxWidth: '70px' }}>
+                          {
+                            row.LevelId !== undefined && row.LevelId !== null
+                              ? row.LevelId === 0
+                                ? "Initiator"
+                                : `Level ${row.LevelId}`
+                              : row.Level !== undefined && row.Level !== null
+                                ? row.Level === 0
+                                  ? row.CurrentUserRole === "OES"
+                                    ? "OES"
+                                    : row.CurrentUserRole == null || row.CurrentUserRole == "Initiator"
+                                      ? "Initiator"
+                                      : `Level ${row.Level}`
+                                  : `Level ${row.Level}`
+                                : ""
+                          }
 
-                      
+                        </td>
+
+
 
                         <td style={{ minWidth: '70px', maxWidth: '70px' }}> {row.Approver ? row.Approver.Title : row.AssignedTo.Title}</td>
 
                         <td style={{ minWidth: '70px', maxWidth: '70px' }}> {row.Requester ? row.Requester.Title : row.RequesterName.Title}</td>
-
-                         {/* <td  style={{ minWidth: '70px', maxWidth: '70px' }}> {(new Date(row.Created)).toLocaleString()}</td> */}
-                        <td style={{ minWidth: '70px', maxWidth: '70px',cursor:'pointer' }} title={`${new Intl.DateTimeFormat('en-GB', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric'
-                            }).format(new Date(row.Created)).replace(/ /g, "/")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              hour12: false
-                            })}`}>
+                        <td style={{ minWidth: '70px', maxWidth: '70px' }}> {row.ActionTakenRole ? row.ActionTakenRole.Role : row.ActionTakenRole.Role}</td>
+                        {/* <td  style={{ minWidth: '70px', maxWidth: '70px' }}> {(new Date(row.Created)).toLocaleString()}</td> */}
+                        <td style={{ minWidth: '70px', maxWidth: '70px', cursor: 'pointer' }} title={`${new Intl.DateTimeFormat('en-GB', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric'
+                        }).format(new Date(row.Created)).replace(/ /g, "/")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: false
+                        })}`}>
                           {/* {new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.Created))} */}
                           {new Intl.DateTimeFormat('en-GB', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric'
-                            }).format(new Date(row.Created)).replace(/ /g, "/")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              hour12: false
-                            })}
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                          }).format(new Date(row.Created)).replace(/ /g, "/")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                          })}
                         </td>
 
                         {/* <td> {(row.Status != 'Pending') ? (row.Approver?.Title ? row.Approver.Title:(row.ActionTakenBy.Title?row.ActionTakenBy.Title:"")) : ""}</td> */}
-                        <td style={{ minWidth: '70px', maxWidth: '70px',cursor:'pointer' }}>
+                        <td style={{ minWidth: '70px', maxWidth: '70px', cursor: 'pointer' }}>
                           {row.Status !== "Pending"
                             ? row.Approver?.Title || row.ActionTakenBy?.Title || ""
                             : ""}
                         </td>
 
                         {/* <td style={{ minWidth: '70px', maxWidth: '70px' }}>{(row.Status != 'Pending') ? ((new Date(row.Modified)).toLocaleString()) : ""}</td> */}
-                        <td style={{ minWidth: '70px', maxWidth: '70px',cursor:'pointer' }} title={row.Status !== 'Pending'
+                        <td style={{ minWidth: '70px', maxWidth: '70px', cursor: 'pointer' }} title={row.Status !== 'Pending'
                           ? `${new Intl.DateTimeFormat('en-GB', {
                             day: '2-digit',
                             month: 'short',
@@ -369,7 +373,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                             hour12: false
                           })}`
                           : ""}>
-                            {row.Status !== 'Pending'
+                          {row.Status !== 'Pending'
                             ? `${new Intl.DateTimeFormat('en-GB', {
                               day: '2-digit',
                               month: 'short',
@@ -384,9 +388,9 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                         </td>
 
 
-                        <td style={{ minWidth: '70px', maxWidth: '70px' ,cursor:'pointer'}} title={row.Remark}> {row.Remark}</td>
+                        <td style={{ minWidth: '70px', maxWidth: '70px', cursor: 'pointer' }} title={row.Remark}> {row.Remark}</td>
 
-                        <td style={{ minWidth: '70px', maxWidth: '70px' ,cursor:'pointer'}}> <div className="btn  btn-status">{row.Status}</div> </td>
+                        <td style={{ minWidth: '70px', maxWidth: '70px', cursor: 'pointer' }}> <div className="btn  btn-status">{row.Status}</div> </td>
 
 
                       </tr>

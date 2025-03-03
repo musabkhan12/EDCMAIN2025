@@ -102,11 +102,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const Breadcrumb = [
     {
       MainComponent: "Home",
-      MainComponentURl: `${siteUrl}/SitePages/Dashboard.aspx`,
+      MainComponentURl: `${siteUrl}/SitePages/EDCMAIN.aspx`,
     },
     {
       ChildComponent: "Change Request",
-      ChildComponentURl: `${siteUrl}/SitePages/ChangeRequest.aspx`,
+      ChildComponentURl: `${siteUrl}/SitePages/EDCMAIN.aspx#/ChangeDocumentRequest`,
     },
   ];
   const [Loading, setLoading] = React.useState(false);
@@ -143,6 +143,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
   const [showdate, setshowdate] = React.useState(false);
   const [editForm, setEditForm] = React.useState(false);
+  const [disabledforwardarr, setdisabledforwardarr] = React.useState(false);
   const [modeValue, setmode] = React.useState("");
   const [referencedocCode, setreferencedocCode] = React.useState("");
   const [docCode, setdocCode] = React.useState("");
@@ -187,7 +188,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
   const [showModal, setShowModal] = React.useState(false);
   const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
-    { id: 0, role: 0, level: 1, approvers: [], leveltype: "" } // Default row
+    { id: 0, role: 0, level: 1, approvers: [], leveltype: "One" } // Default row
   ]);
   const [currentUserDept, setcurrentUserDept] = React.useState("");
   const [forwardToArrEdit, setForwardToArrEdit] = React.useState<ForwardTo[]>([]);
@@ -214,6 +215,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       setInputDisabled(false);
     }
     console.log("inpt diasba", InputDisabled, path1, path1.includes("/view/"))
+    setLoading(true);
     var ReqTypeArr = await getAllRequestType(sp);
     const optionsreq = ReqTypeArr.map((item: any) => ({
       value: item.ID,
@@ -331,6 +333,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       const segments = path.split('/').filter(Boolean); // Remove empty elements
       let pathnew = window.location.href;
       debugger
+
       if (pathnew.includes("/view/") || pathnew.includes("/approve/")) {
         setInputDisabled(true);
       }
@@ -385,6 +388,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
           setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId[0]))
         }
+
         if (ProcessItemId && ProcessItemId.Level === 0 && ProcessItemId.CurrentUserRole === "OES" && ProcessItemId.IsInitiator == "No") {
           const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_ChangeDocument, setBannerById[0].DocumentCode)
 
@@ -401,6 +405,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
               })) || []
             }));
+
             setForwardToArr(EditApprowData);
             setForwardToArrEdit(EditApprowData);
 
@@ -444,7 +449,30 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
 
         }
+        if (ProcessItemId && ProcessItemId.CurrentUserRole !== "OES" && ProcessItemId.IsInitiator == "No") {
+          const ApprowData1: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_ChangeDocument, setBannerById[0].DocumentCode)
 
+          if (ApprowData1.length > 0) {
+
+            const EditApprowData1 = ApprowData1.map((item: any) => ({
+              id: item.ID,
+              leveltype: item.LevelType,
+              role: item.ApproverRole?.Id, // Assuming role comes from ApproverRole
+              level: item.Level, // Default to 1 if missing
+              approvers: item.Approvers?.map((approver: any) => ({
+                value: approver.Id,
+                label: approver.Title,
+
+              }))
+            }));
+            setdisabledforwardarr(true);
+            setForwardToArr(EditApprowData1);
+            setForwardToArrEdit(EditApprowData1);
+
+          }
+
+          // MainListID
+        }
         setissueNo(setBannerById[0].IssueNumber);
         setserialNo(setBannerById[0].SerialNumber);
         setFormData(prevData => ({
@@ -522,6 +550,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
     }
     //}
+    setLoading(false);
     //#endregion
 
 
@@ -530,6 +559,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     debugger
     console.log(selectedList, "selectedList");
     if (selectedList != null) {
+      setLoading(true);
       setFormData(prevData => ({
         ...prevData,
         IssueNumber: selectedList.IssueNumber,
@@ -585,6 +615,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       else {
         setDocumentLink(null);
       }  // Set the selected users
+      setLoading(false);
     };
   }
 
@@ -768,7 +799,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const handleAddRow = () => {
     setForwardToArr((prev) => [
       ...prev,
-      { id: 0, role: 0, level: prev.length + 1, approvers: [], leveltype: "" }
+      { id: 0, role: 0, level: prev.length + 1, approvers: [], leveltype: "One" }
     ]);
   };
 
@@ -1133,7 +1164,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           title: 'Do you want to submit this request?',
           showConfirmButton: true,
           showCancelButton: true,
-          confirmButtonText: "yes",
+          confirmButtonText: "Yes",
           cancelButtonText: "No",
           icon: 'warning'
         }
@@ -1604,8 +1635,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         // alert("At least one row is required.");
         valid = false;
       }
-
-      const isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 && row.leveltype != "");
+      debugger
+      const isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0);
 
       if (!isValid) {
         // alert("Each row must have a role selected and at least one approver.");
@@ -2129,6 +2160,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           libraryName: libraryName,
           docLib: docLib,
           name: files[0].name,
+          fileName: files[0].name,
           fileSize: files[0].size,
           fileUrl: URL.createObjectURL(files[0])
         };
@@ -2271,632 +2303,513 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         id="myHeader">
         {/* <VerticalSideBar _context={sp} /> 
       </div> */}
-      {/* <div className="content-page"> */}
-      {/* <HorizontalNavbar _context={sp} siteUrl={siteUrl} /> */}
-      {/* <div className="content" style={{ marginLeft: `${!useHide ? '240px' : '80px'}`, marginTop: '2.3rem' }}> */}
-      <div className="">
-        <div className="row">
-          <div className="col-lg-4">
-            {/* <CustomBreadcrumb Breadcrumb={Breadcrumb} /> */}
-          </div>
+      <div className="content-page">
+        {/* <HorizontalNavbar _context={sp} siteUrl={siteUrl} /> */}
+        {/* <div className="content" style={{ marginLeft: `${!useHide ? '240px' : '80px'}`, marginTop: '2.3rem' }}> */}
+        <div>
+          <div className="">
+            <div className="row">
+              <div className="col-lg-4">
+                <CustomBreadcrumb Breadcrumb={Breadcrumb} />
+              </div>
 
-        </div>
-        <div className="row mt-0">
+            </div>
+            <div className="row mt-0">
 
-          {/* <!-- Right Sidebar --> */}
-          <div className="col-12">
-            <div >
-              <div>
-                {/* <!-- Left sidebar --> */}
-                {/* <div className="inbox-leftbar">
+              {/* <!-- Right Sidebar --> */}
+              <div className="col-12">
+                <div >
+                  <div>
 
-                      <div className="mail-list mt-0">
-                        <a href="dossier-list.html"
-                          style={{ background: "#fff !important" }}
-                          className="list-group-item border-0  mb-0 bg-soft-secondary rounded-pill">
-                          <img src={require("../assets/list.png")} className='sidebariconsmall'></img>My Request
-                        </a>
-                        <a href="favourite-folder.html"
-                          style={{ background: "#f7fbfc !important" }}
-                          className="list-group-item mb-0 border-0 rounded-pill">
-                          <img src={require("../assets/star.png")} className='sidebariconsmall'></img>My Favourite
-                        </a>
-                        <a href="my-folder.html"
-                          style={{ background: "#f7fbfc !important" }}
-                          className="list-group-item mb-0 border-0 rounded-pill">
-                          <img src={require("../assets/foldericon.png")} className='sidebariconsmall'></img>My Folder
-                        </a>
-                        <a href="share-with-other.html"
-                          style={{ background: "#f7fbfc !important" }}
-                          className="list-group-item border-0 mb-0 rounded-pill">
-                          <img src={require("../assets/share.png")} className='sidebariconsmall'></img>Share with Other
-                        </a>
-                        <a href="share-with-me.html"
-                          style={{ background: "#f7fbfc !important" }}
-                          className="list-group-item border-0 mb-0 rounded-pill">
-                          <img src={require("../assets/nodes.png")} className='sidebariconsmall'></img>Share with me
-                        </a>
-                      </div>
-
-
-
-                      <div style={{ clear: 'both', float: 'left', width: '100%' }} className="mt-3 border-top pt-1">
-                        <button type="button" className="accordion4">
-                          <span className="updatedorg">Strategy Department</span>
-                        </button>
-                        <div style={{ maxHeight: "50000px" }} className="panel4">
-                          <ul id="myUL" className="mt-0">
-                            <li>
-                              <ul style={{ listStyle: "none" }} className="nested active">
-                                <li style={{ paddingTop: "0px" }}>
-                                  <span style={{ cursor: "pointer" }} className="box ng-binding check-box">
-                                    <img src={require("../../dmsMusaib/assets/plus.png")} className="foldert" alt="folder" />
-                                    <a href="testing.html">Change Request</a>
-                                  </span>
-                                </li>
-                                <li style={{ paddingTop: "10px" }} className="ng-scope">
-                                  <span style={{ cursor: "pointer" }} className="box ng-binding">
-                                    <img src={require("../../dmsMusaib/assets/plus.png")} className="foldert" alt="folder" />
-                                    Cancelled Documents
-                                  </span>
-                                </li>
-                                <li style={{ paddingTop: "10px" }} className="ng-scope">
-                                  <span style={{ cursor: "pointer" }} className="box ng-binding">
-                                    <img src={require("../../dmsMusaib/assets/plus.png")} className="foldert" alt="folder" />
-                                    Audit Planning
-                                  </span>
-                                  <ul style={{ listStyle: "none" }} className="nested">
-                                    <li style={{ paddingTop: "10px" }} className="ng-scope">
-                                      <a href="Hr-folder-structure.html">
-                                        <span style={{ cursor: "pointer" }} className="box ng-binding">
-                                          <img src={require("../../dmsMusaib/assets/plus.png")} className="foldert" alt="folder" />
-                                          Memos
-                                        </span>
-                                      </a>
-                                    </li>
-                                    <li style={{ paddingTop: "10px" }} className="ng-scope">
-                                      <a href="Hr-folder-structure.html">
-                                        <span style={{ cursor: "pointer" }} className="box ng-binding">
-                                          <img src={require("../../dmsMusaib/assets/plus.png")} className="foldert" alt="folder" />
-                                          Audit Plan
-                                        </span>
-                                      </a>
-                                    </li>
-                                    <li style={{ paddingTop: "10px" }} className="ng-scope">
-                                      <a href="Hr-folder-structure.html">
-                                        <span style={{ cursor: "pointer" }} className="box ng-binding">
-                                          <img src={require("../../dmsMusaib/assets/plus.png")} className="foldert" alt="folder" />
-                                          Audit Checklist
-                                        </span>
-                                      </a>
-                                    </li>
-                                  </ul>
-                                </li>
-                              </ul>
-                            </li>
-                          </ul>
+                    {Loading ?
+                      // <div className="loadercss" role="status">Loading...
+                      //   <img src={require('../../../Assets/ExtraImage/loader.gif')} style={{ height: '80px', width: '70px' }} alt="Check" />
+                      // </div>
+                      <div style={{ minHeight: '100vh', marginTop: '100px' }} className="loadernewadd mt-10">
+                        <div>
+                          <img
+                            src={require("../assets/edc-gif.gif")}
+                            className="alignrightl"
+                            alt="Loading..."
+                          />
                         </div>
+                        <span>Loading </span>{" "}
+                        <span>
+                          <img
+                            src={require("../assets/edcnew.gif")}
+                            className="alignrightl"
+                            alt="Loading..."
+                          />
+                        </span>
                       </div>
+                      :
 
+                      <div style={{ width: '100%' }} className="inbox-rightbar">
 
-                    </div> */}
+                        <div className="card">
+                          <div className="card-body">
 
-
-                <div style={{ width: '100%' }} className="inbox-rightbar">
-                  {Loading ?
-                    // <div className="loadercss" role="status">Loading...
-                    //   <img src={require('../../../Assets/ExtraImage/loader.gif')} style={{ height: '80px', width: '70px' }} alt="Check" />
-                    // </div>
-                    <div style={{ minHeight: '100vh', marginTop: '180px' }} className="loadernewadd mt-10">
-                      <div>
-                        <img
-                          src={require("../assets/edc-gif.gif")}
-                          className="alignrightl"
-                          alt="Loading..."
-                        />
-                      </div>
-                      <span>Loading </span>{" "}
-                      <span>
-                        <img
-                          src={require("../assets/edcnew.gif")}
-                          className="alignrightl"
-                          alt="Loading..."
-                        />
-                      </span>
-                    </div>
-                    :
-                    <div className="card">
-                      <div className="card-body">
-
-                        <h3 className="text-dark font-16 mb-3">Requested By</h3>
-                        {/* <p className="sub-header">
+                            <h3 className="text-dark font-16 mb-3">Requested By</h3>
+                            {/* <p className="sub-header">
                                                         Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aspernatur, itaque.
                                                     </p> */}
 
-                        <div className="row">
-                          <div className="col-lg-4">
+                            <div className="row">
+                              <div className="col-lg-4">
 
 
-                            <div className="mb-3">
-                              <label htmlFor="RequesterName" className="form-label">Name:</label>
-                              <input type="text" id="Name" name="RequesterName" className="form-control" value={formData.RequesterName} disabled={true} />
-                            </div>
-                          </div>
-                          <div className="col-lg-4">
+                                <div className="mb-3">
+                                  <label htmlFor="RequesterName" className="form-label">Name:</label>
+                                  <input type="text" id="Name" name="RequesterName" className="form-control" value={formData.RequesterName} disabled={true} />
+                                </div>
+                              </div>
+                              <div className="col-lg-4">
 
 
-                            <div className="mb-3">
-                              <label htmlFor="RequesterDesignation" className="form-label">Designation:</label>
-                              <input type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" value={formData.RequesterDesignation} disabled={true} />
-                            </div>
-                          </div>
-                          <div className="col-lg-4">
-                            {console.log("formDataformData", formData, formData?.RequestDate)}
-                            <div className="mb-3">
-                              <label htmlFor="RequestDate" className="form-label">Request Date:</label>
-                              <DatePicker
-                                value={formData?.RequestDate ? new Date(moment(formData?.RequestDate).format('DD-MMM-YYYY')) : null} // Convert the date to Date object
-                                onSelectDate={onDateChange}
-                                disabled={InputDisabled && formData?.Status != "Rework"}
-                                //defaultValue={new Date().toDateString()}
-                                formatDate={(date) => moment(date).format('DD-MMM-YYYY')} // Custom date format for display
-                              />
+                                <div className="mb-3">
+                                  <label htmlFor="RequesterDesignation" className="form-label">Designation:</label>
+                                  <input type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" value={formData.RequesterDesignation} disabled={true} />
+                                </div>
+                              </div>
+                              <div className="col-lg-4">
+                                {console.log("formDataformData", formData, formData?.RequestDate)}
+                                <div className="mb-3">
+                                  <label htmlFor="RequestDate" className="form-label">Request Date:</label>
+                                  <DatePicker
+                                    value={formData?.RequestDate ? new Date(moment(formData?.RequestDate).format('DD-MMM-YYYY')) : null} // Convert the date to Date object
+                                    onSelectDate={onDateChange}
+                                    disabled={InputDisabled && formData?.Status != "Rework"}
+                                    //defaultValue={new Date().toDateString()}
+                                    formatDate={(date) => moment(date).format('DD-MMM-YYYY')} // Custom date format for display
+                                  />
 
-                              {/* <input type="date" id="RequestDate" name="RequestDate" className="form-control" value={formData?.RequestDate} 
+                                  {/* <input type="date" id="RequestDate" name="RequestDate" className="form-control" value={formData?.RequestDate} 
                               onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} />
                               <input type="text" id="RequestDate" name="RequestDate" className="form-control" value={formData?.RequestDate} onClick={(e)=> setshowdate(true)}
                               onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} /> */}
-                            </div>
-                          </div>
-
-                          <div className="col-lg-4">
-
-                            <div className="mb-3">
-                              <label htmlFor="DocumentCode" className="form-label">Request Type:<span className="text-danger1">*</span></label>
-                              {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                              <Select
-                                options={ReqType}
-                                value={selectedOptionReq}
-                                name="Request Type"
-                                className={`${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                onChange={(selectedOption: any) => onSelectReq(selectedOption)}
-                                placeholder="Search Request Type" isDisabled={InputDisabled && formData?.Status != "Rework"}
-                              />
-                            </div>
-                          </div>
-                          <div className="col-lg-4">
-                            {console.log("selectedOptionReqselectedOptionReq", selectedOptionReq)}
-                            <div className="mb-3">
-                              <label htmlFor="DocumentCode" className="form-label">Document Code:</label>
-                              {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                              <Select
-                                options={rows}
-                                value={selectedOption}
-                                name="DocumentCode"
-                                isClearable={true}
-                                //isOptionDisabled={() => selectedOptionReq.label == "Change Request for New Addition"}
-                                isSearchable={true}
-                                className={`${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidSubmit) ? "border-on-error" : ""}`}
-                                onChange={(selectedOption: any) => onSelectDocCode(selectedOption)}
-                                placeholder="Search Document Code"
-                                isDisabled={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.label == "Change Request for New Addition")}
-                              />
-                            </div>
-                          </div>
-                          <div className="col-lg-4">
-
-                            <div className="mb-3">
-                              <label htmlFor="example-email" className="form-label">Issue No:</label>
-                              <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.IssueNumber} />
-                            </div>
-                          </div>
-
-                          <div className="col-lg-4">
-
-                            <div className="mb-3">
-                              <label htmlFor="example-email" className="form-label">Revision No:</label>
-                              <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.RevisionNumber} />
-                            </div>
-                          </div>
-                          <div className="col-lg-4">
-
-                            <div className="mb-3">
-                              <label htmlFor="example-email" className="form-label">Reference No:</label>
-                              <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.ReferenceNumber} />
-                            </div>
-                          </div>
-                          <div className="col-lg-4">
-
-                            <div className="mb-3">
-                              <label htmlFor="DocumentCode" className="form-label">Amendment Type:<span className="text-danger1">*</span></label>
-                              {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                              <Select
-                                options={Amendtype}
-                                value={selectedOptionAmend}
-                                name="Amendment Type"
-                                className={`${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                onChange={(selectedOption: any) => onSelectAmend(selectedOption)}
-                                placeholder="Search" isDisabled={InputDisabled && formData?.Status != "Rework"}
-                              />
-                            </div>
-                          </div>
-                          <div className="col-lg-4">
-
-                            <div className="mb-3">
-                              <label htmlFor="DocumentCode" className="form-label">Classification:<span className="text-danger1">*</span></label>
-                              {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                              <Select
-                                options={Classificationopt}
-                                value={selectedOptionClass}
-                                name="Classification"
-                                className={`${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                onChange={(selectedOption: any) => onSelectClassification(selectedOption)}
-                                placeholder="Search Classification" isDisabled={InputDisabled && formData?.Status != "Rework"}
-                              />
-                            </div>
-                          </div>
-                          <div className="col-lg-4">
-
-                            <div className="mb-3">
-                              <label htmlFor="DocumentCode" className="form-label">Location:<span className="text-danger1">*</span></label>
-                              {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                              <Select
-                                options={LocationOpt}
-                                value={selectedOptionLoc}
-                                name="Location"
-                                className={` ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                onChange={(selectedOption: any) => onSelectLocation(selectedOption)}
-                                placeholder="Search Location" isDisabled={InputDisabled && formData?.Status != "Rework"}
-                              />
-                            </div>
-                          </div>
-                          <div className="col-lg-4">
-
-                            <div className="mb-3">
-                              <label htmlFor="DocumentCode" className="form-label">Custodian:<span className="text-danger1">*</span></label>
-                              {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                              <Select
-                                options={Custodianopt}
-                                value={selectedOptionCusto}
-                                name="Custodian"
-                                className={` ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                onChange={(selectedOption: any) => onSelectCustodian(selectedOption)}
-                                placeholder="Search Custodian" isDisabled={InputDisabled && formData?.Status != "Rework"}
-                              />
-                            </div>
-                          </div>
-                          <div className="col-lg-4">
-
-                            <div className="mb-3">
-                              <label htmlFor="DocumentCode" className="form-label">Document Type:<span className="text-danger1">*</span></label>
-                              {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                              <Select
-                                options={DocumentTypeOpt}
-                                value={selectedOptionDoctype}
-                                name="Document Type"
-                                className={` ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                onChange={(selectedOption: any) => onSelectDocumentType(selectedOption)}
-                                placeholder="Search Document Type" isDisabled={InputDisabled && formData?.Status != "Rework"}
-                              />
-                            </div>
-                          </div>
-                          {console.log("FormItemIdFormItemIdFormItemId", FormItemId, modeValue, selectedOption)}
-                          {/* //modeValue != "view" || modeValue == "edit" || modeValue != "approve"  && */}
-                          {(FormItemId == null || (FormItemId != null && modeValue == "edit") || (modeValue != "view" && modeValue != "approve")
-                            || (modeValue == "approve" && formData?.Status == "Rework")) &&
-                            <div className="col-lg-4">
-
-                              <div className="mb-3">
-                                <label htmlFor="DocumentCode" className="form-label">Attachment:<span className="text-danger1">*</span></label>
-
-                                <input
-                                  type="file"
-                                  id="attachment"
-                                  name="attachment"
-                                  disabled={InputDisabled && formData?.Status != "Rework"}
-                                  //disabled={handleSectionState('requestedBySection')}
-                                  className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                  onChange={(e) => onFileChange(e, "bannerimg", "Document")}
-                                />
-                                {Attachmentarr[0] != false && Attachmentarr.length > 0 &&
-                                  Attachmentarr != undefined ? Attachmentarr.length == 1 &&
-                                (<a style={{ fontSize: '0.875rem' }}
-                                  //onClick={() => handlePreviewClick(Attachmentarr[0])}
-                                  onClick={() => setShowModal(true)}>
-                                  <FontAwesomeIcon icon={faPaperclip} />1 file Attached
-                                </a>) : ""
-                                }
-                              </div>
-                            </div>
-                          }
-                          {(modeValue == "view" || modeValue == "approve" ||
-                            (selectedOptionReq?.label != "Change Request for New Addition" && selectedOption)) &&
-
-                            <div className="col-lg-4">
-                              <div className="mb-3">
-                                <label htmlFor="DocumentCode" className="form-label">Document Link:</label>
-                                {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-
-                                <div className="text-dark mt-0"> <span >
-                                  <a onClick={() => setShowModal(true)} ><FontAwesomeIcon icon={faPaperclip} />{DocumentLink && "1 file Attached"}</a>
-
-                                </span>
                                 </div>
+                              </div>
 
+                              <div className="col-lg-4">
+
+                                <div className="mb-3">
+                                  <label htmlFor="DocumentCode" className="form-label">Request Type:<span className="text-danger1">*</span></label>
+                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                                  <Select
+                                    options={ReqType}
+                                    value={selectedOptionReq}
+                                    name="Request Type"
+                                    className={`${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                    onChange={(selectedOption: any) => onSelectReq(selectedOption)}
+                                    placeholder="Search Request Type" isDisabled={InputDisabled && formData?.Status != "Rework"}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-lg-4">
+                                {console.log("selectedOptionReqselectedOptionReq", selectedOptionReq)}
+                                <div className="mb-3">
+                                  <label htmlFor="DocumentCode" className="form-label">Document Code:</label>
+                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                                  <Select
+                                    options={rows}
+                                    value={selectedOption}
+                                    name="DocumentCode"
+                                    isClearable={true}
+                                    //isOptionDisabled={() => selectedOptionReq.label == "Change Request for New Addition"}
+                                    isSearchable={true}
+                                    className={`${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidSubmit) ? "border-on-error" : ""}`}
+                                    onChange={(selectedOption: any) => onSelectDocCode(selectedOption)}
+                                    placeholder="Search Document Code"
+                                    isDisabled={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.label == "Change Request for New Addition")}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-lg-4">
+
+                                <div className="mb-3">
+                                  <label htmlFor="example-email" className="form-label">Issue No:</label>
+                                  <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.IssueNumber} />
+                                </div>
+                              </div>
+
+                              <div className="col-lg-4">
+
+                                <div className="mb-3">
+                                  <label htmlFor="example-email" className="form-label">Revision No:</label>
+                                  <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.RevisionNumber} />
+                                </div>
+                              </div>
+                              <div className="col-lg-4">
+
+                                <div className="mb-3">
+                                  <label htmlFor="example-email" className="form-label">Reference No:</label>
+                                  <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.ReferenceNumber} />
+                                </div>
+                              </div>
+                              <div className="col-lg-4">
+
+                                <div className="mb-3">
+                                  <label htmlFor="DocumentCode" className="form-label">Amendment Type:<span className="text-danger1">*</span></label>
+                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                                  <Select
+                                    options={Amendtype}
+                                    value={selectedOptionAmend}
+                                    name="Amendment Type"
+                                    className={`${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                    onChange={(selectedOption: any) => onSelectAmend(selectedOption)}
+                                    placeholder="Search" isDisabled={InputDisabled && formData?.Status != "Rework"}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-lg-4">
+
+                                <div className="mb-3">
+                                  <label htmlFor="DocumentCode" className="form-label">Classification:<span className="text-danger1">*</span></label>
+                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                                  <Select
+                                    options={Classificationopt}
+                                    value={selectedOptionClass}
+                                    name="Classification"
+                                    className={`${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                    onChange={(selectedOption: any) => onSelectClassification(selectedOption)}
+                                    placeholder="Search Classification" isDisabled={InputDisabled && formData?.Status != "Rework"}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-lg-4">
+
+                                <div className="mb-3">
+                                  <label htmlFor="DocumentCode" className="form-label">Location:<span className="text-danger1">*</span></label>
+                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                                  <Select
+                                    options={LocationOpt}
+                                    value={selectedOptionLoc}
+                                    name="Location"
+                                    className={` ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                    onChange={(selectedOption: any) => onSelectLocation(selectedOption)}
+                                    placeholder="Search Location" isDisabled={InputDisabled && formData?.Status != "Rework"}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-lg-4">
+
+                                <div className="mb-3">
+                                  <label htmlFor="DocumentCode" className="form-label">Custodian:<span className="text-danger1">*</span></label>
+                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                                  <Select
+                                    options={Custodianopt}
+                                    value={selectedOptionCusto}
+                                    name="Custodian"
+                                    className={` ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                    onChange={(selectedOption: any) => onSelectCustodian(selectedOption)}
+                                    placeholder="Search Custodian" isDisabled={InputDisabled && formData?.Status != "Rework"}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-lg-4">
+
+                                <div className="mb-3">
+                                  <label htmlFor="DocumentCode" className="form-label">Document Type:<span className="text-danger1">*</span></label>
+                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                                  <Select
+                                    options={DocumentTypeOpt}
+                                    value={selectedOptionDoctype}
+                                    name="Document Type"
+                                    className={` ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                    onChange={(selectedOption: any) => onSelectDocumentType(selectedOption)}
+                                    placeholder="Search Document Type" isDisabled={InputDisabled && formData?.Status != "Rework"}
+                                  />
+                                </div>
+                              </div>
+                              {console.log("FormItemIdFormItemIdFormItemId", FormItemId, modeValue, selectedOption)}
+                              {/* //modeValue != "view" || modeValue == "edit" || modeValue != "approve"  && */}
+                              {(FormItemId == null || (FormItemId != null && modeValue == "edit") || (modeValue != "view" && modeValue != "approve")
+                                || (modeValue == "approve" && formData?.Status == "Rework")) &&
+                                <div className="col-lg-4">
+
+                                  <div className="mb-3">
+                                    <label htmlFor="DocumentCode" className="form-label">Attachment:<span className="text-danger1">*</span></label>
+
+                                    <input
+                                      type="file"
+                                      id="attachment"
+                                      name="attachment"
+                                      disabled={InputDisabled && formData?.Status != "Rework"}
+                                      //disabled={handleSectionState('requestedBySection')}
+                                      className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                      onChange={(e) => onFileChange(e, "bannerimg", "Document")}
+                                    />
+                                    {Attachmentarr[0] != false && Attachmentarr.length > 0 &&
+                                      Attachmentarr != undefined ? Attachmentarr.length == 1 &&
+                                    (<a style={{ fontSize: '0.875rem' }}
+                                      //onClick={() => handlePreviewClick(Attachmentarr[0])}
+                                      onClick={() => setShowModal(true)}>
+                                      <FontAwesomeIcon icon={faPaperclip} />1 file Attached
+                                    </a>) : ""
+                                    }
+                                  </div>
+                                </div>
+                              }
+                              {(modeValue == "view" || modeValue == "approve" ||
+                                (selectedOptionReq?.label != "Change Request for New Addition" && selectedOption)) &&
+
+                                <div className="col-lg-4">
+                                  <div className="mb-3">
+                                    <label htmlFor="DocumentCode" className="form-label">Document Link:</label>
+                                    {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+
+                                    <div className="text-dark mt-0"> <span >
+                                      <a onClick={() => setShowModal(true)} ><FontAwesomeIcon icon={faPaperclip} />{DocumentLink && "1 file Attached"}</a>
+
+                                    </span>
+                                    </div>
+
+                                  </div>
+                                </div>
+                              }
+                            </div>
+
+                          </div>
+                        </div>
+
+
+                        <div className="card mt-2">
+                          <div className="card-body">
+                            <div className='row'>
+                              <div className='col-sm-12'>
+                                <h3 className="text-dark font-16 mb-3">Request Details</h3>
+                                <label className="form-label">Change Request Type</label>
+                                <div className="row"> {renderCheckboxes()}</div>
                               </div>
                             </div>
-                          }
-                        </div>
-
-                      </div>
-                    </div>
-                  }
-                  {!Loading &&
-                    <div className="card mt-2">
-                      <div className="card-body">
-                        <div className='row'>
-                          <div className='col-sm-12'>
-                            <h3 className="text-dark font-16 mb-3">Request Details</h3>
-                            <label className="form-label">Change Request Type</label>
-                            <div className="row"> {renderCheckboxes()}</div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  }
-                  {!Loading &&
-                    <div className="card mt-2">
-                      <div className="card-body">
-                        <div className='row'>
-                          <div className='col-sm-8'>
-                            <h3 className="text-dark font-16 mb-3">Description</h3>
 
-                          </div>
+                        <div className="card mt-2">
+                          <div className="card-body">
+                            <div className='row'>
+                              <div className='col-sm-8'>
+                                <h3 className="text-dark font-16 mb-3">Description</h3>
 
-                          <div className='col-sm-4'>
-                            <div style={{ textAlign: "right" }} className="mt-2 float-end text-right">
-                              {/* <i style={{ cursor: "pointer" }} onClick={addField}  className="fe-plus-circle  font-20 text-warning"></i> */}
-                              {/* <i style={{ cursor: "pointer" }} className="fe-plus-circle  font-20 text-warning"></i> */}
-                              {!InputDisabled && <img style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} src={require("../assets/plus.png")} onClick={addCancelReason} className=''></img>}
+                              </div>
+                              {console.log("formData?.Status ", formData)}
+                              <div className='col-sm-4'>
+                                <div style={{ textAlign: "right" }} className="mt-2 float-end text-right">
+                                  {/* <i style={{ cursor: "pointer" }} onClick={addField}  className="fe-plus-circle  font-20 text-warning"></i> */}
+                                  {/* <i style={{ cursor: "pointer" }} className="fe-plus-circle  font-20 text-warning"></i> */}
+                                  {(!InputDisabled && (formData?.Status == "Rework" || formData?.Status == "" || formData?.Status == "Save as draft")) && <img style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} src={require("../assets/plus.png")} onClick={addCancelReason} className=''></img>}
 
 
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
 
-                        {/* <p className="sub-header">
+                            {/* <p className="sub-header">
                                                         Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s
                                                     </p> */}
 
-                        <div className="row">
-                          <table className="mtbalenew table-centered table-nowrap table-borderless mb-0" id="tbl">
-                            <thead>
-                              <tr>
-                                <th style={{ minWidth: "40px", maxWidth: "40px" }}>S.No</th>
-                                <th>Change Description</th>
-                                <th>Reason for Change</th>
-                                <th style={{ minWidth: "80px", maxWidth: "80px" }}>Action</th>
-                              </tr>
+                            <div className="row">
+                              <table className="mtbalenew table-centered table-nowrap table-borderless mb-0" id="tbl">
+                                <thead>
+                                  <tr>
+                                    <th style={{ minWidth: "40px", maxWidth: "40px" }}>S.No</th>
+                                    <th>Change Description</th>
+                                    <th>Reason for Change</th>
+                                    <th style={{ minWidth: "80px", maxWidth: "80px" }}>Action</th>
+                                  </tr>
 
-                            </thead>
-                            <tbody >
-                              {console.log("cancellReasonn", cancellReason)}
-                              {cancellReason.map((row, index) => (
-                                <tr key={index}> <td style={{ minWidth: "30px", maxWidth: "30px" }}>
-                                  <div
-                                    style={{ marginLeft: "0px" }}
-                                    className="indexdesign"
-                                  >
-                                    {index + 1}</div></td>
-                                  <td><input type="text" id="simpleinput" disabled={InputDisabled && formData?.Status != "Rework"}
-                                    value={row.description}
-                                    className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                    onChange={(e) => {
-                                      const newRowscancellReason = [...cancellReason];
-                                      newRowscancellReason[index].description = e.target.value;
-                                      setcancellReason(newRowscancellReason);
-                                    }}
-                                  />
+                                </thead>
+                                <tbody >
+                                  {console.log("cancellReasonn", cancellReason)}
+                                  {cancellReason.map((row, index) => (
+                                    <tr key={index}> <td style={{ minWidth: "30px", maxWidth: "30px" }}>
+                                      <div
+                                        style={{ marginLeft: "0px" }}
+                                        className="indexdesign"
+                                      >
+                                        {index + 1}</div></td>
+                                      <td><input type="text" id="simpleinput" disabled={InputDisabled && formData?.Status != "Rework"}
+                                        value={row.description}
+                                        className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                        onChange={(e) => {
+                                          const newRowscancellReason = [...cancellReason];
+                                          newRowscancellReason[index].description = e.target.value;
+                                          setcancellReason(newRowscancellReason);
+                                        }}
+                                      />
 
-                                  </td>
-                                  <td><input type="text" id="simpleinput" disabled={InputDisabled && formData?.Status != "Rework"}
-                                    className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                    value={row.reason}
-                                    onChange={(e) => {
-                                      const newRowscancellReason = [...cancellReason];
-                                      newRowscancellReason[index].reason = e.target.value;
-                                      setcancellReason(newRowscancellReason);
-                                    }}
-                                  /></td>
-                                  {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "80px", maxWidth: "80px", textAlign: 'center' }}>
-                                    <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFile(index, cancellReason)}></img>
-                                  </td>
-                                  }
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                                      </td>
+                                      <td><input type="text" id="simpleinput" disabled={InputDisabled && formData?.Status != "Rework"}
+                                        className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                        value={row.reason}
+                                        onChange={(e) => {
+                                          const newRowscancellReason = [...cancellReason];
+                                          newRowscancellReason[index].reason = e.target.value;
+                                          setcancellReason(newRowscancellReason);
+                                        }}
+                                      /></td>
+                                      {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "80px", maxWidth: "80px", textAlign: 'center' }}>
+                                        <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFile(index, cancellReason)}></img>
+                                      </td>
+                                      }
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+
+
+                            </div>
+
+
+                          </div>
 
 
                         </div>
 
+                        {console.log("editiiiiifhifassignmentt", editID, modeValue, InputDisabled, ApprovalTypeOptions,MainEditItem)}
+                        {((modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES") ||
+                          (MainEditItem !== null && MainEditItem.length != 0 && MainEditItem.Status != "Save as draft" && modeValue !== "view" ))
+                          &&
+                          <div className="card mt-2">
+                            <div className="card-body">
+                              <div className='row'>
+                                <div className='col-sm-8'>
+                                  <h3 className="header-title text-dark font-16 mb-3 ">Forward Approval To</h3>
 
-                      </div>
+                                </div>
+                                <div className='col-sm-4'>
+                                  <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
+                                    <img style={{ width: '34px' }} src={require("../assets/plus.png")} onClick={handleAddRow} className='' />
+
+                                    {/* <i style={{ cursor: "pointer" }} onClick={handleAddRow} className="fe-plus-circle font-20 text-warning"></i> */}
+                                  </div>
+                                </div>
+
+                              </div>
+
+                              <div style={{ overflow: 'inherit' }} className="table-responsive mt-3 pt-0">
+                                <table className="mtbalenew  table-centered table-nowrap table-borderless mb-0 newtabledc" id="myTabl">
+                                  <thead >
+                                    <tr>
+                                      <th style={{ minWidth: "40px", maxWidth: "40px" }}>S.No</th>
+                                      <th style={{ borderBottomLeftRadius: "0px" }}>Role</th>
+                                      <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level</th>
+                                      <th >Approver Name</th>
+                                      <th >Approval Criteria</th>
+                                      <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody style={{ maxHeight: "8007px" }}>
+                                    {console.log("forwardToArrforwardToArrforwardToArr", forwardToArr, UserRoles, ApprovalTypeOptions)}
+                                    {forwardToArr.map((row, index) => (
+
+                                      <tr key={index}> <td style={{ minWidth: "30px", maxWidth: "30px" }}>
+                                        <div
+                                          style={{ marginLeft: "0px" }}
+                                          className="indexdesign"
+                                        >
+                                          {index + 1}</div></td>
+                                        <td className="ng-binding">
+                                          <select className="form-select" onChange={(e) => onSelectRole(e, row.level)} value={row.role}>
+                                            <option value="" selected>Select Role</option>
+                                            {UserRoles.filter((role: any) =>
+                                              !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
+                                            ).map((role: any, index: number) => (
+                                              <option key={index} value={role.value}
+                                                className={` ${(!Validforward) ? "border-on-error" : ""}`}
+                                                disabled={disabledforwardarr}
+                                              >
+                                                {role.label}</option>
+                                            ))}
+                                          </select>
+
+                                        </td>
+                                        <td style={{ minWidth: '70px', maxWidth: '70px' }}>Level {index + 1}</td>
+                                        <td >
+
+                                          <Select
+                                            options={rows1}
+                                            isMulti
+                                            value={row.approvers}
+                                            name="Approvers"
+                                            className={` ${(!Validforward) ? "border-on-error" : ""}`}
+                                            //className={`form-control ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                            // onChange={(selectedOption: any) => onSelect(selectedOption)}
+                                            onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
+                                            placeholder="Enter Approver Name"
+                                            disabled={disabledforwardarr}
+                                          />
 
 
-                    </div>
-                  }
-                  {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
-                  {console.log("editiiiiifhifassignmentt", editID, modeValue, InputDisabled, ApprovalTypeOptions)}
-                  {!Loading && modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" &&
-                    <div className="card mt-2">
-                      <div className="card-body">
-                        <div className='row'>
-                          <div className='col-sm-8'>
-                            <h3 className="header-title text-dark font-16 mb-3 ">Forward Approval To</h3>
 
-                          </div>
-                          <div className='col-sm-4'>
-                            <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
-                              <img style={{ width: '34px' }} src={require("../assets/plus.png")} onClick={handleAddRow} className='' />
+                                        </td>
+                                        <td className="ng-binding">
+                                          <select className="form-select"
+                                            onChange={(e) => onSelectApprovalType(e, row.level)}
+                                            value={row.leveltype}>
+                                            <option value="" selected>Select Type</option>
+                                            {ApprovalTypeOptions.map((x: any, index: number) => (
+                                              <option key={index} value={x.value}
+                                                className={` ${(!Validforward) ? "border-on-error" : ""}`}
+                                                disabled={disabledforwardarr}>{x.label}</option>
+                                            ))}
+                                          </select>
 
-                              {/* <i style={{ cursor: "pointer" }} onClick={handleAddRow} className="fe-plus-circle font-20 text-warning"></i> */}
+                                        </td>
+                                        <td style={{ minWidth: '70px', maxWidth: '70px' }}>
+                                          {/* <i className="fe-trash-2 text-danger"></i> */}
+                                          {editID.CurrentUserRole === "OES" ? <img src={require("../assets/del.png")} onClick={() => handleDeleteRow(index)} /> :
+                                            <img src={require("../assets/recycle-bin.png")} className='sidebariconsmall' />}
+                                          {/* <img src={require("../assets/del.png")} onClick={() => handleDeleteRow(index)} className='sidebariconsmall' /> */}
+
+                                        </td>
+                                      </tr>
+
+                                    ))}
+
+                                  </tbody>
+                                </table>
+                              </div>
+                              <div className="row mt-3">
+                                <div className="col-12 text-center">
+                                  <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardApproval("Forward")} >
+                                    <i className="fe-check-circle me-1"></i> Forward
+                                  </button>                                  {/* <a href="#"> */}
+                                  <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={() => ForwardApproval("Rework")} >
+                                    <i className="fe-corner-up-left me-1"></i> Rework
+                                  </button>
+                                  <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={() => ForwardApproval("Rejected")} >
+                                    <i className="fe-x me-1"></i> Reject
+                                  </button>
+                                  <button type="button" className="btn btn-light waves-effect waves-light m-1" onClick={handleCancel}>
+                                    <i className="fe-x me-1"></i> Cancel
+                                  </button>
+                                  {/* </a> */}
+                                </div>
+                              </div>
                             </div>
                           </div>
+                        }
+                        {console.log("editiiiiifhif", editID, modeValue, InputDisabled)}
+                        {
+                          (InputDisabled && editID != null && modeValue === "approve" && editID.ApprovalType === "Approval" && editID.Status === "Pending") ? (
+                            <WorkflowAction currentItem={editID} ctx={props.context} ContentType={CONTENTTYPE_ChangeDocument}
+                              DisableApproval={false} DisableCancel={false}
+                            />
+                          ) : (<div></div>)
+                        }
+                        {console.log("MainEditItemMainEditItem", MainEditItem)}
+                        {/* ////////////Audit History card */}
+                        {MainEditItem !== null && MainEditItem.length != 0 && MainEditItem.Status != "Save as draft" &&
+                          <WorkflowAuditHistory ContentItemId={MainEditItem} ContentType={CONTENTTYPE_ChangeDocument} ctx={props.context} />
+                        }
 
-                        </div>
+                        {console.log("ediiiiitiitiititID", editID, InputDisabled, editItemID, MainEditItem, modeValue)}
 
-                        <div style={{ overflow: 'inherit' }} className="table-responsive mt-3 pt-0">
-                          <table className="mtbalenew  table-centered table-nowrap table-borderless mb-0 newtabledc" id="myTabl">
-                            <thead >
-                              <tr>
-                                <th style={{ borderBottomLeftRadius: "0px" }}>Role</th>
-                                <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level</th>
-                                <th >Approver Name</th>
-                                <th >Level Type</th>
-                                <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
-                              </tr>
-                            </thead>
-                            <tbody style={{ maxHeight: "8007px" }}>
-                              {console.log("forwardToArrforwardToArrforwardToArr", forwardToArr, UserRoles, ApprovalTypeOptions)}
-                              {forwardToArr.map((row, index) => (
-                                <tr>
-                                  <td className="ng-binding">
-                                    <select className="form-select" onChange={(e) => onSelectRole(e, row.level)} value={row.role}>
-                                      <option value="" selected>Select Role</option>
-                                      {UserRoles.filter((role: any) =>
-                                        !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
-                                      ).map((role: any, index: number) => (
-                                        <option key={index} value={role.value} className={` ${(!Validforward) ? "border-on-error" : ""}`}>{role.label}</option>
-                                      ))}
-                                    </select>
-
-                                  </td>
-                                  <td style={{ minWidth: '70px', maxWidth: '70px' }}>Level {index + 1}</td>
-                                  <td >
-
-                                    <Select
-                                      options={rows1}
-                                      isMulti
-                                      value={row.approvers}
-                                      name="Approvers"
-                                      className={` ${(!Validforward) ? "border-on-error" : ""}`}
-                                      //className={`form-control ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                      // onChange={(selectedOption: any) => onSelect(selectedOption)}
-                                      onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
-                                      placeholder="Enter Approver Name"
-                                    />
-
-
-
-                                  </td>
-                                  <td className="ng-binding">
-                                    <select className="form-select"
-                                      onChange={(e) => onSelectApprovalType(e, row.level)}
-                                      value={row.leveltype}>
-                                      <option value="" selected>Select Type</option>
-                                      {ApprovalTypeOptions.map((x: any, index: number) => (
-                                        <option key={index} value={x.value} className={` ${(!Validforward) ? "border-on-error" : ""}`}>{x.label}</option>
-                                      ))}
-                                    </select>
-
-                                  </td>
-                                  <td style={{ minWidth: '70px', maxWidth: '70px' }}>
-                                    {/* <i className="fe-trash-2 text-danger"></i> */}
-                                    {editID.CurrentUserRole === "OES" ? <img src={require("../assets/del.png")} onClick={() => handleDeleteRow(index)} /> :
-                                      <img src={require("../assets/recycle-bin.png")} className='sidebariconsmall' />}
-                                    {/* <img src={require("../assets/del.png")} onClick={() => handleDeleteRow(index)} className='sidebariconsmall' /> */}
-
-                                  </td>
-                                </tr>
-
-                              ))}
-
-                            </tbody>
-                          </table>
-                        </div>
-
-
-
-                        <div className="row mt-3">
-                          <div className="col-12 text-center">
-                            {/* <a href="my-approval.html"> */}
-                            <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardApproval("Forward")} >
-                              <i className="fe-check-circle me-1"></i> Forward
-                            </button>
-                            {/* </a> */}
-                            {/* <a href="#"> */}
-                            <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={() => ForwardApproval("Rework")} >
-                              <i className="fe-corner-up-left me-1"></i> Rework
-                            </button>
-                            {/* </a> */}
-                            {/* <a href="#"> */}
-                            <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={() => ForwardApproval("Rejected")} >
-                              <i className="fe-x me-1"></i> Reject
-                            </button>
-                            {/* </a> */}
-                            {/* <a href="my-approval.html"> */}
-                            <button type="button" className="btn btn-light waves-effect waves-light m-1" onClick={handleCancel}>
-                              <i className="fe-x me-1"></i> Cancel
-                            </button>
-                            {/* </a> */}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  }
-                  {console.log("editiiiiifhifapprovee", editID, modeValue, InputDisabled)}
-                  {/* {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" && (
-                    <div className="card">
-                      <div className="card-body">
-                        <h4 className="header-title mb-0">Remarks</h4>
-                        <textarea
-                          className="form-control"
-                          value={remark}
-                          onChange={(e) => setRemark(e.target.value)}
-                          placeholder="Enter your remarks here..."
-                        ></textarea>
-                      </div>
-                    </div>
-                  )} */}
-
-                  {/* ////////////Approval card */}
-                  {console.log("editiiiiifhif", editID, modeValue, InputDisabled)}
-                  {
-                    //let forrework=ApprovalRequestItem && ApprovalRequestItem.IsRework=='Yes'&& ApprovalRequestItem.LevelSequence!=0;
-                    // (InputDisabled && ApprovalRequestItem) || (ApprovalRequestItem && ApprovalRequestItem.IsRework == 'Yes' && ApprovalRequestItem.LevelSequence != 0) ? (
-                    (InputDisabled && editID != null && modeValue === "approve" && editID.ApprovalType === "Approval" && editID.Status === "Pending") ? (
-                      <WorkflowAction currentItem={editID} ctx={props.context} ContentType={CONTENTTYPE_ChangeDocument}
-                        DisableApproval={false} DisableCancel={false}
-                      // DisableApproval={ApprovalRequestItem && ApprovalRequestItem.IsRework == 'Yes' && ApprovalRequestItem.LevelSequence != 0}
-                      // DisableCancel={ApprovalRequestItem && ApprovalRequestItem.IsRework == 'Yes' && ApprovalRequestItem.LevelSequence != 0}
-                      //DisableReject={ApprovalRequestItem && ApprovalRequestItem.IsRework=='Yes'&& ApprovalRequestItem.LevelSequence!=0}
-                      />
-                    ) : (<div></div>)
-                  }
-                  {console.log("MainEditItemMainEditItem", MainEditItem)}
-                  {/* ////////////Audit History card */}
-                  {!Loading && MainEditItem !== null && MainEditItem.length != 0 && MainEditItem.Status != "Save as draft" &&
-                    <WorkflowAuditHistory ContentItemId={MainEditItem} ContentType={CONTENTTYPE_ChangeDocument} ctx={props.context} />
-                  }
-                  {/* {editID !== null && editID.length != 0 && modeValue === "approve" &&
-                    <WorkflowAuditHistory ContentItemId={editID} ContentType={CONTENTTYPE_ChangeDocument} ctx={props.context} />
-                  } */}
-                  {/* ////////////Audit History card */}
-
-                  {/* ////////////Approval card */}
-
-
-                  {/* </div> */}
-                  {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
-
-                </div>
-                {console.log("ediiiiitiitiititID", editID, InputDisabled, editItemID, MainEditItem, modeValue)}
-                {!Loading &&
-                  <div className="row mt-3">
+                        {/* <div className="row mt-3">
                     <div className="col-12 text-center mt-2">
                       {/* <a href="my-approval.html">   */}
-                      {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}><i className="fe-check-circle me-1"></i> Save As Draft</button>}
+                        {/* {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}><i className="fe-check-circle me-1"></i> Save As Draft</button>}
 
                       {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}><i className="fe-check-circle me-1"></i> Submit</button>}
                       {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}><i className="fe-check-circle me-1"></i> Save As Draft</button>}
@@ -2904,73 +2817,94 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                       {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><i className="fe-check-circle me-1"></i> Submit</button>}
 
                       {/* </a> */}
-                      {/* <a href="../sites/edcspfx/SitePages/EDCMAIN.aspx">       */}
-                      <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}><i className="fe-x me-1"></i> Cancel</button>
+                        {/* <a href="../sites/edcspfx/SitePages/EDCMAIN.aspx">       */}
+                        {/* <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}><i className="fe-x me-1"></i> Cancel</button>
                       {/* </a> */}
-                    </div>
-                  </div>
-                }
-              </div>
-            </div>
+                        {/* </div>
+                  </div>  */}
+                        <div className="row mt-3">
+                          <div className="col-12 text-center">
+                            {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
+                              <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
+                              Save As Draft</button>}
 
-          </div>
-        </div>
+                            {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
+                              <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
+                              Submit</button>}
+                            {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</button>}
+                            {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</button>}
+                            {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.IsInitiator == "Yes")) &&
+                              <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
+                                className='me-1' alt="x" /> Cancel</button>
+                            }
+                            {/* </a> */}
+                          </div>
+                        </div>
+                        <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" className='newmobmodal'>
+                          <Modal.Header closeButton>
+                            <Modal.Title>
+                              <FontAwesomeIcon icon={faPaperclip} style={{ width: '27px', height: '23px' }} />
+                              Attachment Details</Modal.Title>
+                            {/* {ImagepostArr1.length > 0 && showBannerModal && <Modal.Title>Media Images</Modal.Title>} */}
+                          </Modal.Header>
+                          <Modal.Body className="" id="style-5">
+                            <>
+                              <table className="mtbalenew" >
+                                <thead>
+                                  <tr>
+                                    <th>File Name</th>
+                                    <th > File Link </th>
 
-        <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" className='newmobmodal'>
-          <Modal.Header closeButton>
-            <Modal.Title>
-              <FontAwesomeIcon icon={faPaperclip} style={{ width: '27px', height: '23px' }} />
-              Attachment Details</Modal.Title>
-            {/* {ImagepostArr1.length > 0 && showBannerModal && <Modal.Title>Media Images</Modal.Title>} */}
-          </Modal.Header>
-          <Modal.Body className="" id="style-5">
-            <>
-              <table className="mtbalenew" >
-                <thead>
-                  <tr>
-                    <th>File Name</th>
-                    <th > File Link </th>
-
-                    <th>Upload date</th>
-                    {/* {modeValue == null && */}
-                    {/* <th className='text-center'>Action</th> */}
-                    {/* } */}
-                  </tr>
-                </thead>
-                <tbody>
-                  {console.log("Attachmentarrnmnm", Attachmentarr, DocumentLink)}
-                  {/* {Attachmentarr.map((file: any, index: number) => ( */}
-                  <tr >
-                    {/* <td className='text-center'>{index + 1}</td> */}
-                    <td>{DocumentLink ? `${DocumentLink?.FileLeafRef}` : Attachmentarr && Attachmentarr[0]?.fileName}</td>
-                    <td style={{ textAlign: 'center' }}>
-                      <FontAwesomeIcon icon={faDownload} style={{ width: '35px', height: '30px' }}
-                        onClick={() => OpenFile(DocumentLink ? DocumentLink : Attachmentarr && Attachmentarr[0]?.fileUrl)} />
-                      {/* <Link
+                                    <th>Upload date</th>
+                                    {/* {modeValue == null && */}
+                                    {/* <th className='text-center'>Action</th> */}
+                                    {/* } */}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {console.log("Attachmentarrnmnm", Attachmentarr, DocumentLink)}
+                                  {/* {Attachmentarr.map((file: any, index: number) => ( */}
+                                  <tr >
+                                    {/* <td className='text-center'>{index + 1}</td> */}
+                                    <td>{DocumentLink != null ? `${DocumentLink?.FileLeafRef}` : Attachmentarr && Attachmentarr[0]?.fileName}</td>
+                                    <td style={{ textAlign: 'center' }}>
+                                      <FontAwesomeIcon icon={faDownload} style={{ width: '35px', height: '30px' }}
+                                        onClick={() => OpenFile(DocumentLink ? DocumentLink : Attachmentarr && Attachmentarr[0]?.fileUrl)} />
+                                      {/* <Link
                               href={file.fileUrl}
                               className="anchor"
                               target="_blank"
                             >
                               {file.fileUrl}
                             </Link> */}
-                    </td>
-                    <td>{DocumentLink ? moment(DocumentLink?.Created).format("DD-MMM-YYYY") : Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD-MMM-YYYY")}</td>
-                    {/* <td>{file.fileName}</td>
+                                    </td>
+                                    <td>{DocumentLink ? moment(DocumentLink?.Created).format("DD-MMM-YYYY") : Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD-MMM-YYYY")}</td>
+                                    {/* <td>{file.fileName}</td>
                           <td className='text-right'>{file.fileSize}</td> */}
-                    {/* <td className='text-center'>
+                                    {/* <td className='text-center'>
                             <img src={require("../../../CustomAsset/trashed.svg")} style={{ width: '15px' }}
                               onClick={() => deleteLocalFileAttachment(index, Attachmentarr, "Gallery")} /> </td> */}
-                  </tr>
-                  {/* ))} */}
-                </tbody>
-              </table>
-            </>
-          </Modal.Body>
-        </Modal>
-      </div>
+                                  </tr>
+                                  {/* ))} */}
+                                </tbody>
+                              </table>
+                            </>
+                          </Modal.Body>
+                        </Modal>
+                      </div>
+                    }
+                  </div>
+
+                </div>
+              </div>
+
+
+            </div>
+          </div>
+        </div >
+      </div >
     </div>
-    //   </div >
-    // </div >
+
   );
 }
 

@@ -959,6 +959,7 @@ text-align: center;
 .mtbalenew tr:nth-child(even):hover td {
   background: #ececec;
 }
+.overhi tbody{overflow-y: inherit !important;}
 .indexdesign{
   background: #ffe7d5 !important;
   border: none;

@@ -743,7 +743,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     console.log(result)
                     if (result.isConfirmed) {
                         setLoading(true);
-                        debugger
+
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
                             // Title: formData.RequesterName,
@@ -870,7 +870,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     //console.log("Form Submitted:", formValues, bannerImages, galleryImages, documents);
                     if (result.isConfirmed) {
                         setLoading(true);
-                        debugger
+
                         const postPayload = {
                             Title: formData.RequesterName,
                             RequesterNameId: formData.RequesterNameId,
@@ -972,7 +972,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     console.log(result)
                     if (result.isConfirmed) {
                         setLoading(true);
-                        debugger
+
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
                             // Title: formData.RequesterName,
@@ -1092,7 +1092,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     //console.log("Form Submitted:", formValues, bannerImages, galleryImages, documents);
                     if (result.isConfirmed) {
                         setLoading(true);
-                        debugger
+
 
                         const postPayload = {
                             Title: formData.RequesterName,
@@ -1353,10 +1353,10 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
         }
         else {
-            let isValid = true;
+            let isValid =true;
 
             if (forwardToArr.length) {
-                isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
+                 isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
                     row.approvalType.trim() !== "");
 
                 // if (!isValid) {
@@ -1403,7 +1403,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         const postResult = await updateApprovalItem(arr, sp, editID.Id);
                         const postId = postResult?.data?.ID;
 
-                        if (isValid) {
+                         if (isValid) {
                             for (const item of forwardToArr) {
 
                                 const approversIds: any[] = [];
@@ -1412,11 +1412,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                         approversIds.push(user.value);
                                     }
                                 });
-
+    
                                 let arr2 = {
                                     Title: currentUser.Title,
                                     ContentTitle: selectedOption.ReferenceNumber,
-
+    
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role,
                                     Level: Number(item.level),
@@ -1437,25 +1437,25 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                     ApprovalType: "Approval",
                                     IsApprovalGenerated: "No"
                                     // RedirectionLink:,
-
-
-
+    
+    
+    
                                 }
                                 if (item.id) {
                                     const postResult2 = await UpdateAllProcessItem(arr2, sp, item.id);
                                     const postId2 = postResult2?.data?.ID;
-
+    
                                 }
                                 else {
                                     const postResult2 = await addAllProcessItem(arr2, sp);
                                     const postId2 = postResult2?.data?.ID;
                                 }
-
+    
                             }
+                
+                         }
 
-                        }
-
-
+                        
 
                         let arr2 = {
                             // ActionTakenById: currentUser.Id,
@@ -1820,7 +1820,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                         {Loading ?
 
-                                            <div style={{ minHeight: '100vh', marginTop: '100px' }} className="loadernewadd mt-10">
+                                            <div style={{ minHeight: '100vh', marginTop: '180px' }} className="loadernewadd mt-10">
                                                 <div>
                                                     <img
                                                         src={require("../../assets/edc-gif.gif")}
@@ -1997,7 +1997,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
 
-                                                <div className="card mt-2">
+                                                <div className="card mt-3">
                                                     <div className="card-body">
                                                         <div className='row'>
                                                             <div className='col-sm-8'>
@@ -2100,7 +2100,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                 {/* {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" && */}
                                                 {modeValue === "approve" && editID != null && editID.Status === "Pending" && editID.CurrentUserRole !== "Initiator" &&
 
-                                                    <div className="card">
+                                                    <div className="card mt-3">
                                                         <div className="card-body">
                                                             <div className='row'>
                                                                 <div className='col-sm-8'>
@@ -2119,27 +2119,27 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                             </div>
 
                                                             <div style={{ overflow: 'inherit' }} className="table-responsive mt-3 pt-0">
-                                                                <table className="mtbalenew  table-centered table-nowrap table-borderless mb-0 newtabledc" id="myTabl">
+                                                                <table  style={{ overflow: 'inherit' }} className="mtbalenew  table-centered table-nowrap table-borderless mb-0 overhi" id="myTabl">
                                                                     <thead >
                                                                         <tr>
                                                                             <th style={{ minWidth: "35px", maxWidth: "35px" }}>S.No</th>
-                                                                            <th style={{ borderBottomLeftRadius: "0px" }}>Role</th>
+                                                                            <th style={{ borderBottomLeftRadius: "0px",minWidth: '80px', maxWidth: '80px', }}>Role</th>
                                                                             <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level</th>
-                                                                            <th style={{ minWidth: '70px', maxWidth: '70px' }}>Approver name</th>
-                                                                            <th >Level type</th>
+                                                                            <th>Approver name</th>
+                                                                            <th  style={{ minWidth: '70px', maxWidth: '70px' }} >Level type</th>
                                                                             <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
                                                                         </tr>
                                                                     </thead>
-                                                                    <tbody style={{ maxHeight: "8007px" }}>
+                                                                    <tbody style={{ maxHeight: "8007px", overflow: 'inherit' }}>
                                                                         {forwardToArr.map((row, index) => (
                                                                             <tr>
-                                                                                <td style={{ minWidth: "30px", maxWidth: "30px" }}> <div
+                                                                                <td style={{ minWidth: "35px", maxWidth: "35px", overflow: 'inherit' }}> <div
                                                                                     style={{ marginLeft: "5px" }}
                                                                                     className="indexdesign"
                                                                                 >
                                                                                     {index + 1}</div>
                                                                                 </td>
-                                                                                <td className="ng-binding">
+                                                                                <td style={{ overflow: 'inherit',minWidth: '80px', maxWidth: '80px',}} className="ng-binding">
                                                                                     <select
                                                                                         // className="form-select"
                                                                                         className={`form-select newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
@@ -2158,8 +2158,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                     </select>
 
                                                                                 </td>
-                                                                                <td style={{ minWidth: '70px', maxWidth: '70px' }}>Level {index + 1}</td>
-                                                                                <td >
+                                                                                <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>Level {index + 1}</td>
+                                                                                <td style={{ overflow: 'inherit'}}>
 
                                                                                     <Select
                                                                                         options={rows1}
@@ -2176,14 +2176,14 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
                                                                                 </td>
-                                                                                <td style={{ minWidth: '50px', maxWidth: '50px' }}>
+                                                                                <td style={{overflow: 'inherit',minWidth: '70px', maxWidth: '70px', }}>
                                                                                     {/* <label htmlFor="approvalType">Approval Type: </label> */}
-                                                                                    <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className="newse" disabled={editID.CurrentUserRole !== "OES"} >
+                                                                                    <select id="approvalType"  value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className="newse form-select" disabled={editID.CurrentUserRole !== "OES"} >
                                                                                         <option value="One">One</option>
                                                                                         <option value="All">All</option>
                                                                                     </select>
                                                                                 </td>
-                                                                                <td style={{ minWidth: '70px', maxWidth: '70px' }}>
+                                                                                <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>
                                                                                     {/* <i className="fe-trash-2 text-danger"></i> */}
                                                                                     {/* {editID.CurrentUserRole === "OES"? <img src={require("../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} />:
                                                                                 <img src={require("../assets/recycle-bin.png")}  className='sidebariconsmall' />} */}
@@ -2317,9 +2317,12 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                 <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
                                                     <Modal.Header closeButton>
-                                                        <Modal.Title> Attachment Details</Modal.Title><br></br>
-                                                        <p>Below are the attachment details for document cancellation
+                                                        <Modal.Title> Attachment Details <br></br> 
+                                                        <p className='text-muted font-14 fw-400'>Below are the attachment details for document cancellation
                                                         </p>
+                                                        
+                                                        </Modal.Title>
+                                                      
 
                                                     </Modal.Header>
                                                     <Modal.Body className="" id="style-5">
@@ -2341,10 +2344,10 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 <tr>
                                                                                     <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
                                                                                     <td>{DocumentLink?.FileLeafRef}</td>
-                                                                                    <td >
+                                                                                    <td style={{textAlign:'center'}} >
                                                                                         {/* <span onClick={() => OpenFile(DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                                                                         <FontAwesomeIcon icon={faDownload} /></span> */}
-                                                                                        <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span> </td>
+                                                                                         <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span> </td>
                                                                                     <td>{DocumentLink.Created
                                                                                         ? new Intl.DateTimeFormat('en-GB', {
                                                                                             day: '2-digit',
