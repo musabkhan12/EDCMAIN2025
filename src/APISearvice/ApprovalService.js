@@ -486,7 +486,7 @@ export const updateItemApproval2 = async (itemData, _sp, id) => {
   let resultArr = []
   try {
     const newItem = await _sp.web.lists.getByTitle('ProcessApprovalList').items.getById(id).update(itemData);
-    Swal.fire('Item update successfully', '', 'success');
+    // Swal.fire('Item update successfully', '', 'success');
     resultArr = newItem
     // Perform any necessary actions after successful addition
   } catch (error) {

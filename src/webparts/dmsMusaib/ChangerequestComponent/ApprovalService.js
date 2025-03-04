@@ -469,7 +469,7 @@ export const updateItemApproval = async (itemData, _sp, id) => {
   let resultArr = []
   try {
     const newItem = await _sp.web.lists.getByTitle('ARGMyRequest').items.getById(id).update(itemData);
-    // Swal.fire('Item update successfully', '', 'success');
+    Swal.fire('Item update successfully', '', 'success');
     resultArr = newItem
     // Perform any necessary actions after successful addition
   } catch (error) {
@@ -552,7 +552,7 @@ export const getAllDMSTasks = async (sp, itemStatus) => {
 
   await sp.web.lists.getByTitle("ProcessApprovalList").items.select("*,AssignedTo/Id,AssignedTo/Title,RequesterName/Id,RequesterName/Title").expand("RequesterName,AssignedTo")
 
-    .filter(`Status eq 'Pending' and AssignedToId eq ${currentUser.Id} and ApprovalType eq 'Assignment'`)
+    .filter(`(Status eq 'Pending' or Status eq 'Save as draft') and AssignedToId eq ${currentUser.Id} and ApprovalType eq 'Assignment'`)
 
     .orderBy("Created", false)
 
@@ -582,17 +582,20 @@ export const getAllDMSApprovals = async (sp, itemStatus, actingfor) => {
     .getAll().then((res) => {
       let arrnew = [];
       arr = res
-      let siteurl ="https://officeindia.sharepoint.com/sites/edcspfx/SitePages/ChangeRequest.aspx";
+      let siteurl =`https://officeindia.sharepoint.com/sites/edcspfx/SitePages/ChangeRequest.aspx`;
+      console.log("resresresresr", res,siteurl)
       for (let i = 0; i < res.length; i++) {
         arrnew.push({
-          RequestNo: res[i].RequestId,
+          ListItemId:res[i].ListItemId,
+          Id:res[i].Id,
+          RequestId: res[i].RequestId,
           FileName: res[i].Title,
           ProcessName: res[i].ProcessName,
           RequestedBy: res[i].InitiatorName?.Title,
           Created: res[i].Created,
           Status: res[i].Status,
           IsDocChange:"CRDC",
-          RedirectionLink: siteurl +"/"+ res[i].Status == "Rework" ? "edit" : "approve" + "/" + res[i].ApprovalLevelListItemIdId + "/" + res[i].ID
+          RedirectionLink: siteurl + "/" + res[i].Status == "Rework" ? "edit" : "approve" + "/" + res[i].ListItemId + "/" + res[i].ID
         })
       }
       console.log(arr, 'arr arrnew', arrnew);

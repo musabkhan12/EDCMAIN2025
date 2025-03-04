@@ -40,12 +40,13 @@ import { WorkflowAction } from '../../../../CustomJSComponents/WorkflowAction/Wo
 import { WorkflowAuditHistory } from '../../../../CustomJSComponents/WorkflowAuditHistory/WorkflowAuditHistory';
 // import { WorkflowAuditHistory } from '../../ChangerequestComponent/WorkflowAuditHistory/WorkflowAuditHistory';
 // import { CONTENTTYPE_DocumentCancel, LIST_TITLE_DocCancel, Tenant_URL } from '../../../Shared/Constants';
-import { CONTENTTYPE_DocumentCancel, LIST_TITLE_DocCancel, Tenant_URL } from '../../../../Shared/Constants';
+import { CONTENTTYPE_DocumentCancel, LIST_TITLE_DocCancel, SITE_URL, Tenant_URL } from '../../../../Shared/Constants';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
+import CustomBreadcrumb from '../../ChangerequestComponent/CustomBreadcrumb/CustomBreadcrumb';
 let myloader = '../../'
 interface ForwardTo {
     id: number;
@@ -61,17 +62,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     const siteUrl = props.siteUrl;
     const { useHide }: any = React.useContext(UserContext);
     const [InputDisabled, setInputDisabled] = React.useState(false);
-    const Breadcrumb = [
-        {
-            MainComponent: "Home",
-            MainComponentURl: `${siteUrl}/SitePages/Dashboard.aspx`,
-        },
-        {
-            ChildComponent: "Document Cancellation",
-            ChildComponentURl: `${siteUrl}/SitePages/DocumentCancellation.aspx`,
-        },
-    ];
+
     const [Loading, setLoading] = React.useState(false);
+    const [FormLoading, setFormLoading] = React.useState(false);
     const [FormItemId, setFormItemId] = React.useState(null);
     const [editID, setEditID] = React.useState(null);
     const [editItemID, setEditItemID] = React.useState(null);
@@ -146,6 +139,17 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
         { id: 0, role: 0, level: 1, approvers: [], approvalType: "One" } // Default row
     ]);
+
+    const Breadcrumb = [
+        {
+            MainComponent: "My Request",
+            MainComponentURl: `${SITE_URL}/SitePages/EDCMAIN.aspx`,
+        },
+        {
+            ChildComponent: "Document Cancellation",
+            ChildComponentURl: `${SITE_URL}/SitePages/EDCMAIN.aspx#/Document%20Cancellation`,
+        },
+    ];
     const [forwardToArrEdit, setForwardToArrEdit] = React.useState<ForwardTo[]>([]);
     const [selectedUsers, setSelectedUsers] = React.useState<any[]>([]);
     // const [remark, setRemark] = React.useState("");
@@ -156,17 +160,23 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     };
 
     const ApiCallFunc = async () => {
+
         setRequestTypeId(await getRequestTypeID(sp));
         var ReqId = await getRequestTypeID(sp)
 
         const path1 = window.location.href;
 
         if (path1.includes("/view/") || path1.includes("/approve/")) {
+            setFormLoading(true); ////
             setInputDisabled(true);
         }
         else {
             setInputDisabled(false);
         }
+        if (path1.includes("/edit/")) {
+            setFormLoading(true); ////
+        }
+
 
         const Currusers: any = await getCurrentUser(sp, siteUrl);
         setCurrentUser(await getCurrentUser(sp, siteUrl));
@@ -292,6 +302,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         }
         // formitemid =20;
         if (formitemid) {
+
             setEditItemID(Number(formitemid));
 
             const setBannerById = await getItemByID(sp, Number(formitemid))
@@ -465,6 +476,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
         }
+        setFormLoading(false);
+
         //}
         //#endregion
 
@@ -578,14 +591,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         setTimeout(() => {
             location.reload();
         }, 100);
-        // debugger
-        // if(pageValue == "MyRequest"){
-        //   window.location.href = `${siteUrl}/SitePages/MyRequests.aspx`;
-        // }else if(pageValue == "MyApproval"){
-        //   window.location.href = `${siteUrl}/SitePages/MyApprovals.aspx`;
-        // }else{
-        //   window.location.href = `${siteUrl}/SitePages/announcementmaster.aspx`;
-        // }
+
     }
 
     //#region deleteLocalFile
@@ -604,7 +610,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
         if (sts == "Open") {
             if (fileUrl.endsWith(".docx") || fileUrl.endsWith(".xlsx") || fileUrl.endsWith(".pptx")) {
-                window.open(`${siteUrl}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=default`, "_blank");
+                window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=default`, "_blank");
             } else {
                 window.open(fileUrl, "_blank"); // Open PDF and other files normally
             }
@@ -646,10 +652,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             if (!RequesterName) {
                 //Swal.fire('Error', 'Title is required!', 'error');
                 valid = false;
-            } else if (!RequesterDesignation) {
-                //Swal.fire('Error', 'Type is required!', 'error');
-                valid = false;
             }
+            // else if (!RequesterDesignation) {
+            //     //Swal.fire('Error', 'Type is required!', 'error');
+            //     valid = false;
+            // }
             //   else if (!RequestDate) {
             //     //Swal.fire('Error', 'Category is required!', 'error');
             //     valid = false;
@@ -687,10 +694,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             if (!RequesterName) {
                 //Swal.fire('Error', 'Title is required!', 'error');
                 valid = false;
-            } else if (!RequesterDesignation) {
-                //Swal.fire('Error', 'Type is required!', 'error');
-                valid = false;
             }
+            // else if (!RequesterDesignation) {
+            //     //Swal.fire('Error', 'Type is required!', 'error');
+            //     valid = false;
+            // }
             else if (selectedOption == null || !selectedOption.value) {
                 //Swal.fire('Error', 'Entity is required!', 'error');
                 valid = false;
@@ -712,12 +720,12 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         //     Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
         // }
         else if (!valid1 && fmode == FormSubmissionMode.SUBMIT)
-            Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
+            Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields in description section.');
         else if (!valid && fmode == FormSubmissionMode.DRAFT) {
             Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
         }
         else if (!valid1 && fmode == FormSubmissionMode.DRAFT) {
-            Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
+            Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields in description section..');
         }
         if (valid == false || valid1 == false) {
             return false
@@ -862,7 +870,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     title: 'Do you want to submit this request?',
                     showConfirmButton: true,
                     showCancelButton: true,
-                    confirmButtonText: "yes",
+                    confirmButtonText: "Yes",
                     cancelButtonText: "No",
                     icon: 'warning'
                 }
@@ -1353,10 +1361,10 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
         }
         else {
-            let isValid =true;
+            let isValid = true;
 
             if (forwardToArr.length) {
-                 isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
+                isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
                     row.approvalType.trim() !== "");
 
                 // if (!isValid) {
@@ -1403,7 +1411,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         const postResult = await updateApprovalItem(arr, sp, editID.Id);
                         const postId = postResult?.data?.ID;
 
-                         if (isValid) {
+                        if (isValid) {
                             for (const item of forwardToArr) {
 
                                 const approversIds: any[] = [];
@@ -1412,11 +1420,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                         approversIds.push(user.value);
                                     }
                                 });
-    
+
                                 let arr2 = {
                                     Title: currentUser.Title,
                                     ContentTitle: selectedOption.ReferenceNumber,
-    
+
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role,
                                     Level: Number(item.level),
@@ -1437,25 +1445,25 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                     ApprovalType: "Approval",
                                     IsApprovalGenerated: "No"
                                     // RedirectionLink:,
-    
-    
-    
+
+
+
                                 }
                                 if (item.id) {
                                     const postResult2 = await UpdateAllProcessItem(arr2, sp, item.id);
                                     const postId2 = postResult2?.data?.ID;
-    
+
                                 }
                                 else {
                                     const postResult2 = await addAllProcessItem(arr2, sp);
                                     const postId2 = postResult2?.data?.ID;
                                 }
-    
-                            }
-                
-                         }
 
-                        
+                            }
+
+                        }
+
+
 
                         let arr2 = {
                             // ActionTakenById: currentUser.Id,
@@ -1494,6 +1502,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         setTimeout(() => {
                             // window.location.href = `${siteUrl}/SitePages/MyTasks.aspx`;
                             window.history.back();
+                            setTimeout(() => {
+                                location.reload();
+                            }, 100);
                         }, 1000);
                         // }
                     }
@@ -1804,9 +1815,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 <div>
                     <div className="">
                         <div className="row">
-                            {/* <div className="col-lg-4">
+                            <div className="col-lg-4">
                                 <CustomBreadcrumb Breadcrumb={Breadcrumb} />
-                            </div> */}
+                            </div>
 
                         </div>
                         <div className="row mt-0">
@@ -1820,7 +1831,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                         {Loading ?
 
-                                            <div style={{ minHeight: '100vh', marginTop: '180px' }} className="loadernewadd mt-10">
+                                            <div style={{ minHeight: '100vh', marginTop: '200px' }} className="loadernewadd mt-10">
                                                 <div>
                                                     <img
                                                         src={require("../../assets/edc-gif.gif")}
@@ -1845,94 +1856,94 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                     <div className="card-body">
 
                                                         <h3 className="text-dark font-16 mb-3">Requested By</h3>
-                                                        {/*                                                    
-                                                    {Loading ?
-                                                       
-                                                        <div style={{ minHeight: '100vh', marginTop: '100px' }} className="loadernewadd mt-10">
-                                                            <div>
-                                                                <img
-                                                                    src={require("../../assets/edc-gif.gif")}
-                                                                    className="alignrightl"
-                                                                    alt="Loading..."
-                                                                />
-                                                            </div>
-                                                            <span>Loading </span>{" "}
-                                                            <span>
-                                                                <img
-                                                                    src={require("../../assets/edcnew.gif")}
-                                                                    className="alignrightl"
-                                                                    alt="Loading..."
-                                                                />
-                                                            </span>
-                                                        </div>
-                                                        : */}
-                                                        <div className="row">
-                                                            <div className="col-lg-4">
 
+                                                        {FormLoading ?
 
-                                                                <div className="mb-3">
-                                                                    <label htmlFor="RequesterName" className="form-label">Name:</label>
-                                                                    <input type="text" id="Name" name="RequesterName" className="form-control" value={formData.RequesterName} disabled={true} />
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-lg-4">
-
-
-                                                                <div className="mb-3">
-                                                                    <label htmlFor="RequesterDesignation" className="form-label">Designation:</label>
-                                                                    <input type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" value={formData.RequesterDesignation} disabled={true} />
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-lg-4">
-
-                                                                <div className="mb-3">
-                                                                    <label htmlFor="RequestDate" className="form-label">Request Date:</label>
-                                                                    <input type="text" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDateNew} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={true} />
-
-                                                                    {/* <input type="date" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDate} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} /> */}
-                                                                </div>
-                                                            </div>
-
-
-                                                            <div className="col-lg-4">
-
-                                                                <div className="mb-3">
-                                                                    <label htmlFor="DocumentCode" className="form-label">Document Code <span className="text-danger1">*</span></label>
-                                                                    {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                                                    <Select
-                                                                        options={rows}
-                                                                        value={selectedOption}
-                                                                        name="DocumentCode"
-                                                                        className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                                                        onChange={(selectedOption: any) => onSelect(selectedOption)}
-                                                                        placeholder="Search Document Code" isDisabled={InputDisabled}
+                                                            <div style={{ minHeight: '15vh', marginTop: '100px' }} className="loadernewadd mt-10">
+                                                                <div>
+                                                                    <img
+                                                                        src={require("../../assets/edc-gif.gif")}
+                                                                        className="alignrightl"
+                                                                        alt="Loading..."
                                                                     />
                                                                 </div>
+                                                                <span>Loading </span>{" "}
+                                                                <span>
+                                                                    <img
+                                                                        src={require("../../assets/edcnew.gif")}
+                                                                        className="alignrightl"
+                                                                        alt="Loading..."
+                                                                    />
+                                                                </span>
                                                             </div>
-                                                            <div className="col-lg-4">
+                                                            :
+                                                            <div className="row">
+                                                                <div className="col-lg-4">
 
-                                                                <div className="mb-3">
-                                                                    <label htmlFor="example-email" className="form-label">Issue No:</label>
-                                                                    <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.IssueNumber} />
+
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="RequesterName" className="form-label">Name</label>
+                                                                        <input type="text" id="Name" name="RequesterName" className="form-control" value={formData.RequesterName} disabled={true} />
+                                                                    </div>
                                                                 </div>
-                                                            </div>
+                                                                <div className="col-lg-4">
 
-                                                            <div className="col-lg-4">
 
-                                                                <div className="mb-3">
-                                                                    <label htmlFor="example-email" className="form-label">Revision No:</label>
-                                                                    <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.RevisionNumber} />
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="RequesterDesignation" className="form-label">Designation</label>
+                                                                        <input type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" value={formData.RequesterDesignation} disabled={true} />
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                            <div className="col-lg-4">
+                                                                <div className="col-lg-4">
 
-                                                                <div className="mb-3">
-                                                                    <label htmlFor="example-email" className="form-label">Reference No:</label>
-                                                                    <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.ReferenceNumber} />
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="RequestDate" className="form-label">Request Date</label>
+                                                                        <input type="text" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDateNew} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={true} />
+
+                                                                        {/* <input type="date" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDate} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} /> */}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
 
-                                                            {/* <div className="col-lg-8">
+
+                                                                <div className="col-lg-4">
+
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="DocumentCode" className="form-label">Document Code <span className="text-danger1">*</span></label>
+                                                                        {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                                                                        <Select
+                                                                            options={rows}
+                                                                            value={selectedOption}
+                                                                            name="DocumentCode"
+                                                                            className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                            onChange={(selectedOption: any) => onSelect(selectedOption)}
+                                                                            placeholder="Search Document Code" isDisabled={InputDisabled}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="col-lg-4">
+
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="example-email" className="form-label">Issue No</label>
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.IssueNumber} />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="col-lg-4">
+
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="example-email" className="form-label">Revision No</label>
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.RevisionNumber} />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="col-lg-4">
+
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="example-email" className="form-label">Reference No</label>
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.ReferenceNumber} />
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* <div className="col-lg-8">
 
                                                             <div className="mb-3">
                                                                 <label htmlFor="example-email" className="form-label">Document Link:</label>
@@ -1944,49 +1955,49 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                 </div>
                                                             </div> */}
 
-                                                            <div className="col-lg-4">
-                                                                <div className="mb-3">
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
 
-                                                                    <div className='d-flex justify-content-between'>
-                                                                        <div>
-                                                                            <label htmlFor="bannerImage" className="form-label">
-                                                                                Documents Attached
-                                                                            </label>
-                                                                        </div>
-                                                                        <div>
+                                                                        <div className='d-flex justify-content-between'>
                                                                             <div>
-                                                                                {DocumentLink != null ?
-                                                                                    (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
-                                                                                        <FontAwesomeIcon icon={faPaperclip} />1 file Attached
-                                                                                    </a>) : ""
+                                                                                <label htmlFor="bannerImage" className="form-label">
+                                                                                    Documents Attached
+                                                                                </label>
+                                                                            </div>
+                                                                            <div>
+                                                                                <div>
+                                                                                    {DocumentLink != null ?
+                                                                                        (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
+                                                                                            <FontAwesomeIcon icon={faPaperclip} />1 file Attached
+                                                                                        </a>) : ""
 
-                                                                                }
+                                                                                    }
+                                                                                </div>
                                                                             </div>
                                                                         </div>
+                                                                        <input
+                                                                            type="file"
+
+                                                                            id="bannerImage"
+                                                                            name="bannerImage"
+                                                                            accept=".jpeg,.jpg,.png,.gif"
+                                                                            // className={`form-control  ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                            className="form-control inputcss"
+                                                                            // onChange={(e) => onFileChange(e, "bannerimg", "Document")}
+                                                                            // disabled={ApprovalMode}
+                                                                            disabled={true}
+
+                                                                        />
                                                                     </div>
-                                                                    <input
-                                                                        type="file"
-
-                                                                        id="bannerImage"
-                                                                        name="bannerImage"
-                                                                        accept=".jpeg,.jpg,.png,.gif"
-                                                                        // className={`form-control  ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                                                        className="form-control inputcss"
-                                                                        // onChange={(e) => onFileChange(e, "bannerimg", "Document")}
-                                                                        // disabled={ApprovalMode}
-                                                                        disabled={true}
-
-                                                                    />
                                                                 </div>
+
+
+
+
+
+
                                                             </div>
-
-
-
-
-
-
-                                                        </div>
-                                                        {/* } */}
+                                                        }
                                                     </div>
 
 
@@ -2032,59 +2043,62 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                     </tr>
 
                                                                 </thead>
-                                                                <tbody >
-                                                                    {cancellReason.map((row, index) => (
-                                                                        <tr key={index}>
-                                                                            <td style={{ minWidth: "30px", maxWidth: "30px" }}>
-                                                                                <div
-                                                                                    style={{ marginLeft: "5px" }}
-                                                                                    className="indexdesign"
-                                                                                >
-                                                                                    {index + 1}</div></td>
-                                                                            <td>
-                                                                                <textarea id="simpleinput" disabled={InputDisabled}
-                                                                                    // className="form-control"                                                                      
-                                                                                    className={`newse mb-0 ${(!ValidCancelReason) ? "border-on-error" : ""}`}
 
-                                                                                    value={row.description}
-                                                                                    onChange={(e) => {
-                                                                                        const newRowscancellReason = [...cancellReason];
-                                                                                        newRowscancellReason[index].description = e.target.value;
-                                                                                        setcancellReason(newRowscancellReason);
-                                                                                    }}>
+                                                                     <tbody >
+                                                                        {cancellReason.map((row, index) => (
+                                                                            <tr key={index}>
+                                                                                <td style={{ minWidth: "30px", maxWidth: "30px" }}>
+                                                                                    <div
+                                                                                        style={{ marginLeft: "5px" }}
+                                                                                        className="indexdesign"
+                                                                                    >
+                                                                                        {index + 1}</div></td>
+                                                                                <td>
+                                                                                    <textarea id="simpleinput" disabled={InputDisabled}
+                                                                                        // className="form-control"                                                                      
+                                                                                        className={`newse mb-0 ${(!ValidCancelReason) ? "border-on-error" : ""}`}
 
-                                                                                </textarea>
-                                                                                {/* <input type="text"
+                                                                                        value={row.description}
+                                                                                        onChange={(e) => {
+                                                                                            const newRowscancellReason = [...cancellReason];
+                                                                                            newRowscancellReason[index].description = e.target.value;
+                                                                                            setcancellReason(newRowscancellReason);
+                                                                                        }}>
+
+                                                                                    </textarea>
+                                                                                    {/* <input type="text"
                                                                         /> */}
 
-                                                                            </td>
-                                                                            <td>
-                                                                                <textarea id="simpleinput" disabled={InputDisabled}
-                                                                                    //  className="form-control"
-                                                                                    className={`newse mb-0 ${(!ValidCancelReason) ? "border-on-error" : ""}`}
+                                                                                </td>
+                                                                                <td>
+                                                                                    <textarea id="simpleinput" disabled={InputDisabled}
+                                                                                        //  className="form-control"
+                                                                                        className={`newse mb-0 ${(!ValidCancelReason) ? "border-on-error" : ""}`}
 
-                                                                                    value={row.reason}
-                                                                                    onChange={(e) => {
-                                                                                        const newRowscancellReason = [...cancellReason];
-                                                                                        newRowscancellReason[index].reason = e.target.value;
-                                                                                        setcancellReason(newRowscancellReason);
-                                                                                    }}>
+                                                                                        value={row.reason}
+                                                                                        onChange={(e) => {
+                                                                                            const newRowscancellReason = [...cancellReason];
+                                                                                            newRowscancellReason[index].reason = e.target.value;
+                                                                                            setcancellReason(newRowscancellReason);
+                                                                                        }}>
 
-                                                                                </textarea>
+                                                                                    </textarea>
 
-                                                                                {/* <input type="text"
+                                                                                    {/* <input type="text"
                                                                         /> */}
-                                                                            </td>
-                                                                            {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "80px", maxWidth: "80px", textAlign: 'center' }}>
-                                                                                {/* <img src={require("../../../CustomAsset/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img> */}
-                                                                                <img src={require("../../assets/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img>
+                                                                                </td>
+                                                                                {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "80px", maxWidth: "80px", textAlign: 'center' }}>
+                                                                                    {/* <img src={require("../../../CustomAsset/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img> */}
+                                                                                    <img src={require("../../assets/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img>
 
-                                                                                {/* <img src={require("../../../CustomAsset/del.png")} className='sidebariconsmall' style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img> */}
-                                                                            </td>
-                                                                            }
-                                                                        </tr>
-                                                                    ))}
-                                                                </tbody>
+                                                                                    {/* <img src={require("../../../CustomAsset/del.png")} className='sidebariconsmall' style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img> */}
+                                                                                </td>
+                                                                                }
+                                                                            </tr>
+                                                                        ))}
+                                                                    </tbody>
+                                                                 
+                                                              
                                                             </table>
 
 
@@ -2100,7 +2114,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                 {/* {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" && */}
                                                 {modeValue === "approve" && editID != null && editID.Status === "Pending" && editID.CurrentUserRole !== "Initiator" &&
 
-                                                    <div className="card mt-3">
+                                                    <div className="card mt-3" style={{marginBottom: '17px'}}>
                                                         <div className="card-body">
                                                             <div className='row'>
                                                                 <div className='col-sm-8'>
@@ -2119,14 +2133,14 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                             </div>
 
                                                             <div style={{ overflow: 'inherit' }} className="table-responsive mt-3 pt-0">
-                                                                <table  style={{ overflow: 'inherit' }} className="mtbalenew  table-centered table-nowrap table-borderless mb-0 overhi" id="myTabl">
+                                                                <table style={{ overflow: 'inherit' }} className="mtbalenew  table-centered table-nowrap table-borderless mb-0 overhi" id="myTabl">
                                                                     <thead >
                                                                         <tr>
                                                                             <th style={{ minWidth: "35px", maxWidth: "35px" }}>S.No</th>
-                                                                            <th style={{ borderBottomLeftRadius: "0px",minWidth: '80px', maxWidth: '80px', }}>Role</th>
+                                                                            <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Role</th>
                                                                             <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level</th>
                                                                             <th>Approver name</th>
-                                                                            <th  style={{ minWidth: '70px', maxWidth: '70px' }} >Level type</th>
+                                                                            <th style={{ minWidth: '70px', maxWidth: '70px' }} >Approval criteria</th>
                                                                             <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
                                                                         </tr>
                                                                     </thead>
@@ -2139,7 +2153,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 >
                                                                                     {index + 1}</div>
                                                                                 </td>
-                                                                                <td style={{ overflow: 'inherit',minWidth: '80px', maxWidth: '80px',}} className="ng-binding">
+                                                                                <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding">
                                                                                     <select
                                                                                         // className="form-select"
                                                                                         className={`form-select newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
@@ -2159,7 +2173,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                                 </td>
                                                                                 <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>Level {index + 1}</td>
-                                                                                <td style={{ overflow: 'inherit'}}>
+                                                                                <td style={{ overflow: 'inherit' }}>
 
                                                                                     <Select
                                                                                         options={rows1}
@@ -2176,11 +2190,12 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
                                                                                 </td>
-                                                                                <td style={{overflow: 'inherit',minWidth: '70px', maxWidth: '70px', }}>
+                                                                                <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
                                                                                     {/* <label htmlFor="approvalType">Approval Type: </label> */}
-                                                                                    <select id="approvalType"  value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className="newse form-select" disabled={editID.CurrentUserRole !== "OES"} >
-                                                                                        <option value="One">One</option>
-                                                                                        <option value="All">All</option>
+                                                                                    <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={editID.CurrentUserRole !== "OES"} >
+                                                                                        <option value="">Select</option>
+                                                                                        <option value="One">Anyone</option>
+                                                                                        <option value="All">Everyone</option>
                                                                                     </select>
                                                                                 </td>
                                                                                 <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>
@@ -2317,12 +2332,12 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                 <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
                                                     <Modal.Header closeButton>
-                                                        <Modal.Title> Attachment Details <br></br> 
-                                                        <p className='text-muted font-14 fw-400'>Below are the attachment details for document cancellation
-                                                        </p>
-                                                        
+                                                        <Modal.Title> Attachment Details <br></br>
+                                                            <p className='text-muted font-14 fw-400'>Below are the attachment details for document cancellation
+                                                            </p>
+
                                                         </Modal.Title>
-                                                      
+
 
                                                     </Modal.Header>
                                                     <Modal.Body className="" id="style-5">
@@ -2343,11 +2358,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                             {DocumentLink != null && (
                                                                                 <tr>
                                                                                     <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
-                                                                                    <td>{DocumentLink?.FileLeafRef}</td>
-                                                                                    <td style={{textAlign:'center'}} >
+                                                                                    <td title={DocumentLink?.FileLeafRef}>{DocumentLink?.FileLeafRef}</td>
+                                                                                    <td style={{ textAlign: 'center' }} >
                                                                                         {/* <span onClick={() => OpenFile(DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                                                                         <FontAwesomeIcon icon={faDownload} /></span> */}
-                                                                                         <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span> </td>
+                                                                                        <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span> </td>
                                                                                     <td>{DocumentLink.Created
                                                                                         ? new Intl.DateTimeFormat('en-GB', {
                                                                                             day: '2-digit',

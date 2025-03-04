@@ -9,7 +9,8 @@ export const CONTENTTYPE_DocumentCancel ="Document Cancellation";
 export const LIST_TITLE_DocCancel="ChangeRequestDocumentCancellationList";
 
 export const Tenant_URL ="https://officeindia.sharepoint.com"
-
+export const SITE_URL ="https://officeindia.sharepoint.com/sites/edcspfx"
+ 
 // Content Types
 export const CONTENTTYPE_Event="Event";
 export const CONTENTTYPE_Announcement="Announcement";

@@ -101,7 +101,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
           .select("*,Requester/Id,Requester/Title,Approver/Id,Approver/Title")
           .expand("Approver,Requester")
           .filter('ContentId eq ' + props.ContentItemId + "and ProcessName eq '" + props.ContentType + "'")
-          .orderBy('Created',false)().then(datarows => {
+          .orderBy('Created', false)().then(datarows => {
 
             if (datarows.length == 0) {
 
@@ -137,7 +137,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
             // "ListItemId eq " + props.ContentItemId.ListItemId +
             " and ProcessName eq '" + props.ContentType + "'"
           )
-          .orderBy('Created',false)().then(datarows => {
+          .orderBy('Created', false)().then(datarows => {
 
             if (datarows.length == 0) {
 
@@ -266,7 +266,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                 </tr>
 
               </thead>
-
+              {console.log("AuditHistoryRowsAuditHistoryRows", AuditHistoryRows)}
               {Loading && AuditHistoryRows.length == 0 ? (//chhaya
 
                 // Show loader when loading is true
@@ -330,24 +330,25 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric'
-                          }).format(new Date(row.Created)).replace(/ /g, "/")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
+                          }).format(new Date(row.Created)).replace(/ /g, "-")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: false
                           })}`
                           : ""}>
                           {/* {new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.Created))} */}
-                          {row.Status !== 'Pending'
-                            ? `${new Intl.DateTimeFormat('en-GB', {
+                          {/* {row.Status !== 'Pending'
+                            ? */}
+                             {new Intl.DateTimeFormat('en-GB', {
                               day: '2-digit',
                               month: 'short',
                               year: 'numeric'
-                            }).format(new Date(row.Created)).replace(/ /g, "/")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
+                            }).format(new Date(row.Created)).replace(/ /g, "-")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
                               hour: '2-digit',
                               minute: '2-digit',
                               hour12: false
-                            })}`
-                            : ""}
+                            })}
+                            {/* : ""} */}
                         </td>
 
                         {/* <td> {(row.Status != 'Pending') ? (row.Approver?.Title ? row.Approver.Title:(row.ActionTakenBy.Title?row.ActionTakenBy.Title:"")) : ""}</td> */}
@@ -362,7 +363,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric'
-                          }).format(new Date(row.Modified)).replace(/ /g, "/")} ${new Date(row.Modified).toLocaleTimeString('en-GB', {
+                          }).format(new Date(row.Modified)).replace(/ /g, "-")} ${new Date(row.Modified).toLocaleTimeString('en-GB', {
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: false
@@ -374,7 +375,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                               day: '2-digit',
                               month: 'short',
                               year: 'numeric'
-                            }).format(new Date(row.Modified)).replace(/ /g, "/")} ${new Date(row.Modified).toLocaleTimeString('en-GB', {
+                            }).format(new Date(row.Modified)).replace(/ /g, "-")} ${new Date(row.Modified).toLocaleTimeString('en-GB', {
                               hour: '2-digit',
                               minute: '2-digit',
                               hour12: false

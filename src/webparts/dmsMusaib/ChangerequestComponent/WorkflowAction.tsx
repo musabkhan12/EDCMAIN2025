@@ -61,7 +61,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
     let test = arrrr.join('.');
     console.log("arrrr", arrrr, test);
     if (props.currentItem.Maxlevel == props.currentItem.Level) {
-      if ((props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One") {
+      if ((props.currentItem.LevelType == "Everyone" && allprocessitems.length == 1) || props.currentItem.LevelType == "Anyone") {
         currentReferenceNo = test
       }
     }
@@ -82,7 +82,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
         ActionTakenById: currentUser.Id,
         ActionTakenOn: new Date().toISOString(),
-        ContentTitle: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
+        ContentTitle: (props.currentItem.LevelType == "Everyone" && allprocessitems.length == 1) || props.currentItem.LevelType == "Anyone" ? test : currentReferenceNo
       };
 
       postPayload2 = {
@@ -92,11 +92,11 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         InitiatorSubmitStatus: "No",
         CurrentUserRole: "Initiator",
         SubmitStatus: "No",
-        //ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
+        //ReferenceNumber: (props.currentItem.LevelType == "Everyone" && allprocessitems.length == 1) || props.currentItem.LevelType == "Anyone" ? test : currentReferenceNo
       };
       postPayloadapp = {
         Status: Status,
-        ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
+        ReferenceNumber: (props.currentItem.LevelType == "Everyone" && allprocessitems.length == 1) || props.currentItem.LevelType == "Anyone" ? test : currentReferenceNo
       };
     }
     else {

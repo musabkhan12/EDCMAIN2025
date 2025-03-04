@@ -230,14 +230,21 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                   <th style={{ minWidth: '70px', maxWidth: '70px' }}>
 
+
+                   Assigned To Role
+
+                  </th>
+
+                  <th style={{ minWidth: '70px', maxWidth: '70px' }}>
+
                     Requester Name
 
                   </th>
-                  <th style={{ minWidth: '70px', maxWidth: '70px' }}>
+                  {/* <th style={{ minWidth: '70px', maxWidth: '70px' }}>
 
                     Role
 
-                  </th>
+                  </th> */}
                   <th style={{ minWidth: '70px', maxWidth: '70px' }}>
 
                     Requested Date
@@ -330,8 +337,10 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                         <td style={{ minWidth: '70px', maxWidth: '70px' }}> {row.Approver ? row.Approver.Title : row.AssignedTo.Title}</td>
 
+                        <td style={{ minWidth: '70px', maxWidth: '70px' }}>{row.CurrentUserRole}</td>
+
                         <td style={{ minWidth: '70px', maxWidth: '70px' }}> {row.Requester ? row.Requester.Title : row.RequesterName.Title}</td>
-                        <td style={{ minWidth: '70px', maxWidth: '70px' }}> {row.ActionTakenRole ? row.ActionTakenRole.Role : row.ActionTakenRole.Role}</td>
+                        {/* <td style={{ minWidth: '70px', maxWidth: '70px' }}> {row.ActionTakenRole ? row.ActionTakenRole.Role : row.ActionTakenRole.Role}</td> */}
                         {/* <td  style={{ minWidth: '70px', maxWidth: '70px' }}> {(new Date(row.Created)).toLocaleString()}</td> */}
                         <td style={{ minWidth: '70px', maxWidth: '70px', cursor: 'pointer' }} title={`${new Intl.DateTimeFormat('en-GB', {
                           day: '2-digit',
@@ -347,7 +356,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric'
-                          }).format(new Date(row.Created)).replace(/ /g, "/")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
+                          }).format(new Date(row.Created)).replace(/ /g, "/")} {new Date(row.Created).toLocaleTimeString('en-GB', {
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: false

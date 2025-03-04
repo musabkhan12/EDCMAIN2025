@@ -47,7 +47,10 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
         var showform = this.state.showform;
         // alert(this.state.showform + "showform");
         console.log(this.state.items.length, "this.state.items.length");
-        var allItems = this.state.items.map((item: any, i: number) => {
+        let allitemsnew = this.state.items.sort((a, b) => {
+            return a.ReqDt === new Date(b.ReqDt) ? 0 : new Date(a.ReqDt) ? -1 : 1;
+        })
+        var allItems = allitemsnew.map((item: any, i: number) => {
             console.log(item.ProcessName + "item.ProcessName");
             console.log(item.MainListId + "item.MainListId");
             var path = `#/${item.ProcessName}/${item.MainListId}`
@@ -90,7 +93,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     <td>
                         {item.Title}
                     </td>
-                    <td style={{ minWidth: '85px', maxWidth: '85px' }}>
+                    <td title={item.ProcessName} style={{ minWidth: '85px', maxWidth: '85px' }}>
                         {item.ProcessName}
                     </td>
                     <td style={{ minWidth: '85px', maxWidth: '85px' }}>
@@ -327,7 +330,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
         // })
         const ChangeRequestDocumentCancellationListItems = await spfi(this._sp).web.lists
             .getByTitle("ChangeRequestDocumentCancellationList")
-            .items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode')
+            .items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,ReferenceNumber')
             .expand('Author', 'RequesterName')();
 
         for (const item of ChangeRequestDocumentCancellationListItems) {
@@ -342,7 +345,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     for (const itm of processItems) {
                         allItems.push({
                             RequestId: item.DocumentCode,
-                            Title: item.Title,
+                            Title: item.ReferenceNumber,
                             ProcessName: "Document Cancellation",
                             ReqName: item.RequesterName?.Title || '',
                             ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
@@ -355,7 +358,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 } else {
                     allItems.push({
                         RequestId: item.DocumentCode,
-                        Title: item.Title,
+                        Title: item.ReferenceNumber,
                         ProcessName: "Document Cancellation",
                         ReqName: item.RequesterName?.Title || '',
                         ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
@@ -367,7 +370,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             } else {
                 allItems.push({
                     RequestId: item.DocumentCode,
-                    Title: item.Title,
+                    Title: item.ReferenceNumber,
                     ProcessName: "Document Cancellation",
                     ReqName: item.RequesterName?.Title || '',
                     ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',

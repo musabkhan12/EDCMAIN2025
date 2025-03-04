@@ -314,14 +314,26 @@ export const updateItemChangeRequestReasonList = async (itemData, _sp, id) => {
   return resultArr;
 };
 export const getallProcessApprovalitems = async (_sp, id) => {
-  let resultArr = []
+  let resultArr = [];
+  let newItem = [];
   try {
-    const newItem = await _sp.web.lists.getByTitle('ProcessApprovalList').items
+    const newitemnew = await _sp.web.lists.getByTitle('AllProcessApprovalLevelList').items
       .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title")
       .expand("Author,RequesterName,AssignedTo")
-      .filter(`ListItemId eq ${id} and Status eq 'Pending'`)
-      ();
-    console.log('all process itemss:', newItem);
+      .filter(`MainListID eq ${id}`).orderBy("Level", false)
+      ().then(async (res) => {
+        if(res.length > 0){
+          newItem = await _sp.web.lists.getByTitle('ProcessApprovalList').items
+          .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title")
+          .expand("Author,RequesterName,AssignedTo")
+          .filter(`ListItemId eq ${id} and Status eq 'Pending' and Level eq ${res[0].Level}`)
+          ();
+        console.log('all process itemss: of highest level', newItem);
+        }
+        
+      })
+    console.log("newitemnewnewitemnew", newitemnew);
+    
     resultArr = newItem
     // Perform any necessary actions after successful addition
   } catch (error) {

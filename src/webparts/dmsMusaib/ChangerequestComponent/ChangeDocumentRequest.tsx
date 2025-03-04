@@ -43,8 +43,11 @@ import { Modal } from 'react-bootstrap';
 import { Link } from '@fluentui/react';
 import moment from 'moment';
 import { DatePicker } from 'office-ui-fabric-react';
+import * as XLSX from 'xlsx';
 let newfileupload: any
-let newfilepreview: any
+let newfilepreview: any;
+let filechanged: boolean = false;
+let locationPath: any;
 export enum FormSubmissionMode {
   DRAFT, SUBMIT
 }
@@ -188,7 +191,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
   const [showModal, setShowModal] = React.useState(false);
   const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
-    { id: 0, role: 0, level: 1, approvers: [], leveltype: "One" } // Default row
+    { id: 0, role: 0, level: 1, approvers: [], leveltype: "Anyone" } // Default row
   ]);
   const [currentUserDept, setcurrentUserDept] = React.useState("");
   const [forwardToArrEdit, setForwardToArrEdit] = React.useState<ForwardTo[]>([]);
@@ -196,7 +199,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [employeeDetails, setemployeeDetails] = React.useState<IEmployeeDetails[] | null>([]);
   const [selectedCheckboxIds, setselectedCheckboxIds] = React.useState<number[]>([]);
   const [isCheckboxSectionHighlighted, setisCheckboxSectionHighlighted] = React.useState<boolean>(false);
-
+  const [fileType, setFileType] = React.useState("");
   const [selectedUsers, setSelectedUsers] = React.useState<any[]>([]);
   const [remark, setRemark] = React.useState("");
 
@@ -208,6 +211,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const ApiCallFunc = async () => {
     const path1 = window.location.href;
     debugger
+    locationPath = window.location.href.match(/\/sites\/[^\/]+/)[0];
     if (path1.includes("/view/") || path1.includes("/approve/")) {
       setInputDisabled(true);
     }
@@ -799,7 +803,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const handleAddRow = () => {
     setForwardToArr((prev) => [
       ...prev,
-      { id: 0, role: 0, level: prev.length + 1, approvers: [], leveltype: "One" }
+      { id: 0, role: 0, level: prev.length + 1, approvers: [], leveltype: "Anyone" }
     ]);
   };
 
@@ -849,7 +853,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
   //#endregion
   const OpenFile = (obj: any) => {
-
+    console.log("ttrtrtrtt", obj)
     const fileUrl = `${Tenant_URL}${obj.FileRef}`;
 
     // if (obj.FileRef.endsWith(".docx")) {
@@ -861,14 +865,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     //   }
 
     if (fileUrl.endsWith(".docx") || fileUrl.endsWith(".xlsx") || fileUrl.endsWith(".pptx")) {
-      window.open(`${siteUrl}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=default`, "_blank");
+      //window.open(`${siteUrl}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=default`, "_blank");
+      window.open(obj, "_blank");
     } else {
       window.open(fileUrl, "_blank"); // Open PDF and other files normally
     }
   }
   const ApprovalTypeOptions = [
-    { value: 'One', label: 'One' },
-    { value: 'All', label: 'All' }
+    { value: 'Anyone', label: 'Anyone' },
+    { value: 'Everyone', label: 'Everyone' }
 
   ];
   const addCancelReason = () => {
@@ -937,11 +942,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         valid = false;
       }
       else if (cancellReason.length == 0) {
-        //errormsg = "Please enter atleast one Description and Reason"
+        //errormsg = "Please enter atleast Anyone Description and Reason"
         // const isValid = rows.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
         valid = false;
       }
-
+      else if (Attachmentarr.length == 0) {
+        //errormsg = "Please enter atleast Anyone Description and Reason"
+        // const isValid = rows.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
+        valid = false;
+      }
       // else if (IssueNumber === "") {
       //   //Swal.fire('Error', 'Entity is required!', 'error');
       //   valid = false;
@@ -1175,6 +1184,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
+            debugger
             const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
@@ -1316,6 +1326,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
   }
   const handleSaveAsDraft = async () => {
+
     let url = window.location.href.split('/sites/')[0];
     console.log("topp draft", editItemID, cancellReason);
     if (await validateForm(FormSubmissionMode.DRAFT)) {
@@ -1335,6 +1346,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
+            debugger
             const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
@@ -1355,6 +1367,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 attachmentIds.push(itemId);
               }
             }
+            let Attachmentidsss = attachmentIds.length != 0 ? attachmentIds : formData.AttachmentId;
+            let AttachmentJso = attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson;
             // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
             let arr = {
               Title: formData.RequesterName,
@@ -1373,18 +1387,19 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               AmendmentTypeId: formData.AmendmentTypeId,
               RequestTypeId: formData.RequestTypeId,
               ClassificationId: formData.ClassificationId,
-              ChangeRequestTypeId: formData.ChangeRequestTypeId,
+              //ChangeRequestTypeId: formData.ChangeRequestTypeId,
+              ChangeRequestTypeId: selectedCheckboxIds,
               //SubmiitedDate: selectedOption.SubmiitedDate,
               SubmiitedDate: new Date(formData.SubmiitedDate).toISOString(),
               SubmitStatus: "No",
               Status: "Save as draft",
               DocumentName: DocumentName,
-              DocumentTypeId: selectedOption.DocumentTypeId,
+              DocumentTypeId: formData.DocumentTypeId,
               OESSubmitStatus: "No",
               InitiatorSubmitStatus: "No",
               CurrentUserRole: "OES",
-              AttachmentId: selectedOption.AttachmentId,
-              AttachmentJson: selectedOption.AttachmentJson
+              AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption.AttachmentId,
+              AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson
 
             }
             console.log("postPayloaddrafttedit", arr, editItemID, cancellReason);
@@ -1395,7 +1410,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             for (const row of cancellReason) {
 
               const postPayload2 = {
-                ChangeRequestIDId: postId, // Assuming "Title" column exists
+                ChangeRequestIDId: editItemID, // Assuming "Title" column exists
                 ChangeDescription: row.description,
                 ReasonforChange: row.reason,
               }
@@ -1491,7 +1506,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               }
             }
 
-
+           
             const postPayload = {
               Title: formData.RequesterName,
               RequesterNameId: formData.RequesterNameId,
@@ -1632,14 +1647,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     }
     if (status == "Forward") {
       if (forwardToArr.length === 0) {
-        // alert("At least one row is required.");
+        // alert("At least Anyone row is required.");
         valid = false;
       }
       debugger
-      const isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0);
+      const isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 && (row.leveltype == "Anyone" || row.leveltype == "Everyone"));
 
       if (!isValid) {
-        // alert("Each row must have a role selected and at least one approver.");
+        // alert("Each row must have a role selected and at least Anyone approver.");
         valid = false;
       }
       setValidforward(valid)
@@ -2143,6 +2158,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
   const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>, libraryName: string, docLib: string) => {
     event.preventDefault();
+    filechanged = true;
+    newfileupload = true;
     let uloadBannerImageFiles: any[] = [];
     let uloadImageFiles: any[] = [];
     let uloadImageFiles1: any[] = [];
@@ -2150,10 +2167,22 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       const files = Array.from(event.target.files);
       (event.target as HTMLInputElement).value = '';
       if (files.length > 0) {
-        const preview = URL.createObjectURL(files[0]); // Generate preview URL
+        const file = files[0];
+        const fileType = file.type.split("/")[0]; // Extract file type (image, pdf, etc.)
+        const folder = sp.web.getFolderByServerRelativePath('Socialfeedimages');
+        const uploadResult = await folder.files.addChunked(file.name, file);
+        console.log("File uploaded successfully", uploadResult);
+
+        // Generate the preview URL dynamically
+        const previewUrl = await generatePreviewUrl(uploadResult.data.ServerRelativeUrl);
+
+        //previewFile(previewUrl);
+        const preview = URL.createObjectURL(file);
+        //const preview = URL.createObjectURL(files[0]); // Generate preview URL
         //alert(`preview ${preview}`)
         newfilepreview = preview
         setPreviewUrl(preview);
+        setFileType(fileType);
         var arr = {};
         arr = {
           files: files,
@@ -2162,7 +2191,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           name: files[0].name,
           fileName: files[0].name,
           fileSize: files[0].size,
-          fileUrl: URL.createObjectURL(files[0])
+          //fileUrl: URL.createObjectURL(files[0]),
+          fileUrl: previewUrl,
+          fileType: fileType,
+          previewUrl: previewUrl
         };
         uloadBannerImageFiles.push(arr);
         setAttachmentarr(uloadBannerImageFiles);
@@ -2171,7 +2203,30 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       }
     }
   };
+  const generatePreviewUrl = async (serverRelativeUrl: string) => {
+    // Encode the file name and construct the preview URL
+    const encodedFilePath = encodeURIComponent(serverRelativeUrl);
+
+    // Example: 
+    // serverRelativeUrl = "/sites/AlRostmani/test/DocumentLibraryInsideTest/Book.xlsx"
+    const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
+    const siteUrl = window.location.origin;
+
+    // const previewUrl = `${siteUrl}/sites/AlRostmani/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    const previewUrl = `${siteUrl}${locationPath}/ChangeRequestDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    console.log("Generated Preview URL:", previewUrl);
+    if (previewUrl) {
+      console.log("enter herr")
+      const deletebut = document.getElementById('closeCommand') as HTMLElement
+      if (deletebut) {
+        console.log(" here ", deletebut)
+      }
+    }
+    return previewUrl;
+  };
   const handlePreviewClick = (fileObj: any) => {
+    debugger
     if (newfileupload === true) {
       console.log(newfilepreview, "here is newfilepreview")
       //alert(`new file ${newfilepreview}`)
@@ -2291,6 +2346,38 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       Swal.fire("Error", error.message, "error");
     }
   };
+  const renderFilePreview = () => {
+    if (fileType === "image") {
+      return <img src={previewUrl} alt="File Preview" style={{ width: "100%", maxHeight: "400px" }} />;
+    }
+
+    if (fileType === "application" && previewUrl.endsWith(".pdf")) {
+      return <embed src={previewUrl} type="application/pdf" width="100%" height="500px" />;
+    }
+
+    if (fileType === "application" && previewUrl.endsWith(".vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
+      // Excel File (XLSX) preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = e.target.result;
+        const workbook = XLSX.read(data, { type: "binary" });
+        const sheetNames = workbook.SheetNames;
+        const sheet = workbook.Sheets[sheetNames[0]];
+        const html = XLSX.utils.sheet_to_html(sheet);
+        document.getElementById("excel-preview").innerHTML = html;
+      };
+      reader.readAsBinaryString(Attachmentarr[0].files[0]);
+
+      return <div id="excel-preview"></div>;
+    }
+
+    return (
+      <div>
+        <h4>Preview not available for this file type</h4>
+        <p>{Attachmentarr[0].fileName}</p>
+      </div>
+    );
+  };
   const onDateChange = (date: Date) => {
     // Format the selected date to DD-MMM-YYYY format
     const formattedDate = moment(date).format('DD-MMM-YYYY');
@@ -2378,6 +2465,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   <DatePicker
                                     value={formData?.RequestDate ? new Date(moment(formData?.RequestDate).format('DD-MMM-YYYY')) : null} // Convert the date to Date object
                                     onSelectDate={onDateChange}
+                                    maxDate={new Date()}
                                     disabled={InputDisabled && formData?.Status != "Rework"}
                                     //defaultValue={new Date().toDateString()}
                                     formatDate={(date) => moment(date).format('DD-MMM-YYYY')} // Custom date format for display
@@ -2420,7 +2508,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     className={`${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidSubmit) ? "border-on-error" : ""}`}
                                     onChange={(selectedOption: any) => onSelectDocCode(selectedOption)}
                                     placeholder="Search Document Code"
-                                    isDisabled={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.label == "Change Request for New Addition")}
+                                    isDisabled={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.label == "Change Request for New Addition")
+                                      || InputDisabled && formData?.Status != "Rework"
+                                    }
                                   />
                                 </div>
                               </div>
@@ -2592,12 +2682,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 <h3 className="text-dark font-16 mb-3">Description</h3>
 
                               </div>
-                              {console.log("formData?.Status ", formData)}
+                              {console.log("formData?.Status ",InputDisabled, formData)}
                               <div className='col-sm-4'>
                                 <div style={{ textAlign: "right" }} className="mt-2 float-end text-right">
                                   {/* <i style={{ cursor: "pointer" }} onClick={addField}  className="fe-plus-circle  font-20 text-warning"></i> */}
                                   {/* <i style={{ cursor: "pointer" }} className="fe-plus-circle  font-20 text-warning"></i> */}
-                                  {(!InputDisabled && (formData?.Status == "Rework" || formData?.Status == "" || formData?.Status == "Save as draft")) && <img style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} src={require("../assets/plus.png")} onClick={addCancelReason} className=''></img>}
+                                   {(modeValue === "" || modeValue === "edit" || InputDisabled != true || (modeValue == "approve" && formData?.Status == "Rework")) && 
+                                  // {(InputDisabled != true && (formData?.Status == "Rework" || formData?.Status == "" || formData?.Status == "Save as draft")) && 
+                                  <img style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }}
+                                   src={require("../assets/plus.png")} onClick={addCancelReason} className=''></img>}
 
 
                                 </div>
@@ -2615,7 +2708,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     <th style={{ minWidth: "40px", maxWidth: "40px" }}>S.No</th>
                                     <th>Change Description</th>
                                     <th>Reason for Change</th>
-                                    <th style={{ minWidth: "80px", maxWidth: "80px" }}>Action</th>
+                                    {(modeValue === "" || modeValue === "edit" || InputDisabled != true || (modeValue == "approve" && formData?.Status == "Rework")) &&
+                                      <th style={{ minWidth: "80px", maxWidth: "80px" }}>Action</th>
+                                    }
                                   </tr>
 
                                 </thead>
@@ -2628,7 +2723,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         className="indexdesign"
                                       >
                                         {index + 1}</div></td>
-                                      <td><input type="text" id="simpleinput" disabled={InputDisabled && formData?.Status != "Rework"}
+                                      <td>
+                                        {/* <input type="text" id="simpleinput" disabled={InputDisabled && formData?.Status != "Rework"}
                                         value={row.description}
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                         onChange={(e) => {
@@ -2636,10 +2732,22 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           newRowscancellReason[index].description = e.target.value;
                                           setcancellReason(newRowscancellReason);
                                         }}
-                                      />
+                                      /> */}
+                                        <textarea
+                                          id="simpleinput"
+                                          disabled={InputDisabled && formData?.Status !== "Rework"}
+                                          value={row.description}
+                                          className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                          onChange={(e) => {
+                                            const newRowscancellReason = [...cancellReason];
+                                            newRowscancellReason[index].description = e.target.value;
+                                            setcancellReason(newRowscancellReason);
+                                          }}
+                                        />
 
                                       </td>
-                                      <td><input type="text" id="simpleinput" disabled={InputDisabled && formData?.Status != "Rework"}
+                                      <td>
+                                        {/* <input type="text" id="simpleinput" disabled={InputDisabled && formData?.Status != "Rework"}
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                         value={row.reason}
                                         onChange={(e) => {
@@ -2647,10 +2755,23 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           newRowscancellReason[index].reason = e.target.value;
                                           setcancellReason(newRowscancellReason);
                                         }}
-                                      /></td>
-                                      {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "80px", maxWidth: "80px", textAlign: 'center' }}>
-                                        <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFile(index, cancellReason)}></img>
+                                      /> */}
+                                        <textarea
+                                          id="simpleinput"
+                                          disabled={InputDisabled && formData?.Status !== "Rework"}
+                                          className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                          value={row.reason}
+                                          onChange={(e) => {
+                                            const newRowscancellReason = [...cancellReason];
+                                            newRowscancellReason[index].reason = e.target.value;
+                                            setcancellReason(newRowscancellReason);
+                                          }}
+                                        />
                                       </td>
+                                      {(modeValue === "" || modeValue === "edit" || InputDisabled != true || (modeValue == "approve" && formData?.Status == "Rework")) &&
+                                        <td style={{ minWidth: "80px", maxWidth: "80px", textAlign: 'center' }}>
+                                          <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFile(index, cancellReason)}></img>
+                                        </td>
                                       }
                                     </tr>
                                   ))}
@@ -2666,9 +2787,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                         </div>
 
-                        {console.log("editiiiiifhifassignmentt", editID, modeValue, InputDisabled, ApprovalTypeOptions,MainEditItem)}
+                        {console.log("editiiiiifhifassignmentt", editID, modeValue, InputDisabled, ApprovalTypeOptions, MainEditItem,
+                        (modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES"),
+                        (MainEditItem !== null && MainEditItem.length != 0 && MainEditItem.Status != "Save as draft" && MainEditItem.Status != "Rework" && modeValue !== "view"))}
                         {((modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES") ||
-                          (MainEditItem !== null && MainEditItem.length != 0 && MainEditItem.Status != "Save as draft" && modeValue !== "view" ))
+                          (MainEditItem !== null && MainEditItem.length != 0 && MainEditItem.Status != "Save as draft" && MainEditItem.Status != "Rework" && modeValue !== "view"))
                           &&
                           <div className="card mt-2">
                             <div className="card-body">
@@ -2677,12 +2800,16 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   <h3 className="header-title text-dark font-16 mb-3 ">Forward Approval To</h3>
 
                                 </div>
-                                <div className='col-sm-4'>
-                                  <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
-                                    <img style={{ width: '34px' }} src={require("../assets/plus.png")} onClick={handleAddRow} className='' />
 
-                                    {/* <i style={{ cursor: "pointer" }} onClick={handleAddRow} className="fe-plus-circle font-20 text-warning"></i> */}
-                                  </div>
+                                <div className='col-sm-4'>
+                                  {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" &&
+                                    <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
+                                      <img style={{ width: '34px' }} src={require("../assets/plus.png")}
+                                        onClick={handleAddRow} className='' />
+
+                                      {/* <i style={{ cursor: "pointer" }} onClick={handleAddRow} className="fe-plus-circle font-20 text-warning"></i> */}
+                                    </div>
+                                  }
                                 </div>
 
                               </div>
@@ -2710,14 +2837,16 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         >
                                           {index + 1}</div></td>
                                         <td className="ng-binding">
-                                          <select className="form-select" onChange={(e) => onSelectRole(e, row.level)} value={row.role}>
+                                          <select onChange={(e) => onSelectRole(e, row.level)} value={row.role}
+                                            disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}
+                                            className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}>
                                             <option value="" selected>Select Role</option>
                                             {UserRoles.filter((role: any) =>
                                               !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
                                             ).map((role: any, index: number) => (
                                               <option key={index} value={role.value}
-                                                className={` ${(!Validforward) ? "border-on-error" : ""}`}
-                                                disabled={disabledforwardarr}
+
+                                              //disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}
                                               >
                                                 {role.label}</option>
                                             ))}
@@ -2737,21 +2866,23 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                             // onChange={(selectedOption: any) => onSelect(selectedOption)}
                                             onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
                                             placeholder="Enter Approver Name"
-                                            disabled={disabledforwardarr}
+                                            isDisabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}
                                           />
 
 
 
                                         </td>
                                         <td className="ng-binding">
-                                          <select className="form-select"
+                                          <select className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}
                                             onChange={(e) => onSelectApprovalType(e, row.level)}
-                                            value={row.leveltype}>
+                                            value={row.leveltype}
+                                            disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}
+                                          >
                                             <option value="" selected>Select Type</option>
                                             {ApprovalTypeOptions.map((x: any, index: number) => (
                                               <option key={index} value={x.value}
-                                                className={` ${(!Validforward) ? "border-on-error" : ""}`}
-                                                disabled={disabledforwardarr}>{x.label}</option>
+
+                                              >{x.label}</option>
                                             ))}
                                           </select>
 
@@ -2770,23 +2901,25 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   </tbody>
                                 </table>
                               </div>
-                              <div className="row mt-3">
-                                <div className="col-12 text-center">
-                                  <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardApproval("Forward")} >
-                                    <i className="fe-check-circle me-1"></i> Forward
-                                  </button>                                  {/* <a href="#"> */}
-                                  <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={() => ForwardApproval("Rework")} >
-                                    <i className="fe-corner-up-left me-1"></i> Rework
-                                  </button>
-                                  <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={() => ForwardApproval("Rejected")} >
-                                    <i className="fe-x me-1"></i> Reject
-                                  </button>
-                                  <button type="button" className="btn btn-light waves-effect waves-light m-1" onClick={handleCancel}>
-                                    <i className="fe-x me-1"></i> Cancel
-                                  </button>
-                                  {/* </a> */}
+                              {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" &&
+                                <div className="row mt-3">
+                                  <div className="col-12 text-center">
+                                    <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardApproval("Forward")} >
+                                      <i className="fe-check-circle me-1"></i> Forward
+                                    </button>                                  {/* <a href="#"> */}
+                                    <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={() => ForwardApproval("Rework")} >
+                                      <i className="fe-corner-up-left me-1"></i> Rework
+                                    </button>
+                                    <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={() => ForwardApproval("Rejected")} >
+                                      <i className="fe-x me-1"></i> Reject
+                                    </button>
+                                    <button type="button" className="btn btn-light waves-effect waves-light m-1" onClick={handleCancel}>
+                                      <i className="fe-x me-1"></i> Cancel
+                                    </button>
+                                    {/* </a> */}
+                                  </div>
                                 </div>
-                              </div>
+                              }
                             </div>
                           </div>
                         }
@@ -2840,6 +2973,23 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                             {/* </a> */}
                           </div>
                         </div>
+                        {console.log("Attachmentarrnew", Attachmentarr, isModalOpen)}
+                        {Attachmentarr.length > 0 && isModalOpen &&
+                          <Modal show={isModalOpen} onHide={() => setIsModalOpen(false)} size="lg" className='newmobmodal'>
+                            <Modal.Header closeButton>
+                              {previewUrl && (
+                                <Modal.Title>Preview of {Attachmentarr.length > 0 && Attachmentarr[0].name}</Modal.Title>
+                              )}
+                            </Modal.Header>
+                            <Modal.Body>
+                              {previewUrl && (
+                                renderFilePreview()
+                              )}
+                            </Modal.Body>
+
+                          </Modal>
+                        }
+
                         <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" className='newmobmodal'>
                           <Modal.Header closeButton>
                             <Modal.Title>
@@ -2869,7 +3019,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     <td>{DocumentLink != null ? `${DocumentLink?.FileLeafRef}` : Attachmentarr && Attachmentarr[0]?.fileName}</td>
                                     <td style={{ textAlign: 'center' }}>
                                       <FontAwesomeIcon icon={faDownload} style={{ width: '35px', height: '30px' }}
-                                        onClick={() => OpenFile(DocumentLink ? DocumentLink : Attachmentarr && Attachmentarr[0]?.fileUrl)} />
+                                        onClick={() =>  OpenFile(DocumentLink != null ? DocumentLink : Attachmentarr && Attachmentarr[0]?.fileUrl)} />
                                       {/* <Link
                               href={file.fileUrl}
                               className="anchor"
