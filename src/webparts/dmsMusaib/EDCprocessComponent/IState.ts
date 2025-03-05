@@ -2,6 +2,7 @@ import { IListItem } from './IListItem';
 import {  IDropdownOption } from '@fluentui/react/lib/Dropdown';
 import { IFilePickerResult } from '@pnp/spfx-controls-react/lib/FilePicker';
 export interface IState {  
+  Breadcrumb:any[];
   status: string;  
   items: IListItem[];  
   rows:any[];
@@ -57,14 +58,20 @@ export interface IState {
   apprDelId:any[],
   apprItems:any[],
   remarks:string,
-  // edItm:any,
+   edItm:any,
    edType:any,
   showApprove:boolean,
   showSubmit:boolean,
-  // approvalItemId: any,
+   approvalItemId: any,
   isDisabled: boolean,
   memoSerialNo: number,
-  reqRolId: number
+  reqRolId: number,
+  isSubmit: boolean,
+  allDepartments: any[],
+ 
+  isSave: boolean,
+  isRework: boolean,
+
 }  
 
 

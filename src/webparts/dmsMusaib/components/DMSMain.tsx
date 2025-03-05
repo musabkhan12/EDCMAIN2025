@@ -10413,28 +10413,50 @@ const MainListView = async (event:React.MouseEvent<HTMLButtonElement> ) => {
 }
 
 const ChangeRequest = async (event:React.MouseEvent<HTMLButtonElement> ) => {
+  const selectedTextDiv=document.getElementById('selectedText');
+  const breadcrumbElement=document.getElementById("breadcrumb");
+  breadcrumbElement.style.display='none';
+  selectedTextDiv.style.display='none';
     const getfilescontainer = document.getElementById('files-container')
     if(getfilescontainer){
       getfilescontainer.classList.add('hidemydatacards')
     }
     setlistorgriddata('AnnualAuditProgram');
+    setDynamicContent(null);
+    setSelectedText(null);
     window.location.hash = "/AnnualAuditProgram";
 }
 const ChangeDocumentRequest = async (event:React.MouseEvent<HTMLButtonElement> ) => {
+  const selectedTextDiv=document.getElementById('selectedText');
+    const breadcrumbElement=document.getElementById("breadcrumb");
+    breadcrumbElement.style.display='none';
+    selectedTextDiv.style.display='none';
     const getfilescontainer = document.getElementById('files-container')
     if(getfilescontainer){
       getfilescontainer.classList.add('hidemydatacards')
     }
     setlistorgriddata('ChangeDocumentRequest');
+    setDynamicContent(null);
+    setSelectedText(null);
     window.location.hash = "/ChangeDocumentRequest";
 }
 
 const DocumentCancellationfunc = async (event:React.MouseEvent<HTMLButtonElement> ) => {
+  const getcol = document.getElementsByClassName('col-md-12');
+
+  if (getcol.length > 0) {
+      Array.from(getcol).forEach((element) => {
+          element.remove();
+      });
+  }
+  
+
   const getfilescontainer = document.getElementById('files-container')
   if(getfilescontainer){
     getfilescontainer.classList.add('hidemydatacards')
   }
   setlistorgriddata('DocumentCancellation');
+  setDynamicContent(null);
   window.location.hash = "/DocumentCancellation";
 
 }
@@ -10918,6 +10940,9 @@ const fileNotFound=(fileName:any)=>{
           break;
         case 'Recycle Bin':
           setDynamicContent('below are the documents Deleted by logged in use.');
+          break;
+        case 'Annual Audit Program':
+          setDynamicContent('Annual Audit Program');
           break;
         default:
           setDynamicContent(null);
