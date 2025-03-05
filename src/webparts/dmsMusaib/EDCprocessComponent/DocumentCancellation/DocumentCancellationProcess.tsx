@@ -62,6 +62,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     const siteUrl = props.siteUrl;
     const { useHide }: any = React.useContext(UserContext);
     const [InputDisabled, setInputDisabled] = React.useState(false);
+    const selectedTextDiv=document.getElementById('selectedText');
+   
+selectedTextDiv.style.display='none';
 
     const [Loading, setLoading] = React.useState(false);
     const [FormLoading, setFormLoading] = React.useState(false);

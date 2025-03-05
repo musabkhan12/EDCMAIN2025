@@ -53,6 +53,7 @@ let locationPath: any;
 export enum FormSubmissionMode {
   DRAFT, SUBMIT
 }
+
 export interface IChangeDocumentRequestProps {
   description: string;
   isDarkTheme: boolean;
@@ -104,10 +105,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const tenantUrl = props.siteUrl?.split("/sites/")[0];
   const { useHide }: any = React.useContext(UserContext);
   const [InputDisabled, setInputDisabled] = React.useState(false);
+  const selectedTextDiv=document.getElementById('selectedText');
+   
+selectedTextDiv.style.display='none';
   const Breadcrumb = [
     {
-      MainComponent: "Home",
-      MainComponentURl: `${siteUrl}/SitePages/EDCMAIN.aspx`,
+      MainComponent: "My Request",
+      MainComponentURl: `${SITE_URL}/SitePages/EDCMAIN.aspx`,
     },
     {
       ChildComponent: "Change Request",
