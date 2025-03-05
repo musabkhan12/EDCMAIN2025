@@ -139,9 +139,9 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     <td style={{ minWidth: '85px', maxWidth: '85px' }}>{item.RequestId}</td>
                     <td>{item.Title}</td>
                     <td title={item.ProcessName} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.ProcessName}</td>
-                    <td style={{ minWidth: '85px', maxWidth: '85px' }}>{item.ReqName}</td>
-                    <td style={{ minWidth: '85px', maxWidth: '85px' }}>{moment(item.ReqDt).format("DD-MMM-YYYY")}</td>
-                    <td style={{ minWidth: '75px', maxWidth: '75px' }}>{item.Status}</td>
+                    <td title={item.ReqName} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.ReqName}</td>
+                    <td title={moment(item.ReqDt).format("DD-MMM-YYYY")} style={{ minWidth: '85px', maxWidth: '85px' }}>{moment(item.ReqDt).format("DD-MMM-YYYY")}</td>
+                    <td title={item.Status} style={{ minWidth: '75px', maxWidth: '75px' }}>{item.Status}</td>
                     <td style={{ minWidth: '75px', maxWidth: '75px' }}>
                         <a href={path} onClick={() => this.editItem(item)}>
                             <img src={require("../../assets/edit.png")} className="fas fa-trash" alt="delete" />
@@ -299,7 +299,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             }
         }
 
-        const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList").items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode').expand('Author', 'RequesterName')();
+        const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList").items.select('Id,ReferenceNumber,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode').expand('Author', 'RequesterName')();
         for (const item of ChangeRequestListItems) {
             if (item.Status === "Rework") {
                 const processItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and Status eq 'Pending' and ProcessName eq 'Change Request' and ListItemId eq ${item.Id}`)();
@@ -307,7 +307,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     for (const itm of processItems) {
                         allItems.push({
                             RequestId: item.DocumentCode,
-                            Title: item.Title,
+                            Title: item.ReferenceNumber,
                             ProcessName: "Change Request",
                             ReqName: item.RequesterName?.Title || '',
                             ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
@@ -320,7 +320,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 } else {
                     allItems.push({
                         RequestId: item.DocumentCode,
-                        Title: item.Title,
+                        Title: item.ReferenceNumber,
                         ProcessName: "Change Request",
                         ReqName: item.RequesterName?.Title || '',
                         ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
@@ -332,7 +332,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             } else {
                 allItems.push({
                     RequestId: item.DocumentCode,
-                    Title: item.Title,
+                    Title: item.ReferenceNumber,
                     ProcessName: "Change Request",
                     ReqName: item.RequesterName?.Title || '',
                     ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',

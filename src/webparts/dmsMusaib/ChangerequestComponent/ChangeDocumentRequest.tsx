@@ -45,6 +45,7 @@ import { Link } from '@fluentui/react';
 import moment from 'moment';
 import { DatePicker } from 'office-ui-fabric-react';
 import * as XLSX from 'xlsx';
+import { SITE_URL } from '../../../Shared/Constants';
 let newfileupload: any
 let newfilepreview: any;
 let filechanged: boolean = false;
@@ -625,16 +626,6 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     };
   }
 
-
-  // const onSelectDocCode = (selectedList: any) => {
-  //   console.log(selectedList, "selectedList");
-  //   setFormData(prevData => ({
-  //     ...prevData,
-  //     DocumentCode: selectedList.value
-  //   }));
-  //   setSelectedOption(selectedList);  // Set the selected users
-
-  // };
   const onSelectReq = (selectedList: any) => {
     console.log(selectedList, "selectedListreq");
     setFormData(prevData => ({
@@ -2168,8 +2159,32 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     if (event.target.files && event.target.files.length > 0) {
       const files = Array.from(event.target.files);
       (event.target as HTMLInputElement).value = '';
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/bmp",
+        "image/svg+xml",
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+      ];
+      
       if (files.length > 0) {
         const file = files[0];
+        if (!allowedTypes.includes(file.type)) {
+          Swal.fire({
+            icon: "error",
+            title: "Invalid File Type",
+            text: "Only images and document files are allowed.",
+          });
+          return;
+        }
+        
         const fileType = file.type.split("/")[0]; // Extract file type (image, pdf, etc.)
         const folder = sp.web.getFolderByServerRelativePath('Socialfeedimages');
         const uploadResult = await folder.files.addChunked(file.name, file);
@@ -2180,8 +2195,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
         //previewFile(previewUrl);
         const preview = URL.createObjectURL(file);
-        //const preview = URL.createObjectURL(files[0]); // Generate preview URL
-        //alert(`preview ${preview}`)
+       
         newfilepreview = preview
         setPreviewUrl(preview);
         setFileType(fileType);
@@ -2193,8 +2207,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           name: files[0].name,
           fileName: files[0].name,
           fileSize: files[0].size,
-          //fileUrl: URL.createObjectURL(files[0]),
-          fileUrl: previewUrl,
+          date : new Date().toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        }).replace(/ /g, "/"),
+          fileUrl: preview,
           fileType: fileType,
           previewUrl: previewUrl
         };
@@ -2654,6 +2672,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       name="attachment"
                                       disabled={InputDisabled && formData?.Status != "Rework"}
                                       //disabled={handleSectionState('requestedBySection')}
+                                      accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
                                       className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                       onChange={(e) => onFileChange(e, "bannerimg", "Document")}
                                     />

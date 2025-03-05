@@ -609,7 +609,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         const fileUrl = `${Tenant_URL}${obj.FileRef}`;
 
         if (sts == "Open") {
-            if (fileUrl.endsWith(".docx") || fileUrl.endsWith(".xlsx") || fileUrl.endsWith(".pptx")) {
+            if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
+
                 window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=default`, "_blank");
             } else {
                 window.open(fileUrl, "_blank"); // Open PDF and other files normally
