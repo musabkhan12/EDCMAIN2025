@@ -318,10 +318,11 @@ export const getallProcessApprovalitems = async (_sp, id) => {
   let newItem = [];
   try {
     const newitemnew = await _sp.web.lists.getByTitle('AllProcessApprovalLevelList').items
-      .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title")
-      .expand("Author,RequesterName,AssignedTo")
+      .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title")
+      .expand("Author,RequesterName")
       .filter(`MainListID eq ${id}`).orderBy("Level", false)
       ().then(async (res) => {
+        console.log('all resssssss', res);
         if(res.length > 0){
           newItem = await _sp.web.lists.getByTitle('ProcessApprovalList').items
           .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title")
@@ -332,7 +333,7 @@ export const getallProcessApprovalitems = async (_sp, id) => {
         }
         
       })
-    console.log("newitemnewnewitemnew", newitemnew);
+    console.log("newitemnewnewitemnew", newitemnew,newItem);
     
     resultArr = newItem
     // Perform any necessary actions after successful addition

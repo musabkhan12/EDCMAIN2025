@@ -337,9 +337,9 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                           })}`
                           : ""}>
                           {/* {new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.Created))} */}
-                          {/* {row.Status !== 'Pending'
-                            ? */}
-                             {new Intl.DateTimeFormat('en-GB', {
+                          {row.Status !== 'test'
+                            ?
+                             `${new Intl.DateTimeFormat('en-GB', {
                               day: '2-digit',
                               month: 'short',
                               year: 'numeric'
@@ -347,8 +347,8 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                               hour: '2-digit',
                               minute: '2-digit',
                               hour12: false
-                            })}
-                            {/* : ""} */}
+                            })}`
+                            : ""}
                         </td>
 
                         {/* <td> {(row.Status != 'Pending') ? (row.Approver?.Title ? row.Approver.Title:(row.ActionTakenBy.Title?row.ActionTakenBy.Title:"")) : ""}</td> */}

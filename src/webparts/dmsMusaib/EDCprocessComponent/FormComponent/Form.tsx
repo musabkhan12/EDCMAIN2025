@@ -1,4 +1,6 @@
 import * as React from 'react';
+
+import Select from 'react-select'
 import styles from '../AuditApp.module.scss';
 import type { IFormProps } from './IFormProps';
 import {Checkbox,  PrimaryButton ,TextField} from '@fluentui/react';
@@ -8,7 +10,9 @@ import  Swal from 'sweetalert2';
 import "@pnp/sp/site-users/web";
 import { Caching } from "@pnp/queryable";
 // import { getSP } from "../PNPJsConfig";
-// import { SPFI, spfi } from "@pnp/sp";
+import { getSP } from "../../loc/pnpjsConfig";
+import { SPFI , spfi} from "@pnp/sp";
+//  import { SPFI, spfi } from "@pnp/sp";
 import { Dropdown,  IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
@@ -17,10 +21,9 @@ import "@pnp/sp/files";
 import "@pnp/sp/folders";
 import { DateTimePicker, DateConvention } from '@pnp/spfx-controls-react/lib/DateTimePicker'; 
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
-import { getSP } from "../../loc/pnpjsConfig";
-import { SPFI , spfi} from "@pnp/sp";
+
 //import {  useHistory } from 'react-router-dom'
-//const _dropdown = 
+
 const dropdownStyles: Partial<IDropdownStyles> = {
   dropdown: { width: 300 },
 };
@@ -149,8 +152,7 @@ const optionMonths: IDropdownOption[] = [
 //const [rows, setRows] = React.useState([{ name: '', age: '' }]);
 //const [file, setFile] = React.useState<File>();
 export class FormComponent extends React.Component<IFormProps, IState> {
-  private _sp: SPFI;
-
+  _sp: SPFI;
  // parseInt(((((it[0].OPE* it[0].GrossConveyorSpeed)/100)*parseFloat(it[0].Shiftwiseshopwiseworkinghours))-(currItmTot[0].Volume)));
 					
  
@@ -167,7 +169,7 @@ export class FormComponent extends React.Component<IFormProps, IState> {
       status:"Ready",
       items:[],
       rows:[{Section:"",Date:"",Auditor:""}],
-      approvers:[{Role:"",Level:"",Name:"",Type:"One",Index:0, appEx:"", itemId:"",errLevel:"",errType:""}],
+      approvers:[{Role:"",Level:"",Name:"",Type:"",Index:0, appEx:"", itemId:""}],
       isChecked:false,
       requestSign:false,
       forApproval:false,
@@ -179,7 +181,7 @@ export class FormComponent extends React.Component<IFormProps, IState> {
   subject:"",  
   background:"",
   issues: "",
-  recommendations: [{section:"",date:null,approver:"",approverDef:"",hours:"",minutes:"" ,itemId:"",index:0,errSec:'',errHr:'',errMin:'',errTo:''}],
+  recommendations: [{section:"",date:new Date(),approver:"",approverDef:"",hours:"",minutes:"" ,itemId:"",index:0}],
   recommendedApproval: "",
   optionsDepartment:[],
   optionsRole:[],
@@ -220,18 +222,15 @@ export class FormComponent extends React.Component<IFormProps, IState> {
       formNameId:0,
       apprItems:[],
       remarks:"",
-      edItm:'',
-      edType:'',
+      // edItm:props["match"]["params"]["postId"],
+      // edType:props["match"]["params"]["type"],
+      edType:"",
       showApprove:false,
-      allDepartments:[],
       showSubmit:true,
-      approvalItemId:'',
+      // approvalItemId:props["match"]["params"]["itmId"],
       isDisabled:false,
       memoSerialNo:0,
-      reqRolId:0,
-      isSubmit:false,
-      isSave:false,
-      isRework:false
+      reqRolId:0
     };
     this.subOnChange=this.subOnChange.bind(this);
     this.onChangeBack=this.onChangeBack.bind(this);
@@ -280,14 +279,8 @@ export class FormComponent extends React.Component<IFormProps, IState> {
    this.reworkRequest= this.reworkRequest.bind(this);
    this.cancelRequest = this.cancelRequest.bind(this);
    this.onRemarksChange = this.onRemarksChange.bind(this);
-   this.cancelDraft= this.cancelDraft.bind(this);
-   this.subOnClick= this.subOnClick.bind(this);
-   this.onDepClick= this.onDepClick.bind(this);
-   this.bacOnClick = this.bacOnClick.bind(this);
-   this.issOnClick= this.issOnClick.bind(this);
-   this.onRecClick=  this.onRecClick.bind(this);
   }
- 
+  
   async componentDidMount(){
     await this.getDataDepartment();
     await this.getDataRoles();
@@ -296,64 +289,142 @@ export class FormComponent extends React.Component<IFormProps, IState> {
     await this.getFormName();
     await this.getMemoNumber();
     await this.getRequestorRole();
+    this.setState({isDisabled:false})
+    // alert(this.state.isDisabled);
 
-    // Extracting the part after `#/`
-    const url=window.location.href;
-    const parts = url.split("#/")[1].split("/");
+//     const url = window.location.href;
+//     console.log("window url:", url);
+//     const path = url.split(".aspx")[1] || ""; // Extract part after .aspx
+//     console.log("window url path:", path);
+//     if (path.startsWith("#/")) {
+//       const segments = path.replace("#/", "").split("/"); // Remove "#" and split URL
+//       console.log("window url segments:", segments);
+//       const edType = segments[0]; // "approve", "edit", or "view"
+//       console.log("window url Extracted edType:", edType);
+//       const itemId = segments[1] ? parseInt(segments[1]) : null; // Extract itemId (23)
+//       console.log("window url Extracted itemId:", itemId);
+//       this.setState({ edType, itemId });
+//       console.log("Extracted edType:", edType);
+//       console.log("Extracted itemId:", itemId);
+//       if(edType===""){
+//         // alert("new form");
+//         this.getData();
+//         this.setState({isDisabled:false})
+//         this.setState({showApprove:false});
+//         this.setState({showSubmit: true});
+//       }
+//      else if(edType==="approve"){
+//         // alert("approve");
+//         this.setState({isDisabled:true})
+//               this.setState({showApprove:true});
+//               this.setState({showSubmit: false});
+//         this.getData();
+//       }
+//       else if(edType==="edit"){
+   
+//     //  alert("edit");
+// this.getData();
+// this.setState({isDisabled:false})
+// this.setState({showApprove:false});
+// this.setState({showSubmit: true});
+//       } else if(edType==="view")
+//       {
+//         // alert("view");
+//         this.getData();
+//       this.setState({isDisabled:true})
+// this.setState({showApprove:false});
+// this.setState({showSubmit: false});
+//       }
+//       else{
 
-    const programName = decodeURIComponent(parts[0]); // "Annual Audit Program"
-    const editType = parts[1]; // "edit"
-    const id = parts[2]; // "165"
+//       }
+//     }
 
-    console.log("Program Name:", programName);
-    console.log("Edit Type:", editType);
-    console.log("ID:", id);
-    alert(`${programName},${editType},${id}`);
-    // Set state
-    // this.setState((prevState) => ({
-    //   edItm: id ? id : prevState.edItm, // Update only if `id` exists
-    //   edType: editType ? editType : prevState.edType // Update only if `editType` exists
-    // }));
-    if(id){
-      this.setState({edItm:id})
-    }
-    if(editType){
-      this.setState({edType:editType})
-    }
-    
-    alert(`after setting edtype and edItem ${this.state.edItm},${this.state.edType}`);
-    if(this.state.edType=="approve"){
-    //  alert("approve");
-    const approvalItemId= parts[3];
-    if(approvalItemId){
-      this.setState({approvalItemId:approvalItemId})
-    }
-    
-      this.getData();
-      this.setState({isDisabled:true})
-      this.setState({showApprove:true});
-      this.setState({showSubmit: false});
-     
-    }
-    else if(this.state.edType =="edit"){
-//alert("edit");
-this.getData();
-this.setState({isDisabled:false})
-this.setState({showApprove:false});
-this.setState({showSubmit: true});
+// new code by musaib
 
-    }
-    else if(this.state.edType=="view"){
-      this.getData();
-      this.setState({isDisabled:true})
-this.setState({showApprove:false});
-this.setState({showSubmit: false});
+const url = window.location.href;
+console.log("window url:", url);
 
-    }
-    else{
-//alert("new");
+// 🔹 Extract part after `.aspx`
+const path = url.split(".aspx")[1] || "";
+console.log("window url path:", path);
 
-    }
+if (path.startsWith("#/")) {
+  // 🔹 Remove "#" and split URL segments
+  const segments = path.replace("#/", "").split("/");
+  console.log("window url segments:", segments);
+
+  // 🔹 Extract Process Name, Action Type, and Item ID
+  const processName = segments[0]; // e.g., "Annual Audit Program"
+  const edType = segments[1]; // "View" or "Edit"
+  const itemId = segments[2] ? parseInt(segments[2]) : null; // Extract itemId
+
+  console.log("Extracted processName:", processName);
+  console.log("Extracted edType:", edType);
+  console.log("Extracted itemId:", itemId);
+
+  this.setState({ edType, itemId });
+
+  // 🔹 Handling Different Cases Based on `edType`
+  if (!edType) {
+    // 🔹 New Form Case
+    this.getData();
+    this.setState({
+      isDisabled: false,
+      showApprove: false,
+      showSubmit: true
+    });
+  } else if (edType.toLowerCase() === "approve") {
+    // 🔹 Approval Mode
+    this.setState({
+      isDisabled: true,
+      showApprove: true,
+      showSubmit: false
+    });
+    this.getData();
+  } else if (edType.toLowerCase() === "edit") {
+    // 🔹 Edit Mode
+    this.getData();
+    this.setState({
+      isDisabled: false,
+      showApprove: false,
+      showSubmit: true
+    });
+  } else if (edType.toLowerCase() === "view") {
+    // 🔹 View Mode
+    this.getData();
+    this.setState({
+      isDisabled: true,
+      showApprove: false,
+      showSubmit: false
+    });
+  }
+}
+
+// const hash = window.location.hash; // Get the URL hash
+// console.log("window url hash:", hash);
+// const pathParts = hash.split("/"); // Split the URL by "/"
+// console.log("window url pathParts:", pathParts);
+// // Extract the action type (approve/edit/view) and itemId
+// let edType :any = "";
+// let itemId :any = 0;
+
+// if (pathParts.length >= 3) {
+//   edType = pathParts[1]; // Get the action type (approve/edit/view)
+//   itemId = parseInt(pathParts[2], 10); // Get the itemId
+//   console.log("window url edType:", edType);
+//   console.log("window url itemId:", itemId);
+// }
+
+// console.log("URL Action Type:", edType);
+// console.log("Item ID:", itemId);
+
+// // Update the state based on the URL
+// this.setState({ edType, itemId }, () => {
+//   // After setting state, run conditional logic
+//   // this.handlePageState();
+// });
+
   }
 
   componentWillReceiveProps() {  
@@ -368,17 +439,13 @@ this.setState({showSubmit: false});
       spHttpClient: this.props.context.spHttpClient
   }; 
 
- 
+    console.log("here is data of peoplePickerContext",peoplePickerContext);
  
   var items=  this.state.recommendations.map((item: any,i:number) => {  
-    var idtxt="txtRec_"+i;
-    var idHr="txtHr_"+i;
-    var idMin="txtMin_"+i
-   // var idAss="ppAss_"+i;
  return(
     <tr className='tblCls'>
      <td>
-     <TextField id={idtxt} className={this.state.recommendations[i].errSec} value={this.state.recommendations[i].section} onChange={(e) => this.onSectionChange(e,i)} disabled={this.state.isDisabled} ></TextField>
+     <TextField value={this.state.recommendations[i].section} onChange={(e) => this.onSectionChange(e,i)} disabled={this.state.isDisabled} ></TextField>
      </td>
      <td>
      <DateTimePicker  dateConvention={DateConvention.Date}  value={this.state.recommendations[i].date} disabled={this.state.isDisabled}
@@ -386,18 +453,18 @@ this.setState({showSubmit: false});
         onChange={(date: Date) =>this.setDueDate(date,i)}/>
           </td>
      <td>
-     <Dropdown id={idHr} className={this.state.recommendations[i].errHr}  placeholder="Select" selectedKey={this.state.recommendations[i].hours}  options={optionsHours} styles={dropdownStylesNew} onChange={(e,itm:IDropdownOption) => this.onHoursChange(e,itm,i)} disabled={this.state.isDisabled}/>
+     <Dropdown  placeholder="Select" selectedKey={this.state.recommendations[i].hours}  options={optionsHours} styles={dropdownStylesNew} onChange={(e,itm:IDropdownOption) => this.onHoursChange(e,itm,i)} disabled={this.state.isDisabled}/>
     </td><td>
-     <Dropdown id={idMin} className={this.state.recommendations[i].errMin}  placeholder="Select" selectedKey={this.state.recommendations[i].minutes}  options={optionsMinutes} styles={dropdownStylesNew} onChange={(e,itm:IDropdownOption) => this.onMinutesChange(e,itm,i)} disabled={this.state.isDisabled}/>
+     <Dropdown placeholder="Select" selectedKey={this.state.recommendations[i].minutes}  options={optionsMinutes} styles={dropdownStylesNew} onChange={(e,itm:IDropdownOption) => this.onMinutesChange(e,itm,i)} disabled={this.state.isDisabled}/>
        
   
      </td>
      <td>
-     <PeoplePicker peoplePickerWPclassName={this.state.recommendations[i].errTo} ensureUser={true}  disabled={this.state.isDisabled}  context={peoplePickerContext} personSelectionLimit={1} groupName={""} showtooltip={true}  searchTextLimit={5} onChange={(e) =>this._getPeoplePickerItemsAud(e,i)} 
+     <PeoplePicker disabled={this.state.isDisabled} ensureUser={true} context={peoplePickerContext} personSelectionLimit={1} groupName={""} showtooltip={true}  searchTextLimit={5} onChange={(e) =>this._getPeoplePickerItemsAud(e,i)} 
          defaultSelectedUsers={this.state.recommendations[i].approverDef ? this.state.recommendations[i].approverDef : []}   principalTypes={[PrincipalType.User]} resolveDelay={1000} />
      </td>
     
-     <td><button   onClick={(e) =>this.deleteItem(i)}>Delete</button></td>
+     <td style={{minWidth:'80px',maxWidth:'80px'}}><img className='mt-1' onClick={(e) =>this.deleteItem(i)} src={require("../../assets/del.png")} alt="delete"/> </td>
      </tr>
     
   ) 
@@ -409,7 +476,12 @@ this.setState({showSubmit: false});
         {item.name }  
         </td>
         <td>
-          <button onClick={(e) =>this.removeFiles(i)}>Delete</button>
+        <img onClick={(e) =>this.removeFiles(i)}
+                        className="fas fa-trash"
+                        src={require("../../assets/del.png")}
+                        alt="delete"
+                      />
+          {/* <button onClick={(e) =>this.removeFiles(i)}>Delete</button> */}
         </td>
       </tr> 
        )    
@@ -423,13 +495,12 @@ this.setState({showSubmit: false});
         {item.Name }  
         </td>
         <td>
-      {<a href={item.Path} target="_blank">Link</a>}
-        </td>
-        <td>
-      {item.Uploaded}
-        </td>
-        <td>
-          <button onClick={(e) =>this.toBeDeleted(i)} disabled={this.state.isDisabled}>Delete</button>
+        <img onClick={(e) =>this.toBeDeleted(i)}
+                        className="fas fa-trash"
+                        src={require("../../assets/del.png")}
+                        alt="delete"
+                      />
+          {/* <button onClick={(e) =>this.toBeDeleted(i)}>Delete</button> */}
         </td>
       </tr> 
        )    
@@ -438,23 +509,34 @@ this.setState({showSubmit: false});
    var approval = this.state.approvers.map((item: any,i:number) => {  
     return(
        <tr className='tblCls'>
-        <td>
+        <td style={{minWidth:'60px', maxWidth:'60px',textAlign:'center'}}>
         <TextField value={(i+1).toString()} disabled={true} className={styles.width} ></TextField>
         </td>
-        <td>
-        <Dropdown className={this.state.approvers[i].errLevel} placeholder="Select" disabled={this.state.isDisabled} selectedKey={this.state.approvers[i].Role} options={this.state.optionsRole} styles={dropdownStyles} onChange={(e,itm:IDropdownOption) => this.onRoleChange(e,itm,i)}/>
+        <td style={{minWidth:'100px', maxWidth:'100px'}}>
+        <Dropdown placeholder="Select" disabled={this.state.isDisabled} selectedKey={this.state.approvers[i].Role} options={this.state.optionsRole} styles={dropdownStyles} onChange={(e,itm:IDropdownOption) => this.onRoleChange(e,itm,i)}/>
         </td>
         <td>
         <TextField value={(i+1).toString()} disabled={true}></TextField>
         </td>
         <td>
-        <PeoplePicker peoplePickerWPclassName={this.state.approvers[i].errType} ensureUser={true}  context={peoplePickerContext} personSelectionLimit={5} groupName={""} showtooltip={true}  disabled={this.state.isDisabled} searchTextLimit={5} onChange={(e) =>this._getPeoplePickerItemsApp(e,i)}
-           defaultSelectedUsers={this.state.approvers[i].appEx ? this.state.approvers[i].appEx : []}  principalTypes={[PrincipalType.User]} resolveDelay={1000} />
+        {/* <Select options={this.state.options} /> */}
+        <PeoplePicker ensureUser={true} context={peoplePickerContext} personSelectionLimit={5} groupName={""} showtooltip={true}  disabled={this.state.isDisabled} searchTextLimit={5} onChange={(e) =>this._getPeoplePickerItemsApp(e,i)}
+           defaultSelectedUsers={this.state.approvers[i].appEx ? this.state.approvers[i].appEx : []}
+           
+           principalTypes={[PrincipalType.User]} resolveDelay={1000} />
         </td>
         <td>
         <Dropdown disabled={this.state.isDisabled} placeholder="Select" selectedKey={this.state.approvers[i].Type} options={optionsApp} styles={dropdownStylesNew} onChange={(e,itm:IDropdownOption) => this.onTypeChange(e,itm,i)}/>
      </td>
-        <td><button   onClick={(e) =>this.deleteItemApp(i)}>Delete</button></td>
+        <td style={{minWidth:'80px', maxWidth:'80px',textAlign:'center'}}>
+        <img onClick={(e) =>this.deleteItemApp(i)}
+                        className="fas fa-trash"
+                        src={require("../../assets/del.png")}
+                        alt="delete"
+                      />
+          {/* <button className='mt-0'  onClick={(e) =>this.deleteItemApp(i)}>Delete</button> */}
+          
+          </td>
         </tr>
        
      ) 
@@ -463,31 +545,31 @@ this.setState({showSubmit: false});
       var auditHistory = this.state.apprItems.map((item: any,i:number) => {
         return(
           <tr>
-            <td>
+            <td style={{minWidth:'60px',maxWidth:'60px,', textAlign:'center'}}>
             {i+1}
             </td>
-            <td>
+            <td style={{minWidth:'60px',maxWidth:'60px'}}>
                 {item.Level}                  
             </td>
-            <td>
+            <td style={{minWidth:'85px',maxWidth:'85px'}}>
                 {item.AssignedTo}
             </td>
-            <td>
+            <td style={{minWidth:'85px',maxWidth:'85px'}}>
                 {item.RequesterName}
-            </td>
-            <td>
+            </td >
+            <td style={{minWidth:'80px',maxWidth:'80px'}}>
             {new Date(item.RequestedDate).getDate()+"/" +new Date(item.RequestedDate).getMonth()+"/"+ new Date(item.RequestedDate).getFullYear()}
             </td>
-            <td>
+            <td style={{minWidth:'100px',maxWidth:'100px'}}>
             {item.ActionTakenBy}
             </td>
-            <td>
-            {item.ActionTakenOn==''?'': new Date(item.ActionTakenOn).getDate()+"/" +new Date(item.ActionTakenOn).getMonth()+"/"+ new Date(item.ActionTakenOn).getFullYear()}                    
+            <td style={{minWidth:'100px',maxWidth:'100px'}}>
+            { new Date(item.ActionTakenOn).getDate()+"/" +new Date(item.ActionTakenOn).getMonth()+"/"+ new Date(item.ActionTakenOn).getFullYear()}                    
             </td>
-            <td>
+            <td style={{minWidth:'80px',maxWidth:'80px'}}>
               {item.Remarks}
             </td>
-            <td>
+            <td style={{minWidth:'80px',maxWidth:'80px'}}>
             {item.Status}
             </td>
           </tr> 
@@ -499,73 +581,149 @@ this.setState({showSubmit: false});
     
       <section>
       
-          <section className={styles.sec} >
+          <section style={{borderRadius:'20px'}} className='card card-body newf'>
+         
             <fieldset disabled={this.state.isDisabled}>
-            <h3>Memo Details</h3>
-          <div className={styles['cl-12']}>
-           <label>For Information *</label> 
-           <Checkbox className={this.state.isInfo ? "":styles.errCls} checked={this.state.isChecked} label="For Information"  onChange={this.onInfoChange}  disabled={this.state.isDisabled}/>
-             <Checkbox id="reqSign" checked={this.state.requestSign} className={styles['cl-3']}  label="Request for Signing" onChange={this.onSignChange} disabled={this.state.isDisabled}/>
-           <Checkbox  className={styles['cl-3']}  checked={this.state.forApproval} label="For Approval" onChange={this.onAppChange} disabled={this.state.isDisabled}/>
+            <h3 className='text-dark font-16 mb-0'>Memo Details  <div style={{float:'right'}} className='btn btn-secondary' onClick={this.props.onClose}>Back</div></h3>
+            <label className='sub-header'>For Information</label> 
+          <div className='row'>
+
+            <div className='col-sm-3 mb-3'>
+            <Checkbox className={this.state.isInfo ? "":styles.errCls} checked={this.state.isChecked} label="For Information *"  onChange={this.onInfoChange} />
+            </div>
+            <div className='col-sm-3 mb-3'>
+            <Checkbox id="reqSign" checked={this.state.requestSign}   label="Request for Signing *" onChange={this.onSignChange}/>
+
+            </div>
+            <div className='col-sm-3 mb-3'>
+            <Checkbox checked={this.state.forApproval} label="For Approval *" onChange={this.onAppChange}/>
+            </div>
+           
+           
+             
+          
           </div>
-          <Dropdown  id="dept" placeholder="Select" label="Department" required={true} options={this.state.optionsDepartment} styles={dropdownStyles}  selectedKey={(this.state.department)}  onFocus={this.onDepClick} onChange={this.onDepartmentChange} disabled={this.state.isDisabled}/>
-          <TextField label="Memo Number" className={this.state.errDep ? "":styles.errCls}  required={ true } value={(this.state.memoNumber)} name='memoNumber' disabled={true}/>
-          <TextField label="From" required={ true } defaultValue={(this.props.userDisplayName)} name='lastname' disabled={true}/>
-          <PeoplePicker  errorMessage={this.state.errTo} ensureUser={true}  context={peoplePickerContext}  titleText="To"  personSelectionLimit={3}   groupName={""}   showtooltip={true}  required={true} disabled={this.state.isDisabled}  searchTextLimit={5}
+          <div className='row'>
+            <div className='col-sm-4 mb-3'>
+            <Dropdown style={{width:'100%'}} id="dept" className={this.state.errDep ? "":styles.errCls} placeholder="Select options" label="Department" options={this.state.optionsDepartment} styles={dropdownStyles} required={true} selectedKey={(this.state.department)} onChange={this.onDepartmentChange} disabled={this.state.isDisabled}/>
+            </div>
+            <div className='col-sm-4 mb-3'>
+            <TextField label="Memo Number" className={this.state.errDep ? "":styles.errCls}  required={ true } value={(this.state.memoNumber)} name='memoNumber' disabled={true}/>
+            </div>
+            <div className='col-sm-4 mb-3'>
+            <TextField label="From" required={ true } defaultValue={(this.props.userDisplayName)} name='lastname' disabled={true}/>
+            </div>
+            <div className='col-sm-4 mb-3'>
+               <PeoplePicker ensureUser={true} errorMessage={this.state.errTo}  context={peoplePickerContext}  titleText="To"  personSelectionLimit={3}   groupName={""}   showtooltip={true}  required={true} disabled={this.state.isDisabled}  searchTextLimit={5}
              onChange={this._getPeoplePickerItemsTo} defaultSelectedUsers={this.state.toUsers ? this.state.toUsers : []}  principalTypes={[PrincipalType.User]} resolveDelay={1000} />
-          <PeoplePicker  errorMessage={this.state.errCC} ensureUser={true}  context={peoplePickerContext} titleText="CC"  personSelectionLimit={3} validateOnFocusOut={true} groupName={""} showtooltip={true} required={true} disabled={this.state.isDisabled} searchTextLimit={5} onChange={this._getPeoplePickerItems}
+
+            </div>
+            <div className='col-sm-4 mb-3'>
+            <PeoplePicker ensureUser={true} errorMessage={this.state.errCC} context={peoplePickerContext} titleText="CC" personSelectionLimit={3} groupName={""} showtooltip={true} required={true} disabled={this.state.isDisabled} searchTextLimit={5} onChange={this._getPeoplePickerItems}
               principalTypes={[PrincipalType.User]} defaultSelectedUsers={this.state.ccUsers ? this.state.ccUsers : []} resolveDelay={1000} />
-           <TextField label="Subject" id="sub" errorMessage={this.state.errSub} required={ true }  onNotifyValidationResult={this.subOnClick}  validateOnFocusOut={true} value={this.state.subject} onClick={this.subOnClick}   onChange ={this.subOnChange} name='lastname' disabled={this.state.isDisabled}/>
-            <DateTimePicker label="Date" showLabels={false} dateConvention={DateConvention.Date}  value={this.state.dueDate}
+
+            </div>
+            <div className='col-sm-4 mb-3'>
+            <TextField label="Subject" id="sub" errorMessage={this.state.errSub} required={ true }  value={this.state.subject}    onChange ={this.subOnChange} name='lastname' disabled={this.state.isDisabled}/>
+
+              </div>
+              <div className='col-sm-4 newdate mb-3'>
+
+              <DateTimePicker  dateConvention={DateConvention.Date}  value={this.state.dueDate}
                formatDate={(date: Date) => date.toLocaleDateString()}
         onChange={(date: Date) => this.setState({ dueDate: date })} disabled={this.state.isDisabled}/>
-           <TextField id="bac" errorMessage={this.state.errback} multiline autoAdjustHeight value={this.state.background}  onNotifyValidationResult={this.bacOnClick}  validateOnFocusOut={true} onChange={this.onChangeBack} required={ true } label="Background"  disabled={this.state.isDisabled}/>
-          <TextField id="iss" errorMessage={this.state.errIss} multiline autoAdjustHeight value={this.state.issues}  onNotifyValidationResult={this.issOnClick}  validateOnFocusOut={true} onChange={this.onChangeIss} required={ true } label="Issues" disabled={this.state.isDisabled} />
+
+                </div>
+
+                <div className='col-sm-4 mb-3'>
+                <TextField id="bac" errorMessage={this.state.errback} multiline autoAdjustHeight value={this.state.background} onChange={this.onChangeBack} required={ true } label="Background"  disabled={this.state.isDisabled}/>
+
+
+                </div>
+
+                <div className='col-sm-4 mb-3'>
+
+                <TextField id="iss" errorMessage={this.state.errIss} multiline autoAdjustHeight value={this.state.issues} onChange={this.onChangeIss} required={ true } label="Issues" disabled={this.state.isDisabled} />
+
+                  </div>
+            </div>
+
+         
+         
+         
+          
+          
+            
+          
+          
           <label>Recommendation</label>
-          <button  onClick={this.addRow}>Add
-</button>     
-    <table id="tabRec">
+             
+    <table id="tabRec" className='mtbalenew'>
+      <thead>
+      <tr><th>Section</th>
+            <th>Date</th>
+            <th colSpan={2}>Time</th>
+            <th>Auditor</th>
+            <th style={{minWidth:'80px',maxWidth:'80px'}}>Delete</th>
+            </tr>  
+      </thead>
          
           <tbody>  
-            <tr><td>Section</td>
-            <td>Date</td>
-            <td colSpan={2}>Time</td>
-            <td>Auditor</td>
-            <td>Delete</td>
-            </tr>     
+              
         { items }
         </tbody>
          
         </table>
-
+        <div style={{display:'flex', justifyContent:'end'}} className=''>
+        <div className="float-right"><img className='mt-1' style={{width:'30px'}} onClick={this.addRow} src={require("../../assets/plus.png")} alt="delete"/>
+        </div> 
+        </div>
          
          
-           <TextField  id="rec" errorMessage={this.state.errRecoApp} multiline autoAdjustHeight value={this.state.recommendedApproval} onNotifyValidationResult={this.onRecClick}  validateOnFocusOut={true}   onChange={this.onChangeRecomApproval} required={ true }  label="Recommendation for Approval" disabled={this.state.isDisabled}/>   
+           <TextField  id="rec" errorMessage={this.state.errRecoApp} multiline autoAdjustHeight value={this.state.recommendedApproval}   onChange={this.onChangeRecomApproval} required={ true }  label="Recommendation for Approval" disabled={this.state.isDisabled}/>   
           
        
             </fieldset>
             </section>
          
-         <section className={styles.sec}>
-          <fieldset >
-          <h3> Audit Programme Detail</h3>
+         <section style={{borderRadius:'20px'}} className='card card-body mt-2'>
+          <fieldset disabled={this.state.isDisabled}>
+          <h3 className='text-dark font-16 mb-3'> Audit Programme Detail</h3>
+          <div className='row'>
+            <div className='col-sm-4 mb-3'>
+            <Dropdown placeholder="Select options" label="Type" onChange={this.onYearSelect} options={this.state.options}  selectedKey={(this.state.type)} styles={dropdownStyles} />
 
-<Dropdown id="drpType" placeholder="Select" label="Type *" onChange={this.onYearSelect} options={this.state.options}  selectedKey={(this.state.type)} styles={dropdownStyles} disabled={this.state.isDisabled}/>
-<Dropdown id="drpYear"
-placeholder="Select"
-label="Year *" selectedKey={(this.state.year)} 
+            </div>
+            <div className='col-sm-4 mb-3'>
+            <Dropdown
+placeholder="Select options"
+label="Year" selectedKey={(this.state.year)} 
 options={optionsYear}
 styles={dropdownStyles} onChange={this.onYearChange} disabled={this.state.isDisabled}
 />
-<Dropdown id="drpMonths"
-placeholder="Select" selectedKey={(this.state.month)} 
-label="Months *" disabled={this.state.showMonth || this.state.isDisabled}
+
+            </div>
+            <div className='col-sm-4 mb-3'>
+            <Dropdown 
+placeholder="Select options" selectedKey={(this.state.month)} 
+label="Months" disabled={this.state.showMonth || this.state.isDisabled}
 options={optionMonths}
 styles={dropdownStyles} onChange={this.onMonthChange} 
 />
-<input className="form-control" type="file" disabled={this.state.isDisabled} name="myFile" onChange={(e)=>this.handleFileChange(e,this)}  id="newfile" multiple/>
-      <label>FIles Selected:</label>  <button  onClick={this._OpenModal}>{this.state.fileCount}</button>
-         <table>
+
+            </div>
+            <div className='col-sm-4 mb-3'>
+            <input style={{height:'36px'}} className="form-control mb-2" type="file" name="myFile" onChange={(e)=>this.handleFileChange(e,this)}  id="newfile" multiple/>
+       <div style={{display:'flex', gap:'5px'}}><label>FIles Selected:</label>  <span onClick={this._OpenModal}>{this.state.fileCount}</span></div>
+
+            </div>
+          </div>
+
+
+
+
+
+         <table className='mtbalenew'>
           <tbody>
             {fileData}
           </tbody>
@@ -573,85 +731,105 @@ styles={dropdownStyles} onChange={this.onMonthChange}
           </fieldset>
          
          </section>
-         <section className={styles.sec}>
+         <section  style={{borderRadius:'20px'}} className='card card-body mt-2'>
          <fieldset disabled={this.state.isDisabled}>
-         <h3> Approval Detail</h3>
-         <button  onClick={this.addApprover}>Add
-         </button>     
-         <table id="tblAppr">
-         
-         <tbody>       
-          <tr><td>Sl.</td>
-          <td>Role</td>
-          <td>Approver Level</td>
-          <td>Approver Name</td>
-          <td>Approval Type</td>
-          <td>Delete</td>
+          <div className='row'>
+            <div className='col-sm-6'>
+            <h3 className='text-dark font-16 mt-1 mb-0'> Approval Detail</h3>
+            </div>
+            <div className='col-sm-6'>
+            <div style={{display:'flex',justifyContent:'end'}}>
+            <div className="float-right"><img className='mt-0 mb-2' style={{width:'30px'}} onClick={this.addApprover} src={require("../../assets/plus.png")} alt="delete"/>
+            </div> 
+         {/* <button className='btn btn-secondary mt-0'  onClick={this.addApprover}>Add
+         </button>     */}
+         </div> 
+
+            </div>
+          </div>
+        
+      
+         <table id="tblAppr" className='mtbalenew'>
+         <thead>
+          <tr><th style={{minWidth:'60px', maxWidth:'60px'}}>S.No</th>
+          <th style={{minWidth:'100px', maxWidth:'100px'}}>Role</th>
+          <th>Approver Level</th>
+          <th>Approver Name</th>
+          <th>Approval Type</th>
+          <th style={{minWidth:'80px', maxWidth:'80px'}}>Delete</th>
           </tr>
+            
+            </thead> 
+         
+         <tbody>
+              
+         
        { approval }
        </tbody>
         
        </table>
         </fieldset>
          </section>
-         
+         <section style={{borderRadius:'20px'}} id='audit' className='card card-body mt-2'>
+        
+                  <h3 style={{margin:'inherit'}} className='text-dark font-16 mb-0'>Audit Trial</h3>
+                 <div style={{display:'grid'}}>
+                  <table className='mtbalenew mt-3'>
+                    <thead>
+                      <tr>
+                      <th style={{minWidth:'60px',maxWidth:'60px'}}>S.No</th>
+                      <th style={{minWidth:'60px',maxWidth:'60px'}}>Level</th>
+                        <th style={{minWidth:'80px',maxWidth:'80px'}}>Assigned To</th>
+                        <th style={{minWidth:'85px',maxWidth:'85px'}}>Requestor Name</th>
+                        <th style={{minWidth:'85px',maxWidth:'85px'}}>Requested Date</th>
+                        <th style={{minWidth:'100px',maxWidth:'100px'}}>Action Taken By</th>
+                        <th style={{minWidth:'100px',maxWidth:'100px'}}>Action Taken On</th>
+                        <th style={{minWidth:'80px',maxWidth:'80px'}}>Remarks</th>
+                        <th style={{minWidth:'80px',maxWidth:'80px'}}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                          {auditHistory}
+                    </tbody>
+                  </table>
+                  </div>
+                </section>
 
-   {this.state.showSubmit &&  <section id="editDetails">
-      <PrimaryButton className={styles['mar-10']} onClick={this.createDraft}>Save As Draft</PrimaryButton>
-      <PrimaryButton className={styles['mar-10']} onClick={this.submitDraft}>Submit</PrimaryButton> 
-      <PrimaryButton className={styles['mar-10']} onClick={this.cancelDraft}>Cancel</PrimaryButton> 
+   {this.state.showSubmit &&  <section style={{display:'flex', justifyContent:'center', gap:'10px'}} id="editDetails">
+      <PrimaryButton  className='btn btn-primary' onClick={this.createDraft}>Save As Draft</PrimaryButton>
+      <PrimaryButton className='btn btn-primary' onClick={this.submitDraft}>Submit</PrimaryButton> 
       </section>}
       {this.state.showApprove &&
-      <section id="approvalSection">
+      <section style={{borderRadius:'20px'}} id="approvalSection">
            <Field label="Remarks">
             <Textarea id="comm" value={this.state.remarks} onChange={this.onRemarksChange} />
           </Field>
-                     <PrimaryButton className={styles['mar-10']} onClick={this.approveRequest}>Approve</PrimaryButton>
-                      <PrimaryButton  className={styles['mar-10']} onClick={this.rejectRequest}>Reject</PrimaryButton>
-                       <PrimaryButton className={styles['mar-10']} onClick={this.reworkRequest}>Rework</PrimaryButton>
+                     <PrimaryButton onClick={this.approveRequest}>Approve</PrimaryButton>
+                      <PrimaryButton onClick={this.rejectRequest}>Reject</PrimaryButton>
+                       <PrimaryButton onClick={this.reworkRequest}>Rework</PrimaryButton>
                        <a href='#/listing'> <PrimaryButton onClick={this.cancelRequest}>Cancel</PrimaryButton></a>
         
       </section>}
-      <section id='audit'>
         
-        <label>Audit Trial</label>
-        <table>
-          <thead>
-            <tr>
-            <th>Sl No</th>
-            <th>Level</th>
-              <th>Assigned To</th>
-              <th>Requestor Name</th>
-              <th>Requested Date</th>
-              <th>Action Taken By</th>
-              <th>Action Taken On</th>
-              <th>Remarks</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-                {auditHistory}
-          </tbody>
-        </table>
-      </section>
           {this.state.showDialog && <div id="myModal" className={styles.modal}>
-           
-      <div className={styles.modalcontent}>
-      <span><b>Attachment Details</b></span>
-            <br/>
-            <span>Below are the attachment details for the Initiative</span>
+      <div style={{width:'50%'}} className={styles.modalcontent}>
           <span className={styles.close} onClick={e => this._CloseModal()}>&times;</span>
-          <table>
+          <table className='mtbalenew'>
             <thead>
-            <th>File Name</th>
-              <th>File Link</th>
-              <th>Upload Date</th>
-              <th>Delete</th>
+              <tr>
+                <th>File Name</th>
+              </tr>
             </thead>
-         
+            <tbody>
+      
+            {fileData}
+           
+            </tbody>
+          </table>
+          <table>
+            <tr><td>Uploaded Files</td></tr>
             {upFiles}
           </table>
-         
       </div>
    </div>}
       </section>
@@ -667,56 +845,95 @@ styles={dropdownStyles} onChange={this.onMonthChange}
   }*/
 
     //save as draft
-    private async createDraft(){ 
-      this.clearAllValidations();
-      this.setState({errDep:true});
-      this.setState({isSubmit:false});
-      this.setState({isSave:true}); 
-      var _self= this;
-      var isValid= true;
-          if(_self.state.department ==0){
-            document.getElementById('dept-option')?.classList.add(styles.errCls);
-            isValid = false;
-          }
-          if(_self.state.isChecked ==false && _self.state.requestSign ==false && _self.state.forApproval){
-            document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.add(styles.errCh);
-            document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.add(styles.errCh);
-            document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.add(styles.errCh);
-            isValid = false;    
-          }
-          //if(_self.state.requestSign ==false){
-         //   document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.add(styles.errCh);
-         //   isValid = false;
+    // private async createDraft(){ 
+    //   this.setState({errDep:true}) 
+    //   var _self= this;
+    //   var isValid= true;
+    //       if(_self.state.department ==0){
+    //         document.getElementById('dept-option')?.classList.add(styles.errCls);
+    //         isValid = false;
+    //       }
+          
+    //       if(_self.state.requestSign ==false){
+    //         document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.add(styles.errCh);
+    //         isValid = false;
 
-       //   }
+    //       }
            
-          if(isValid){
-            Swal.fire({ title: 'Do you want to save this request?',  
-              showCancelButton: true,  
-              confirmButtonText: 'Yes',
-              cancelButtonText:'No'
-              }).then(function(val){
-               if(val.isConfirmed){
-                _self.saveAsDraft= _self.saveAsDraft.bind(_self);
-            if(_self.state.itemId ==0){
-          _self.saveAsDraft();
-            }
-            else{
+    //       if(isValid){
+    //         Swal.fire({ title: 'Do you want to save this request?',  
+    //           showCancelButton: true,  
+    //           confirmButtonText: 'Yes',
+    //           cancelButtonText:'No'
+    //           }).then(function(val){
+    //            if(val.isConfirmed){
+    //             _self.saveAsDraft= _self.saveAsDraft.bind(_self);
+    //         if(_self.state.itemId ==0){
+    //       _self.saveAsDraft();
+    //         }
+    //         else{
+    //           _self.updateDraft();
+    //         }
+    //             }          
+    //           });           
+    //       }
+    //       else{
+    //         Swal.fire({title:"Mandatory fields missing as draft"});
+    //       }
+     
+     
+    //   } 
+    private async createDraft() { 
+      this.setState({ errDep: true });
+      
+      var _self = this;
+      var isValid = true;
+      let missingFields: string[] = [];
+    
+      // Check Department
+      if (_self.state.department == 0) {
+        document.getElementById('dept-option')?.classList.add(styles.errCls);
+        missingFields.push("Department");
+        isValid = false;
+      }
+    
+      // Check Request Sign
+      if (_self.state.requestSign == false) {
+        document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.add(styles.errCh);
+        missingFields.push("Request Sign");
+        isValid = false;
+      }
+    
+      if (isValid) {
+        Swal.fire({ 
+          title: 'Do you want to save this request?',  
+          showCancelButton: true,  
+          confirmButtonText: 'Yes',
+          cancelButtonText: 'No'
+        }).then(function (val) {
+          if (val.isConfirmed) {
+            _self.saveAsDraft = _self.saveAsDraft.bind(_self);
+            if (_self.state.itemId == 0) {
+              _self.saveAsDraft();
+            } else {
               _self.updateDraft();
             }
-                }          
-              });           
-          }
-          else{
-            Swal.fire({title:"Please fill the mandatory fields."});
-          }
-     
-     
-      } 
+          }          
+        });
+      } else {
+        // Show missing fields in the error alert
+        Swal.fire({
+          title: "Mandatory fields missing",
+          text: `Please fill in the following fields: ${missingFields.join(", ")}`,
+          icon: "error"
+        });
+      }
+    }
+    
 
       private updateRecommendations(id:number, it:any){
-        const spCache = spfi(this._sp).using(Caching({store:"session"}));
-       console.log(spCache);
+        const spCache =  spfi(this._sp).using(Caching({store:"session"}));
+       console.log(spCache , "sp cache is here") ;
       }
 
   //update draft item
@@ -741,19 +958,10 @@ private async updateDraft(){
       RecommendedforApproval: this.state.recommendedApproval,
      AuditProgramTypeId: this.state.type,
       Year: this.state.year,
-      MonthName: this.state.month,
-        SubmitStatus:"No",
-          Status:"Pending"
+      MonthName: this.state.month
     });
     if(_self.state.recommendations.length>0){
-      _self.state.recommendations.forEach(function(it){  
-        var app;
-        if(it.approver =='' || it.approver == null){
-          app= null;
-        } 
-        else{
-app= it.approver;
-        }
+      _self.state.recommendations.forEach(function(it){   
         if(it.itemId ==""){
           spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.add({
             Title: "Title",
@@ -761,7 +969,7 @@ app= it.approver;
             AnnualAuditProgramId:itemIdAudit,
             Date:it.date,
             Time:it.hours+":"+it.minutes,
-            AuditorId:app
+            AuditorId:it.approver
           });
         } 
         else{
@@ -771,7 +979,7 @@ app= it.approver;
             AnnualAuditProgramId:itemIdAudit,
             Date:it.date,
             Time:it.hours+":"+it.minutes,
-            AuditorId:app
+            AuditorId:it.approver
           }).catch(function(ex){
             console.log(ex.errorMessage);
           });
@@ -801,7 +1009,7 @@ app= it.approver;
             ProcessName:"Annual Audit Program",
            FormNameId: _self.state.formNameId,
            MainListID:_self.state.itemId,
-           RequesterRoleId: _self.state.reqRolId,
+           RequesterRole: _self.state.reqRolId,
            ApproversId: it.Name
           }).catch(function(ex){
             console.log(ex.errorMessage);
@@ -823,7 +1031,7 @@ app= it.approver;
             ProcessName:"Annual Audit Program",
            FormNameId: _self.state.formNameId,
            MainListID:_self.state.itemId,
-           RequesterRoleId: _self.state.reqRolId,
+           RequesterRole: _self.state.reqRolId,
            ApproversId: it.Name
           }).catch(function(ex){
             console.log(ex.errorMessage);
@@ -867,8 +1075,7 @@ app= it.approver;
       })
      
     }
-   Swal.fire({title:"Saved Successfully.", icon:"success"});
-   window.location.href="#"+'/listing';
+   Swal.fire({title:"Saved successfully.", icon:"success"});
    console.log(item);
 }
 
@@ -893,24 +1100,17 @@ var _self= this;
         RecommendedforApproval: this.state.recommendedApproval,
        AuditProgramTypeId: this.state.type,
         Year: this.state.year,
-        MonthName: this.state.month,
-        SubmitStatus:"No",
-          Status:"Pending"
+        MonthName: this.state.month
       });
       if(_self.state.recommendations.length>0){
-        _self.state.recommendations.forEach(function(it){ 
-          var app;  
-          if(it.approver == "" || it.approver == null){
-            app=null;
-          }   
-          else app= it.approver;    
+        _self.state.recommendations.forEach(function(it){          
           spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.add({
               Title: "Title",
               Section:it.section,
               AnnualAuditProgramId:item.data.Id,
               Date:it.date,
               Time:it.hours+":"+it.minutes,
-              AuditorId:app
+              AuditorId:it.approver
             });
           });
 
@@ -927,15 +1127,14 @@ var _self= this;
               SubmitStatus:"No",
               Maxlevel:maxLength,
               ContentTitle:_self.state.subject,
-             // RequestId: _self.state.memoNumber,
+              RequestId: _self.state.memoNumber,
               RequesterNameId:_self.state.currUserId,
               MainListID:item.data.Id,
-              ApprovalType:"Approval",
               RequestedDate:new Date(),
               ProcessName:"Annual Audit Program",
              FormNameId: _self.state.formNameId,
              ApproversId: it.Name,
-             RequesterRoleId: _self.state.reqRolId
+             RequesterRole: _self.state.reqRolId,
             }).catch(function(ex){
               console.log(ex.errorMessage);
             })
@@ -956,72 +1155,23 @@ var _self= this;
        
       }
      
-     Swal.fire({title:"Saved Successfully.", icon:"success"});
-     window.location.href="#"+'/listing';
+     Swal.fire({title:"Saved successfully.", icon:"success"});
      console.log(item);
  
 }
-private clearAllValidations(){
-  document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.remove(styles.errCh);
-      document.getElementById('dept-option')?.classList.remove(styles.errCls);
-      document.getElementsByClassName('ms-BasePicker-text')[0]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-BasePicker-text')[1]?.classList.remove(styles.errCh);
-      document.getElementById('sub')?.classList.remove(styles.errCls);
-      document.getElementById('bac')?.classList.remove(styles.errCls);
-      document.getElementById('iss')?.classList.remove(styles.errCls);
-      document.getElementById('rec')?.classList.remove(styles.errCls);
-      document.getElementById('drpType-option')?.classList.remove(styles.errCls);
-      document.getElementById('drpYear-option')?.classList.remove(styles.errCls);
-      document.getElementById('drpMonths-option')?.classList.remove(styles.errCls);
-      this.state.approvers.forEach(function(itm){
-        itm.errName ='';
-        itm.errType='';
-        itm.errLevel ='';
-      });
 
-      this.state.recommendations.forEach(function(itm){
-        itm.errSec ='';
-        itm.errHr ='';
-        itm.errMin ='';
-        itm.errTo ='';
-      });
-}
 
   private async submitAllDraft(){
-         // var _self= this; 
-         
+          var _self= this; 
      // const spCache = spfi(this._sp).using(Caching({store:"session"}));
   var _self= this;
-  var depCode:any = this.state.allDepartments.filter(function(it){
-    return it['Id'] == _self.state.department;
-  })
-//   const getUserId = async (loginName:any) => {
-//     try {
-//         const user = await spfi(this._sp).web.ensureUser(loginName);
-//         alert(user.data.Id)
-//         return user.data.Id;
-//     } catch (error) {
-//         console.error("Error getting user ID for:", loginName, error);
-//         return null;
-//     }
-// };
-
-// // Convert all `ToId` and `CcId` users to their respective IDs
-// const convertUsersToIds = async (userArray:any) => {
-//     const userIds = await Promise.all(userArray.map(getUserId));
-//     return userIds.filter(id => id !== null); // Remove any null values in case of errors
-// };
-
       if(this.state.itemId !=0){
-
         const item = await spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgram").items.getById(this.state.itemId).update({
           Title: "Title",
           Info: this.state.isChecked,
           Sign:this.state.requestSign,
           Approval: this.state.forApproval,
-          MemoNumber: depCode[0].DepartmentCode+"/"+(new Date().getMonth()+1)+"/" +this.state.memoSerialNo,
+          MemoNumber: this.state.departmentVal+"/"+new Date().toLocaleString('default',{month:'short'})+"/" +this.state.memoSerialNo,
          DepartmentId:this.state.department,
          FromId:this.state.currUserId,
          ToId: this.state.toArr,
@@ -1034,13 +1184,10 @@ private clearAllValidations(){
          AuditProgramTypeId: this.state.type,
           Year: this.state.year,
           MonthName: this.state.month,
-          MemoSerialNumber: this.state.memoSerialNo,
-          SubmitStatus:"Yes",
-          Status:"Pending",
-          SubmiitedDate: new Date()
+          MemoSerialNumber: this.state.memoSerialNo
 
         });
-        // const user = await spfi(_self._sp).web.ensureUser(_self.props.userid);
+        
         if(this.state.recommendations.length>0){
           this.state.recommendations.forEach(function(it){   
             if(it.itemId ==""){
@@ -1082,13 +1229,12 @@ private clearAllValidations(){
                 ApprovalType:"Approval",
                 Maxlevel:maxLength,
                 ContentTitle:_self.state.subject,
-                RequestId: depCode[0].DepartmentCode+"/"+(new Date().getMonth()+1)+"/" +_self.state.memoSerialNo,
+                RequestId: _self.state.memoNumber,
                 RequesterNameId:_self.state.currUserId,
                 RequestedDate:new Date(),
                 ProcessName:"Annual Audit Program",
                FormNameId: _self.state.formNameId,
-               RequesterRoleId: _self.state.reqRolId,
-               
+               RequesterRole: _self.state.reqRolId,
                ApproversId: it.Name
               }).catch(function(ex){
                 console.log(ex.errorMessage);
@@ -1106,12 +1252,12 @@ private clearAllValidations(){
                 ApprovalType:"Approval",
                 Maxlevel:maxLength,
                 ContentTitle:_self.state.subject,
-                RequestId: depCode[0].DepartmentCode+"/"+(new Date().getMonth()+1)+"/" +_self.state.memoSerialNo,
+                RequestId: _self.state.memoNumber,
                 RequesterNameId:_self.state.currUserId,
                 RequestedDate:new Date(),
                 ProcessName:"Annual Audit Program",
                FormNameId: _self.state.formNameId,
-               RequesterRoleId: _self.state.reqRolId,
+               RequesterRole: _self.state.reqRolId,
                ApproversId: it.Name
               }).catch(function(ex){
                 console.log(ex.errorMessage);
@@ -1119,15 +1265,7 @@ private clearAllValidations(){
             } 
           })
         }
-        if(_self.state.isRework){
-          const userdata = await spfi(_self._sp).web.currentUser();
-          spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.getById(parseInt(_self.state.approvalItemId)).update({
-            Status: "Approved",
-            ActionTakenById:userdata.Id,
-            ActionTakenOn:new Date()
-          });
 
-        }
         if(_self.state.recomDeleteId.length>0){
           _self.state.recomDeleteId.forEach(function(ids){
             spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.getById(ids).delete();
@@ -1161,25 +1299,21 @@ private clearAllValidations(){
           })
          
         }
-       Swal.fire({title:"Submitted Successfully.", icon:"success"});
-       window.location.href="#"+'/listing';
+       Swal.fire({title:"Submitted successfully.", icon:"success"});
        var tab= document.getElementsByClassName("tblCls");
        console.log(tab);
         //swal({title:"Request created successfully.",icon:"success"});
        console.log(item);
       }
       else{
-        // const toUserIds = await convertUsersToIds(_self.state.toArr);
-        // const ccUserIds = await convertUsersToIds(_self.state.ccArr);
-        // const approvaluser=await convertUsersToIds()
         const item = await spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgram").items.add({
           Title: "Title",
         Info: _self.state.isChecked,
         Sign:_self.state.requestSign,
         Approval: _self.state.forApproval,
-      // MemoNumber:_self.state.memoNumber,
+       // MemoNumber:_self.state.memoNumber,
        DepartmentId:_self.state.department,
-       FromId:this.props.userid,
+       FromId:_self.state.currUserId,
        ToId: _self.state.toArr,
        CcId: _self.state.ccArr,
          Date:_self.state.dueDate,
@@ -1190,21 +1324,19 @@ private clearAllValidations(){
        AuditProgramTypeId: _self.state.type,
         Year: _self.state.year,
         MonthName: _self.state.month,
-        MemoNumber: depCode[0].DepartmentCode+"/"+(new Date().getMonth()+1)+"/" +this.state.memoSerialNo,
-        MemoSerialNumber:this.state.memoSerialNo,
-        SubmitStatus:"Yes",
-          Status:"Pending",
-          SubmiitedDate: new Date()
+        MemoNumber: this.state.departmentVal+"/"+new Date().toLocaleString('default',{month:'short'})+"_" +this.state.memoSerialNo,
+        // memoSerialNo:this.state.memoSerialNo
+        MemoSerialNumber:this.state.memoSerialNo
         });
       
-      var itemId=item.data.Id;
+      
         if(_self.state.recommendations.length>0){
-          _self.state.recommendations.forEach(async function(it){   
+          _self.state.recommendations.forEach(function(it){   
             if(it.itemId ==""){
               spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.add({
                 Title: "Title",
                 Section:it.section,
-                AnnualAuditProgramId:itemId,
+                AnnualAuditProgramId:_self.state.itemId,
                 Date:it.date,
                 Time:it.hours+":"+it.minutes,
                 AuditorId:it.approver
@@ -1214,7 +1346,7 @@ private clearAllValidations(){
               spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.getById(it.itemId).update({
                 Title: "Title",
                 Section:it.section,
-                AnnualAuditProgramId:itemId,
+                AnnualAuditProgramId:item.data.Id,
                 Date:it.date,
                 Time:it.hours+":"+it.minutes,
                 AuditorId:it.approver
@@ -1227,7 +1359,7 @@ private clearAllValidations(){
 
         if(_self.state.approvers.length>0){
           var maxLength = _self.state.approvers.length;
-          _self.state.approvers.forEach(async function(it,val){          
+          _self.state.approvers.forEach(function(it,val){          
             spfi(_self._sp).web.lists.getByTitle("AllProcessApprovalLevelList").items.add({
                 Title: "Title",
                 MainListNameId:_self.state.mainListId,
@@ -1235,16 +1367,16 @@ private clearAllValidations(){
                 Level:val+1,
                 LevelType:it.Type,
                 SubmitStatus:"Yes",
-                MainListID:itemId,
+                MainListID:item.data.Id,
                 ApprovalType:"Approval",
                 Maxlevel:maxLength,
                 ContentTitle:_self.state.subject,
-                RequestId: _self.state.departmentVal+"/"+(new Date().getMonth()+1)+"/" +_self.state.memoSerialNo,
+                RequestId: _self.state.memoNumber,
                 RequesterNameId:_self.state.currUserId,
                 RequestedDate:new Date(),
                 ProcessName:"Annual Audit Program",
                FormNameId: _self.state.formNameId,
-               RequesterRoleId: _self.state.reqRolId,
+               RequesterRole: _self.state.reqRolId,
                ApproversId: it.Name
               }).catch(function(ex){
                 console.log(ex.errorMessage);
@@ -1257,7 +1389,7 @@ private clearAllValidations(){
             spfi(_self._sp).web.getFolderByServerRelativePath("AnnualAuditProgramDocs").files.addUsingPath(fileNamePath, file, { Overwrite: true }).then(function(response){
              response.file.getItem().then(function(fileItem){
               fileItem.update({
-                AnnualAuditId: itemId
+                AnnualAuditId: item.data.Id
               });
              });
             });
@@ -1266,9 +1398,8 @@ private clearAllValidations(){
          
         }
   
-       Swal.fire({title:"Submitted Successfully.", icon:"success"});
+       Swal.fire({title:"Submitted successfully.", icon:"success"});
        var tab= document.getElementsByClassName("tblCls");
-       window.location.href="#"+'/listing';
        console.log(tab);
         //swal({title:"Request created successfully.",icon:"success"});
        console.log(item);
@@ -1278,148 +1409,119 @@ private clearAllValidations(){
      
   }
 
-private cancelDraft(){
-  window.location.href="#";
-}
+
   
   private async submitDraft() {
     var _self= this;
-    let  isValid = true;
-    _self.clearAllValidations();
-    _self.setState({isSubmit:true});
-    _self.setState({isSave:false});
-    if(_self.state.isChecked ==false && _self.state.requestSign ==false && _self.state.forApproval == false){
-      document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.add(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.add(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.add(styles.errCh);
-      isValid = false;    
+  let  isValid = false;
+    var isRecMiss=false;
+    var isAppMiss= false;
+    if(_self.state.recommendations.length==1 ){
+      if(_self.state.recommendations[0].section =="" ||_self.state.recommendations[0].approver =="" ){
+        isRecMiss = true ;
+        Swal.fire({title:"Recommendations missing"});
+      }
+     
     }
-    if(_self.state.department ==0){
-      document.getElementById('dept-option')?.classList.add(styles.errCls);
-      isValid = false;
+    if(_self.state.approvers.length ==1 && isRecMiss == false){
+      if(_self.state.approvers[0].Role =="" ||_self.state.recommendations[0].Name =="" ){
+        Swal.fire({title:"Approval missing"});
+        isAppMiss = true;
+      }
+     
+     
     }
-    if(_self.state.toArr.length ==0){
-      document.getElementsByClassName('ms-BasePicker-text')[0]?.classList.add(styles.errCh);
-      isValid = false;
-    }
-    if(_self.state.ccArr.length ==0){
-      document.getElementsByClassName('ms-BasePicker-text')[1]?.classList.add(styles.errCh);
-      isValid = false;
-    }
-    if(_self.state.subject=='' || _self.state.subject== null){
-      document.getElementById('sub')?.classList.add(styles.errCls);
-      isValid = false;
-    }
-    if(_self.state.background =='' || _self.state.background== null)
-      {
-        document.getElementById('bac')?.classList.add(styles.errCls);
-        isValid = false;            
-      }
-    if(_self.state.issues =='' || _self.state.issues== null)
-      {
-        document.getElementById('iss')?.classList.add(styles.errCls);
-        isValid = false; 
-      }
-      if(_self.state.type ==0 || _self.state.type== null){
-        document.getElementById('drpType-option')?.classList.add(styles.errCls);
-        isValid = false;
-      }
-      if(_self.state.year ==0 || _self.state.year== null){
-        document.getElementById('drpYear-option')?.classList.add(styles.errCls);
-        isValid = false;
-      }
-    if(_self.state.recommendedApproval =='' || _self.state.recommendedApproval== null)
-      {
-        document.getElementById('rec')?.classList.add(styles.errCls);
-        isValid = false;
-      }
-      if(_self.state.showMonth == false && ( _self.state.month =='' || _self.state.month ==null)){
-        document.getElementById('drpMonths-option')?.classList.add(styles.errCls);
-        isValid = false;
-      }
-      _self.state.recommendations.forEach(function(itm){
-        if(itm.section =="" || itm.date =="" || itm.hours =="" || itm.minutes =="" || itm.approver =='')
-        {
-          if(itm.section ==""){
-            itm.errSec =styles.errCls;
-          }
-          if(itm.hours ==""){
-            itm.errHr =styles.errCls;
-          }
-          if(itm.minutes ==""){
-            itm.errMin =styles.errCls;
-          }
-          if(itm.approver ==""){
-            itm.errTo =styles.errCls;
-          }
-        isValid = false;
-        }   
-        else{
-          itm.errSec ='';
-          itm.errHr ='';
-          itm.errMin ='';
-          itm.errTo ='';
-        }     
-      })
-      _self.state.approvers.forEach(function(itm){
-        
-        if(itm.Role =="" || itm.Name =="" || itm.Type=="")
-        {
-        if(itm.Role ==""){
-          itm.errLevel =styles.errCls;
-        }
-        if(itm.Name =='')
-        {
-          itm.errType= styles.errCls;
-        }
-        isValid = false;
-        }
-        else{
-          itm.errLevel ='';
-          itm.errName='';
-          itm.errType ='';
-        }        
-      });
-      if(_self.state.copyFil.length==0 && this.state.exFiles.length==0){
-        isValid = false;
-      }
-      _self.setState({approvers:_self.state.approvers})
-      if(isValid){
-            var isRecMiss=false;
-            var isAppMiss= false;
-            if(_self.state.recommendations.length==1 )
-              {
-                if(_self.state.recommendations[0].section =="" ||_self.state.recommendations[0].approver =="" ){
-                isRecMiss = true ;
-                Swal.fire({title:"Please fill the mandatory fields."});
-              }
+    if(isRecMiss ==false && isAppMiss == false ){
+      Swal.fire({ title: 'Do you want to submit this request?',  
+        showCancelButton: true,  
+          confirmButtonText: 'Yes',
+          cancelButtonText:'No'  }).then(function(val){
+         if(val.isConfirmed){
+          _self.submitAllDraft=_self.submitAllDraft.bind(_self);
+   _self.submitAllDraft();
              
-            }
-            if(_self.state.approvers.length ==1 && isRecMiss == false){
-              if(_self.state.approvers[0].Role =="" ||_self.state.recommendations[0].Name =="" ){
-                Swal.fire({title:"Please fill the mandatory fields."});
-                isAppMiss = true;
-              }
+         }
+        });
+  
+    }
+    // if(_self.state.isChecked ==false){
+    //   document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.add(styles.errCh);
+    //   isValid = false;    
+    // }
+    // if(_self.state.requestSign ==false){
+    //   document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.add(styles.errCh);
+    //   isValid = false;    
+    // }
+    // if(_self.state.forApproval ==false){
+    //   document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.add(styles.errCh);
+    //   isValid = false;    
+    // }
+    // if(_self.state.department ==0){
+    //   document.getElementById('dept-option')?.classList.add(styles.errCls);
+    //   isValid = false;
+    // }
+    // if(_self.state.toArr.length ==0){
+    //   document.getElementsByClassName('ms-BasePicker-text')[0]?.classList.add(styles.errCh);
+    //   isValid = false;
+    // }
+    // if(_self.state.ccArr.length ==0){
+    //   document.getElementsByClassName('ms-BasePicker-text')[1]?.classList.add(styles.errCh);
+    //   isValid = false;
+    // }
+    // if(_self.state.subject=='' ){
+    //   document.getElementById('sub')?.classList.add(styles.errCls);
+    //   isValid = false;
+    // }
+    // if(_self.state.background =='')
+    //   {
+    //     document.getElementById('bac')?.classList.add(styles.errCls);
+    //     isValid = false;            
+    //   }
+    //   if(_self.state.issues =='')
+    //     {
+    //       document.getElementById('iss')?.classList.add(styles.errCls);
+    //       isValid = false; 
+    //     }
+    //     if(_self.state.recommendedApproval =='')
+    //       {
+    //         document.getElementById('rec')?.classList.add(styles.errCls);
+    //         isValid = false;
+    //       }
+    //       if(isValid){
+    //         var isRecMiss=false;
+    //         var isAppMiss= false;
+    //         if(_self.state.recommendations.length==1 ){
+    //           if(_self.state.recommendations[0].section =="" ||_self.state.recommendations[0].approver =="" ){
+    //             isRecMiss = true ;
+    //             Swal.fire({title:"Recommendations missing"});
+    //           }
+             
+    //         }
+    //         if(_self.state.approvers.length ==1 && isRecMiss == false){
+    //           if(_self.state.approvers[0].Role =="" ||_self.state.recommendations[0].Name =="" ){
+    //             Swal.fire({title:"Approval missing"});
+    //             isAppMiss = true;
+    //           }
              
              
-            }
-            if(isRecMiss ==false && isAppMiss == false ){
-              Swal.fire({ title: 'Do you want to submit this request?',  
-                showCancelButton: true,  
-                  confirmButtonText: 'Yes',
-                  cancelButtonText:'No'  }).then(function(val){
-                 if(val.isConfirmed){
-                  _self.submitAllDraft=_self.submitAllDraft.bind(_self);
-           _self.submitAllDraft();
+    //         }
+    //         if(isRecMiss ==false && isAppMiss == false ){
+    //           Swal.fire({ title: 'Do you want to submit this request?',  
+    //             showCancelButton: true,  
+    //               confirmButtonText: 'Yes',
+    //               cancelButtonText:'No'  }).then(function(val){
+    //              if(val.isConfirmed){
+    //               _self.submitAllDraft=_self.submitAllDraft.bind(_self);
+    //        _self.submitAllDraft();
                      
-                 }
-                });
+    //              }
+    //             });
           
-            }
-            }
-            else{
-              Swal.fire({title:"Please fill the mandatory fields."});
-            }
+    //         }
+    //         }
+    //         else{
+    //           Swal.fire({title:"Mandatory fields missing as new"});
+    //         }
 
  
 
@@ -1456,8 +1558,7 @@ private cancelDraft(){
   private _getPeoplePickerItemsAud(items:any[], i: number){
     this.state.recommendations.filter(function(it){
       if(it.index ==i){
-        it.approver =items[0].id;
-        it.errTo='';
+        it.approver =items[0].id
       }
     });
     this.setState({recommendations: this.state.recommendations});
@@ -1465,13 +1566,13 @@ private cancelDraft(){
   private _getPeoplePickerItemsApp(items:any[], i: number){
     var arr:any[];
      arr=[];
+     console.log("items of people picker", items);
     items.forEach(function(it){
       arr.push(it.id);
     })
     this.state.approvers.filter(function(it){
       if(it.Index ==i){
-        it.Name =arr;
-        it.errType='';
+        it.Name =arr
       }
     });
     this.setState({approvers: this.state.approvers});
@@ -1499,34 +1600,10 @@ private cancelDraft(){
     this.setState({subject:event.target.value});
     
   }
-  private subOnClick(){
-    if(this.state.isSubmit == true && this.state.subject ==''){
-      document.getElementById('sub')?.classList.add(styles.errCls);
-    }
-  }
-  private bacOnClick(){
-    if(this.state.isSubmit == true && this.state.background ==''){
-      document.getElementById('bac')?.classList.add(styles.errCls);
-    }
-  }
-  private issOnClick(){
-    if(this.state.isSubmit == true && this.state.issues ==''){
-      document.getElementById('iss')?.classList.add(styles.errCls);
-    }
-  }
-  private onRecClick(){
-    if(this.state.isSubmit == true && this.state.recommendedApproval ==''){
-      document.getElementById('rec')?.classList.add(styles.errCls);
-    }
-  }
-  private onDepClick(){
-   // alert('Hi');
-  }
   private onSectionChange(event:any, i:number){
     this.state.recommendations.filter(function(it){
       if(it.index ==i){
-        it.section = event.target.value;
-        it.errSec='';
+        it.section = event.target.value
       }
     });
     this.setState({recommendations: this.state.recommendations});
@@ -1534,8 +1611,7 @@ private cancelDraft(){
   private onHoursChange(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption, i:number){
     this.state.recommendations.filter(function(it){
       if(it.index ==i){
-        it.hours = item.text;
-        it.errHr='';
+        it.hours = item.text
       }
     });
     this.setState({recommendations: this.state.recommendations});
@@ -1543,8 +1619,7 @@ private cancelDraft(){
   private onMinutesChange(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption, i:number){
     this.state.recommendations.filter(function(it){
       if(it.index ==i){
-        it.minutes =item.text;
-        it.errMin='';
+        it.minutes =item.text
       }
     });
     this.setState({recommendations: this.state.recommendations});
@@ -1558,20 +1633,8 @@ private cancelDraft(){
         it.Role = item.text
       }
     });*/
-    var isExists:Boolean=false;
-    this.state.approvers.forEach(function(it){
-      if(it.Role == item.key)
-      {
-        Swal.fire("","Role already selected!");
-        isExists= true;
-      }
-    })
-    if(!isExists){
-      this.state.approvers[i].Role = item.key;
-      this.state.approvers[i].errLevel = '';
-      this.setState({approvers: this.state.approvers});
-    }
-   
+    this.state.approvers[i].Role = item.key;
+    this.setState({approvers: this.state.approvers});
   }
   private onTypeChange(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption, i:number){
     /* this.state.approvers.filter(function(it){
@@ -1580,7 +1643,6 @@ private cancelDraft(){
        }
      });*/
      this.state.approvers[i].Type = item.text;
-    
      this.setState({approvers: this.state.approvers});
    }
   
@@ -1617,57 +1679,19 @@ private cancelDraft(){
   private onInfoChange(event:any)
   {
     this.setState({isChecked:event.target.checked});    
-    if(event.target.checked== true){
-      document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.remove(styles.errCh);
-    }
- /*   else if(this.state.isSubmit == true && this.state.requestSign == false && this.state.forApproval == false){
-      document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.add(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.add(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.add(styles.errCh);
-    }*/
   }
   private onSignChange(event:any)
   {
-    this.setState({requestSign:event.target.checked}); 
-    if(event.target.checked== true){
-      document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.remove(styles.errCh);
-    }
-   /* else if(this.state.isSubmit == true && this.state.isChecked == false && this.state.forApproval == false){
-      document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.add(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.add(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.add(styles.errCh);
-    }  */ 
+    this.setState({requestSign:event.target.checked});    
   }
   private onAppChange(event:any)
   {
-    this.setState({forApproval:event.target.checked});
-    if(event.target.checked== true){
-      document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.remove(styles.errCh);
-    }  
-  /*  else if(this.state.isSubmit == true && this.state.isChecked == false && this.state.requestSign == false){
-      document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.add(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.add(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.add(styles.errCh);
-    }    */
+    this.setState({forApproval:event.target.checked});    
   }
   private onDepartmentChange =(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption) =>{
-    var _self= this;
     this.setState({department:item.key as number});
-    //this.setState({departmentVal:item.text});
+    this.setState({departmentVal:item.text});
    
-   this.state.allDepartments.filter(function(itm){
-    if(itm["ID"] == item.key)
-    {
-      _self.setState({departmentVal: itm["DepartmentCode"]})
-    }
-   })
-
   }
 private  deleteItem(i:number){
   if(this.state.recommendations[i].itemId !=""){
@@ -1702,75 +1726,63 @@ if(listItems.length==0){
 }
 }*/
 private async approveRequest(){
-  // const spCache = spfi(this._sp).using(Caching({store:"session"}));
-  // const user = await spCache.web.ensureUser(this.props.userid);
+  const spCache = spfi(this._sp).using(Caching({store:"session"}));
+  const user = await spCache.web.ensureUser(this.props.userid);
   var _self= this;
-  const userdata = await spfi(_self._sp).web.currentUser();
-
   Swal.fire({ title: 'Do you want to approve this request?',  
     showCancelButton: true,  
       confirmButtonText: 'Yes',
       cancelButtonText:'No'  }).then(function(val){
-     if(val.isConfirmed){  
-      alert(`_self.state.approvalItemId ${_self.state.approvalItemId}`)  
-      spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.getById(parseInt(_self.state.approvalItemId)).update({
-          Status: "Approved",
-          ActionTakenById:userdata.Id,
-          ActionTakenOn:new Date(),
-          Remark:_self.state.remarks,
-        });
-        Swal.fire({title:"Approved Successfully.",icon:"success"});
-       window.location.href="#"+'/listing';
-     }
+    //  if(val.isConfirmed){    
+    //   spCache.web.lists.getByTitle("ProcessApprovalList").items.getById(parseInt(_self.state.approvalItemId)).update({
+    //       Status: "Approved",
+    //       ActionTakenById:user.data.Id,
+    //       ActionTakenOn:new Date(),
+    //       Remark:_self.state.remarks,
+    //     });
+    //     Swal.fire({title:"Approved succesfully",icon:"success"});
+    //    // navigate('/listing');
+    //  }
 });
   
 }
 private async rejectRequest(){
   var _self= this;
-    // const spCache = spfi(this._sp).using(Caching({store:"session"}));
-    // const user = await spCache.web.ensureUser(this.props.userid);
-    const userdata = await spfi(_self._sp).web.currentUser();
+    const spCache = spfi(this._sp).using(Caching({store:"session"}));
+    const user = await spCache.web.ensureUser(this.props.userid);
     Swal.fire({ title: 'Do you want to reject this request?',  
       showCancelButton: true,  
         confirmButtonText: 'Yes',
         cancelButtonText:'No'  }).then(function(val){
-       if(val.isConfirmed){   
-        spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.getById(parseInt(_self.state.approvalItemId)).update({
-          Status: "Rejected",
-            ActionTakenById:userdata.Id,
-            ActionTakenOn:new Date(),
-            Remark:_self.state.remarks,
-          });
-           Swal.fire({title:"Rejected Successfully.",icon:"success"});
-           window.location.href="#"+'/listing';
-           //navigate('/listing');
-       }
+      //  if(val.isConfirmed){   
+      //   spCache.web.lists.getByTitle("ProcessApprovalList").items.getById(parseInt(_self.state.approvalItemId)).update({
+      //     Status: "Rejected",
+      //       ActionTakenById:user.data.Id,
+      //       ActionTakenOn:new Date(),
+      //       Remark:_self.state.remarks,
+      //     });
+      //      Swal.fire({title:"Rejected successfully",icon:"success"});
+      //      //navigate('/listing');
+      //  }
         });
   
 }
 private async reworkRequest(){
-  var _self= this;
-  // const spCache = spfi(_self._sp).using(Caching({store:"session"}));
-  // const user = await spCache.web.ensureUser(_self.props.userid);
-  const userdata = await spfi(_self._sp).web.currentUser();
+  const spCache = spfi(this._sp).using(Caching({store:"session"}));
+  const user = await spCache.web.ensureUser(this.props.userid);
   Swal.fire({ title: 'Do you want to rework this request?',  
     showCancelButton: true,  
       confirmButtonText: 'Yes',
       cancelButtonText:'No'  }).then(function(val){
      if(val.isConfirmed){   
-      spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.getById(parseInt(_self.state.approvalItemId)).update({
+      spCache.web.lists.getByTitle("ProcessApprovalList").items.getById(parseInt(this.state.approvalItemId)).update({
         Status: "Rework",
-          ActionTakenById:userdata.Id,
+          ActionTakenById:user.data.Id,
           ActionTakenOn:new Date(),
-          Remark:_self.state.remarks,
+          Remark:this.state.remarks,
           IsRework:"Yes"
         });
-        spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgram").items.getById(parseInt(_self.state.edItm)).update({
-          Status: "Rework",
-            IsRework:"Yes"
-          });
-         Swal.fire({title:"Sent for rework.",icon:"success"});
-         window.location.href="#"+'/listing';
+         Swal.fire({title:"Rework successfull",icon:"success"});
         // navigate('/listing');
      }
     });
@@ -1817,14 +1829,14 @@ private deleteItemApp(i:number){
 
   private addRow(){
 var num = this.state.recommendations.length;
-this.state.recommendations.push({section:"",date:null,approver:"",approverDef:"",hours:"",minutes:"" ,itemId:"",index:num,errSec:'',errHr:'',errMin:'',errTo:''});
+this.state.recommendations.push({section:"",date:new Date(),approver:"",approverDef:"",hours:"",minutes:"" ,itemId:"",index:num});
 this.setState({recommendations: this.state.recommendations});       
   }
   
 private addApprover(){
   var itm=this.state.indApp+1;
   this.setState({indApp:itm});
-  this.state.approvers.push({Role:"",Level:"",Name:"", Index:itm,itemId:"",Type:"One",errLevel:'',errType:''});
+  this.state.approvers.push({Role:"",Level:"",Name:"", Index:itm,itemId:""});
   this.setState({approvers:this.state.approvers});
  
 
@@ -1842,14 +1854,19 @@ private onYearSelect=(event: React.FormEvent<HTMLDivElement>, item: IDropdownOpt
 
 private async getData()
 {
+  // alert("getData");
   var _self= this;
-  this.setState({itemId:parseInt(this.state.edItm)});
- // const spCache = spfi(this._sp).using(Caching({store:"session"}));
- console.log(this.state.itemId , typeof(this.state.itemId) , "items id");
-  const listItems = await  spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgram").items.getById(this.state.itemId).select("*", "To/Name","Cc/Name,Department/DepartmentCode").expand("To","Department","Cc")();
+  //  this.setState({itemId:parseInt(this.state.edItm)});
+ const spCache = spfi(this._sp).using(Caching({store:"session"}));
+ console.log(spCache , "spCache spCache" );
+
+ console.log(this.state.itemId , " itemIditemIditemId")
+//  alert(spCache); 
+  const listItems = await  spfi(this._sp).web.lists.getByTitle("AnnualAuditProgram").items.getById(this.state.itemId).select("*", "To/Name","Cc/Name,Department/Title").expand("To","Department","Cc")();
+    // alert(JSON.stringify(listItems));
     this.setState({department:listItems.DepartmentId});
     if(listItems.DepartmentId !="")
-    this.setState({departmentVal:listItems.Department.DepartmentCode});
+    this.setState({departmentVal:listItems.Department.Title});
     this.setState({memoNumber:listItems.MemoNumber});
     this.setState({subject:listItems.Subject});
     //this.setState({dueDate:listItems.Date});
@@ -1862,27 +1879,6 @@ private async getData()
     this.setState({isChecked: listItems.Info});
     this.setState({requestSign:listItems.Sign});
     this.setState({forApproval:listItems.Approval});
-    if(listItems.Status=="Rework"){
-      this.setState({isRework:true});
-    }
-    if(listItems.SubmitStatus =="Yes" && listItems.Status=="Pending"){
-      this.setState({isDisabled:true})
-    
-//this.setState({showApprove:true});
-this.setState({showSubmit: false});
-    }
-else if(listItems.SubmitStatus =="Yes" && listItems.Status=="Rework"){
-  this.setState({isDisabled:false})
-this.setState({showApprove:false});
-this.setState({showSubmit: true});
-
-}
-else if(listItems.SubmitStatus =="Yes" && (listItems.Status=="Approved" || listItems.Status=="Rejected")){
-  this.setState({isDisabled:true})
-this.setState({showApprove:false});
-this.setState({showSubmit: false});
-
-}
     let usernamearr: string[] = [];
    // let usernameToIds : any[]=[];
     if(listItems.ToId !=null){
@@ -1911,7 +1907,6 @@ this.setState({showSubmit: false});
     recItems.forEach(function(itm:any){
       var objToAdd:any={};
       let approve: string[] = [];
-      if(itm.AuditorId !=null)
       approve.push(itm.Auditor.Name.split('|membership|')[1].toString());
       objToAdd["section"] =itm.Section;
       objToAdd["date"] =new Date(itm.Date);
@@ -1921,17 +1916,12 @@ this.setState({showSubmit: false});
       objToAdd["minutes"] =itm.Time.split(":")[1];
       objToAdd["itemId"] =itm.Id;
       objToAdd["index"] =cnt;
-      objToAdd["errSec"] ='';
-      objToAdd["errHr"] ='';
-      objToAdd["errMin"] ='';
-      objToAdd["errTo"] ='';
-  
       recoItms.push(objToAdd);
         cnt= cnt+1;
       });
       this.setState({recommendations:recoItms});
     }
-    const apprItems = await  spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.select("*","AssignedTo/Title,RequesterName/Title,ActionTakenBy/Title,ListName/Title").expand("AssignedTo,RequesterName,ActionTakenBy,ListName").filter("ListItemId eq '"+this.state.itemId+"' and ProcessName eq 'Annual Audit Program'").orderBy("Id", false)();
+    const apprItems = await  spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.select("*","AssignedTo/Title,RequesterName/Title,ActionTakenBy/Title").expand("AssignedTo,RequesterName,ActionTakenBy").filter("ListItemId eq '"+this.state.itemId+"'").orderBy("Level")();
     var cnt:any=0;
     var appItems:any[]=[];
    // var allApprovalItems:any[]=[];
@@ -1941,26 +1931,15 @@ this.setState({showSubmit: false});
      objToAdd["Level"] =itm.Level;
      objToAdd["AssignedTo"] =itm.AssignedTo.Title;
      objToAdd["RequesterName"] =itm.RequesterName.Title;
-     if(itm.RequestedDate  =='' || itm.RequestedDate ==null ){
-      objToAdd["RequestedDate"] ='' ;
-     }
-     else{
-      objToAdd["RequestedDate"] =itm.RequestedDate ;
-     }
-    
+     objToAdd["RequestedDate"] =itm.RequestedDate ;
      if(itm.ActionTakenById != null){
       objToAdd["ActionTakenBy"]= itm.ActionTakenBy.Title;
      }
      else{
       objToAdd["ActionTakenBy"]= "";
      }
-    if(itm.ActionTakenOn =='' || itm.ActionTakenOn == null){
-      objToAdd["ActionTakenOn"]= '';
-    }
-    else{
-      objToAdd["ActionTakenOn"]= itm.ActionTakenOn;
-    }
     
+     objToAdd["ActionTakenOn"]= itm.ActionTakenOn;
      objToAdd["Remarks"]= itm.Remark;
      objToAdd["Status"]= itm.Status;
      objToAdd["Index"] =itm.Level;
@@ -1968,13 +1947,13 @@ this.setState({showSubmit: false});
     
      appItems.push(objToAdd);
        cnt= cnt+1;
-       //const user = await spCache.web.ensureUser(listItems.RequesterNameId);
+       const user = await spCache.web.ensureUser(listItems.RequesterNameId);
        _self.setState({apprItems:appItems});
       
      });
   
    }
-   const approvalItems = await  spfi(_self._sp).web.lists.getByTitle("AllProcessApprovalLevelList").items.select("*","Approvers/Name").expand("Approvers").filter("MainListID eq '"+this.state.itemId+"' and ProcessName eq 'Annual Audit Program'")();
+   const approvalItems = await  spfi(_self._sp).web.lists.getByTitle("AllProcessApprovalLevelList").items.select("*","Approvers/Name").expand("Approvers").filter("MainListID eq '"+this.state.itemId+"'")();
    var allApp:any[]=[];
    var cnt:any=0;
    if(approvalItems.length>0){
@@ -1991,8 +1970,6 @@ objToAdd["Name"] =itm.ApproversId ;
 objToAdd["itemId"]= itm.Id;
 objToAdd["Index"] =itm.Level;
 objToAdd["appEx"] =approve;
-objToAdd["errLevel"]='';
-objToAdd["errType"]='';
 
 
 allApp.push(objToAdd);
@@ -2002,11 +1979,11 @@ allApp.push(objToAdd);
    } 
   
  
-      const upFiles= await  spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramDocs").items.select("*","File/Name,FileLeafRef,FileRef,EncodedAbsUrl").expand("File").filter("AnnualAuditId eq '"+_self.state.itemId+"'")();
+      const upFiles= await  spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramDocs").items.select("*","File/Name").expand("File").filter("AnnualAuditId eq '"+_self.state.itemId+"'")();
       if(upFiles.length>0){
         var obJFiles:any[]=[];
         upFiles.forEach(function(item:any){
-            obJFiles.push({"Name":item.File.Name,"type":"old","Id":item.Id,"Uploaded":new Date(item.Modified).getDate()+"/"+new Date(item.Modified).getMonth()+"/"+new Date(item.Modified).getFullYear(),"Path":item.EncodedAbsUrl})
+            obJFiles.push({"Name":item.File.Name,"type":"old","Id":item.Id})
         })
        // this.setState({fileCount:obJFiles.length});
         this.setState({exFiles:obJFiles});
@@ -2022,70 +1999,52 @@ private onMonthChange=(event: React.FormEvent<HTMLDivElement>, item: IDropdownOp
   this.setState({month:item.text});
 }
 private async getMainListName(){
-  var _self=this;
-  const spCache = spfi(_self._sp).using(Caching({store:"session"}));
+  const spCache = spfi(this._sp).using(Caching({store:"session"}));
   const listItems = await spCache.web.lists.getByTitle("ListNameMaster").items.filter("ListName eq 'AnnualAuditProgram'")();
   this.setState({mainListId: listItems[0].Id})
 
 }
 
-
-
 private async getFormName(){
-  var  _self=this;
-  const spCache = spfi(_self._sp).using(Caching({store:"session"}));
+  const spCache = spfi(this._sp).using(Caching({store:"session"}));
   const listItems = await spCache.web.lists.getByTitle("FormNameMaster").items.filter("FormName eq 'Annual Audit Programme'")();
   this.setState({formNameId: listItems[0].Id})
 
 }
 
 private async getMemoNumber(){
-  var  _self=this;
-  const listItems = await  spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgram").items.orderBy("MemoSerialNumber",false).top(1)();
- if(listItems.length>0){
-  var memo=listItems[0].MemoSerialNumber+1;
-  if(memo<999)
-  memo=("0000"+memo).slice(-3); 
+  const listItems = await  spfi(this._sp).web.lists.getByTitle("AnnualAuditProgram").items.orderBy("MemoSerialNumber",false).top(1)();
+ var memo=listItems[0].MemoSerialNumber+1;
   this.setState({memoSerialNo: memo})
- }
- else{
-  var mem:any= "000";
-  this.setState({memoSerialNo: mem})
- }
- 
 }
 private async getRequestorRole(){
-  var _self=this;
-  const listItems = await  spfi(_self._sp).web.lists.getByTitle("RequesterRoleMaster").items.filter("Role eq 'Initiator'")();
+  const listItems = await  spfi(this._sp).web.lists.getByTitle("RequesterRoleMaster").items.filter("Role eq 'Initiator'")();
 
   this.setState({reqRolId: listItems[0].Id})
 }
 
  private async getDataDepartment(){
-    // const spCache = spfi(this._sp).using(Caching({store:"session"}));
-    // const user = await spCache.web.ensureUser(this.props.userid);
-    //console.log(userId);
-  //  this.setState({currUserId:this.props.userid});
-  try {
-    var _self=this;
-    const listItems = await spfi(_self._sp).web.lists.getByTitle("DepartmentMasterList").items.filter("Active eq 'Yes'")();
-    
+    const spCache = spfi(this._sp).using(Caching({store:"session"}));
+    // console.log(this.props.userid , "this.props.userid")
+    // console.log(typeof(this.props.userid) , "this.props.userid")
+    // const user = await spCache.web.ensureUser(String(this.props.userid));
+
+     console.log(spCache , "user id is here spCache");
+    //  console.log(user.data.Id , "user id is here");
+  //  this.setState({currUserId:user.data.Id});
+   this.setState({currUserId:this.props.userid});
+  
+    const listItems = await spfi(this._sp).web.lists.getByTitle("DepartmentMasterList").items();
+     console.log(listItems , "sp cache is here");
     let dropdownItems: IDropdownOption[] =[];
-    let allItems:any=[];
     listItems.map(item =>{
              dropdownItems.push({
                 key: item.Id,
                 text: item.Title
              })
-             allItems.push(item);
      });
-     this.setState({allDepartments:allItems});
-     
     this.setState({optionsDepartment: dropdownItems});
-  } catch (error) {
-    console.log("Error getting deoartment data",error)
-  }
-    
+    console.log(this.state.optionsDepartment , "this.state.optionsDepartment");
     }
    
     private setDueDate(date:Date,i:number){
@@ -2098,10 +2057,9 @@ private async getRequestorRole(){
     }
 
     private async getDataRoles(){
-      var _self=this;
-      const spCache = spfi(_self._sp).using(Caching({store:"session"}));
+      const spCache = spfi(this._sp).using(Caching({store:"session"}));
       const listItems = await spCache.web.lists.getByTitle("ApproverRoleMaster").items();
-      
+      console.log(listItems , "ApproverRoleMaster is here");
       let dropdownItems: IDropdownOption[] =[];
       listItems.map(item =>{
                dropdownItems.push({
@@ -2110,10 +2068,11 @@ private async getRequestorRole(){
                })
        });
       this.setState({optionsRole: dropdownItems});
+
+      console.log("ApproverRoleMaster is here sate" , this.state.optionsRole);
       }
       private async getAuditTypes(){
-        var  _self=this;
-        const spCache = spfi(_self._sp).using(Caching({store:"session"}));
+        const spCache = spfi(this._sp).using(Caching({store:"session"}));
         const listItems = await spCache.web.lists.getByTitle("AuditProgramTypeMaster").items();
         
         let dropdownItems: IDropdownOption[] =[];
@@ -2141,3 +2100,4 @@ private async getRequestorRole(){
       }
 
 }
+
