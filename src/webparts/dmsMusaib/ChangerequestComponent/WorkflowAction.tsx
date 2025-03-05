@@ -70,6 +70,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
     let postPayload = {}
     let postPayload2 = {}
     let postPayloadapp = {}
+    let postPayloadapp1 = {}
 
     if (props.ContentType == "Document Cancellation" || props.ContentType == "Change Request") {
       const currentUser = await sp.web.currentUser();
@@ -82,7 +83,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
         ActionTakenById: currentUser.Id,
         ActionTakenOn: new Date().toISOString(),
-        ContentTitle: (props.currentItem.LevelType == "Everyone" && allprocessitems.length == 1) || props.currentItem.LevelType == "Anyone" ? test : currentReferenceNo
+        ContentTitle: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
       };
 
       postPayload2 = {
@@ -96,7 +97,11 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
       };
       postPayloadapp = {
         Status: Status,
-        ReferenceNumber: (props.currentItem.LevelType == "Everyone" && allprocessitems.length == 1) || props.currentItem.LevelType == "Anyone" ? test : currentReferenceNo
+        ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
+      };
+      postPayloadapp1 = {
+        // Status: Status,
+        ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
       };
     }
     else {
@@ -153,8 +158,9 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
             //   await updateItemChangeRequestList(postPayload2, sp, Number(props.currentItem.ListItemId))
             // props.ContentType == "Change Request"
 
-          } else if (Status == 'Approved') {
-            postResult2 = await updateItemChangeRequestList(postPayloadapp, sp, Number(props.currentItem.ListItemId))
+          } 
+          else if (Status == 'Approved') {
+            postResult2 = await updateItemChangeRequestList(postPayloadapp1, sp, Number(props.currentItem.ListItemId))
           }
 
           postResult = await updateItemApproval2(postPayload, sp, props.currentItem.Id);
