@@ -28,6 +28,10 @@
   .cardsearch .newfont{font-size: 14px;}
   .cardsearch .newdes{display: flex; gap: 10px;}
   .cardsearch .neww{width: 50px !important;}
+  .ms-Checkbox-text {font-weight: 500;}
+  #editDetails button{border-radius: 0px !important;}
+  .ms-Button--primary{background: #f37421 !important; border-color: #f37421 !important;}
+  .ms-Button--primary+.ms-Button--primary+.ms-Button--primary{background: #d3d4d5 !important; color: #000; border-color: #d3d4d5 !important;}
   .cardsearch .p2nd1{
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -104,8 +108,9 @@ width: 100%;
 float: left;
 margin-bottom: 4px;
 }
+.btn{border-radius: 0px !important;}
 .newho{
-  height:39px !important; color: #000 !important; background: #fff !important; border: 1px solid #f37421 !important;
+  height:39px !important; border-radius: 0px !important; color: #000 !important; background: #fff !important; border: 0px solid #f37421 !important;
 }
 .dropdown-item:focus, .dropdown-item:hover{
   background: #f3f7f9;color: #f37421 !important; 
@@ -129,7 +134,7 @@ margin-bottom: 4px;
   background-color: #f3f2f1 !important;
 }
 .card{
-  border-radius: 20px !important;
+  border-radius: 0px !important;
 }
 .ms-Checkbox-checkmark,.ms-DatePicker-event--without-label,.ms-Dropdown-caretDown,.ms-Button-icon{font-family: "Fluent MDL2 Hybrid Icons" !important;}
 #myModal{z-index: 99999 !important;}
@@ -183,9 +188,12 @@ input:not([type]){
 .cancel-btn{
   background: #d3d4d5 !important;
     border-color: #d3d4d5 !important;
-    border-radius: .375rem !important;
+    border-radius: 0rem !important;
     padding: 6px 12px !important;
 }
+.pagination{justify-content: end; align-items: center;}
+.pagination button{border-radius: 0px !important;}
+.dropdown-menu.show{border-radius: 0px !important;}
 #comm{
   border: 1px solid #ccc !important; 
 }

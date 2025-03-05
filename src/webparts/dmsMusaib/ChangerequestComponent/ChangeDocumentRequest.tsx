@@ -2688,8 +2688,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                           <div className="card-body">
                             <div className='row'>
                               <div className='col-sm-12'>
-                                <h3 className="text-dark font-16 mb-3">Request Details</h3>
-                                <label className="form-label">Change Request Type</label>
+                                <h3 className="text-dark font-16 mb-1">Request Details</h3>
+                                <label className="form-label text-muted font-16">Change Request Type</label>
                                 <div className="row"> {renderCheckboxes()}</div>
                               </div>
                             </div>
@@ -2730,7 +2730,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     <th>Change Description</th>
                                     <th>Reason for Change</th>
                                     {(modeValue === "" || modeValue === "edit" || InputDisabled != true || (modeValue == "approve" && formData?.Status == "Rework")) &&
-                                      <th style={{ minWidth: "80px", maxWidth: "80px" }}>Action</th>
+                                      <th style={{ minWidth: "60px", maxWidth: "60px" }}>Action</th>
                                     }
                                   </tr>
 
@@ -2758,7 +2758,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           id="simpleinput"
                                           disabled={InputDisabled && formData?.Status !== "Rework"}
                                           value={row.description}
-                                          className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                          className={`form-control mb-0 ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                           onChange={(e) => {
                                             const newRowscancellReason = [...cancellReason];
                                             newRowscancellReason[index].description = e.target.value;
@@ -2780,7 +2780,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         <textarea
                                           id="simpleinput"
                                           disabled={InputDisabled && formData?.Status !== "Rework"}
-                                          className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                          className={`form-control mb-0 ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                           value={row.reason}
                                           onChange={(e) => {
                                             const newRowscancellReason = [...cancellReason];
@@ -2790,7 +2790,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         />
                                       </td>
                                       {(modeValue === "" || modeValue === "edit" || InputDisabled != true || (modeValue == "approve" && formData?.Status == "Rework")) &&
-                                        <td style={{ minWidth: "80px", maxWidth: "80px", textAlign: 'center' }}>
+                                        <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
                                           <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFile(index, cancellReason)}></img>
                                         </td>
                                       }
@@ -2825,7 +2825,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 <div className='col-sm-4'>
                                   {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" &&
                                     <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
-                                      <img style={{ width: '34px' }} src={require("../assets/plus.png")}
+                                      <img style={{ width: '30px', cursor:'pointer' }} src={require("../assets/plus.png")}
                                         onClick={handleAddRow} className='' />
 
                                       {/* <i style={{ cursor: "pointer" }} onClick={handleAddRow} className="fe-plus-circle font-20 text-warning"></i> */}
@@ -2836,7 +2836,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                               </div>
 
                               <div style={{ overflow: 'inherit' }} className="table-responsive mt-3 pt-0">
-                                <table className="mtbalenew  table-centered table-nowrap table-borderless mb-0 newtabledc" id="myTabl">
+                                <table style={{ overflow: 'inherit' }} className="mtbalenew tpnew table-centered table-nowrap table-borderless mb-0 newtabledc" id="myTabl">
                                   <thead >
                                     <tr>
                                       <th style={{ minWidth: "40px", maxWidth: "40px" }}>S.No</th>
@@ -2847,17 +2847,17 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
                                     </tr>
                                   </thead>
-                                  <tbody style={{ maxHeight: "8007px" }}>
+                                  <tbody style={{ maxHeight: "8007px", overflow: 'inherit'  }}>
                                     {console.log("forwardToArrforwardToArrforwardToArr", forwardToArr, UserRoles, ApprovalTypeOptions)}
                                     {forwardToArr.map((row, index) => (
 
                                       <tr key={index}> <td style={{ minWidth: "30px", maxWidth: "30px" }}>
                                         <div
-                                          style={{ marginLeft: "0px" }}
+                                          style={{ marginLeft: "0px", overflow: 'inherit'  }}
                                           className="indexdesign"
                                         >
                                           {index + 1}</div></td>
-                                        <td className="ng-binding">
+                                        <td style={{overflow: 'inherit' }} className="ng-binding">
                                           <select onChange={(e) => onSelectRole(e, row.level)} value={row.role}
                                             disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}
                                             className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}>
@@ -2874,8 +2874,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           </select>
 
                                         </td>
-                                        <td style={{ minWidth: '70px', maxWidth: '70px' }}>Level {index + 1}</td>
-                                        <td >
+                                        <td style={{ minWidth: '70px', maxWidth: '70px',overflow: 'inherit' }}>Level {index + 1}</td>
+                                        <td style={{overflow: 'inherit' }}>
 
                                           <Select
                                             options={rows1}
@@ -2893,7 +2893,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
 
                                         </td>
-                                        <td className="ng-binding">
+                                        <td style={{overflow: 'inherit' }} className="ng-binding">
                                           <select className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}
                                             onChange={(e) => onSelectApprovalType(e, row.level)}
                                             value={row.leveltype}
@@ -2908,7 +2908,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           </select>
 
                                         </td>
-                                        <td style={{ minWidth: '70px', maxWidth: '70px' }}>
+                                        <td style={{ minWidth: '70px', maxWidth: '70px',overflow: 'inherit' }}>
                                           {/* <i className="fe-trash-2 text-danger"></i> */}
                                           {editID.CurrentUserRole === "OES" ? <img src={require("../assets/del.png")} onClick={() => handleDeleteRow(index)} /> :
                                             <img src={require("../assets/recycle-bin.png")} className='sidebariconsmall' />}

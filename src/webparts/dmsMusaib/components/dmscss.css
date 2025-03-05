@@ -767,7 +767,7 @@ top: 0;
 }
 .sidebardmsButton{    gap: 6px;
     vertical-align: text-bottom;
-    border-radius: 30px;
+    border-radius: 0px;
     margin-top: 10px;
 }
 .sidebardmsButton :hover{ color: #fff !important; }
@@ -809,7 +809,7 @@ top: 0;
 #hidegidvewlistviewbutton button:hover svg, #hidegidvewlistviewbutton2 button:hover svg, #createuploadfilecont button:hover svg{color: #fff !important ;}
 .search-container input{padding: 10px 14px;
   background: #fff !important;
-  border-radius: 30px;}
+  border-radius: 0px;}
   .searchbutton{
     position: absolute;
     right: 15px;

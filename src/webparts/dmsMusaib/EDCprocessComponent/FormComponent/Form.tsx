@@ -21,6 +21,7 @@ import { DateTimePicker, DateConvention } from '@pnp/spfx-controls-react/lib/Dat
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { getSP } from "../../loc/pnpjsConfig";
 import { SPFI , spfi} from "@pnp/sp";
+
 //import {  useHistory } from 'react-router-dom'
 //const _dropdown = 
 const dropdownStyles: Partial<IDropdownStyles> = {
@@ -407,7 +408,8 @@ this.setState({showSubmit: false});
           </td>
      <td>
      <Dropdown id={idHr} className={this.state.recommendations[i].errHr}  placeholder="Select" selectedKey={this.state.recommendations[i].hours}  options={optionsHours} styles={dropdownStylesNew} onChange={(e,itm:IDropdownOption) => this.onHoursChange(e,itm,i)} disabled={this.state.isDisabled}/>
-    </td><td>
+    </td>
+    <td>
      <Dropdown id={idMin} className={this.state.recommendations[i].errMin}  placeholder="Select" selectedKey={this.state.recommendations[i].minutes}  options={optionsMinutes} styles={dropdownStylesNew} onChange={(e,itm:IDropdownOption) => this.onMinutesChange(e,itm,i)} disabled={this.state.isDisabled}/>
        
   
@@ -417,7 +419,12 @@ this.setState({showSubmit: false});
          defaultSelectedUsers={this.state.recommendations[i].approverDef ? this.state.recommendations[i].approverDef : []}   principalTypes={[PrincipalType.User]} resolveDelay={1000} />
      </td>
     
-     <td><button   onClick={(e) =>this.deleteItem(i)}>Delete</button></td>
+     <td>
+      
+     <img style={{width:'30px', cursor:'pointer'}} className='mt-0' src={require("../../assets/del.png")} onClick={(e) =>this.deleteItem(i)} ></img>
+      
+      {/* <button   onClick={(e) =>this.deleteItem(i)}>Delete</button> */}
+      </td>
      </tr>
     
   ) 
@@ -429,7 +436,8 @@ this.setState({showSubmit: false});
         {item.name }  
         </td>
         <td>
-          <button onClick={(e) =>this.removeFiles(i)}>Delete</button>
+        <img style={{width:'30px', cursor:'pointer'}} className='mt-0' src={require("../../assets/del.png")} onClick={(e) =>this.removeFiles(i)} ></img>
+          {/* <button onClick={(e) =>this.removeFiles(i)}>Delete</button> */}
         </td>
       </tr> 
        )    
@@ -458,7 +466,7 @@ this.setState({showSubmit: false});
    var approval = this.state.approvers.map((item: any,i:number) => {  
     return(
        <tr className='tblCls'>
-        <td>
+        <td style={{minWidth:'60px', textAlign:'center', maxWidth:"60px"}}>
         <TextField value={(i+1).toString()} disabled={true} className={styles.width} ></TextField>
         </td>
         <td>
@@ -474,7 +482,13 @@ this.setState({showSubmit: false});
         <td>
         <Dropdown disabled={this.state.isDisabled} placeholder="Select" selectedKey={this.state.approvers[i].Type} options={optionsApp} styles={dropdownStylesNew} onChange={(e,itm:IDropdownOption) => this.onTypeChange(e,itm,i)}/>
      </td>
-        <td><button   onClick={(e) =>this.deleteItemApp(i)}>Delete</button></td>
+        <td style={{minWidth:'60px', textAlign:'center', maxWidth:"60px"}}>
+        <img style={{width:'30px', cursor:'pointer'}} className='mt-0' src={require("../../assets/del.png")} onClick={(e) =>this.deleteItemApp(i)}></img>
+
+          {/* <button   onClick={(e) =>this.deleteItemApp(i)}>Delete</button> */}
+          
+          
+          </td>
         </tr>
        
      ) 
@@ -483,31 +497,31 @@ this.setState({showSubmit: false});
       var auditHistory = this.state.apprItems.map((item: any,i:number) => {
         return(
           <tr>
-            <td>
+            <td style={{minWidth:'60px', maxWidth:'60px'}}>
             {i+1}
             </td>
-            <td>
+            <td style={{minWidth:'60px', maxWidth:'60px'}}>
                 {item.Level}                  
             </td>
-            <td>
+            <td style={{minWidth:'85px', maxWidth:'85px'}}>
                 {item.AssignedTo}
             </td>
-            <td>
+            <td style={{minWidth:'85px', maxWidth:'85px'}}>
                 {item.RequesterName}
             </td>
-            <td>
+            <td style={{minWidth:'85px', maxWidth:'85px'}}>
             {new Date(item.RequestedDate).getDate()+"/" +new Date(item.RequestedDate).getMonth()+"/"+ new Date(item.RequestedDate).getFullYear()}
             </td>
-            <td>
+            <td style={{minWidth:'85px', maxWidth:'85px'}}>
             {item.ActionTakenBy}
             </td>
-            <td>
+            <td style={{minWidth:'85px', maxWidth:'85px'}}>
             {item.ActionTakenOn==''?'': new Date(item.ActionTakenOn).getDate()+"/" +new Date(item.ActionTakenOn).getMonth()+"/"+ new Date(item.ActionTakenOn).getFullYear()}                    
             </td>
             <td>
               {item.Remarks}
             </td>
-            <td>
+            <td style={{minWidth:'65px', maxWidth:'65px'}}>
             {item.Status}
             </td>
           </tr> 
@@ -519,40 +533,101 @@ this.setState({showSubmit: false});
     
       <section>
         <CustomBreadcrumb Breadcrumb={this.state.Breadcrumb} />
-          <section className={styles.sec} >
+          <section className='card card-body mt-2'>
             <fieldset disabled={this.state.isDisabled}>
-            <h3>Memo Details</h3>
+            <h3 className='text-dark font-16 fw-bold mb-3'>Memo Details</h3>
           <div className={styles['cl-12']}>
-           <label>For Information *</label> 
-           <Checkbox className={this.state.isInfo ? "":styles.errCls} checked={this.state.isChecked} label="For Information"  onChange={this.onInfoChange}  disabled={this.state.isDisabled}/>
-             <Checkbox id="reqSign" checked={this.state.requestSign} className={styles['cl-3']}  label="Request for Signing" onChange={this.onSignChange} disabled={this.state.isDisabled}/>
-           <Checkbox  className={styles['cl-3']}  checked={this.state.forApproval} label="For Approval" onChange={this.onAppChange} disabled={this.state.isDisabled}/>
+           <label>For Information *</label>
+           <div className="row">
+            <div className='col-sm-3 mb-3'>
+            <Checkbox className={this.state.isInfo ? "":styles.errCls} checked={this.state.isChecked} label="For Information"  onChange={this.onInfoChange}  disabled={this.state.isDisabled}/>
+            </div>
+            <div className='col-sm-3 mb-3'>
+            <Checkbox id="reqSign" checked={this.state.requestSign}   label="Request for Signing" onChange={this.onSignChange} disabled={this.state.isDisabled}/>
+              </div>
+              <div className='col-sm-3 mb-3'>
+              <Checkbox    checked={this.state.forApproval} label="For Approval" onChange={this.onAppChange} disabled={this.state.isDisabled}/>
+              </div>
+           </div>
+          
+            
+
           </div>
-          <Dropdown  id="dept" placeholder="Select" label="Department" required={true} options={this.state.optionsDepartment} styles={dropdownStyles}  selectedKey={(this.state.department)}  onFocus={this.onDepClick} onChange={this.onDepartmentChange} disabled={this.state.isDisabled}/>
-          <TextField label="Memo Number" className={this.state.errDep ? "":styles.errCls}  required={ true } value={(this.state.memoNumber)} name='memoNumber' disabled={true}/>
-          <TextField label="From" required={ true } defaultValue={(this.props.userDisplayName)} name='lastname' disabled={true}/>
-          <PeoplePicker  errorMessage={this.state.errTo} ensureUser={true}  context={peoplePickerContext}  titleText="To"  personSelectionLimit={3}   groupName={""}   showtooltip={true}  required={true} disabled={this.state.isDisabled}  searchTextLimit={5}
+          <div className='row'>
+            <div className='col-sm-4 mb-3'>
+            <Dropdown  id="dept" placeholder="Select" label="Department" required={true} options={this.state.optionsDepartment} styles={dropdownStyles}  selectedKey={(this.state.department)}  onFocus={this.onDepClick} onChange={this.onDepartmentChange} disabled={this.state.isDisabled}/>
+            </div>
+            <div className='col-sm-4 mb-3'>
+            <TextField label="Memo Number" className={this.state.errDep ? "":styles.errCls}  required={ true } value={(this.state.memoNumber)} name='memoNumber' disabled={true}/>
+            </div>
+            <div className='col-sm-4 mb-3'>
+            <TextField label="From" required={ true } defaultValue={(this.props.userDisplayName)} name='lastname' disabled={true}/>
+            </div>
+            <div className='col-sm-4 mb-3'>
+            <PeoplePicker  errorMessage={this.state.errTo} ensureUser={true}  context={peoplePickerContext}  titleText="To"  personSelectionLimit={3}   groupName={""}   showtooltip={true}  required={true} disabled={this.state.isDisabled}  searchTextLimit={5}
              onChange={this._getPeoplePickerItemsTo} defaultSelectedUsers={this.state.toUsers ? this.state.toUsers : []}  principalTypes={[PrincipalType.User]} resolveDelay={1000} />
-          <PeoplePicker  errorMessage={this.state.errCC} ensureUser={true}  context={peoplePickerContext} titleText="CC"  personSelectionLimit={3} validateOnFocusOut={true} groupName={""} showtooltip={true} required={true} disabled={this.state.isDisabled} searchTextLimit={5} onChange={this._getPeoplePickerItems}
+              </div>
+
+
+              <div className='col-sm-4 mb-3'>
+              <PeoplePicker  errorMessage={this.state.errCC} ensureUser={true}  context={peoplePickerContext} titleText="CC"  personSelectionLimit={3} validateOnFocusOut={true} groupName={""} showtooltip={true} required={true} disabled={this.state.isDisabled} searchTextLimit={5} onChange={this._getPeoplePickerItems}
               principalTypes={[PrincipalType.User]} defaultSelectedUsers={this.state.ccUsers ? this.state.ccUsers : []} resolveDelay={1000} />
-           <TextField label="Subject" id="sub" errorMessage={this.state.errSub} required={ true }  onNotifyValidationResult={this.subOnClick}  validateOnFocusOut={true} value={this.state.subject} onClick={this.subOnClick}   onChange ={this.subOnChange} name='lastname' disabled={this.state.isDisabled}/>
-            <DateTimePicker label="Date" showLabels={false} dateConvention={DateConvention.Date}  value={this.state.dueDate}
+              </div>
+
+
+              <div className='col-sm-4 mb-3'>
+              <TextField label="Subject" id="sub" errorMessage={this.state.errSub} required={ true }  onNotifyValidationResult={this.subOnClick}  validateOnFocusOut={true} value={this.state.subject} onClick={this.subOnClick}   onChange ={this.subOnChange} name='lastname' disabled={this.state.isDisabled}/>
+              </div>
+
+              <div className='col-sm-4 mb-3'>
+              <DateTimePicker label="Date" showLabels={false} dateConvention={DateConvention.Date}  value={this.state.dueDate}
                formatDate={(date: Date) => date.toLocaleDateString()}
         onChange={(date: Date) => this.setState({ dueDate: date })} disabled={this.state.isDisabled}/>
-           <TextField id="bac" errorMessage={this.state.errback} multiline autoAdjustHeight value={this.state.background}  onNotifyValidationResult={this.bacOnClick}  validateOnFocusOut={true} onChange={this.onChangeBack} required={ true } label="Background"  disabled={this.state.isDisabled}/>
-          <TextField id="iss" errorMessage={this.state.errIss} multiline autoAdjustHeight value={this.state.issues}  onNotifyValidationResult={this.issOnClick}  validateOnFocusOut={true} onChange={this.onChangeIss} required={ true } label="Issues" disabled={this.state.isDisabled} />
-          <label>Recommendation</label>
-          <button  onClick={this.addRow}>Add
-</button>     
-    <table id="tabRec">
+              </div>
+
+              <div className='col-sm-4 mb-3'>
+              <TextField id="bac" errorMessage={this.state.errback} multiline autoAdjustHeight value={this.state.background}  onNotifyValidationResult={this.bacOnClick}  validateOnFocusOut={true} onChange={this.onChangeBack} required={ true } label="Background"  disabled={this.state.isDisabled}/>
+              </div>
+
+<div className='col-sm-4 mb-3'>
+<TextField id="iss" errorMessage={this.state.errIss} multiline autoAdjustHeight value={this.state.issues}  onNotifyValidationResult={this.issOnClick}  validateOnFocusOut={true} onChange={this.onChangeIss} required={ true } label="Issues" disabled={this.state.isDisabled} />
+</div>
+
+          </div>
+         
+         
+          
+          
+         
+         
+          </fieldset>
+          </section>
+         
+         <section className='card card-body mt-2'>
+         <fieldset>
+          <div className='row'>
+            <div className='col-sm-6'>
+            <h3 className='text-dark font-16 fw-bold mb-3'>Recommendation</h3>
+            </div>
+            <div style={{textAlign:'right'}} className='col-sm-6'>
+            <img style={{width:'30px', cursor:'pointer'}} className='mt-0' src={require("../../assets/plus.png")} onClick={this.addRow} ></img>
+           
+            </div>
+          </div>
+          
+              
+    <table id="tabRec" className='mtbalenew'>
+      <thead>
+      <tr><th>Section</th>
+            <th>Date</th>
+            <th colSpan={2}>Time</th>
+            <th>Auditor</th>
+            <th>Delete</th>
+            </tr>  
+      </thead>
          
           <tbody>  
-            <tr><td>Section</td>
-            <td>Date</td>
-            <td colSpan={2}>Time</td>
-            <td>Auditor</td>
-            <td>Delete</td>
-            </tr>     
+              
         { items }
         </tbody>
          
@@ -566,26 +641,44 @@ this.setState({showSubmit: false});
             </fieldset>
             </section>
          
-         <section className={styles.sec}>
+         <section className='card card-body mt-2'>
           <fieldset >
-          <h3> Audit Programme Detail</h3>
+          <h3 className='text-dark font-16 fw-bold'> Audit Programme Detail</h3>
 
-<Dropdown id="drpType" placeholder="Select" label="Type *" onChange={this.onYearSelect} options={this.state.options}  selectedKey={(this.state.type)} styles={dropdownStyles} disabled={this.state.isDisabled}/>
-<Dropdown id="drpYear"
+          <div className='row'>
+            <div className='col-sm-4 mb-3'>
+            <Dropdown id="drpType" placeholder="Select" label="Type *" onChange={this.onYearSelect} options={this.state.options}  selectedKey={(this.state.type)} styles={dropdownStyles} disabled={this.state.isDisabled}/>
+            </div>
+
+            <div className='col-sm-4 mb-3'>
+            <Dropdown id="drpYear"
 placeholder="Select"
 label="Year *" selectedKey={(this.state.year)} 
 options={optionsYear}
 styles={dropdownStyles} onChange={this.onYearChange} disabled={this.state.isDisabled}
 />
-<Dropdown id="drpMonths"
+            </div>
+
+            <div className='col-sm-4 mb-3'>
+            <Dropdown id="drpMonths"
 placeholder="Select" selectedKey={(this.state.month)} 
 label="Months *" disabled={this.state.showMonth || this.state.isDisabled}
 options={optionMonths}
 styles={dropdownStyles} onChange={this.onMonthChange} 
 />
-<input className="form-control" type="file" disabled={this.state.isDisabled} name="myFile" onChange={(e)=>this.handleFileChange(e,this)}  id="newfile" multiple/>
-      <label>FIles Selected:</label>  <button  onClick={this._OpenModal}>{this.state.fileCount}</button>
-         <table>
+            </div>
+            <div className='col-sm-4 mb-3'>
+            <input className="form-control" type="file" disabled={this.state.isDisabled} name="myFile" onChange={(e)=>this.handleFileChange(e,this)}  id="newfile" multiple/>
+            <label>FIles Selected:</label>  <span  className='font-12' onClick={this._OpenModal}>{this.state.fileCount}</span>
+            </div>
+          </div>
+
+
+
+
+
+      
+         <table className='mtbalenew'>
           <tbody>
             {fileData}
           </tbody>
@@ -593,21 +686,35 @@ styles={dropdownStyles} onChange={this.onMonthChange}
           </fieldset>
          
          </section>
-         <section className={styles.sec}>
+         <section className='card card-body mt-2'>
          <fieldset disabled={this.state.isDisabled}>
-         <h3> Approval Detail</h3>
-         <button  onClick={this.addApprover}>Add
-         </button>     
-         <table id="tblAppr">
+          <div className='row'>
+            <div className='col-sm-6'>
+            <h3 className='text-dark font-16 fw-bold'> Approval Detail</h3>
+            </div>
+            <div style={{textAlign:'right'}} className='col-sm-6'>
+            <img style={{width:'30px', cursor:'pointer'}} className='mt-0 mb-2' src={require("../../assets/plus.png")} onClick={this.addApprover} ></img>
+
+            {/* <button  onClick={this.addApprover}>Add
+            </button> */}
+            </div>
+          </div>
+         
+            
+         <table id="tblAppr" className='mtbalenew'>
+
+          <thead>
+          <tr><th style={{minWidth:'60px', maxWidth:"60px"}}>Sl.</th>
+          <th>Role</th>
+          <th>Approver Level</th>
+          <th>Approver Name</th>
+          <th>Approval Type</th>
+          <th style={{minWidth:'60px', maxWidth:"60px"}}>Delete</th>
+          </tr>
+          </thead>
          
          <tbody>       
-          <tr><td>Sl.</td>
-          <td>Role</td>
-          <td>Approver Level</td>
-          <td>Approver Name</td>
-          <td>Approval Type</td>
-          <td>Delete</td>
-          </tr>
+          
        { approval }
        </tbody>
         
@@ -616,10 +723,10 @@ styles={dropdownStyles} onChange={this.onMonthChange}
          </section>
          
 
-   {this.state.showSubmit &&  <section id="editDetails">
-      <PrimaryButton className={(styles as any)['mar-10']} onClick={this.createDraft}>Save As Draft</PrimaryButton>
-      <PrimaryButton className={(styles as any)['mar-10']} onClick={this.submitDraft}>Submit</PrimaryButton> 
-      <PrimaryButton className={(styles as any)['mar-10']} onClick={this.cancelDraft}>Cancel</PrimaryButton> 
+   {this.state.showSubmit &&  <section style={{display:'flex', gap:'10px', justifyContent:'center'}} id="editDetails ">
+      <PrimaryButton className={(styles as any)['mar-10 btn-primary']} onClick={this.createDraft}>Save As Draft</PrimaryButton>
+      <PrimaryButton className={(styles as any)['mar-10 btn-primary']} onClick={this.submitDraft}>Submit</PrimaryButton> 
+      <PrimaryButton className={(styles as any)['mar-10 cancel-btn']} onClick={this.cancelDraft}>Cancel</PrimaryButton> 
       </section>}
       {this.state.showApprove &&
       <section id="approvalSection">
@@ -632,27 +739,29 @@ styles={dropdownStyles} onChange={this.onMonthChange}
                        <a href='#/listing'> <PrimaryButton onClick={this.cancelRequest}>Cancel</PrimaryButton></a>
         
       </section>}
-      <section id='audit'>
+      <section id='audit' className='card card-body mt-2'>
         
-        <label>Audit Trial</label>
-        <table>
+        <h3 style={{margin:'inherit'}} className='fw-bold font-16 text- mb-2'>Audit Trial</h3>
+        <div style={{display:'grid'}}>
+                  <table className='mtbalenew'>
           <thead>
             <tr>
-            <th>Sl No</th>
-            <th>Level</th>
-              <th>Assigned To</th>
-              <th>Requestor Name</th>
-              <th>Requested Date</th>
-              <th>Action Taken By</th>
-              <th>Action Taken On</th>
+            <th style={{minWidth:'60px', maxWidth:'60px'}}>Sl No</th>
+            <th style={{minWidth:'60px', maxWidth:'60px'}}>Level</th>
+              <th style={{minWidth:'85px', maxWidth:'85px'}}>Assigned To</th>
+              <th style={{minWidth:'85px', maxWidth:'85px'}}>Requestor Name</th>
+              <th style={{minWidth:'85px', maxWidth:'85px'}}>Requested Date</th>
+              <th style={{minWidth:'85px', maxWidth:'85px'}}>Action Taken By</th>
+              <th style={{minWidth:'85px', maxWidth:'85px'}}>Action Taken On</th>
               <th>Remarks</th>
-              <th>Status</th>
+              <th style={{minWidth:'65px', maxWidth:'65px'}}>Status</th>
             </tr>
           </thead>
           <tbody>
                 {auditHistory}
           </tbody>
         </table>
+        </div>
       </section>
           {this.state.showDialog && <div id="myModal" className={styles.modal}>
            

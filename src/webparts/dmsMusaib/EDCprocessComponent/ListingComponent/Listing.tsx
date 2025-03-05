@@ -133,8 +133,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
             return (
                 <tr key={i}>
-                    <td style={{ minWidth: '60px', maxWidth: '60px' }}>
-                        <div style={{ marginLeft: '10px' }} className='indexdesign'>{i + 1}</div>
+                    <td style={{ minWidth: '40px', maxWidth: '40px' }}>
+                        <div style={{ marginLeft: '5px' }} className='indexdesign'>{i + 1}</div>
                     </td>
                     <td style={{ minWidth: '85px', maxWidth: '85px' }}>{item.RequestId}</td>
                     <td>{item.Title}</td>
@@ -173,8 +173,9 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         <table id="tabAllItems" className='mtbalenew'>
                             <thead>
                                 <tr>
-                                    <th style={{ minWidth: '60px', maxWidth: '60px' }}>
+                                    <th style={{ minWidth: '40px', maxWidth: '40px' }}>
                                         S.No
+                                        <span style={{width:'100%', height:'45px',clear:'both', float:'left'}} className='pb-3'></span>
                                     </th>
                                     {['RequestId', 'Title', 'ProcessName', 'ReqName', 'ReqDt', 'Status'].map(column => (
                                         <th key={column} style={{ minWidth: '85px', maxWidth: '85px' }}>
@@ -197,7 +198,10 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                             </div>
                                         </th>
                                     ))}
-                                    <th style={{ minWidth: '75px', maxWidth: '75px' }}>Action</th>
+                                    <th style={{ minWidth: '75px', maxWidth: '75px' }}>Action 
+                                    <span style={{width:'100%', height:'45px',clear:'both', float:'left'}} className='pb-3'></span>
+
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>{allItems}</tbody>
@@ -214,13 +218,14 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                     {number}
                                 </button>
                             ))}
-                            <button onClick={() => this.handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Next</button>
-                            <select value={itemsPerPage} onChange={this.handleItemsPerPageChange}>
+                           
+                            <select style={{height:'38px', marginTop:'19px'}} value={itemsPerPage} onChange={this.handleItemsPerPageChange}>
                                 <option value={5}>5</option>
                                 <option value={10}>10</option>
                                 <option value={20}>20</option>
                                 <option value={50}>50</option>
                             </select>
+                            <button onClick={() => this.handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Next</button>
                         </div>
                     </section>
                 )}
