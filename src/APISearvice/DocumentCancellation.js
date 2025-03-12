@@ -4,7 +4,7 @@ export const getAllDocumentCode = async (_sp) => {
   let sts = "Approved";
 
   await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`Status eq '${sts}'`)
-    .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title")
+    .select("*,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title")
     .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")
     .orderBy("Modified", false)() // Order by Modified descending to get latest first
     .then((res) => {
@@ -270,7 +270,7 @@ export const getItemByID = async (_sp, id) => {
   let arrs = []
   let bannerimg = []
   await _sp.web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.getById(id)
-  .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title").expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")()
+  .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title,Location/Location,Custodian/Custodian,DocumentType/DocumentType,AmendmentType/AmendmentType,Classification/Classification").expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")()
     .then((res) => {
       console.log(res, ' let arrs=[]');      
 
@@ -290,7 +290,7 @@ export const getItemByIDCR = async (_sp, id) => {
   let bannerimg = []
 
   await _sp.web.lists.getByTitle("ChangeRequestList").items.getById(id)
-    .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title").expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")()
+    .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Location/Location,Custodian/Custodian,DocumentType/DocumentType,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title").expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")()
     .then((res) => {
       console.log(res, ' let arrs=[]');
 
@@ -371,6 +371,37 @@ export const getApprovalByID2 = async (_sp, id,processName) => {
       // .filter(`AssignedTo/Id eq ${currentUser.Id} and ProcessName eq ${processName}`)
 
       //  arr.push(res)
+   
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  console.log(arr, 'arr');
+  return arr;
+}
+
+export const getDraftApprovalByID = async (_sp, id,processName) => {
+ 
+  let arr =[];
+  let val = "Yes"
+  let Sts = "Save as draft";
+  let sts ="Pending"
+  const currentUser = await _sp.web.currentUser();
+  await _sp.web.lists.getByTitle("ProcessApprovalList").items
+  .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`AssignedTo/ID  eq '${currentUser.Id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).top(1)()
+    .then((res) => {
+      console.log(res, ' let arrs=[]');
+      // if(res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 && res.CurrentUserRole !=="OES" ){
+      //   arr = false;
+      // }
+      // else{
+      //   arr = true;
+      // }
+      // .filter(`AssignedTo/Id eq ${currentUser.Id} and ProcessName eq ${processName}`)
+
+      //  arr.push(res)
+
+      arr =res;
    
     })
     .catch((error) => {

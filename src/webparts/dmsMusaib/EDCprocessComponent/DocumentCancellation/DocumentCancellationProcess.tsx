@@ -26,7 +26,7 @@ import "./documentCancellation.scss";
 // import { allowstringonly, getCurrentUser } from '../../../APISearvice/CustomService';
 import { allowstringonly, getCurrentUser } from '../../../../APISearvice/CustomService';
 // import { addAllProcessItem, addApprovalItem, addItem, addItem2, getAllDocumentCode, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getFormNameID, getItemByID, getItemByID2, getListNameID, getRequesterID, getRequestTypeID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2 } from '../../../APISearvice/DocumentCancellation';
-import { addAllProcessItem, addApprovalItem, addItem, addItem2, getAllDocumentCode, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getFormNameID, getItemByID, getItemByID2, getListNameID, getRequesterID, getRequestTypeID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2 } from '../../../../APISearvice/DocumentCancellation';
+import { addAllProcessItem, addApprovalItem, addItem, addItem2, getAllDocumentCode, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, getRequesterID, getRequestTypeID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2 } from '../../../../APISearvice/DocumentCancellation';
 import Select from "react-select";
 import Swal from 'sweetalert2';
 // import { FormSubmissionMode } from '../../../Shared/Interfaces';
@@ -62,9 +62,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     const siteUrl = props.siteUrl;
     const { useHide }: any = React.useContext(UserContext);
     const [InputDisabled, setInputDisabled] = React.useState(false);
-    const selectedTextDiv=document.getElementById('selectedText');
-   
-selectedTextDiv.style.display='none';
+    const selectedTextDiv = document.getElementById('selectedText');
+
+    selectedTextDiv.style.display = 'none';
 
     const [Loading, setLoading] = React.useState(false);
     const [FormLoading, setFormLoading] = React.useState(false);
@@ -90,6 +90,7 @@ selectedTextDiv.style.display='none';
     const [editForm, setEditForm] = React.useState(false);
     const [modeValue, setmode] = React.useState("");
     const [currentUserDept, setcurrentUserDept] = React.useState("");
+    const [DraftApprovalItem, setDraftApprovalItem] = React.useState(null);
     const [DocumentLink, setDocumentLink] = React.useState(null);
     const [cancellReason, setcancellReason] = React.useState([{ id: 0, description: "", reason: "" }]);
     const [cancellReasonEdit, setcancellReasonEdit] = React.useState([]);
@@ -104,15 +105,21 @@ selectedTextDiv.style.display='none';
         IssueDate: "",
         LocationId: 0,
         CustodianId: 0,
+        AmendmentTypeId: 0,
+        ClassificationId: 0,
+        Location: "",
+        Custodian: "",
+        AmendmentType: "",
+        Classification: "",
+        DocumentType: "",
+        RequestTypeId: 0,
+
         SerialNumber: "",
         IssueNumber: "",
         RevisionNumber: "",
         RevisionDate: "",
         DocumentCode: "",
         ReferenceNumber: "",
-        AmendmentTypeId: 0,
-        RequestTypeId: 0,
-        ClassificationId: 0,
         ChangeRequestTypeId: [],
         SubmiitedDate: "",
         SubmitStatus: "",
@@ -140,7 +147,7 @@ selectedTextDiv.style.display='none';
 
 
     const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
-        { id: 0, role: 0, level: 1, approvers: [], approvalType: "One" } // Default row
+        // { id: 0, role: 0, level: 1, approvers: [], approvalType: "One" } // Default row
     ]);
 
     const Breadcrumb = [
@@ -172,8 +179,18 @@ selectedTextDiv.style.display='none';
         if (path1.includes("/view/") || path1.includes("/approve/")) {
             setFormLoading(true); ////
             setInputDisabled(true);
+            if(path1.includes("/approve/")){
+                setForwardToArr((prev) => [
+                    ...prev,
+                    { id: 0, role: 0, level: prev.length + 1, approvers: [], approvalType: "One" }
+                ]);
+            }
         }
         else {
+            setForwardToArr((prev) => [
+                ...prev,
+                { id: 0, role: 0, level: prev.length + 1, approvers: [], approvalType: "One" }
+            ]);
             setInputDisabled(false);
         }
         if (path1.includes("/edit/")) {
@@ -246,9 +263,16 @@ selectedTextDiv.style.display='none';
             SubmiitedDate: item.SubmiitedDate,
             SubmitStatus: item.SubmitStatus,
             DocumentTypeId: item.DocumentTypeId,
-            Department: UserDept,
+            // Department: UserDept,
+            Department: item.Department,
             AttachmentId: item.AttachmentId,
-            AttachmentJson: item.AttachmentJson
+            AttachmentJson: item.AttachmentJson,
+
+            Location: item.Location.Location,
+            Custodian: item.Custodian.Custodian,
+            AmendmentType: item.AmendmentType.AmendmentType,
+            Classification: item.Classification.Classification,
+            DocumentType: item.DocumentType.DocumentType,
             // DocumentName: "",
             // IsRework: false,
             // DigitalSignStatus: false,
@@ -300,7 +324,13 @@ selectedTextDiv.style.display='none';
                     var ProcessItemId: any = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_DocumentCancel);
                     setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_DocumentCancel));
                 }
+                else{
+
+                    setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_DocumentCancel))
+
+                }
             }
+          
 
         }
         // formitemid =20;
@@ -381,45 +411,17 @@ selectedTextDiv.style.display='none';
                     ChangeRequestIDId: setBannerById[0].ChangeRequestID,
                     DocumentTypeId: setBannerById[0].DocumentTypeId,
                     AttachmentId: setBannerById[0].AttachmentId,
-                    AttachmentJson: setBannerById[0].AttachmentJson
+                    AttachmentJson: setBannerById[0].AttachmentJson,
+
+                    Location: setBannerById[0].Location.Location,
+                    Custodian: setBannerById[0].Custodian.Custodian,
+                    AmendmentType: setBannerById[0].AmendmentType.AmendmentType,
+                    Classification: setBannerById[0].Classification.Classification,
+                    DocumentType: setBannerById[0].DocumentType.DocumentType,
 
 
                 }
 
-                // let arr2 = {
-
-                //     RequesterName: setBannerById[0].RequesterName,
-                //     RequesterNameId: setBannerById[0].RequesterNameId,
-                //     RequesterDesignation: setBannerById[0].RequesterDesignation,
-                //     Department: setBannerById[0].Department,
-                //     RequestDate: setBannerById[0].RequestDate,
-                //     IssueDate: setBannerById[0].IssueDate,
-                //     LocationId: setBannerById[0].LocationId,
-                //     CustodianId: setBannerById[0].CustodianId,
-                //     SerialNumber: setBannerById[0].SerialNumber,
-                //     IssueNumber: setBannerById[0].IssueNumber,
-                //     RevisionNumber: setBannerById[0].RevisionNumber,
-                //     RevisionDate: setBannerById[0].RevisionDate,
-                //     DocumentCode: setBannerById[0].value,
-                //     ReferenceNumber: setBannerById[0].ReferenceNumber,
-                //     AmendmentTypeId: setBannerById[0].AmendmentTypeId,
-                //     ClassificationId: setBannerById[0].ClassificationId,
-                //     ChangeRequestTypeId: setBannerById[0].ChangeRequestTypeId,
-                //     SubmiitedDate: setBannerById[0].SubmiitedDate,
-                //     SubmitStatus: setBannerById[0].SubmitStatus,
-                //     // value: setBannerById[0].DocumentCode,
-                //     // label: setBannerById[0].DocumentCode,
-                //     // Status: "Pending",
-                //     // DocumentName: "",
-                //     // IsRework: false,
-                //     // DigitalSignStatus: false,
-                //     ChangeRequestIDId: setBannerById[0].ChangeRequestIDId,
-                //     DocumentTypeId: setBannerById[0].DocumentTypeId,
-                //     AttachmentId: setBannerById[0].AttachmentId,
-                //     AttachmentJson: setBannerById[0].AttachmentJson
-
-
-                // }
 
                 setFormData(prevData => ({
                     ...prevData,
@@ -451,7 +453,13 @@ selectedTextDiv.style.display='none';
                     DocumentTypeId: setBannerById[0].DocumentTypeId,
                     Department: setBannerById[0].Department,
                     AttachmentId: setBannerById[0].AttachmentId,
-                    AttachmentJson: setBannerById[0].AttachmentJson
+                    AttachmentJson: setBannerById[0].AttachmentJson,
+
+                    Location: setBannerById[0].Location.Location,
+                    Custodian: setBannerById[0].Custodian.Custodian,
+                    AmendmentType: setBannerById[0].AmendmentType.AmendmentType,
+                    Classification: setBannerById[0].Classification.Classification,
+                    DocumentType: setBannerById[0].DocumentType.DocumentType,
 
                     // Format as YYYY-MM-DD
                 }));
@@ -461,13 +469,17 @@ selectedTextDiv.style.display='none';
                 setSelectedOption(arr);
 
                 const rowData: any[] = await getItemByID2(sp, Number(setBannerById[0].ID)) //baseUrl
-                const initialRows = rowData.map((item: any) => ({
-                    id: item.Id,
-                    description: item.ChangeDescription,
-                    reason: item.ReasonforChange,
-                }));
-                setcancellReason(initialRows);
-                setcancellReasonEdit(initialRows);
+                if (rowData.length > 0) {
+                    const initialRows = rowData.map((item: any) => ({
+                        id: item.Id,
+                        description: item.ChangeDescription,
+                        reason: item.ReasonforChange,
+                    }));
+                    setcancellReason(initialRows);
+                    setcancellReasonEdit(initialRows);
+
+                }
+
 
 
             }
@@ -510,7 +522,13 @@ selectedTextDiv.style.display='none';
             DocumentTypeId: selectedList.DocumentTypeId,
             Department: selectedList.Department,
             AttachmentId: selectedList.AttachmentId,
-            AttachmentJson: selectedList.AttachmentJson
+            AttachmentJson: selectedList.AttachmentJson,
+
+            Location: selectedList.Location,
+            Custodian: selectedList.Custodian,
+            AmendmentType: selectedList.AmendmentType,
+            Classification: selectedList.Classification,
+            DocumentType: selectedList.DocumentType,
             // Format as YYYY-MM-DD
         }));
         setSelectedOption(selectedList);
@@ -707,10 +725,10 @@ selectedTextDiv.style.display='none';
                 //Swal.fire('Error', 'Entity is required!', 'error');
                 valid = false;
             }
-            else if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" && row.reason.trim() !== "") == false) {
-                // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
-                valid1 = false;
-            }
+            // else if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" && row.reason.trim() !== "") == false) {
+            //     // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
+            //     valid1 = false;
+            // }
 
             setValidDraft(valid);
             setValidCancelReason(valid1);
@@ -823,13 +841,23 @@ selectedTextDiv.style.display='none';
 
                         }
 
+                        if(DraftApprovalItem != null && DraftApprovalItem != undefined&& DraftApprovalItem.length > 0){
 
-                        // const postResult3 = await addApprovalItem(Apparr, sp);
-                        // const postId3 = postResult3?.data?.ID;
+                            let arr2 = {
+                                ActionTakenById: currentUser.Id,
+                                ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                                // ActionTakenRoleId: formData.RequesterDesignation,
+                                Status: "Approved",
+                                // Remark: remark,
+    
+                            }
+                            const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
+                            const postId = postResult?.data?.ID;
 
-                        // await AddContentMaster(sp, arr)
+                        }
 
-                        // const boolval = await handleClick(editID, TypeMasterData?.TypeMaster, Number(formData.entity))
+
+                        
                         // /*********** */
 
                         // Find items that are in cancellReasonEdit but NOT in cancellReason
@@ -1051,9 +1079,23 @@ selectedTextDiv.style.display='none';
                             }
 
                         }
-                        // await AddContentMaster(sp, arr)
 
-                        // const boolval = await handleClick(editID, TypeMasterData?.TypeMaster, Number(formData.entity))
+                        
+
+                        // if(DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0){
+
+                        //     let arr2 = {
+                        //         ActionTakenById: currentUser.Id,
+                        //         ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                        //         // ActionTakenRoleId: formData.RequesterDesignation,
+                        //         Status: "Save as draft",
+                        //         // Remark: remark,
+    
+                        //     }
+                        //     const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
+                        //     const postId = postResult?.data?.ID;
+                            
+                        // }
                         // /*********** */
 
                         // Find items that are in cancellReasonEdit but NOT in cancellReason
@@ -1105,7 +1147,7 @@ selectedTextDiv.style.display='none';
                     if (result.isConfirmed) {
                         setLoading(true);
 
-
+                        let valid1 = true;
                         const postPayload = {
                             Title: formData.RequesterName,
                             RequesterNameId: formData.RequesterNameId,
@@ -1151,20 +1193,24 @@ selectedTextDiv.style.display='none';
                             return;
                         }
 
-                        for (const row of cancellReason) {
+                        if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() == "" && row.reason.trim() == "") == false) {
+                            // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
+                            // valid1 = false;
+                            for (const row of cancellReason) {
 
-                            const postPayload2 = {
-                                ChangeRequestDCIDId: postId, // Assuming "Title" column exists
-                                ChangeDescription: row.description,
-                                ReasonforChange: row.reason,
-                            }
+                                const postPayload2 = {
+                                    ChangeRequestDCIDId: postId, // Assuming "Title" column exists
+                                    ChangeDescription: row.description,
+                                    ReasonforChange: row.reason,
+                                }
 
-                            const postResult2 = await addItem2(postPayload2, sp);
-                            const postId2 = postResult2?.data?.ID;
-                            // debugger
-                            if (!postId2) {
-                                console.error("Post creation failed.");
-                                return;
+                                const postResult2 = await addItem2(postPayload2, sp);
+                                const postId2 = postResult2?.data?.ID;
+                                // debugger
+                                if (!postId2) {
+                                    console.error("Post creation failed.");
+                                    return;
+                                }
                             }
                         }
 
@@ -1742,32 +1788,36 @@ selectedTextDiv.style.display='none';
 
 
                         // //////////////Update Document cancellation Reason List when Submitted
+                        if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() == "" && row.reason.trim() == "") == false) {
 
-                        for (const row of cancellReason) {
+                            for (const row of cancellReason) {
 
-                            const postPayload2 = {
-                                ChangeRequestDCIDId: editItemID, // Assuming "Title" column exists
-                                ChangeDescription: row.description,
-                                ReasonforChange: row.reason,
-                            }
+                                const postPayload2 = {
+                                    ChangeRequestDCIDId: editItemID, // Assuming "Title" column exists
+                                    ChangeDescription: row.description,
+                                    ReasonforChange: row.reason,
+                                }
 
-                            if (!row.id) {
+                                if (!row.id) {
 
-                                const postResult2 = await addItem2(postPayload2, sp);
-                                const postId2 = postResult2?.data?.ID;
-                                // debugger
-                                if (!postId2) {
-                                    console.error("Post creation failed.");
-                                    return;
+                                    const postResult2 = await addItem2(postPayload2, sp);
+                                    const postId2 = postResult2?.data?.ID;
+                                    // debugger
+                                    if (!postId2) {
+                                        console.error("Post creation failed.");
+                                        return;
+                                    }
+
+                                }
+                                else if (row.id > 0) {
+                                    const postResult2 = await updateItem2(postPayload2, sp, row.id);
+                                    const postId2 = postResult2?.data?.ID;
                                 }
 
                             }
-                            else if (row.id > 0) {
-                                const postResult2 = await updateItem2(postPayload2, sp, row.id);
-                                const postId2 = postResult2?.data?.ID;
-                            }
-
                         }
+
+
 
                         const toDelete = cancellReasonEdit.filter(
                             (itemEdit) => !cancellReason.some(item => item.id === itemEdit.id) // Assuming ID is the unique key
@@ -1947,6 +1997,46 @@ selectedTextDiv.style.display='none';
                                                                     </div>
                                                                 </div>
 
+                                                                <div className="col-lg-4">
+
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="example-email" className="form-label">Amendment Type</label>
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.AmendmentType} />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="col-lg-4">
+
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="example-email" className="form-label">Classification</label>
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.Classification} />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="col-lg-4">
+
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="example-email" className="form-label">Location</label>
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.Location} />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="col-lg-4">
+
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="example-email" className="form-label">Custodian</label>
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.Custodian} />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="col-lg-4">
+
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="example-email" className="form-label">Document Type</label>
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.DocumentType} />
+                                                                    </div>
+                                                                </div>
+
                                                                 {/* <div className="col-lg-8">
 
                                                             <div className="mb-3">
@@ -2041,68 +2131,68 @@ selectedTextDiv.style.display='none';
                                                                 <thead>
                                                                     <tr>
                                                                         <th style={{ minWidth: "30px", maxWidth: "30px" }}>S.No</th>
-                                                                        <th>Description</th>
-                                                                        <th>Reason for Cancellation</th>
+                                                                        <th>Description<span className="text-danger1"> *</span></th>
+                                                                        <th>Reason for Cancellation<span className="text-danger1"> *</span></th>
                                                                         {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: "80px", maxWidth: "80px" }}>Action</th>}
                                                                     </tr>
 
                                                                 </thead>
 
-                                                                     <tbody >
-                                                                        {cancellReason.map((row, index) => (
-                                                                            <tr key={index}>
-                                                                                <td style={{ minWidth: "30px", maxWidth: "30px" }}>
-                                                                                    <div
-                                                                                        style={{ marginLeft: "5px" }}
-                                                                                        className="indexdesign"
-                                                                                    >
-                                                                                        {index + 1}</div></td>
-                                                                                <td>
-                                                                                    <textarea id="simpleinput" disabled={InputDisabled}
-                                                                                        // className="form-control"                                                                      
-                                                                                        className={`newse mb-0 ${(!ValidCancelReason) ? "border-on-error" : ""}`}
+                                                                <tbody >
+                                                                    {cancellReason.map((row, index) => (
+                                                                        <tr key={index}>
+                                                                            <td style={{ minWidth: "30px", maxWidth: "30px" }}>
+                                                                                <div
+                                                                                    style={{ marginLeft: "5px" }}
+                                                                                    className="indexdesign"
+                                                                                >
+                                                                                    {index + 1}</div></td>
+                                                                            <td>
+                                                                                <textarea id="simpleinput" disabled={InputDisabled}
+                                                                                    // className="form-control"                                                                      
+                                                                                    className={`newse mb-0 ${(!ValidCancelReason) ? "border-on-error" : ""}`}
 
-                                                                                        value={row.description}
-                                                                                        onChange={(e) => {
-                                                                                            const newRowscancellReason = [...cancellReason];
-                                                                                            newRowscancellReason[index].description = e.target.value;
-                                                                                            setcancellReason(newRowscancellReason);
-                                                                                        }}>
+                                                                                    value={row.description}
+                                                                                    onChange={(e) => {
+                                                                                        const newRowscancellReason = [...cancellReason];
+                                                                                        newRowscancellReason[index].description = e.target.value;
+                                                                                        setcancellReason(newRowscancellReason);
+                                                                                    }}>
 
-                                                                                    </textarea>
-                                                                                    {/* <input type="text"
+                                                                                </textarea>
+                                                                                {/* <input type="text"
                                                                         /> */}
 
-                                                                                </td>
-                                                                                <td>
-                                                                                    <textarea id="simpleinput" disabled={InputDisabled}
-                                                                                        //  className="form-control"
-                                                                                        className={`newse mb-0 ${(!ValidCancelReason) ? "border-on-error" : ""}`}
+                                                                            </td>
+                                                                            <td>
+                                                                                <textarea id="simpleinput" disabled={InputDisabled}
+                                                                                    //  className="form-control"
+                                                                                    className={`newse mb-0 ${(!ValidCancelReason) ? "border-on-error" : ""}`}
 
-                                                                                        value={row.reason}
-                                                                                        onChange={(e) => {
-                                                                                            const newRowscancellReason = [...cancellReason];
-                                                                                            newRowscancellReason[index].reason = e.target.value;
-                                                                                            setcancellReason(newRowscancellReason);
-                                                                                        }}>
+                                                                                    value={row.reason}
+                                                                                    onChange={(e) => {
+                                                                                        const newRowscancellReason = [...cancellReason];
+                                                                                        newRowscancellReason[index].reason = e.target.value;
+                                                                                        setcancellReason(newRowscancellReason);
+                                                                                    }}>
 
-                                                                                    </textarea>
+                                                                                </textarea>
 
-                                                                                    {/* <input type="text"
+                                                                                {/* <input type="text"
                                                                         /> */}
-                                                                                </td>
-                                                                                {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "80px", maxWidth: "80px", textAlign: 'center' }}>
-                                                                                    {/* <img src={require("../../../CustomAsset/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img> */}
-                                                                                    <img src={require("../../assets/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img>
+                                                                            </td>
+                                                                            {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "80px", maxWidth: "80px", textAlign: 'center' }}>
+                                                                                {/* <img src={require("../../../CustomAsset/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img> */}
+                                                                                <img src={require("../../assets/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img>
 
-                                                                                    {/* <img src={require("../../../CustomAsset/del.png")} className='sidebariconsmall' style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img> */}
-                                                                                </td>
-                                                                                }
-                                                                            </tr>
-                                                                        ))}
-                                                                    </tbody>
-                                                                 
-                                                              
+                                                                                {/* <img src={require("../../../CustomAsset/del.png")} className='sidebariconsmall' style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img> */}
+                                                                            </td>
+                                                                            }
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+
+
                                                             </table>
 
 
@@ -2116,9 +2206,9 @@ selectedTextDiv.style.display='none';
                                                 {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
 
                                                 {/* {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" && */}
-                                                {modeValue === "approve" && editID != null && editID.Status === "Pending" && editID.CurrentUserRole !== "Initiator" &&
+                                                {modeValue === "approve" && editID != null && editID.CurrentUserRole !== "Initiator" && MainEditItem !== null && MainEditItem?.Status !== "Save as draft" &&
 
-                                                    <div className="card mt-3" style={{marginBottom: '17px'}}>
+                                                    <div className="card mt-3" style={{ marginBottom: '17px' }}>
                                                         <div className="card-body">
                                                             <div className='row'>
                                                                 <div className='col-sm-8'>
@@ -2128,7 +2218,141 @@ selectedTextDiv.style.display='none';
                                                                 <div className='col-sm-4'>
                                                                     <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
                                                                         {/* {editID.CurrentUserRole === "OES" && <img style={{ width: '34px' }} src={require("../assets/plus.png")} onClick={handleAddRow} className='' />} */}
-                                                                        {editID.CurrentUserRole === "OES" && <img style={{ width: '34px' }} src={require("../../assets/plus.png")} onClick={handleAddRow} className='' />}
+                                                                        {(editID?.CurrentUserRole === "OES" && editID?.Status === "Pending") && <img style={{ width: '34px' }} src={require("../../assets/plus.png")} onClick={handleAddRow} className='' />}
+
+                                                                        {/* <i style={{ cursor: "pointer" }} onClick={handleAddRow} className="fe-plus-circle font-20 text-warning"></i> */}
+                                                                    </div>
+                                                                </div>
+
+                                                            </div>
+
+                                                            <div style={{ overflow: 'inherit' }} className="table-responsive mt-3 pt-0">
+                                                                <table style={{ overflow: 'inherit' }} className="mtbalenew  table-centered table-nowrap table-borderless mb-0 overhi" id="myTabl">
+                                                                    <thead >
+                                                                        <tr>
+                                                                            <th style={{ minWidth: "35px", maxWidth: "35px" }}>S.No</th>
+                                                                            <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Role<span className="text-danger1"> *</span></th>
+                                                                            <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level</th>
+                                                                            <th>Approver name<span className="text-danger1"> *</span></th>
+                                                                            <th style={{ minWidth: '70px', maxWidth: '70px' }} >Approval criteria<span className="text-danger1"> *</span></th>
+                                                                            <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody style={{ maxHeight: "8007px", overflow: 'inherit' }}>
+                                                                        {forwardToArr.map((row, index) => (
+                                                                            <tr>
+                                                                                <td style={{ minWidth: "35px", maxWidth: "35px", overflow: 'inherit' }}> <div
+                                                                                    style={{ marginLeft: "5px" }}
+                                                                                    className="indexdesign"
+                                                                                >
+                                                                                    {index + 1}</div>
+                                                                                </td>
+                                                                                <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding">
+                                                                                    <select
+                                                                                        // className="form-select"
+                                                                                        className={`form-select newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
+
+                                                                                        onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={!(editID.CurrentUserRole == "OES"&& editID.Status == "Pending")}>
+
+                                                                                        <option value="" selected>Select Role</option>
+                                                                                        {/* {UserRoles.map((role: any, index: number) => (
+                                                                                    <option key={index} value={role.value}>{role.label}</option>
+                                                                                ))} */}
+                                                                                        {UserRoles.filter((role: any) =>
+                                                                                            !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
+                                                                                        ).map((role: any, idx: number) => (
+                                                                                            <option key={idx} value={role.value}>{role.label}</option>
+                                                                                        ))}
+                                                                                    </select>
+
+                                                                                </td>
+                                                                                <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>Level {index + 1}</td>
+                                                                                <td style={{ overflow: 'inherit' }}>
+
+                                                                                    <Select
+                                                                                        options={rows1}
+                                                                                        isMulti
+                                                                                        value={row.approvers}
+                                                                                        name="Approvers"
+                                                                                        className={`newse ${(!ValidForwardTo) ? "border-on-error" : ""}`}
+                                                                                        // onChange={(selectedOption: any) => onSelect(selectedOption)}
+                                                                                        onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
+                                                                                        placeholder="Enter Approver Name"
+                                                                                        isDisabled={!(editID.CurrentUserRole == "OES"&& editID.Status == "Pending") }
+                                                                                    />
+
+
+
+                                                                                </td>
+                                                                                <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
+                                                                                    {/* <label htmlFor="approvalType">Approval Type: </label> */}
+                                                                                    <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={!(editID.CurrentUserRole == "OES" && editID.Status == "Pending")} >
+                                                                                        <option value="">Select</option>
+                                                                                        <option value="One">Anyone</option>
+                                                                                        <option value="All">Everyone</option>
+                                                                                    </select>
+                                                                                </td>
+                                                                                <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>
+                                                                                    {/* <i className="fe-trash-2 text-danger"></i> */}
+                                                                                    {/* {editID.CurrentUserRole === "OES"? <img src={require("../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} />:
+                                                                                <img src={require("../assets/recycle-bin.png")}  className='sidebariconsmall' />} */}
+                                                                                    {((editID.CurrentUserRole === "OES"&& editID.Status === "Pending")) ? <img src={require("../../assets/del.png")} onClick={() => handleDeleteRow(index)} /> :
+                                                                                        <img src={require("../../assets/recycle-bin.png")} className='sidebariconsmall' />}
+
+                                                                                </td>
+                                                                            </tr>
+
+                                                                        ))}
+
+
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+
+
+
+                                                            {editID.CurrentUserRole === "OES" && editID.Status === "Pending" && <div className="row mt-3">
+                                                                <div className="col-12 text-center">
+                                                                    {/* <a href="my-approval.html"> */}
+                                                                    <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardApproval("Forward")} >
+                                                                        <i className="fe-check-circle me-1"></i> Forward
+                                                                    </button>
+                                                                    {/* </a> */}
+                                                                    {/* <a href="#"> */}
+                                                                    <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={() => ForwardApproval("Rework")} >
+                                                                        <i className="fe-corner-up-left me-1"></i> Rework
+                                                                    </button>
+                                                                    {/* </a> */}
+                                                                    {/* <a href="#"> */}
+                                                                    <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={() => ForwardApproval("Rejected")} >
+                                                                        <i className="fe-x me-1"></i> Reject
+                                                                    </button>
+                                                                    {/* </a> */}
+                                                                    {/* <a href="my-approval.html"> */}
+                                                                    <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}>
+                                                                        <i className="fe-x me-1"></i> Cancel
+                                                                    </button>
+                                                                    {/* </a> */}
+                                                                </div>
+                                                            </div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                }
+
+                                                {(modeValue === "view")&& forwardToArr.length >0 && MainEditItem !== null && MainEditItem?.Status !== "Save as draft" &&
+
+                                                    <div className="card mt-3" style={{ marginBottom: '17px' }}>
+                                                        <div className="card-body">
+                                                            <div className='row'>
+                                                                <div className='col-sm-8'>
+                                                                    <h4 className="header-title text-dark font-16 mb-3 ">Forward Approval To</h4>
+
+                                                                </div>
+                                                                <div className='col-sm-4'>
+                                                                    <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
+                                                                        {/* {editID.CurrentUserRole === "OES" && <img style={{ width: '34px' }} src={require("../assets/plus.png")} onClick={handleAddRow} className='' />} */}
+                                                                        {/* {(editID?.CurrentUserRole === "OES" ||MainEditItem?.Status == "Rework") && <img style={{ width: '34px' }} src={require("../../assets/plus.png")} onClick={handleAddRow} className='' />} */}
 
                                                                         {/* <i style={{ cursor: "pointer" }} onClick={handleAddRow} className="fe-plus-circle font-20 text-warning"></i> */}
                                                                     </div>
@@ -2162,12 +2386,12 @@ selectedTextDiv.style.display='none';
                                                                                         // className="form-select"
                                                                                         className={`form-select newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
 
-                                                                                        onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={editID.CurrentUserRole !== "OES"}>
+                                                                                        onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={true}>
 
                                                                                         <option value="" selected>Select Role</option>
                                                                                         {/* {UserRoles.map((role: any, index: number) => (
-                                                                                    <option key={index} value={role.value}>{role.label}</option>
-                                                                                ))} */}
+                                <option key={index} value={role.value}>{role.label}</option>
+                            ))} */}
                                                                                         {UserRoles.filter((role: any) =>
                                                                                             !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
                                                                                         ).map((role: any, idx: number) => (
@@ -2188,7 +2412,7 @@ selectedTextDiv.style.display='none';
                                                                                         // onChange={(selectedOption: any) => onSelect(selectedOption)}
                                                                                         onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
                                                                                         placeholder="Enter Approver Name"
-                                                                                        isDisabled={editID.CurrentUserRole !== "OES"}
+                                                                                        isDisabled={true}
                                                                                     />
 
 
@@ -2196,7 +2420,7 @@ selectedTextDiv.style.display='none';
                                                                                 </td>
                                                                                 <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
                                                                                     {/* <label htmlFor="approvalType">Approval Type: </label> */}
-                                                                                    <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={editID.CurrentUserRole !== "OES"} >
+                                                                                    <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={true} >
                                                                                         <option value="">Select</option>
                                                                                         <option value="One">Anyone</option>
                                                                                         <option value="All">Everyone</option>
@@ -2205,9 +2429,10 @@ selectedTextDiv.style.display='none';
                                                                                 <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>
                                                                                     {/* <i className="fe-trash-2 text-danger"></i> */}
                                                                                     {/* {editID.CurrentUserRole === "OES"? <img src={require("../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} />:
-                                                                                <img src={require("../assets/recycle-bin.png")}  className='sidebariconsmall' />} */}
-                                                                                    {editID.CurrentUserRole === "OES" ? <img src={require("../../assets/del.png")} onClick={() => handleDeleteRow(index)} /> :
-                                                                                        <img src={require("../../assets/recycle-bin.png")} className='sidebariconsmall' />}
+                            <img src={require("../assets/recycle-bin.png")}  className='sidebariconsmall' />} */}
+                                                                                    {/* {(editID.CurrentUserRole === "OES"||MainEditItem?.Status !== "Rework") ? <img src={require("../../assets/del.png")} onClick={() => handleDeleteRow(index)} /> : */}
+                                                                                    <img src={require("../../assets/recycle-bin.png")} className='sidebariconsmall' />
+                                                                                    {/* } */}
 
                                                                                 </td>
                                                                             </tr>
@@ -2221,31 +2446,28 @@ selectedTextDiv.style.display='none';
 
 
 
-                                                            {editID.CurrentUserRole === "OES" && <div className="row mt-3">
+                                                            {/* {editID.CurrentUserRole === "OES" && <div className="row mt-3">
                                                                 <div className="col-12 text-center">
-                                                                    {/* <a href="my-approval.html"> */}
+                                                                    
                                                                     <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardApproval("Forward")} >
                                                                         <i className="fe-check-circle me-1"></i> Forward
                                                                     </button>
-                                                                    {/* </a> */}
-                                                                    {/* <a href="#"> */}
+                                                                    
                                                                     <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={() => ForwardApproval("Rework")} >
                                                                         <i className="fe-corner-up-left me-1"></i> Rework
                                                                     </button>
-                                                                    {/* </a> */}
-                                                                    {/* <a href="#"> */}
+                                                                   
                                                                     <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={() => ForwardApproval("Rejected")} >
                                                                         <i className="fe-x me-1"></i> Reject
                                                                     </button>
-                                                                    {/* </a> */}
-                                                                    {/* <a href="my-approval.html"> */}
+                                                                   
                                                                     <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}>
                                                                         <i className="fe-x me-1"></i> Cancel
                                                                     </button>
-                                                                    {/* </a> */}
+                                                                   
                                                                 </div>
                                                             </div>
-                                                            }
+                                                            } */}
                                                         </div>
                                                     </div>
                                                 }
@@ -2300,22 +2522,22 @@ selectedTextDiv.style.display='none';
                                                 {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" || MainEditItem?.Status === "Rework")) || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "OES" && editID.IsInitiator == "No")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}><i className="fe-check-circle me-1"></i> Submit</button>}
                                                 */}
 
-                                                        {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
+                                                        {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button style={{width:'145px'}} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
                                                             {/* <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />  */}
                                                             <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
                                                             Save As Draft</button>}
 
-                                                        {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
+                                                        {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button style={{width:'145px'}} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
                                                             {/* <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />  */}
                                                             <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
                                                             Submit</button>}
 
                                                         {/* {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</button>} */}
-                                                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</button>}
+                                                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button style={{width:'145px'}} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</button>}
 
                                                         {/* {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</button>} */}
 
-                                                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</button>}
+                                                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button style={{width:'145px'}} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</button>}
 
 
                                                         {/* </a> */}
@@ -2325,7 +2547,11 @@ selectedTextDiv.style.display='none';
                                                         className='me-1' alt="x" /> Cancel</button>
                                                     } */}
                                                         {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.IsInitiator == "Yes")) &&
-                                                            <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
+                                                            <button style={{width:'145px'}} type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
+                                                                className='me-1' alt="x" /> Cancel</button>
+                                                        }
+                                                        {((modeValue === "approve") && (editID !== null && editID.Status == "Approved")) &&
+                                                            <button style={{width:'145px'}} type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                                                 className='me-1' alt="x" /> Cancel</button>
                                                         }
                                                         {/* </a> */}

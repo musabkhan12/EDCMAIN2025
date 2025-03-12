@@ -15,6 +15,7 @@ import type { IFormProps } from '../FormComponent/IFormProps';
 import ChangeDocumentRequest from '../../ChangerequestComponent/ChangeDocumentRequest';
 import DocumentCancellationProcess from '../DocumentCancellation/DocumentCancellationProcess';
 import moment from 'moment';
+import AnnualAuditPlan from '../../AnnualAuditPlanComponent/AnnualAuditPlan';
 
 export class Listing extends React.Component<IListingProps, IListingState, IFormProps> {
     private _sp: SPFI;
@@ -136,9 +137,9 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     <td style={{ minWidth: '40px', maxWidth: '40px' }}>
                         <div style={{ marginLeft: '5px' }} className='indexdesign'>{i + 1}</div>
                     </td>
-                    <td style={{ minWidth: '85px', maxWidth: '85px' }}>{item.RequestId}</td>
+                    <td style={{ minWidth: '85px', maxWidth: '85px' }}>{item?.RequestId}</td>
                     <td>{item.Title}</td>
-                    <td title={item.ProcessName} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.ProcessName}</td>
+                    <td title={item?.ProcessName} style={{ minWidth: '85px', maxWidth: '85px' }}>{item?.ProcessName}</td>
                     <td title={item.ReqName} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.ReqName}</td>
                     <td title={moment(item.ReqDt).format("DD-MMM-YYYY")} style={{ minWidth: '85px', maxWidth: '85px' }}>{moment(item.ReqDt).format("DD-MMM-YYYY")}</td>
                     <td title={item.Status} style={{ minWidth: '75px', maxWidth: '75px' }}>{item.Status}</td>
@@ -167,6 +168,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         {this.state.process == "Change Request" && <ChangeDocumentRequest description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''}></ChangeDocumentRequest>}
                         {this.state.process == "Document Cancellation" && <DocumentCancellationProcess description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''}></DocumentCancellationProcess>}
                         {this.state.process == "Annual Audit Program" && <FormComponent userDisplayName={''} userid={this.props.userid} context={this.props.context} item={this.state.edItm} onClose={this.closeForm} />}
+                        {this.state.process == "Annual Audit Plan" && <AnnualAuditPlan description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''} />}
+
                     </div>
                 ) : (
                     <section style={{ display: 'grid' }}>
@@ -247,6 +250,20 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 RequestId: itm.MemoNumber,
                 Title: itm.Title,
                 ProcessName: "Annual Audit Program",
+                ReqName: itm.Author ? itm.Author.Title : '',
+                ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
+                Status: itm.Status,
+                MainListId: itm.Id,
+                Id: itm.Id
+            });
+        });
+
+        const AnnualAuditPlanList = await spfi(this._sp).web.lists.getByTitle("AnnualAuditPlanList").items.select('Id,MemoNumber,Title,Author/Title,Created,Status,ReferenceNumber').expand('Author')();
+        AnnualAuditPlanList.forEach(itm => {
+            allItems.push({
+                RequestId: itm.MemoNumber?itm.MemoNumber:"",
+                Title: itm.ReferenceNumber?itm.ReferenceNumber:"",
+                ProcessName: "Annual Audit Plan",
                 ReqName: itm.Author ? itm.Author.Title : '',
                 ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
                 Status: itm.Status,

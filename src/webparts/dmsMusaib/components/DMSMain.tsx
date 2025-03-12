@@ -125,6 +125,7 @@ import Shownew from "../processcomponents/new";
 import NC from "../processcomponents/NC";
 import { FormComponent } from "../EDCprocessComponent/FormComponent/Form";
 import { Listing } from "../EDCprocessComponent/ListingComponent/Listing";
+import AnnualAuditPlan from "../AnnualAuditPlanComponent/AnnualAuditPlan";
 
 let Undo = require('../assets/Undo.svg');
 let sharewithmeicon = require('../assets/nodes.png')
@@ -523,6 +524,14 @@ useEffect(() => {
       cleanUrlInMyRequest=true;
       returnFromMyRequest=true;
       setlistorgriddata('AnnualAuditProgram')
+    }
+    else if(arrayToStoreURLParameter[1] === 'Annual%20Audit%20Plan' ){
+      //  alert("Document Camcetllation")
+      const get = document.getElementById('files-container')
+      get.innerHTML = '';
+      cleanUrlInMyRequest=true;
+      returnFromMyRequest=true;
+      setlistorgriddata('AnnualAuditPlan')
     }
   }
  
@@ -10426,6 +10435,20 @@ const ChangeRequest = async (event:React.MouseEvent<HTMLButtonElement> ) => {
     setSelectedText(null);
     window.location.hash = "/AnnualAuditProgram";
 }
+const AuditPlanFunc = async (event:React.MouseEvent<HTMLButtonElement> ) => {
+  const selectedTextDiv=document.getElementById('selectedText');
+  const breadcrumbElement=document.getElementById("breadcrumb");
+  breadcrumbElement.style.display='none';
+  selectedTextDiv.style.display='none';
+    const getfilescontainer = document.getElementById('files-container')
+    if(getfilescontainer){
+      getfilescontainer.classList.add('hidemydatacards')
+    }
+    setlistorgriddata('AnnualAuditPlan');
+    setDynamicContent(null);
+    setSelectedText(null);
+    window.location.hash = "/AnnualAuditPlan";
+}
 const ChangeDocumentRequest = async (event:React.MouseEvent<HTMLButtonElement> ) => {
   const selectedTextDiv=document.getElementById('selectedText');
     const breadcrumbElement=document.getElementById("breadcrumb");
@@ -10443,6 +10466,10 @@ const ChangeDocumentRequest = async (event:React.MouseEvent<HTMLButtonElement> )
 
 const DocumentCancellationfunc = async (event:React.MouseEvent<HTMLButtonElement> ) => {
   const getcol = document.getElementsByClassName('col-md-12');
+  const selectedTextDiv=document.getElementById('selectedText');
+  const breadcrumbElement=document.getElementById("breadcrumb");
+  breadcrumbElement.style.display='none';
+  selectedTextDiv.style.display='none';
 
   if (getcol.length > 0) {
       Array.from(getcol).forEach((element) => {
@@ -13766,6 +13793,12 @@ librarydiv.appendChild(mainContainer)
             handleShowContent(event as any);
           }}
           >Document Cancellation </Dropdown.Item>
+          <Dropdown.Item href="#/AnnualAuditPlan"
+           onClick={(event) => {
+            AuditPlanFunc(event as any);
+            handleShowContent(event as any);
+          }}
+          >Annual Audit Plan </Dropdown.Item>
         </Dropdown.Menu>
       </Dropdown>
                               </div>
@@ -14081,6 +14114,11 @@ librarydiv.appendChild(mainContainer)
       )}
       {listorgriddata === 'DocumentCancellation' && (
         <DocumentCancellation 
+         {...props}
+        />
+      )}
+      {listorgriddata === 'AnnualAuditPlan' && (
+        <AnnualAuditPlan 
          {...props}
         />
       )}

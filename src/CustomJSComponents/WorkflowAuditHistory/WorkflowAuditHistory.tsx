@@ -132,8 +132,8 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
         // "ID eq " + props.ContentItemId.Id +
 
         sp.web.lists.getByTitle("ProcessApprovalList").items
-          .select("*,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title,ActionTakenBy/Id,ActionTakenBy/Title")
-          .expand("AssignedTo,RequesterName,ActionTakenBy")
+          .select("*,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title,ActionTakenBy/Id,ActionTakenBy/Title,ActionTakenRole/Role")
+          .expand("AssignedTo,RequesterName,ActionTakenBy,ActionTakenRole")
           .filter(
 
             //"ListItemId eq " + props.ContentItemId.ListItemId +
@@ -228,12 +228,13 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                   </th>
 
-                  <th style={{ minWidth: '70px', maxWidth: '70px' }}>
+                 {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request") &&<th style={{ minWidth: '70px', maxWidth: '70px' }}>
 
 
                    Assigned To Role
 
                   </th>
+        }
 
                   <th style={{ minWidth: '70px', maxWidth: '70px' }}>
 
@@ -337,7 +338,9 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                         <td style={{ minWidth: '70px', maxWidth: '70px' }}> {row.Approver ? row.Approver.Title : row.AssignedTo.Title}</td>
 
-                        <td style={{ minWidth: '70px', maxWidth: '70px' }}>{row.CurrentUserRole}</td>
+                        {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request") &&
+                         <td style={{ minWidth: '70px', maxWidth: '70px' }}>{row.CurrentUserRole ||row.ActionTakenRole.Role ||""}</td>
+                        }
 
                         <td style={{ minWidth: '70px', maxWidth: '70px' }}> {row.Requester ? row.Requester.Title : row.RequesterName.Title}</td>
                         {/* <td style={{ minWidth: '70px', maxWidth: '70px' }}> {row.ActionTakenRole ? row.ActionTakenRole.Role : row.ActionTakenRole.Role}</td> */}

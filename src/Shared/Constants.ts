@@ -7,6 +7,8 @@ export const LIST_TITLE_MediaGallery="ARGMediaGallery";
 export const LIST_TITLE_MyRequest="ARGMyRequest";
 export const CONTENTTYPE_DocumentCancel ="Document Cancellation";
 export const LIST_TITLE_DocCancel="ChangeRequestDocumentCancellationList";
+export const CONTENTTYPE_AuditPlan ="Annual Audit Plan";
+export const LIST_TITLE_AuditPlan="AnnualAuditPlanList";
 
 export const Tenant_URL ="https://officeindia.sharepoint.com"
 export const SITE_URL ="https://officeindia.sharepoint.com/sites/edcspfx"

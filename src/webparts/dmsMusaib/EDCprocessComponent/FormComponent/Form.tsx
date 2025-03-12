@@ -398,29 +398,29 @@ this.setState({showSubmit: false});
    // var idAss="ppAss_"+i;
  return(
     <tr className='tblCls'>
-     <td>
+     <td style={{minWidth:'80px', maxWidth:'80px'}}>
      <TextField id={idtxt} className={this.state.recommendations[i].errSec} value={this.state.recommendations[i].section} onChange={(e) => this.onSectionChange(e,i)} disabled={this.state.isDisabled} ></TextField>
      </td>
-     <td>
+     <td style={{minWidth:'80px', maxWidth:'80px'}} className='newdate'>
      <DateTimePicker  dateConvention={DateConvention.Date}  value={this.state.recommendations[i].date} disabled={this.state.isDisabled}
         showLabels={false}    formatDate={(date: Date) => date.toLocaleDateString()}
         onChange={(date: Date) =>this.setDueDate(date,i)}/>
           </td>
-     <td>
+     <td style={{minWidth:'80px', maxWidth:'80px'}}>
      <Dropdown id={idHr} className={this.state.recommendations[i].errHr}  placeholder="Select" selectedKey={this.state.recommendations[i].hours}  options={optionsHours} styles={dropdownStylesNew} onChange={(e,itm:IDropdownOption) => this.onHoursChange(e,itm,i)} disabled={this.state.isDisabled}/>
     </td>
-    <td>
+    <td style={{minWidth:'80px', maxWidth:'80px'}}>
      <Dropdown id={idMin} className={this.state.recommendations[i].errMin}  placeholder="Select" selectedKey={this.state.recommendations[i].minutes}  options={optionsMinutes} styles={dropdownStylesNew} onChange={(e,itm:IDropdownOption) => this.onMinutesChange(e,itm,i)} disabled={this.state.isDisabled}/>
        
   
      </td>
-     <td>
-     <PeoplePicker peoplePickerWPclassName={this.state.recommendations[i].errTo} ensureUser={true}  disabled={this.state.isDisabled}  context={peoplePickerContext} personSelectionLimit={1} groupName={""} showtooltip={true}  searchTextLimit={5} onChange={(e) =>this._getPeoplePickerItemsAud(e,i)} 
+     <td style={{minWidth:'80px', maxWidth:'80px'}}>
+     <PeoplePicker peoplePickerWPclassName={this.state.recommendations[i].errTo} ensureUser={true}  disabled={this.state.isDisabled}  context={peoplePickerContext} personSelectionLimit={1} groupName={""} showtooltip={true}  searchTextLimit={5} onChange={(e) =>this._getPeoplePickerItemsAud(e,i)}
          defaultSelectedUsers={this.state.recommendations[i].approverDef ? this.state.recommendations[i].approverDef : []}   principalTypes={[PrincipalType.User]} resolveDelay={1000} />
      </td>
-    
-     <td>
-      
+   
+     <td style={{minWidth:'60px', maxWidth:'60px'}}>
+     
      <img style={{width:'30px', cursor:'pointer'}} className='mt-0' src={require("../../assets/del.png")} onClick={(e) =>this.deleteItem(i)} ></img>
       
       {/* <button   onClick={(e) =>this.deleteItem(i)}>Delete</button> */}
@@ -457,7 +457,8 @@ this.setState({showSubmit: false});
       {item.Uploaded}
         </td>
         <td>
-          <button onClick={(e) =>this.toBeDeleted(i)} disabled={this.state.isDisabled}>Delete</button>
+        {/* <img style={{width:'30px', cursor:'pointer'}} className='mt-0' src={require("../../assets/del.png")} onClick={(e) =>this.toBeDeleted(i)} disabled={this.state.isDisabled} ></img> */}
+          <button className='mt-0' onClick={(e) =>this.toBeDeleted(i)} disabled={this.state.isDisabled}>Delete</button>
         </td>
       </tr> 
        )    
@@ -618,11 +619,11 @@ this.setState({showSubmit: false});
               
     <table id="tabRec" className='mtbalenew'>
       <thead>
-      <tr><th>Section</th>
-            <th>Date</th>
-            <th colSpan={2}>Time</th>
-            <th>Auditor</th>
-            <th>Delete</th>
+      <tr><th style={{minWidth:'80px', maxWidth:'80px'}}>Section</th>
+            <th style={{minWidth:'80px', maxWidth:'80px'}}>Date</th>
+            <th style={{minWidth:'160px', maxWidth:'160px'}} colSpan={2}>Time</th>
+            <th  style={{minWidth:'80px', maxWidth:'80px'}}>Auditor</th>
+            <th style={{minWidth:'60px', maxWidth:'60px'}}>Delete</th>
             </tr>  
       </thead>
          
@@ -669,7 +670,7 @@ styles={dropdownStyles} onChange={this.onMonthChange}
             </div>
             <div className='col-sm-4 mb-3'>
             <input className="form-control" type="file" disabled={this.state.isDisabled} name="myFile" onChange={(e)=>this.handleFileChange(e,this)}  id="newfile" multiple/>
-            <label>FIles Selected:</label>  <span  className='font-12' onClick={this._OpenModal}>{this.state.fileCount}</span>
+            <label>FIles Selected:<span style={{color:'blue', cursor:'pointer'}} className='font-12' onClick={this._OpenModal}>{this.state.fileCount}</span></label>  
             </div>
           </div>
 
@@ -693,7 +694,7 @@ styles={dropdownStyles} onChange={this.onMonthChange}
             <h3 className='text-dark font-16 fw-bold'> Approval Detail</h3>
             </div>
             <div style={{textAlign:'right'}} className='col-sm-6'>
-            <img style={{width:'30px', cursor:'pointer'}} className='mt-0 mb-2' src={require("../../assets/plus.png")} onClick={this.addApprover} ></img>
+            <img style={{width:'30px', cursor:'pointer'}} className='mt-0 mb-3' src={require("../../assets/plus.png")} onClick={this.addApprover} ></img>
 
             {/* <button  onClick={this.addApprover}>Add
             </button> */}
@@ -723,10 +724,10 @@ styles={dropdownStyles} onChange={this.onMonthChange}
          </section>
          
 
-   {this.state.showSubmit &&  <section style={{display:'flex', gap:'10px', justifyContent:'center'}} id="editDetails ">
-      <PrimaryButton className={(styles as any)['mar-10 btn-primary']} onClick={this.createDraft}>Save As Draft</PrimaryButton>
-      <PrimaryButton className={(styles as any)['mar-10 btn-primary']} onClick={this.submitDraft}>Submit</PrimaryButton> 
-      <PrimaryButton className={(styles as any)['mar-10 cancel-btn']} onClick={this.cancelDraft}>Cancel</PrimaryButton> 
+   {this.state.showSubmit &&  <section className='mb-2' style={{display:'flex', gap:'10px', justifyContent:'center'}} id="editDetails ">
+      <PrimaryButton style={{width:'145px'}} className={(styles as any)['mar-10 btn-primary']} onClick={this.createDraft}>  <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</PrimaryButton>
+      <PrimaryButton style={{width:'145px'}} className={(styles as any)['mar-10 btn-primary']} onClick={this.submitDraft}>  <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</PrimaryButton>
+      <PrimaryButton style={{width:'145px'}} className={(styles as any)['mar-10 cancel-btn']} onClick={this.cancelDraft}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}/> Cancel</PrimaryButton>
       </section>}
       {this.state.showApprove &&
       <section id="approvalSection">
@@ -739,8 +740,8 @@ styles={dropdownStyles} onChange={this.onMonthChange}
                        <a href='#/listing'> <PrimaryButton onClick={this.cancelRequest}>Cancel</PrimaryButton></a>
         
       </section>}
-      <section id='audit' className='card card-body mt-2'>
-        
+      <section id='audit' className='card card-body mt-3'>
+       
         <h3 style={{margin:'inherit'}} className='fw-bold font-16 text- mb-2'>Audit Trial</h3>
         <div style={{display:'grid'}}>
                   <table className='mtbalenew'>
@@ -770,12 +771,14 @@ styles={dropdownStyles} onChange={this.onMonthChange}
             <br/>
             <span>Below are the attachment details for the Initiative</span>
           <span className={styles.close} onClick={e => this._CloseModal()}>&times;</span>
-          <table>
+          <table className='mtbalenew mt-2'>
             <thead>
+              <tr>
             <th>File Name</th>
               <th>File Link</th>
               <th>Upload Date</th>
               <th>Delete</th>
+              </tr>
             </thead>
          
             {upFiles}

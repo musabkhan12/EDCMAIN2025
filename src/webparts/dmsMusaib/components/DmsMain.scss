@@ -194,6 +194,27 @@ input:not([type]){
 .pagination{justify-content: end; align-items: center;}
 .pagination button{border-radius: 0px !important;}
 .dropdown-menu.show{border-radius: 0px !important;}
+.ms-Checkbox-checkbox{border: 1px solid #ccc !important;}
+.newdate .dateTimePicker_998a39a1{ height: 42px;}
+#myModal{
+  z-index: 99999 !important;
+}
+#myModal .modalcontent_817de1fc{width: 55% !important; position: relative;    background-color: #fefefe;
+  border: 1px solid #888;
+  margin: 15% auto;
+  padding: 20px;}
+#myModal .close_817de1fc{
+  position: absolute;
+    right: 20px;
+    top: 14px;
+    width: 30px;
+    height: 30px;
+    border-radius: 1000px;
+    border: 1px solid #ccc;
+    text-align: center;
+    line-height: 27px;
+}
+
 #comm{
   border: 1px solid #ccc !important; 
 }
@@ -628,12 +649,7 @@ input::placeholder,select::placeholder,textarea::placeholder,#react-select-3-pla
     padding: 5px;
 }
 
-/* .workflowdiv{
-  display: block !important;
-}
-.workflowdivhide{
-  display: none !important;
-} */
+
 
 
 /*Edit pop Css*/
