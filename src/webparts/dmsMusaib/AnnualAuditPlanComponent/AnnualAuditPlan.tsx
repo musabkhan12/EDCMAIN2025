@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import type { IAnnualAuditPlanProps } from './IAnnualAuditPlanProps';
 import { escape } from '@microsoft/sp-lodash-subset';
@@ -24,16 +23,20 @@ import { FormSubmissionMode } from '../../../Shared/Interfaces';
 import { decryptId } from '../../../APISearvice/CryptoService';
 import { WorkflowAction } from '../../../CustomJSComponents/WorkflowAction/WorkflowAction';
 import { WorkflowAuditHistory } from '../../../CustomJSComponents/WorkflowAuditHistory/WorkflowAuditHistory';
-import { CONTENTTYPE_AuditPlan, CONTENTTYPE_DocumentCancel, LIST_TITLE_AuditPlan, LIST_TITLE_DocCancel, SITE_URL, Tenant_URL } from '../../../Shared/Constants';
-import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
+import { CONTENTTYPE_AuditPlan, LIST_TITLE_AuditPlan, SITE_URL, Tenant_URL } from '../../../Shared/Constants';
+import { PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
-import { addAllProcessItem, addItem, addItem2, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2 } from './AuditPlanService';
+import { addAllProcessItem, addItem, addItem2, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles } from './AuditPlanService';
 import { TextField } from '@fluentui/react';
-let myloader = '../../'
+
+// let myloader = '../../'
+let newfileupload: any
+let newfilepreview: any;
+let filechanged: boolean = false;
 interface ForwardTo {
     id: number;
     role: number;
@@ -52,8 +55,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
     selectedTextDiv.style.display = 'none';
 
+
+    const [FilesArr, setFilesArr] = React.useState<any>([]);
+    const [FilesArr1, setFilesArr1] = React.useState<any>([]);
     const [Loading, setLoading] = React.useState(false);
     const [FormLoading, setFormLoading] = React.useState(false);
+    const [showForwardapproval, setshowForwardapproval] = React.useState(true);
     const [FormItemId, setFormItemId] = React.useState(null);
     const [editID, setEditID] = React.useState(null);
     const [editItemID, setEditItemID] = React.useState(null);
@@ -65,7 +72,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     const [selectedOption, setSelectedOption] = React.useState(null);
     const [selectedPeople, setSelectedPeople] = React.useState(null);
     const [selectedRole, setSelectedRole] = React.useState(null);
+    const [ValidDRecomm, setValidDRecomm] = React.useState(true);
     const [ValidDraft, setValidDraft] = React.useState(true);
+    const [ValidAudit, setValidAudit] = React.useState(true);
     const [ValidSubmit, setValidSubmit] = React.useState(true);
     const [ValidCancelReason, setValidCancelReason] = React.useState(true);
     const [ValidForwardTo, setValidForwardTo] = React.useState(true);
@@ -79,6 +88,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     const [selectUserDept, setselectUserDept] = React.useState(null);
     const [AllDept, setAllDept] = React.useState([]);
     const [DocumentLink, setDocumentLink] = React.useState(null);
+    const [DraftApprovalItem, setDraftApprovalItem] = React.useState(null);
     // const [cancellReason, setcancellReason] = React.useState([{ id: 0, description: "", reason: "" }]);
     // const [RecommendRows, setRecommendRows] = React.useState([]);
     const [showModal, setShowModal] = React.useState(false);
@@ -90,7 +100,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         deptId: 0,
         issueNo: "",
         revisionNo: "",
-        from: "",
+        from: 0,
         fromEmail: "",
         to: [],
         subject: "",
@@ -107,7 +117,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         objective: "",
         criteria: "",
         assignedTo: "",
-        attachmentnew: null
+        attachmentIds: null,
+        attachmentJson: null
 
     });
     const [selectCCUsers, setSelectCCUsers] = React.useState([]);
@@ -239,12 +250,15 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         if (path1.includes("/view/") || path1.includes("/approve/")) {
             setFormLoading(true); ////
             setInputDisabled(true);
+            setshowForwardapproval(false)
         }
         else {
             setInputDisabled(false);
+            setshowForwardapproval(true)
         }
         if (path1.includes("/edit/")) {
             setFormLoading(true); ////
+            setshowForwardapproval(true)
         }
 
 
@@ -278,7 +292,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
         setFormData(prevData => ({
             ...prevData,
-            from: Currusers?.Id || "",
+            from: Currusers?.Id || 0,
             fromEmail: Currusers?.Email,
 
         }));
@@ -318,10 +332,17 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     //  ProcessListItem =await getApprovalByID(sp, Number(segments[paramIndex + 2]),CONTENTTYPE_DocumentCancel);
                     // setInputDisabled((ProcessListItem.Status == "Pending" || ProcessListItem?.Status === "Save as draft") && ProcessListItem.Level === 0 && ProcessListItem.CurrentUserRole !=="OES")
                     setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditPlan));
-                    var ProcessItemId: any = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditPlan);
+                    // var ProcessItemId: any = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditPlan);
                     setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditPlan));
                 }
+                // else {
+
+                //     setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditPlan))
+
+                // }
             }
+
+            setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditPlan))
 
         }
         // formitemid =20;
@@ -356,14 +377,15 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     issues: setBannerById[0].Issues,
                     recommendationforApproval: setBannerById[0].RecommendedforApproval,
                     // approval: setBannerById[0].,
-                    // CC: [],
+                    CC: setBannerById[0].CcId || [],
                     auditPlanTypeId: setBannerById[0].AuditPlanTypeId || [],
                     exclusions: setBannerById[0].Exclusions,
                     boundary: setBannerById[0].Boundary,
                     objective: setBannerById[0].AimObjective,
                     criteria: setBannerById[0].Criteria,
                     // assignedTo: "",
-                    // attachsmentnew: null
+                    attachmentIds: setBannerById[0].AttachmentId || null,
+                    attachmentJson: setBannerById[0].AttachmentJson || null
                 }));
 
                 setselectUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentId));
@@ -377,11 +399,14 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     value: obj.ID,
                     label: obj.Title,
                 })) || []);
-                // setCategoryData(await getCategory(sp, Number(setBannerById[0]?.TypeMaster))) // Category
-                // if (setBannerById[0].AttachmentId) {
-                //     setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId))
-                // }
-                // if (ProcessItemId && ProcessItemId.Level === 0 && ProcessItemId.CurrentUserRole === "OES" && ProcessItemId.IsInitiator == "No") {
+                if (setBannerById[0].AttachmentId) {
+                    // setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId[0]));
+                    let arrn = await getDocumentLinkByID(sp, setBannerById[0].AttachmentId);
+                    setFilesArr([...FilesArr, ...arrn]);
+                    setFilesArr1([...FilesArr1, ...arrn]);
+                             
+                }
+
                 const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_AuditPlan, setBannerById[0].ReferenceNumber)
 
                 if (ApprowData.length > 0) {
@@ -402,10 +427,6 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                 }
 
-                // setFormData(arr2);
-
-                // setSelectedOption(arr);
-
                 const rowData: any[] = await getItemByID2(sp, Number(setBannerById[0].ID)) //baseUrl
                 const initialRows = rowData.map((item: any) => ({
                     id: item.Id,
@@ -423,14 +444,16 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
             }
 
-            // setRequesterRoleId(await getRequesterID(sp))
-            setFormNameId(await getFormNameID(sp, CONTENTTYPE_AuditPlan))
-            setListNameId(await getListNameID(sp, LIST_TITLE_AuditPlan))
+
 
 
 
         }
         setFormLoading(false);
+
+        // setRequesterRoleId(await getRequesterID(sp))
+        setFormNameId(await getFormNameID(sp, CONTENTTYPE_AuditPlan))
+        setListNameId(await getListNameID(sp, LIST_TITLE_AuditPlan))
 
         //}
         //#endregion
@@ -555,104 +578,175 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
 
     const validateForm = async (fmode: FormSubmissionMode) => {
-        // const { RequesterName, RequesterDesignation, RequestDate, DocumentCode, IssueNumber, RevisionNumber, ReferenceNumber } = formData;
+        const {
+            memoNo,
+            deptId,
+            issueNo,
+            revisionNo,
+            from,
+            fromEmail,
+            to,
+            subject,
+            attachment,
+            date,
+            background,
+            issues,
+            recommendationforApproval,
+            approval,
+            CC,
+            auditPlanTypeId,
+            exclusions,
+            boundary,
+            objective,
+            criteria,
+            assignedTo, } = formData;
         // const { description } = richTextValues;
         let valid = true;
+        let validraft = true;
         let valid1 = true;
+        let validRec = true;
+        let validAudit = true;
         // let validateOverview:boolean = false;
         // let validatetitlelength = false;
         // let validateTitle = false;
-        setValidDraft(true);
+        // setValidDraft(true);
         setValidSubmit(true);
         setValidCancelReason(true);
+        setValidForwardTo(true);
+        setValidAudit(true);
+        setValidDraft(true);
         let errormsg = "";
 
         if (fmode == FormSubmissionMode.SUBMIT) {
-            // if (!RequesterName) {
-            //     //Swal.fire('Error', 'Title is required!', 'error');
-            //     valid = false;
-            // }
-            // else if (!RequesterDesignation) {
-            //     //Swal.fire('Error', 'Type is required!', 'error');
-            //     valid = false;
-            // }
-            //   else if (!RequestDate) {
-            //     //Swal.fire('Error', 'Category is required!', 'error');
-            //     valid = false;
-            //   }
-            // else if (selectedOption == null || !selectedOption.value) {
-            //     //Swal.fire('Error', 'Entity is required!', 'error');
-            //     valid = false;
-            // }
-            // else if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" && row.reason.trim() !== "") == false) {
-            //     // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
-            //     valid1 = false;
-            // }
-            // else if (cancellReason.length == 0) {
-            //     // const isValid = rows.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
-            //     valid1 = false;
-            // }
-            // else if (IssueNumber === "") {
-            //     //Swal.fire('Error', 'Entity is required!', 'error');
-            //     valid = false;
-            // }
-            // else if (RevisionNumber === "") {
-            //     //Swal.fire('Error', 'Entity is required!', 'error');
-            //     valid = false;
-            // }
-            // else if (!ReferenceNumber) {
-            //     //Swal.fire('Error', 'Entity is required!', 'error');
-            //     valid = false;
-            // }
+            if (!deptId) {
+                //Swal.fire('Error', 'Title is required!', 'error');
+                valid = false;
+            }
+            else if (!from) {
+                //Swal.fire('Error', 'Type is required!', 'error');
+                valid = false;
+            }
+            else if (!to.length) {
+                //Swal.fire('Error', 'Category is required!', 'error');
+                valid = false;
+            }
+            else if (!CC.length) {
+                //Swal.fire('Error', 'Category is required!', 'error');
+                valid = false;
+            }
+            else if (!FilesArr.length) {
+                //Swal.fire('Error', 'Category is required!', 'error');
+                valid = false;
+            }
+            else if (!subject) {
+                //Swal.fire('Error', 'Category is required!', 'error');
+                valid = false;
+            }
+            else if (!date) {
+                //Swal.fire('Error', 'Category is required!', 'error');
+                valid = false;
+            }
+            else if (date == "Invalid Date") {
+                //Swal.fire('Error', 'Category is required!', 'error');
+                valid = false;
+            }
+            else if (!background) {
+                //Swal.fire('Error', 'Category is required!', 'error');
+                valid = false;
+            }
+            else if (!issues) {
+                //Swal.fire('Error', 'Category is required!', 'error');
+                valid = false;
+            } else if (!auditPlanTypeId.length) {
+                //Swal.fire('Error', 'Entity is required!', 'error');
+                valid = false;
+            }
 
-            // setValidSubmit(valid);
-            // setValidCancelReason(valid1);
+            if (!recommendationRows) {
+                validRec = false;
+            }
+
+            else if (recommendationRows.length > 0 && recommendationRows.every((row: any) => row.section.trim() !== "" && row.date.trim() !== "" && row.startTime.trim() !== "" && row.auditor != null && row.auditor.length != 0) == false) {
+                // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
+                validRec = false;
+            }
+            else if (!recommendationforApproval) {
+                // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
+                validRec = false;
+            }
+            if (!forwardToArr) {
+                valid1 = false;
+            }
+            else if (forwardToArr.length > 0 && forwardToArr.every((row: any) => row.role !== 0 && row.approvalType.trim() !== "" && row.approvers.length != 0) == false) {
+                // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
+                valid1 = false;
+            }
+            if (!exclusions) {
+                validAudit = false;
+            }
+            else if (!boundary) {
+                validAudit = false;
+            }
+            else if (!objective) {
+                validAudit = false;
+            }
+            else if (!criteria) {
+                validAudit = false;
+            }
+
+
+            setValidSubmit(valid);
+            setValidDRecomm(validRec);
+            setValidAudit(validAudit);
+            setValidForwardTo(valid1);
 
         }
         else {
-            // if (!RequesterName) {
-            //     //Swal.fire('Error', 'Title is required!', 'error');
-            //     valid = false;
-            // }
-            // else if (!RequesterDesignation) {
-            //     //Swal.fire('Error', 'Type is required!', 'error');
-            //     valid = false;
-            // }
+            if (!date) {
+                //Swal.fire('Error', 'Title is required!', 'error');
+                validraft = false;
+            }
+            else if (date == "Invalid Date") {
+                //Swal.fire('Error', 'Category is required!', 'error');
+                validraft = false;
+            }
+            else if (!deptId) {
+                //Swal.fire('Error', 'Type is required!', 'error');
+                validraft = false;
+            }
             // else if (selectedOption == null || !selectedOption.value) {
             //     //Swal.fire('Error', 'Entity is required!', 'error');
             //     valid = false;
             // }
-            // else if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" && row.reason.trim() !== "") == false) {
-            //     // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
-            //     valid1 = false;
-            // }
 
-            // setValidDraft(valid);
+
+            setValidDraft(validraft);
             // setValidCancelReason(valid1);
 
         }
 
         // console.log("validateTitle", validateTitle,"errormsg", errormsg,"valid,", valid, ImagepostArr.length);
-        if (!valid && fmode == FormSubmissionMode.SUBMIT)
-            Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
-        // else if (!valid && fmode == FormSubmissionMode.SUBMIT && rows.length >0){
+        // if (!valid && fmode == FormSubmissionMode.SUBMIT){
+        //     Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
+
+        // }
+        // else if (!valid1 && fmode == FormSubmissionMode.SUBMIT)
+        //     Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields in description section.');
+        // else if (!valid && fmode == FormSubmissionMode.DRAFT) {
         //     Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
         // }
-        else if (!valid1 && fmode == FormSubmissionMode.SUBMIT)
-            Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields in description section.');
-        else if (!valid && fmode == FormSubmissionMode.DRAFT) {
+        // else if (!valid1 && fmode == FormSubmissionMode.DRAFT) {
+        //     Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields in description section..');
+        // }
+        if (valid == false || valid1 == false || validRec == false || validAudit == false || validraft == false) {
             Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
+
+            return false
         }
-        else if (!valid1 && fmode == FormSubmissionMode.DRAFT) {
-            Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields in description section..');
+        else {
+            return true
         }
-        // if (valid == false || valid1 == false) {
-        //     return false
-        // }
-        // else {
-        //     return true
-        // }
-        return valid;
+        // return valid;
     };
     // #region  Submit Form
     const handleFormSubmit = async () => {
@@ -670,6 +764,47 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     console.log(result)
                     if (result.isConfirmed) {
                         setLoading(true);
+
+                       
+                        let galleryArray: any[] = [];
+                        let bannerImageArray: any = {};
+                        let DocumentName: string = "";
+                        let attachmentIds = [];
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditPlanDocs');
+
+
+
+                        if (FilesArr.length > 0) {
+                            for (const file of FilesArr) {
+                                if(!file.ID){
+                                    //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                                DocumentName = file.name;
+                                const fileAddResult = await folder.files.addChunked(file.name, file);
+                                const fileNew = fileAddResult.file;
+                                const documentName = fileAddResult.data.Name;
+                                bannerImageArray = fileAddResult;
+                                galleryArray.push(bannerImageArray);
+                                // Get the item ID for the uploaded file
+                                const currentItemId = await fileNew.getItem<{ Id: number }>();
+                                const itemId = currentItemId.Id;
+                                // await currentItemId.update({
+                                //     FileName: documentName, // Assuming FileName is the internal name of the column
+                                // });
+                                console.log("JSON.stringify(fileAddResult)", JSON.stringify(fileAddResult))
+                                // Save the document ID for the attachment field in ChangeRequestList
+                                attachmentIds.push(itemId);
+                               
+
+                                }
+                                else{
+                                    // const itemId = file.ID;
+                                    attachmentIds.push(file.ID);
+                                }
+
+                               
+                               
+                            }
+                        }
 
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
@@ -696,12 +831,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             SubmitStatus: "Yes",
                             Status: "Pending",
                             // DocumentName:"",
-                            IsRework: "No"
+                            IsRework: "No",
                             // DigitalSignStatus                
 
 
-                            // AttachmentId: selectedOption.AttachmentId,
-                            // AttachmentJson: selectedOption.AttachmentJson
+                            AttachmentId: attachmentIds || [],
+                            AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
 
                         }
@@ -783,7 +918,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     Maxlevel: item.approvers?.length,
 
                                     // MainListID: String(editItemID),
-                                    MainListID: String(postId),
+                                    MainListID: String(editItemID),
                                     // RequestId: selectedOption.DocumentCode,
                                     // RequestId:String(editID.Id),
                                     RequesterNameId: currentUser.Id,
@@ -792,7 +927,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     ProcessName: "Annual Audit Plan",
                                     FormNameId: FormNameId,
                                     ApprovalType: "Approval",
-                                    IsApprovalGenerated: "No"
+                                    // IsApprovalGenerated: "No"
                                     // RedirectionLink:,
 
 
@@ -847,6 +982,22 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         }
 
 
+                        if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
+
+                            let arr2 = {
+                                ActionTakenById: currentUser.Id,
+                                ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                                // ActionTakenRoleId: formData.RequesterDesignation,
+                                Status: "Approved",
+                                // Remark: remark,
+
+                            }
+                            const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
+                            const postId = postResult?.data?.ID;
+
+                        }
+
+
                         let boolval = false;
 
                         // if (boolval == true) {
@@ -882,6 +1033,47 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     if (result.isConfirmed) {
                         setLoading(true);
 
+
+                        let galleryArray: any[] = [];
+                        let bannerImageArray: any = {};
+                        let DocumentName: string = "";
+                        let attachmentIds = [];
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditPlanDocs');
+
+
+                        if (FilesArr.length > 0) {
+
+                            for (const file of FilesArr) {
+                                if(!file.ID){
+                                    //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                                DocumentName = file.name;
+                                const fileAddResult = await folder.files.addChunked(file.name, file);
+                                const fileNew = fileAddResult.file;
+                                const documentName = fileAddResult.data.Name;
+                                bannerImageArray = fileAddResult;
+                                galleryArray.push(bannerImageArray);
+                                // Get the item ID for the uploaded file
+                                const currentItemId = await fileNew.getItem<{ Id: number }>();
+                                const itemId = currentItemId.Id;
+                                // await currentItemId.update({
+                                //     FileName: documentName, // Assuming FileName is the internal name of the column
+                                // });
+                                console.log("JSON.stringify(fileAddResult)", JSON.stringify(fileAddResult))
+                                // Save the document ID for the attachment field in ChangeRequestList
+                                attachmentIds.push(itemId);
+                               
+
+                                }
+                                else{
+                                    // const itemId = file.ID;
+                                    attachmentIds.push(file.ID);
+                                }
+
+                               
+                               
+                            }
+                        }
+
                         let arr = {
 
                             // MemoNumber:,
@@ -906,15 +1098,16 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             SubmitStatus: "Yes",
                             Status: "Pending",
                             // DocumentName:"",
-                            IsRework: "No"
+                            IsRework: "No",
                             // DigitalSignStatus                
 
 
-                            // AttachmentId: selectedOption.AttachmentId,
-                            // AttachmentJson: selectedOption.AttachmentJson
+                            AttachmentId: attachmentIds || [],
+                            AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
 
                         }
+
                         // console.log(postPayload);
 
                         const postResult = await addItem(arr, sp);
@@ -1057,6 +1250,45 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     console.log(result)
                     if (result.isConfirmed) {
                         setLoading(true);
+                        let galleryArray: any[] = [];
+                        let bannerImageArray: any = {};
+                        let DocumentName: string = "";
+                        let attachmentIds = [];
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditPlanDocs');
+
+
+                        if (FilesArr.length > 0) {
+
+                            for (const file of FilesArr) {
+                                if(!file.ID){
+                                    //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                                DocumentName = file.name;
+                                const fileAddResult = await folder.files.addChunked(file.name, file);
+                                const fileNew = fileAddResult.file;
+                                const documentName = fileAddResult.data.Name;
+                                bannerImageArray = fileAddResult;
+                                galleryArray.push(bannerImageArray);
+                                // Get the item ID for the uploaded file
+                                const currentItemId = await fileNew.getItem<{ Id: number }>();
+                                const itemId = currentItemId.Id;
+                                // await currentItemId.update({
+                                //     FileName: documentName, // Assuming FileName is the internal name of the column
+                                // });
+                                console.log("JSON.stringify(fileAddResult)", JSON.stringify(fileAddResult))
+                                // Save the document ID for the attachment field in ChangeRequestList
+                                attachmentIds.push(itemId);
+                               
+
+                                }
+                                else{
+                                    // const itemId = file.ID;
+                                    attachmentIds.push(file.ID);
+                                }
+
+                               
+                               
+                            }
+                        }
 
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
@@ -1083,12 +1315,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             SubmitStatus: "No",
                             Status: "Save as draft",
                             // DocumentName:"",
-                            IsRework: "No"
+                            IsRework: "No",
                             // DigitalSignStatus                
 
 
-                            // AttachmentId: selectedOption.AttachmentId,
-                            // AttachmentJson: selectedOption.AttachmentJson
+                            AttachmentId: attachmentIds || [],
+                            AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
 
                         }
@@ -1100,45 +1332,53 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                             const postPayload2 = {
                                 AnnualAuditPlanIDId: editItemID, // Assuming "Title" column exists
-                                Section: row.section,
-                                Date: row.date,
-                                Time: row.startTime,
-                                AuditorId: row.auditorIds
+                                Section: row.section || "",
+                                Date: row.date ? row.date : null,
+                                Time: row.startTime || "",
+                                AuditorId: row.auditorIds ? row.auditorIds : 0
                             }
 
-                            const postResult2 = await addItem2(postPayload2, sp);
-                            const postId2 = postResult2?.data?.ID;
-                            // debugger
-                            if (!postId2) {
-                                console.error("Post creation failed.");
-                                return;
+                            if (row.id) {
+
+                                const postResult2 = await updateItem2(postPayload2, sp, row.id);
+                                const postId2 = postResult2?.data?.ID;
+
                             }
+                            else {
+
+                              if ((row.section.trim() == "" && row.date.trim() == "" && row.startTime.trim() == "" && (row.auditor == null || row.auditor.length == 0))==false) {
+                                 
+                               
+                                const postResult2 = await addItem2(postPayload2, sp);
+                                const postId2 = postResult2?.data?.ID;
+                                if (!postId2) {
+                                    console.error("Post creation failed.");
+                                    return;
+                                }
+
+                              }
+
+
+
+                            }
+                            // }
+
+
+                            // debugger
+
                         }
 
                         let isValid = true;
 
-                        if (forwardToArr.length) {
-                            isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
-                                row.approvalType.trim() !== "");
-
-                            // if (!isValid) {
-                            //     // alert("Each row must have a role selected and at least one approver.");
-                            //     valid = false;
-                            // }
+                        // if (forwardToArr.length) {
+                        //     isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
+                        //         row.approvalType.trim() !== "");
 
 
+                        // }
 
-                            // if (!valid) {
-                            //     Swal.fire('Please fill all the mandatory fields.');
-                            //     // setValidSubmit(false);
-                            //     setValidForwardTo(false);
-                            //     return;
-                            // }
-
-                        }
-
-                        if (isValid) {
-                            for (const item of forwardToArr) {
+                        // if (isValid) {
+                        for (const item of forwardToArr) {
 
                                 const approversIds: any[] = [];
                                 item.approvers.forEach((user: any) => {
@@ -1151,17 +1391,17 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     Title: currentUser.Title,
                                     // ContentTitle: selectedOption.ReferenceNumber,
 
-                                    MainListNameId: ListNameId,
-                                    ApproverRoleId: item.role,
-                                    Level: Number(item.level),
-                                    ApproversId: approversIds,
-                                    // LevelType: "One",
-                                    LevelType: item.approvalType,
-                                    SubmitStatus: "No",
-                                    Maxlevel: item.approvers?.length,
+                                MainListNameId: ListNameId,
+                                ApproverRoleId: item.role || 0,
+                                Level: Number(item.level),
+                                ApproversId: approversIds || [],
+                                // LevelType: "One",
+                                LevelType: item.approvalType,
+                                SubmitStatus: "No",
+                                Maxlevel: item.approvers?.length,
 
                                     // MainListID: String(editItemID),
-                                    MainListID: String(postId),
+                                    MainListID: String(editItemID),
                                     // RequestId: selectedOption.DocumentCode,
                                     // RequestId:String(editID.Id),
                                     RequesterNameId: currentUser.Id,
@@ -1170,7 +1410,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     ProcessName: "Annual Audit Plan",
                                     FormNameId: FormNameId,
                                     ApprovalType: "Approval",
-                                    IsApprovalGenerated: "No"
+                                    // IsApprovalGenerated: "No"
                                     // RedirectionLink:,
 
 
@@ -1180,8 +1420,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     const postResult2 = await UpdateAllProcessItem(arr2, sp, item.id);
                                     const postId2 = postResult2?.data?.ID;
 
-                                }
-                                else {
+                            }
+                            else {
+                                if (forwardToArr.every(row => row.role == 0 && row.approvers.length == 0 &&
+                                    row.approvalType.trim() == "") == false) {
                                     const postResult2 = await addAllProcessItem(arr2, sp);
                                     const postId2 = postResult2?.data?.ID;
                                 }
@@ -1189,6 +1431,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             }
 
                         }
+
+                        // }
 
 
 
@@ -1220,6 +1464,21 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             } catch (error) {
                                 console.error(`Error deleting item with ID: ${item.id}`, error);
                             }
+                        }
+
+                        if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
+
+                            let arr2 = {
+                                ActionTakenById: currentUser.Id,
+                                ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                                // ActionTakenRoleId: formData.RequesterDesignation,
+                                Status: "Save as draft",
+                                // Remark: remark,
+
+                            }
+                            const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
+                            const postId = postResult?.data?.ID;
+
                         }
 
 
@@ -1256,6 +1515,49 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     if (result.isConfirmed) {
                         setLoading(true);
 
+
+                        // let galleryIds: any[] = [];
+
+                        let galleryArray: any[] = [];
+                        let bannerImageArray: any = {};
+                        let DocumentName: string = "";
+                        let attachmentIds = [];
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditPlanDocs');
+
+
+                        if (FilesArr.length > 0) {
+
+                            for (const file of FilesArr) {
+                                if(!file.ID){
+                                    //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                                DocumentName = file.name;
+                                const fileAddResult = await folder.files.addChunked(file.name, file);
+                                const fileNew = fileAddResult.file;
+                                const documentName = fileAddResult.data.Name;
+                                bannerImageArray = fileAddResult;
+                                galleryArray.push(bannerImageArray);
+                                // Get the item ID for the uploaded file
+                                const currentItemId = await fileNew.getItem<{ Id: number }>();
+                                const itemId = currentItemId.Id;
+                                // await currentItemId.update({
+                                //     FileName: documentName, // Assuming FileName is the internal name of the column
+                                // });
+                                console.log("JSON.stringify(fileAddResult)", JSON.stringify(fileAddResult))
+                                // Save the document ID for the attachment field in ChangeRequestList
+                                attachmentIds.push(itemId);
+                               
+
+                                }
+                                else{
+                                    // const itemId = file.ID;
+                                    attachmentIds.push(file.ID);
+                                }
+
+                               
+                               
+                            }
+                        }
+
                         let arr = {
 
                             // MemoNumber:,
@@ -1280,12 +1582,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             SubmitStatus: "No",
                             Status: "Save as draft",
                             // DocumentName:"",
-                            IsRework: "No"
+                            IsRework: "No",
                             // DigitalSignStatus                
 
 
-                            // AttachmentId: selectedOption.AttachmentId,
-                            // AttachmentJson: selectedOption.AttachmentJson
+                            AttachmentId: attachmentIds || [],
+                            AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
 
                         }
@@ -1301,21 +1603,26 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                         for (const row of recommendationRows) {
 
-                            const postPayload2 = {
-                                AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
-                                Section: row.section,
-                                Date: row.date,
-                                Time: row.startTime,
-                                AuditorId: row.auditorIds
+                            if ((row.section.trim() == "" && row.date.trim() == "" && row.startTime.trim() == "" && (row.auditor == null || row.auditor.length == 0))==false) {
+
+                                const postPayload2 = {
+                                    AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
+                                    Section: row.section || "",
+                                    Date: row.date ? row.date : null,
+                                    Time: row.startTime || "",
+                                    AuditorId: row.auditorIds ? row.auditorIds : 0
+                                }
+
+                                const postResult2 = await addItem2(postPayload2, sp);
+                                const postId2 = postResult2?.data?.ID;
+                                // debugger
+                                if (!postId2) {
+                                    console.error("Post creation failed.");
+                                    return;
+                                }
                             }
 
-                            const postResult2 = await addItem2(postPayload2, sp);
-                            const postId2 = postResult2?.data?.ID;
-                            // debugger
-                            if (!postId2) {
-                                console.error("Post creation failed.");
-                                return;
-                            }
+
                         }
 
                         let isValid = true;
@@ -1323,25 +1630,14 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         if (forwardToArr.length) {
                             isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
                                 row.approvalType.trim() !== "");
-
-                            // if (!isValid) {
-                            //     // alert("Each row must have a role selected and at least one approver.");
-                            //     valid = false;
-                            // }
-
-
-
-                            // if (!valid) {
-                            //     Swal.fire('Please fill all the mandatory fields.');
-                            //     // setValidSubmit(false);
-                            //     setValidForwardTo(false);
-                            //     return;
-                            // }
-
                         }
 
-                        if (isValid) {
-                            for (const item of forwardToArr) {
+                        // if (isValid) {
+                        for (const item of forwardToArr) {
+                            if ((item.role == 0 && item.approvers.length == 0 &&
+                                item.approvalType.trim() == "") == false) {
+
+
 
                                 const approversIds: any[] = [];
                                 item.approvers.forEach((user: any) => {
@@ -1355,9 +1651,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     // ContentTitle: selectedOption.ReferenceNumber,
 
                                     MainListNameId: ListNameId,
-                                    ApproverRoleId: item.role,
+                                    ApproverRoleId: item.role ? item.role : 0,
                                     Level: Number(item.level),
-                                    ApproversId: approversIds,
+                                    ApproversId: approversIds || [],
                                     // LevelType: "One",
                                     LevelType: item.approvalType,
                                     SubmitStatus: "No",
@@ -1393,6 +1689,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                         }
 
+                        // }
+
 
 
 
@@ -1412,622 +1710,125 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     }
 
 
-    // const ForwardApproval = async (status: string) => {
-    //     let valid = true;
-    //     let actionMessage = "";
-    //     let successMessage = "";
-    //     // setValidSubmit(true);
-    //     setValidForwardTo(true);
-    //     switch (status) {
-    //         case "Forward":
-    //             actionMessage = "Do you want to forward this request?";
-    //             successMessage = "Forwarded successfully.";
-    //             break;
-    //         case "Rejected":
-    //             actionMessage = "Do you want to reject this request?";
-    //             successMessage = 'Rejected successfully.'
-    //             break;
-    //         case "Rework":
-    //             actionMessage = "Do you want to rework this request?";
-    //             successMessage = 'Sent for rework.'
-    //             break;
+
+    const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>, libraryName: string, docLib: string) => {
+        event.preventDefault();
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/gif",
+            "image/bmp",
+            "image/svg+xml",
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.ms-powerpoint",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        ];
+
+        filechanged = true;
+        newfileupload = true;
+        let uloadBannerImageFiles: any[] = [];
+        let uloadImageFiles: any[] = [];
+        let uloadImageFiles1: any[] = [];
+
+
+        if (event.target.files && event.target.files.length > 0) {
+            const files = Array.from(event.target.files);
+            (event.target as HTMLInputElement).value = '';
+
+            if (files.length > 0) {
+
+                for (const fn of files) {
+                    // const file = files[0];
+                    if (!allowedTypes.includes(fn.type)) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Invalid File Type",
+                            text: "Only images and document files are allowed.",
+                        });
+                        return;
+                    }
+
+                    const fileType = fn.type.split("/")[0]; // Extract file type (image, pdf, etc.)
+                    // const folder = sp.web.getFolderByServerRelativePath('Socialfeedimages');
+                    // const uploadResult = await folder.files.addChunked(file.name, file);
+                    // console.log("File uploaded successfully", uploadResult);
+
+                    // Generate the preview URL dynamically
+                    // const previewUrl = await generatePreviewUrl(uploadResult.data.ServerRelativeUrl);
+
+                    //previewFile(previewUrl);
+                    const preview = URL.createObjectURL(fn);
+
+                    // newfilepreview = preview
+                    // // setPreviewUrl(preview);
+                    // // setFileType(fileType);
+
+                    // var arr = {};
+                    // arr = {
+                    //     // files: files,
+                    //     libraryName: libraryName,
+                    //     docLib: docLib,
+                    //     name: fn.name,
+                    //     fileName: fn.name,
+                    //     fileSize: fn.size,
+                    //     date: new Date().toLocaleDateString("en-GB", {
+                    //         day: "2-digit",
+                    //         month: "short",
+                    //         year: "numeric"
+                    //     }).replace(/ /g, "/"),
+                    //     fileUrl: preview,
+                    //     fileType: fileType,
+                    //     //   previewUrl: previewUrl
+                    // };
+                    // uloadBannerImageFiles.push(arr);
+                    // setFilesArr1(uloadBannerImageFiles);
+                }
+
+
+                   
+                   
+                    // uloadBannerImageFiles.push(arr);
+                    setFilesArr([...FilesArr, ...files]);
+
+               
+
+
+            } else {
+                Swal.fire("upload a document")
+            }
+        }
+    };
+
+    //   const generatePreviewUrl = async (serverRelativeUrl: string) => {
+    //     // Encode the file name and construct the preview URL
+    //     const encodedFilePath = encodeURIComponent(serverRelativeUrl);
+
+    //     // Example:
+    //     // serverRelativeUrl = "/sites/AlRostmani/test/DocumentLibraryInsideTest/Book.xlsx"
+    //     const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
+    //     const siteUrl = window.location.origin;
+
+    //     // const previewUrl = `${siteUrl}/sites/AlRostmani/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    //     const previewUrl = `${siteUrl}${locationPath}/ChangeRequestDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    //     // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    //     console.log("Generated Preview URL:", previewUrl);
+    //     if (previewUrl) {
+    //       console.log("enter herr")
+    //       const deletebut = document.getElementById('closeCommand') as HTMLElement
+    //       if (deletebut) {
+    //         console.log(" here ", deletebut)
+    //       }
     //     }
-
-
-    //     if (status == "Forward") {
-    //         if (forwardToArr.length === 0) {
-    //             // alert("At least one row is required.");
-    //             valid = false;
-    //         }
-
-    //         const isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
-    //             row.approvalType.trim() !== "");
-
-    //         if (!isValid) {
-    //             // alert("Each row must have a role selected and at least one approver.");
-    //             valid = false;
-    //         }
-
-    //         if (!valid) {
-    //             Swal.fire('Please fill all the mandatory fields.');
-    //             // setValidDraft(true);
-    //             // setValidSubmit(false);
-    //             setValidForwardTo(false);
-    //             return;
-    //         }
-
-    //         if (valid) {
-    //             Swal.fire({
-    //                 title: actionMessage,
-    //                 showConfirmButton: true,
-    //                 showCancelButton: true,
-    //                 confirmButtonText: "Yes",
-    //                 cancelButtonText: "No",
-    //                 icon: 'warning'
-    //             }
-    //             ).then(async (result) => {
-    //                 console.log(result)
-    //                 if (result.isConfirmed) {
-    //                     setLoading(true);
-
-    //                     // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
-
-    //                     let arr = {
-    //                         ActionTakenById: currentUser.Id,
-    //                         ActionTakenOn: new Date().toLocaleDateString("en-CA"),
-    //                         // ActionTakenRoleId: formData.RequesterDesignation,
-    //                         Status: "Approved",
-    //                         // Remark: remark,
-
-
-    //                     }
-    //                     const postResult = await updateApprovalItem(arr, sp, editID.Id);
-    //                     const postId = postResult?.data?.ID;
-
-    //                     for (const item of forwardToArr) {
-
-    //                         const approversIds: any[] = [];
-    //                         item.approvers.forEach((user: any) => {
-    //                             if (user?.value) {
-    //                                 approversIds.push(user.value);
-    //                             }
-    //                         });
-
-    //                         let arr2 = {
-    //                             Title: currentUser.Title,
-    //                             ContentTitle: selectedOption.ReferenceNumber,
-    //                             MainListNameId: ListNameId,
-    //                             ApproverRoleId: item.role,
-    //                             Level: Number(item.level),
-    //                             ApproversId: approversIds,
-    //                             // LevelType: "One",
-    //                             LevelType: item.approvalType,
-    //                             SubmitStatus: "Yes",
-    //                             Maxlevel: item.approvers?.length,
-    //                             // ContentTitle:,
-    //                             MainListID: String(editItemID),
-    //                             RequestId: selectedOption.DocumentCode,
-    //                             // RequestId:String(editID.Id),
-    //                             RequesterNameId: currentUser.Id,
-    //                             RequestedDate: new Date().toLocaleDateString("en-CA"),
-    //                             RequesterRoleId: RequesterRoleId,
-    //                             ProcessName: "Document Cancellation",
-    //                             FormNameId: FormNameId,
-    //                             ApprovalType: "Approval",
-    //                             IsApprovalGenerated: "No"
-    //                             // RedirectionLink:,
-
-
-
-    //                         }
-    //                         if (item.id) {
-    //                             const postResult2 = await UpdateAllProcessItem(arr2, sp, item.id);
-    //                             const postId2 = postResult2?.data?.ID;
-
-    //                         }
-    //                         else {
-
-    //                             const postResult2 = await addAllProcessItem(arr2, sp);
-    //                             const postId2 = postResult2?.data?.ID;
-
-    //                         }
-
-
-    //                     }
-
-    //                     let arr2 = {
-    //                         // ActionTakenById: currentUser.Id,
-    //                         SubmiitedDate: new Date().toLocaleDateString("en-CA"),
-    //                         // ActionTakenRoleId: formData.RequesterDesignation,
-    //                         // Status: status ==="Rework"?"Rework":"Rejected",
-    //                         // IsRework: status ==="Rework"?"Yes":"No",
-    //                         OESSubmitStatus: "Yes",
-    //                         InitiatorSubmitStatus: "Yes",
-    //                         SubmitStatus: "Yes",
-
-
-    //                     }
-    //                     // const postResult3 = await updateItem(arr2, sp, editItemID);
-    //                     // const postId3 = postResult3?.data?.ID;
-
-    //                     // //////// if approver row deleted
-
-    //                     const toDelete = forwardToArrEdit.filter(
-    //                         (itemEdit) => !forwardToArr.some(item => item.id === itemEdit.id) // Assuming ID is the unique key
-    //                     );
-
-    //                     // Delete each item from SharePoint
-    //                     for (const item of toDelete) {
-    //                         try {
-    //                             await sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.getById(item.id).delete();
-    //                             // console.log(`Deleted item with ID: ${item.ID}`);
-    //                         } catch (error) {
-    //                             console.error(`Error deleting item with ID: ${item.id}`, error);
-    //                         }
-    //                     }
-
-
-
-
-    //                     setLoading(false);
-    //                     Swal.fire(successMessage, '', 'success');
-    //                     sessionStorage.removeItem("DocumentCancelId")
-    //                     setTimeout(() => {
-    //                         // window.location.href = `${siteUrl}/SitePages/MyTasks.aspx`;
-    //                         window.history.back();
-    //                     }, 1000);
-    //                     // }
-    //                 }
-    //             })
-    //         }
-
-
-
-    //     }
-    //     else {
-    //         let isValid = true;
-
-    //         if (forwardToArr.length) {
-    //             isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
-    //                 row.approvalType.trim() !== "");
-
-    //             // if (!isValid) {
-    //             //     // alert("Each row must have a role selected and at least one approver.");
-    //             //     valid = false;
-    //             // }
-
-
-
-    //             // if (!valid) {
-    //             //     Swal.fire('Please fill all the mandatory fields.');
-    //             //     // setValidSubmit(false);
-    //             //     setValidForwardTo(false);
-    //             //     return;
-    //             // }
-
-    //         }
-
-
-    //         if (valid) {
-    //             Swal.fire({
-    //                 title: actionMessage,
-    //                 showConfirmButton: true,
-    //                 showCancelButton: true,
-    //                 confirmButtonText: "Yes",
-    //                 cancelButtonText: "No",
-    //                 icon: 'warning'
-    //             }
-    //             ).then(async (result) => {
-    //                 console.log(result)
-    //                 if (result.isConfirmed) {
-    //                     setLoading(true);
-
-    //                     // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
-    //                     let arr = {
-    //                         ActionTakenById: currentUser.Id,
-    //                         ActionTakenOn: new Date().toLocaleDateString("en-CA"),
-    //                         // ActionTakenRoleId: formData.RequesterDesignation,
-    //                         Status: status,
-    //                         // Remark: remark,
-
-
-    //                     }
-    //                     const postResult = await updateApprovalItem(arr, sp, editID.Id);
-    //                     const postId = postResult?.data?.ID;
-
-    //                     if (isValid) {
-    //                         for (const item of forwardToArr) {
-
-    //                             const approversIds: any[] = [];
-    //                             item.approvers.forEach((user: any) => {
-    //                                 if (user?.value) {
-    //                                     approversIds.push(user.value);
-    //                                 }
-    //                             });
-
-    //                             let arr2 = {
-    //                                 Title: currentUser.Title,
-    //                                 ContentTitle: selectedOption.ReferenceNumber,
-
-    //                                 MainListNameId: ListNameId,
-    //                                 ApproverRoleId: item.role,
-    //                                 Level: Number(item.level),
-    //                                 ApproversId: approversIds,
-    //                                 // LevelType: "One",
-    //                                 LevelType: item.approvalType,
-    //                                 SubmitStatus: "Yes",
-    //                                 Maxlevel: item.approvers?.length,
-    //                                 // ContentTitle:,
-    //                                 MainListID: String(editItemID),
-    //                                 RequestId: selectedOption.DocumentCode,
-    //                                 // RequestId:String(editID.Id),
-    //                                 RequesterNameId: currentUser.Id,
-    //                                 RequestedDate: new Date().toLocaleDateString("en-CA"),
-    //                                 RequesterRoleId: RequesterRoleId,
-    //                                 ProcessName: "Document Cancellation",
-    //                                 FormNameId: FormNameId,
-    //                                 ApprovalType: "Approval",
-    //                                 IsApprovalGenerated: "No"
-    //                                 // RedirectionLink:,
-
-
-
-    //                             }
-    //                             if (item.id) {
-    //                                 const postResult2 = await UpdateAllProcessItem(arr2, sp, item.id);
-    //                                 const postId2 = postResult2?.data?.ID;
-
-    //                             }
-    //                             else {
-    //                                 const postResult2 = await addAllProcessItem(arr2, sp);
-    //                                 const postId2 = postResult2?.data?.ID;
-    //                             }
-
-    //                         }
-
-    //                     }
-
-
-
-    //                     let arr2 = {
-    //                         // ActionTakenById: currentUser.Id,
-    //                         SubmiitedDate: new Date().toLocaleDateString("en-CA"),
-    //                         // ActionTakenRoleId: formData.RequesterDesignation,
-    //                         Status: status === "Rework" ? "Rework" : "Rejected",
-    //                         IsRework: status === "Rework" ? "Yes" : "No",
-    //                         OESSubmitStatus: "No",
-    //                         InitiatorSubmitStatus: "No",
-    //                         SubmitStatus: "No",
-
-
-    //                     }
-    //                     // const postResult2 = await updateItem(arr2, sp, editItemID);
-    //                     // const postId2 = postResult2?.data?.ID;
-
-    //                     // //////// if approver row deleted
-
-    //                     const toDelete = forwardToArrEdit.filter(
-    //                         (itemEdit) => !forwardToArr.some(item => item.id === itemEdit.id) // Assuming ID is the unique key
-    //                     );
-
-    //                     // Delete each item from SharePoint
-    //                     for (const item of toDelete) {
-    //                         try {
-    //                             await sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.getById(item.id).delete();
-    //                             // console.log(`Deleted item with ID: ${item.ID}`);
-    //                         } catch (error) {
-    //                             console.error(`Error deleting item with ID: ${item.id}`, error);
-    //                         }
-    //                     }
-
-    //                     setLoading(false);
-    //                     Swal.fire(successMessage, '', 'success');
-    //                     sessionStorage.removeItem("DocumentCancelId")
-    //                     setTimeout(() => {
-    //                         // window.location.href = `${siteUrl}/SitePages/MyTasks.aspx`;
-    //                         window.history.back();
-    //                         setTimeout(() => {
-    //                             location.reload();
-    //                         }, 100);
-    //                     }, 1000);
-    //                     // }
-    //                 }
-
-    //             })
-    //         }
-    //     }
-
-
-    // }
-
-
-    // const ForwardInitiatorApproval = async (status: string) => {
-    //     // let valid = true;
-    //     let actionMessage = "";
-    //     let successMessage = "";
-    //     switch (status) {
-    //         case "Approved":
-    //             actionMessage = "Do you want to submit this request?";
-    //             successMessage = "Submitted successfully.";
-    //             break;
-    //         case "Save as draft":
-    //             actionMessage = "Do you want to save this request?";
-    //             successMessage = "Saved successfully.";
-    //             break;
-    //         // case "Rework":
-    //         //     actionMessage = "Do you want to send this request for rework?";
-    //         //     successMessage = "Request sent for rework successfully.";
-    //         //     break;
-    //     }
-
-
-    //     if (status == "Approved") {
-    //         if (await validateForm(FormSubmissionMode.SUBMIT)) {
-
-    //             //   if (valid) {
-    //             Swal.fire({
-    //                 title: actionMessage,
-    //                 showConfirmButton: true,
-    //                 showCancelButton: true,
-    //                 confirmButtonText: "Yes",
-    //                 cancelButtonText: "No",
-    //                 icon: 'warning'
-    //             }
-    //             ).then(async (result) => {
-    //                 console.log(result)
-    //                 if (result.isConfirmed) {
-    //                     setLoading(true);
-
-    //                     // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
-    //                     // //////////////Update Process Approval List when Submitted
-    //                     let arr = {
-    //                         ActionTakenById: currentUser.Id,
-    //                         ActionTakenOn: new Date().toLocaleDateString("en-CA"),
-    //                         // ActionTakenRoleId: formData.RequesterDesignation,
-    //                         Status: "Approved",
-    //                         // Remark: remark,
-
-    //                     }
-    //                     const postResult = await updateApprovalItem(arr, sp, editID.Id);
-    //                     const postId = postResult?.data?.ID;
-
-    //                     // //////////////Update Document cancellation List when Submitted
-    //                     let arr3 = {
-    //                         // Title: formData.RequesterName,
-    //                         // RequesterNameId: formData.RequesterNameId,
-    //                         // RequesterDesignation: formData.RequesterDesignation,
-    //                         // Department: formData.Department,
-    //                         RequestDate: formData.RequestDate,
-    //                         IssueDate: formData.IssueDate,
-    //                         LocationId: selectedOption.LocationId,
-    //                         CustodianId: selectedOption.CustodianId,
-    //                         SerialNumber: selectedOption.SerialNumber,
-    //                         IssueNumber: selectedOption.IssueNumber,
-    //                         RevisionNumber: selectedOption.RevisionNumber,
-    //                         RevisionDate: selectedOption.RevisionDate,
-    //                         DocumentCode: selectedOption.value,
-    //                         ReferenceNumber: selectedOption.ReferenceNumber,
-    //                         AmendmentTypeId: selectedOption.AmendmentTypeId,
-    //                         RequestTypeId: RequestTypeId,
-    //                         ClassificationId: selectedOption.ClassificationId,
-    //                         ChangeRequestTypeId: selectedOption.ChangeRequestTypeId ? selectedOption.ChangeRequestTypeId : [],
-    //                         SubmiitedDate: selectedOption.SubmiitedDate,
-    //                         SubmitStatus: "Yes",
-    //                         Status: "Pending",
-    //                         // DocumentName: "",
-    //                         // IsRework: false,
-    //                         // DigitalSignStatus: false,
-    //                         ChangeRequestIDId: formData.ChangeRequestID,
-    //                         DocumentTypeId: selectedOption.DocumentTypeId,
-    //                         OESSubmitStatus: "No",
-    //                         InitiatorSubmitStatus: "Yes",
-    //                         CurrentUserRole: "OES",
-    //                         AttachmentId: selectedOption.AttachmentId,
-    //                         AttachmentJson: selectedOption.AttachmentJson
-
-
-    //                     }
-    //                     const postResult3 = await updateItem(arr3, sp, editItemID);
-    //                     const postId3 = postResult?.data?.ID;
-
-
-    //                     // //////////////Update Document cancellation Reason List when Submitted
-
-    //                     for (const row of cancellReason) {
-
-    //                         const postPayload2 = {
-    //                             ChangeRequestDCIDId: editItemID, // Assuming "Title" column exists
-    //                             ChangeDescription: row.description,
-    //                             ReasonforChange: row.reason,
-    //                         }
-
-    //                         if (!row.id) {
-
-    //                             const postResult2 = await addItem2(postPayload2, sp);
-    //                             const postId2 = postResult2?.data?.ID;
-    //                             // debugger
-    //                             if (!postId2) {
-    //                                 console.error("Post creation failed.");
-    //                                 return;
-    //                             }
-
-    //                         }
-    //                         else if (row.id > 0) {
-    //                             const postResult2 = await updateItem2(postPayload2, sp, row.id);
-    //                             const postId2 = postResult2?.data?.ID;
-    //                         }
-
-    //                     }
-
-    //                     const toDelete = cancellReasonEdit.filter(
-    //                         (itemEdit) => !cancellReason.some(item => item.id === itemEdit.id) // Assuming ID is the unique key
-    //                     );
-
-    //                     // Delete each item from SharePoint
-    //                     for (const item of toDelete) {
-    //                         try {
-    //                             await sp.web.lists.getByTitle("ChangeRequestReasonDocumentCancellationList").items.getById(item.id).delete();
-    //                             // console.log(`Deleted item with ID: ${item.ID}`);
-    //                         } catch (error) {
-    //                             console.error(`Error deleting item with ID: ${item.id}`, error);
-    //                         }
-    //                     }
-
-    //                     setLoading(false);
-    //                     Swal.fire(successMessage, '', 'success');
-    //                     sessionStorage.removeItem("DocumentCancelId")
-    //                     setTimeout(() => {
-    //                         // window.location.href = `${siteUrl}/SitePages/MyTasks.aspx`;
-    //                         window.history.back();
-
-    //                         setTimeout(() => {
-    //                             location.reload();
-    //                         }, 100);
-    //                     }, 1000);
-
-    //                 }
-
-    //             })
-
-
-
-    //         }
-    //     }
-    //     else if (status == "Save as draft") {
-
-    //         if (await validateForm(FormSubmissionMode.DRAFT)) {
-    //             Swal.fire({
-    //                 title: actionMessage,
-    //                 showConfirmButton: true,
-    //                 showCancelButton: true,
-    //                 confirmButtonText: "Yes",
-    //                 cancelButtonText: "No",
-    //                 icon: 'warning'
-    //             }
-    //             ).then(async (result) => {
-    //                 console.log(result)
-    //                 if (result.isConfirmed) {
-    //                     setLoading(true);
-
-    //                     // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
-    //                     let arr = {
-    //                         ActionTakenById: currentUser.Id,
-    //                         ActionTakenOn: new Date().toLocaleDateString("en-CA"),
-    //                         // ActionTakenRoleId: formData.RequesterDesignation,
-    //                         Status: status,
-    //                         // Remark: remark,
-
-    //                     }
-    //                     const postResult = await updateApprovalItem(arr, sp, editID.Id);
-    //                     const postId = postResult?.data?.ID;
-
-    //                     // //////////////Update Document cancellation List when Submitted
-    //                     let arr3 = {
-    //                         // Title: formData.RequesterName,
-    //                         // RequesterNameId: formData.RequesterNameId,
-    //                         // RequesterDesignation: formData.RequesterDesignation,
-    //                         // Department: formData.Department,
-    //                         RequestDate: formData.RequestDate,
-    //                         IssueDate: formData.IssueDate,
-    //                         LocationId: selectedOption.LocationId,
-    //                         CustodianId: selectedOption.CustodianId,
-    //                         SerialNumber: selectedOption.SerialNumber,
-    //                         IssueNumber: selectedOption.IssueNumber,
-    //                         RevisionNumber: selectedOption.RevisionNumber,
-    //                         RevisionDate: selectedOption.RevisionDate,
-    //                         DocumentCode: selectedOption.value,
-    //                         ReferenceNumber: selectedOption.ReferenceNumber,
-    //                         AmendmentTypeId: selectedOption.AmendmentTypeId,
-    //                         RequestTypeId: RequestTypeId,
-    //                         ClassificationId: selectedOption.ClassificationId,
-    //                         ChangeRequestTypeId: selectedOption.ChangeRequestTypeId ? selectedOption.ChangeRequestTypeId : [],
-    //                         SubmiitedDate: selectedOption.SubmiitedDate,
-    //                         SubmitStatus: "No",
-    //                         Status: "Save as draft",
-    //                         // DocumentName: "",
-    //                         // IsRework: false,
-    //                         // DigitalSignStatus: false,
-    //                         ChangeRequestIDId: formData.ChangeRequestID,
-    //                         DocumentTypeId: selectedOption.DocumentTypeId,
-    //                         OESSubmitStatus: "No",
-    //                         InitiatorSubmitStatus: "No",
-    //                         CurrentUserRole: "OES",
-    //                         AttachmentId: selectedOption.AttachmentId,
-    //                         AttachmentJson: selectedOption.AttachmentJson
-
-
-    //                     }
-    //                     const postResult3 = await updateItem(arr3, sp, editItemID);
-    //                     const postId3 = postResult?.data?.ID;
-
-
-    //                     // //////////////Update Document cancellation Reason List when Submitted
-
-    //                     for (const row of cancellReason) {
-
-    //                         const postPayload2 = {
-    //                             ChangeRequestDCIDId: editItemID, // Assuming "Title" column exists
-    //                             ChangeDescription: row.description,
-    //                             ReasonforChange: row.reason,
-    //                         }
-
-    //                         if (!row.id) {
-
-    //                             const postResult2 = await addItem2(postPayload2, sp);
-    //                             const postId2 = postResult2?.data?.ID;
-    //                             // debugger
-    //                             if (!postId2) {
-    //                                 console.error("Post creation failed.");
-    //                                 return;
-    //                             }
-
-    //                         }
-    //                         else if (row.id > 0) {
-    //                             const postResult2 = await updateItem2(postPayload2, sp, row.id);
-    //                             const postId2 = postResult2?.data?.ID;
-    //                         }
-
-    //                     }
-
-    //                     const toDelete = cancellReasonEdit.filter(
-    //                         (itemEdit) => !cancellReason.some(item => item.id === itemEdit.id) // Assuming ID is the unique key
-    //                     );
-
-    //                     // Delete each item from SharePoint
-    //                     for (const item of toDelete) {
-    //                         try {
-    //                             await sp.web.lists.getByTitle("ChangeRequestReasonDocumentCancellationList").items.getById(item.id).delete();
-    //                             // console.log(`Deleted item with ID: ${item.ID}`);
-    //                         } catch (error) {
-    //                             console.error(`Error deleting item with ID: ${item.id}`, error);
-    //                         }
-    //                     }
-
-
-    //                     setLoading(false);
-    //                     Swal.fire(successMessage, '', 'success');
-    //                     sessionStorage.removeItem("DocumentCancelId")
-    //                     setTimeout(() => {
-    //                         // window.location.href = `${siteUrl}/SitePages/MyTasks.aspx`;
-    //                         window.history.back();
-    //                         setTimeout(() => {
-    //                             location.reload();
-    //                         }, 100);
-    //                     }, 1000);
-    //                     // }
-    //                 }
-
-    //             })
-    //         }
-
-    //     }
-
-
-    // }
-
-
-
-
+    //     return previewUrl;
+    //   };
+
+    const handleDelete = (index: number) => {
+        setFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
+    };
 
 
     return (
@@ -2094,7 +1895,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                             {AuditPlanType.map((row, index) => (<div className="col-lg-3">
                                                                 <div className="mb-2">
                                                                     <div className="form-check">
-                                                                        <input type="checkbox" className="form-check-input" id={`auditPlanType_${row.Id}`} checked={formData.auditPlanTypeId.includes(row.Id)}
+                                                                        <input type="checkbox" className={`form-check-input ${(!ValidSubmit) ? "border-on-error" : ""}`} id={`auditPlanType_${row.Id}`} disabled={InputDisabled} checked={formData.auditPlanTypeId.includes(row.Id)}
                                                                             onChange={(e) => {
                                                                                 setFormData((prevState) => {
                                                                                     const isChecked = e.target.checked;
@@ -2144,13 +1945,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                             <div className="row">
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
-                                                                        <label htmlFor="Department" className="col-4 col-xl-3 col-form-label">Department</label>
+                                                                        <label htmlFor="Department" className="col-4 col-xl-3 col-form-label">Department<span className="text-danger1"> *</span></label>
                                                                         <Select
                                                                             options={AllDept}
-
+                                                                            isDisabled={InputDisabled}
                                                                             value={selectUserDept}
                                                                             name="deptId"
-                                                                            className={`newse ${(!ValidForwardTo) ? "border-on-error" : ""}`}
+                                                                            className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""} ${(!ValidDraft) ? "border-on-error" : ""}`}
                                                                             // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
                                                                             // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
                                                                             // onChange={handleDepartmentChange}
@@ -2161,12 +1962,14 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 </div>
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
-                                                                        <label htmlFor="memoNo" className="col-4 col-xl-3 col-form-label">Memo No</label>
+                                                                        <label htmlFor="memoNo" className="col-4 col-xl-3 col-form-label">Memo No<span className="text-danger1"> *</span></label>
                                                                         <div className="col-8 col-xl-9">
                                                                             <input
                                                                                 disabled
                                                                                 type="text"
-                                                                                className="form-control"
+                                                                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+
+                                                                                // className="form-control"
                                                                                 id="memoNo"
                                                                                 value={formData.memoNo}
                                                                                 onChange={(e) => setFormData({ ...formData, memoNo: e.target.value })}
@@ -2178,11 +1981,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
-                                                                        <label htmlFor="fromEmail" className="col-4 col-xl-3 col-form-label">From</label>
+                                                                        <label htmlFor="fromEmail" className="col-4 col-xl-3 col-form-label">From<span className="text-danger1"> *</span></label>
                                                                         <div className="col-8 col-xl-9">
                                                                             <input
                                                                                 type="text"
-                                                                                className="form-control"
+                                                                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+
+                                                                                // className="form-control"
                                                                                 id="fromEmail"
                                                                                 value={formData.fromEmail}
                                                                                 disabled={true}
@@ -2194,7 +1999,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
-                                                                        <label htmlFor="to" className="col-4 col-xl-3 col-form-label">To</label>
+                                                                        <label htmlFor="to" className="col-4 col-xl-3 col-form-label">To<span className="text-danger1"> *</span></label>
                                                                         <div className="col-8 col-xl-9">
                                                                             {/* <input
                                                                                 type="text"
@@ -2209,10 +2014,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 // value={formData.to}
                                                                                 value={selectToUsers}
                                                                                 name="CC"
-                                                                                className={`newse ${(!ValidForwardTo) ? "border-on-error" : ""}`}
+
+                                                                                className={`newse ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                                                                 // onChange={(selectedOptions:any) => handleToChange(selectedOptions, 'CC')}
                                                                                 onChange={(selectedOptions: any) => handleToChange(selectedOptions, 'to')}
                                                                                 placeholder="Select"
+                                                                                isDisabled={InputDisabled}
                                                                             />
                                                                         </div>
                                                                     </div>
@@ -2220,33 +2027,36 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
-                                                                        <label htmlFor="recommendation" className="col-4 col-xl-3 col-form-label">CC</label>
+                                                                        <label htmlFor="recommendation" className="col-4 col-xl-3 col-form-label">CC<span className="text-danger1"> *</span></label>
                                                                         <Select
                                                                             options={rows1}
                                                                             isMulti
                                                                             // value={formData.CC}
                                                                             value={selectCCUsers}
                                                                             name="CC"
-                                                                            className={`newse ${(!ValidForwardTo) ? "border-on-error" : ""}`}
+                                                                            className={`newse ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                                                             onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
                                                                             // onChange={handleCCChange}
                                                                             // onChange={(selectedOptions) => setFormData({ ...formData, CC: selectedOptions })}
                                                                             placeholder="Select"
+                                                                            isDisabled={InputDisabled}
                                                                         />
                                                                     </div>
                                                                 </div>
 
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
-                                                                        <label htmlFor="issueNo" className="col-4 col-xl-3 col-form-label">Issue No</label>
+                                                                        <label htmlFor="issueNo" className="col-4 col-xl-3 col-form-label">Issue No<span className="text-danger1"> *</span></label>
                                                                         <div className="col-8 col-xl-9">
                                                                             <input
-                                                                                disabled
+
                                                                                 type="text"
-                                                                                className="form-control"
+                                                                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                // className="form-control"
                                                                                 id="issueNo"
                                                                                 value={formData.issueNo}
                                                                                 onChange={(e) => setFormData({ ...formData, issueNo: e.target.value })}
+                                                                                disabled={true}
                                                                             />
                                                                         </div>
                                                                     </div>
@@ -2254,12 +2064,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
-                                                                        <label htmlFor="revisionNo" className="col-4 col-xl-3 col-form-label">Revision No</label>
+                                                                        <label htmlFor="revisionNo" className="col-4 col-xl-3 col-form-label">Revision No<span className="text-danger1"> *</span></label>
                                                                         <div className="col-8 col-xl-9">
                                                                             <input
                                                                                 disabled
                                                                                 type="text"
-                                                                                className="form-control"
+                                                                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                // className="form-control"
                                                                                 id="revisionNo"
                                                                                 value={formData.revisionNo}
                                                                                 onChange={(e) => setFormData({ ...formData, revisionNo: e.target.value })}
@@ -2270,14 +2081,16 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
-                                                                        <label htmlFor="subject" className="col-4 col-xl-3 col-form-label">Subject</label>
+                                                                        <label htmlFor="subject" className="col-4 col-xl-3 col-form-label">Subject<span className="text-danger1"> *</span></label>
                                                                         <div className="col-8 col-xl-9">
                                                                             <input
                                                                                 type="text"
-                                                                                className="form-control"
+                                                                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                // className="form-control"
                                                                                 id="subject"
                                                                                 value={formData.subject}
                                                                                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                                                                                disabled={InputDisabled}
                                                                             />
                                                                         </div>
                                                                     </div>
@@ -2285,13 +2098,28 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
-                                                                        <label htmlFor="attachment" className="col-4 col-xl-3 col-form-label">Attachment</label>
+                                                                        <label htmlFor="attachment" className="col-4 col-xl-3 col-form-label">Attachment<span className="text-danger1"> *</span></label>
+                                                                        <div>
+                                                                            <div>
+                                                                                {FilesArr.length > 0 ?
+                                                                                    (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
+                                                                                        <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
+                                                                                    </a>) : ""
+
+                                                                                }
+                                                                            </div>
+                                                                        </div>
                                                                         <div className="col-8 col-xl-9">
                                                                             <input
                                                                                 type="file"
-                                                                                className="form-control"
+                                                                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                // className="form-control"
                                                                                 id="attachment"
-                                                                                onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
+                                                                                accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                                                                onChange={(e) => onFileChange(e, "Gallery", "AnnualAuditPlanDocs")}
+                                                                                // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
+                                                                                disabled={InputDisabled}
+                                                                                multiple
                                                                             />
                                                                         </div>
                                                                     </div>
@@ -2299,14 +2127,16 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
-                                                                        <label htmlFor="date" className="col-4 col-xl-3 col-form-label">Date</label>
+                                                                        <label htmlFor="date" className="col-4 col-xl-3 col-form-label">Date<span className="text-danger1"> *</span></label>
                                                                         <div className="col-8 col-xl-9">
                                                                             <input
                                                                                 type="date"
-                                                                                className="form-control"
+                                                                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}${(!ValidDraft) ? "border-on-error" : ""}`}
+                                                                                // className="form-control"
                                                                                 id="date"
                                                                                 value={formData.date}
                                                                                 onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value).toLocaleDateString("en-CA") })}
+                                                                                disabled={InputDisabled}
                                                                             />
                                                                         </div>
                                                                     </div>
@@ -2314,13 +2144,15 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                 <div className="col-lg-6 mb-3">
                                                                     <div className="row mb-3">
-                                                                        <label htmlFor="background" className="col-4 col-xl-3 col-form-label">Background</label>
+                                                                        <label htmlFor="background" className="col-4 col-xl-3 col-form-label">Background<span className="text-danger1"> *</span></label>
                                                                         <div className="col-8 col-xl-9">
                                                                             <textarea
-                                                                                className="form-control"
+                                                                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                // className="form-control"
                                                                                 id="background"
                                                                                 value={formData.background}
                                                                                 onChange={(e) => setFormData({ ...formData, background: e.target.value })}
+                                                                                disabled={InputDisabled}
                                                                             ></textarea>
                                                                         </div>
                                                                     </div>
@@ -2328,13 +2160,15 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
-                                                                        <label htmlFor="issues" className="col-4 col-xl-3 col-form-label">Issues</label>
+                                                                        <label htmlFor="issues" className="col-4 col-xl-3 col-form-label">Issues<span className="text-danger1"> *</span></label>
                                                                         <div className="col-8 col-xl-9">
                                                                             <textarea
-                                                                                className="form-control"
+                                                                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                // className="form-control"
                                                                                 id="issues"
                                                                                 value={formData.issues}
                                                                                 onChange={(e) => setFormData({ ...formData, issues: e.target.value })}
+                                                                                disabled={InputDisabled}
                                                                             ></textarea>
                                                                         </div>
                                                                     </div>
@@ -2351,7 +2185,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 <h3 className='text-dark font-16 fw-bold mb-3'>Recommendation</h3>
                                                             </div>
                                                             <div style={{ textAlign: 'right' }} className='col-sm-6'>
-                                                                <img style={{ width: '30px', cursor: 'pointer' }} className='mt-0' src={require("../assets/plus.png")} onClick={handleAddRecommendationRow}></img>
+                                                                {!InputDisabled && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-0' src={require("../assets/plus.png")} onClick={handleAddRecommendationRow}></img>}
 
                                                             </div>
                                                         </div>
@@ -2359,11 +2193,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                         <table id="tabRec" className='mtbalenew'>
                                                             <thead>
-                                                                <tr><th>Section</th>
-                                                                    <th>Date</th>
-                                                                    <th colSpan={2}>Time</th>
-                                                                    <th>Auditor</th>
-                                                                    <th>Delete</th>
+                                                                <tr><th>Section<span className="text-danger1"> *</span></th>
+                                                                    <th>Date<span className="text-danger1"> *</span></th>
+                                                                    <th colSpan={2}>Time<span className="text-danger1"> *</span></th>
+                                                                    <th>Auditor<span className="text-danger1"> *</span></th>
+                                                                    {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th>Action</th>}
                                                                 </tr>
                                                             </thead>
 
@@ -2374,25 +2208,31 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                         <td>
                                                                             <input
                                                                                 type="text"
-                                                                                className="form-control"
+                                                                                className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                // className="form-control"
                                                                                 value={row.section}
                                                                                 onChange={(e) => handleRecommendationChange(index, 'section', e.target.value)}
+                                                                                disabled={InputDisabled}
                                                                             />
                                                                         </td>
                                                                         <td>
                                                                             <input
                                                                                 type="date"
-                                                                                className="form-control"
+                                                                                className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                // className="form-control"
                                                                                 value={row.date}
                                                                                 onChange={(e) => handleRecommendationChange(index, 'date', e.target.value)}
+                                                                                disabled={InputDisabled}
                                                                             />
                                                                         </td>
                                                                         <td>
                                                                             <input
                                                                                 type="time"
-                                                                                className="form-control"
+                                                                                className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                // className="form-control"
                                                                                 value={row.startTime}
                                                                                 onChange={(e) => handleRecommendationChange(index, 'startTime', e.target.value)}
+                                                                                disabled={InputDisabled}
                                                                             />
                                                                             {/* <input
                                                                                 type="time"
@@ -2406,14 +2246,18 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                             <Select
                                                                                 options={rows1}
                                                                                 // isMulti
+                                                                                className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                 value={row.auditor}
                                                                                 onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
                                                                                 placeholder="Select"
+                                                                                isDisabled={InputDisabled}
                                                                             />
                                                                         </td>
-                                                                        <td>
+                                                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td>
                                                                             <img src={require("../assets/del.png")} onClick={() => handleDeleteRecommendationRow(index)} />
+
                                                                         </td>
+                                                                        }
                                                                     </tr>
                                                                 ))}
                                                             </tbody>
@@ -2422,7 +2266,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
 
 
-                                                        <TextField id="rec" onChange={(e, newValue) => setFormData(prevState => ({ ...prevState, recommendationforApproval: newValue }))} errorMessage={""} multiline autoAdjustHeight value={formData.recommendationforApproval} validateOnFocusOut={true} required={true} label="Recommendation for Approval" />
+                                                        <TextField id="rec" className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`} onChange={(e, newValue) => setFormData(prevState => ({ ...prevState, recommendationforApproval: newValue }))} errorMessage={""} multiline autoAdjustHeight value={formData.recommendationforApproval} validateOnFocusOut={true} required={true} label="Recommendation for Approval" disabled={InputDisabled} />
 
 
                                                     </fieldset>
@@ -2449,53 +2293,57 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                             <div className="col-lg-4">
                                                                 <div className="mb-3">
-                                                                    <label htmlFor="exclusions" className="form-label">Exclusions</label>
+                                                                    <label htmlFor="exclusions" className="form-label">Exclusions<span className="text-danger1"> *</span></label>
                                                                     <textarea
 
-                                                                        className="form-control"
+                                                                        className={`form-control ${(!ValidAudit) ? "border-on-error" : ""}`}
                                                                         id="exclusions"
                                                                         placeholder=""
                                                                         value={formData.exclusions}
                                                                         onChange={(e) => setFormData({ ...formData, exclusions: e.target.value })}
+                                                                        disabled={InputDisabled}
                                                                     ></textarea>
                                                                 </div>
                                                             </div>
 
                                                             <div className="col-lg-4">
                                                                 <div className="mb-3">
-                                                                    <label htmlFor="boundary" className="form-label">Boundary</label>
+                                                                    <label htmlFor="boundary" className="form-label">Boundary<span className="text-danger1"> *</span></label>
                                                                     <textarea
-                                                                        className="form-control"
+                                                                        className={`form-control ${(!ValidAudit) ? "border-on-error" : ""}`}
                                                                         id="boundary"
                                                                         placeholder=""
                                                                         value={formData.boundary}
                                                                         onChange={(e) => setFormData({ ...formData, boundary: e.target.value })}
+                                                                        disabled={InputDisabled}
                                                                     ></textarea>
                                                                 </div>
                                                             </div>
 
                                                             <div className="col-lg-4">
                                                                 <div className="mb-3">
-                                                                    <label htmlFor="objective" className="form-label">Aim / Objective</label>
+                                                                    <label htmlFor="objective" className="form-label">Aim / Objective<span className="text-danger1"> *</span></label>
                                                                     <textarea
-                                                                        className="form-control"
+                                                                        className={`form-control ${(!ValidAudit) ? "border-on-error" : ""}`}
                                                                         id="objective"
                                                                         placeholder=""
                                                                         value={formData.objective}
                                                                         onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
+                                                                        disabled={InputDisabled}
                                                                     ></textarea>
                                                                 </div>
                                                             </div>
 
                                                             <div className="col-lg-4">
                                                                 <div className="mb-3">
-                                                                    <label htmlFor="criteria" className="form-label">Criteria</label>
+                                                                    <label htmlFor="criteria" className="form-label">Criteria<span className="text-danger1"> *</span></label>
                                                                     <textarea
-                                                                        className="form-control"
+                                                                        className={`form-control ${(!ValidAudit) ? "border-on-error" : ""}`}
                                                                         id="criteria"
                                                                         placeholder=""
                                                                         value={formData.criteria}
                                                                         onChange={(e) => setFormData({ ...formData, criteria: e.target.value })}
+                                                                        disabled={InputDisabled}
                                                                     ></textarea>
                                                                 </div>
                                                             </div>
@@ -2544,9 +2392,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                             </div>
                                                             <div className='col-sm-4'>
                                                                 <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
-                                                                    {/* {editID.CurrentUserRole === "OES" &&  */}
-                                                                    <img style={{ width: '34px' }} src={require("../assets/plus.png")} onClick={handleAddRow} className='' />
-                                                                    {/* // } */}
+                                                                    {!InputDisabled &&
+                                                                        <img style={{ width: '34px' }} src={require("../assets/plus.png")} onClick={handleAddRow} className='' />
+                                                                    }
 
                                                                 </div>
                                                             </div>
@@ -2558,10 +2406,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 <thead >
                                                                     <tr>
                                                                         <th style={{ minWidth: "35px", maxWidth: "35px" }}>S.No</th>
-                                                                        <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Role</th>
+                                                                        <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Role<span className="text-danger1"> *</span></th>
                                                                         <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level</th>
-                                                                        <th>Approver name</th>
-                                                                        <th style={{ minWidth: '70px', maxWidth: '70px' }} >Approval criteria</th>
+                                                                        <th>Approver name<span className="text-danger1"> *</span></th>
+                                                                        <th style={{ minWidth: '70px', maxWidth: '70px' }} >Approval criteria<span className="text-danger1"> *</span></th>
                                                                         <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
                                                                     </tr>
                                                                 </thead>
@@ -2579,7 +2427,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     // className="form-select"
                                                                                     className={`form-select newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
 
-                                                                                    onChange={(e) => onSelectRole(e, row.level)} value={row.role} >
+                                                                                    onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={InputDisabled}>
 
                                                                                     <option value="" selected>Select Role</option>
                                                                                     {/* {UserRoles.map((role: any, index: number) => (
@@ -2590,6 +2438,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     ).map((role: any, idx: number) => (
                                                                                         <option key={idx} value={role.value}>{role.label}</option>
                                                                                     ))}
+
+
+
                                                                                 </select>
 
                                                                             </td>
@@ -2605,7 +2456,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     // onChange={(selectedOption: any) => onSelect(selectedOption)}
                                                                                     onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
                                                                                     placeholder="Enter Approver Name"
-                                                                                // isDisabled={editID.CurrentUserRole !== "OES"}
+                                                                                    isDisabled={InputDisabled}
                                                                                 />
 
 
@@ -2613,7 +2464,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                             </td>
                                                                             <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
                                                                                 {/* <label htmlFor="approvalType">Approval Type: </label> */}
-                                                                                <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`}  >
+                                                                                <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={InputDisabled} >
                                                                                     <option value="">Select </option>
                                                                                     <option value="One">Anyone</option>
                                                                                     <option value="All">Everyone</option>
@@ -2623,7 +2474,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                                 {/* {editID.CurrentUserRole === "OES" ?  */}
 
-                                                                                <img src={require("../assets/del.png")} onClick={() => handleDeleteRow(index)} />
+                                                                                {!InputDisabled ? <img src={require("../assets/del.png")} onClick={() => handleDeleteRow(index)} /> : <img src={require("../assets/recycle-bin.png")} className='sidebariconsmall' />}
                                                                                 {/* : <img src={require("../assets/recycle-bin.png")} className='sidebariconsmall' /> */}
                                                                                 {/* } */}
 
@@ -2677,6 +2528,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                     ) : (<div></div>)
                                                 }
 
+                                                {/* ////////////Audit History card */}
+                                                {/* {editID !== null && editID.length != 0 && modeValue === "approve" && */}
+                                                {MainEditItem !== null && MainEditItem.length != 0 && MainEditItem?.Status !== "Save as draft" &&
+                                                    <WorkflowAuditHistory ContentItemId={MainEditItem} ContentType={CONTENTTYPE_AuditPlan} ctx={props.context} />
+                                                }
+                                                {/* ////////////Audit History card */}
+
 
                                                 {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
 
@@ -2684,17 +2542,17 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                     <div className="col-12 text-center">
 
 
-                                                        {/* {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && */}
-                                                        <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
-                                                            <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
-                                                            Save As Draft</button>
-                                                        {/* } */}
+                                                        {((InputDisabled != true && editItemID == null && MainEditItem == null) || (modeValue === "" || modeValue === "edit") || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "Initiator" && editID.IsInitiator == "Yes" && (editID?.Status === "Pending" || editID?.Status === "Save as draft"))) &&
+                                                            <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
+                                                                <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
+                                                                Save As Draft</button>
+                                                        }
 
-                                                        {/* {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && */}
-                                                        <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
-                                                            <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
-                                                            Submit</button>
-                                                        {/* } */}
+                                                        {((InputDisabled != true && editItemID == null && MainEditItem == null) || (modeValue === "" || modeValue === "edit") || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "Initiator" && editID.IsInitiator == "Yes" && (editID?.Status === "Pending" || editID?.Status === "Save as draft"))) &&
+                                                            <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
+                                                                <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
+                                                                Submit</button>
+                                                        }
 
                                                         {/* {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</button>}
 
@@ -2703,19 +2561,14 @@ const AnnualAuditPlanContext = ({ props }: any) => {
  */}
 
 
-                                                        {/* {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.IsInitiator == "Yes")) && */}
-                                                        <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
-                                                            className='me-1' alt="x" /> Cancel</button>
-                                                        {/* } */}
+                                                        {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.ApprovalType !== "Approval")) &&
+                                                            <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
+                                                                className='me-1' alt="x" /> Cancel</button>
+                                                        }
 
                                                     </div>
                                                 </div>
-                                                {/* ////////////Audit History card */}
-                                                {/* {editID !== null && editID.length != 0 && modeValue === "approve" && */}
-                                                {MainEditItem !== null && MainEditItem.length != 0 && MainEditItem?.Status !== "Save as draft" &&
-                                                    <WorkflowAuditHistory ContentItemId={MainEditItem} ContentType={CONTENTTYPE_DocumentCancel} ctx={props.context} />
-                                                }
-                                                {/* ////////////Audit History card */}
+
 
                                                 {/* ////////////Approval card */}
 
@@ -2736,42 +2589,57 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                     </Modal.Header>
                                                     <Modal.Body className="" id="style-5">
 
-                                                        {DocumentLink &&
+                                                        {/* {DocumentLink &&
                                                             (
-                                                                <>
-                                                                    <table className="mtbalenew">
-                                                                        <thead style={{ background: '#eef6f7' }}>
-                                                                            <tr>
-                                                                                <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
-                                                                                <th>File Name</th>
-                                                                                <th>File Link</th>
-                                                                                <th className='text-center'>Upload date</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            {DocumentLink != null && (
-                                                                                <tr>
-                                                                                    <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
-                                                                                    <td title={DocumentLink?.FileLeafRef}>{DocumentLink?.FileLeafRef}</td>
-                                                                                    <td style={{ textAlign: 'center' }} >
-                                                                                        {/* <span onClick={() => OpenFile(DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                        <FontAwesomeIcon icon={faDownload} /></span> */}
-                                                                                        <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span> </td>
-                                                                                    <td>{DocumentLink.Created
+                                                                <> */}
+                                                        <table className="mtbalenew">
+                                                            <thead style={{ background: '#eef6f7' }}>
+                                                                <tr>
+                                                                    <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                                                                    <th>File Name</th>
+                                                                    {/* <th>File Link</th> */}
+                                                                    <th className='text-center'>Upload date</th>
+                                                                    {!InputDisabled &&  <th className='text-center'>Action</th>}
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {FilesArr.length > 0  && (
+                                                                    FilesArr.map((row: any, index: number) => (
+                                                                        <tr>
+                                                                            <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
+                                                                            <td title={row.name||row.FileLeafRef}>{row.name|| row.FileLeafRef}</td>
+                                                                            {/* <td style={{ textAlign: 'center' }} >
+                                                                                       
+                                                                                        <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span>
+                                                                                         </td> */}
+                                                                            {/* <td>{DocumentLink.Created
                                                                                         ? new Intl.DateTimeFormat('en-GB', {
                                                                                             day: '2-digit',
                                                                                             month: 'short',
                                                                                             year: 'numeric'
                                                                                         }).format(new Date(DocumentLink.Created)).replace(/ /g, "/")
-                                                                                        : ""}</td>
+                                                                                        : ""}</td> */}
+                                                                            <td>{row.Created ?new Date(row.Created).toLocaleDateString("en-GB", {
+                                                                                day: "2-digit",
+                                                                                month: "short",
+                                                                                year: "numeric"
+                                                                                }).replace(/ /g, "/"): new Date().toLocaleDateString("en-GB", {
+                                                                                day: "2-digit",
+                                                                                month: "short",
+                                                                                year: "numeric"
+                                                                                }).replace(/ /g, "/")}</td>
+
+                                                                              {!InputDisabled &&   <td> <img src={require("../assets/del.png")}  style={{ cursor: "pointer" }}   onClick={() => handleDelete(index)} /></td>}
 
 
-                                                                                </tr>
-                                                                            )}
-                                                                        </tbody>
-                                                                    </table></>
+                                                                        </tr>
+                                                                    ))
+                                                                )}
+                                                            </tbody>
+                                                        </table>
+                                                        {/* </>
                                                             )
-                                                        }
+                                                        } */}
 
                                                     </Modal.Body>
 
@@ -2809,4 +2677,3 @@ const AnnualAuditPlan: React.FC<IAnnualAuditPlanProps> = (props) => (
 
 
 export default AnnualAuditPlan;
-

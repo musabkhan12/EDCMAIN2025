@@ -729,3 +729,12 @@ width: 100%;
 .filemodal .btn-close{
   right: 25px;
 }
+
+#tabRec td{
+  text-overflow: inherit;
+    white-space: inherit;
+    overflow: inherit;
+}
+#tabRec{
+  overflow: inherit;
+}

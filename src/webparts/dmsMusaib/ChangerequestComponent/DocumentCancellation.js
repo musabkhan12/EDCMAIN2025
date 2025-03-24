@@ -58,6 +58,54 @@ export const getDocumentCodeselected = async (_sp, locId, custoId, doctypeId) =>
     });
   return arr;
 };
+// export const getAllDepartment = async (_sp) => {
+ 
+//   let arr = []
+//   let arrs = []
+//   let bannerimg = []
+//   await _sp.web.lists.getByTitle("DepartmentMasterList").items
+//   .select("*").filter("Active eq 'Yes'")()
+//     .then((res) => {
+//       // console.log(res, ' let arrs=[]');
+//       arr = res.map((item) => ({
+//           value: item.Id,
+//           label: item.Department,
+//           Department:item.Department,
+       
+//     }));
+//     })
+//     .catch((error) => {
+//       console.log("Error fetching data: ", error);
+//     });
+//   // console.log(arr, 'arr');
+//   return arr;
+// }
+export const getAllDepartment = async (_sp) => {
+  let arr = [];
+
+  await _sp.web.lists.getByTitle("DepartmentMasterList").items
+    .select("*,Author/ID,Author/Title")
+    .expand("Author")
+    .orderBy("Modified", false)
+    .filter("Active eq 'Yes'")() // Order by Modified descending to get latest first
+    .then((res) => {
+      console.log(res);
+
+      // Filter only latest entry for each unique DocumentCode
+      const latestDocuments = res.reduce((acc, item) => {
+        if (!acc[item.Department]) {
+          acc[item.Department] = item;
+        }
+        return acc;
+      }, {});
+
+      arr = Object.values(latestDocuments);
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  return arr;
+};
 export const getAllRequestType = async (_sp) => {
   let arr = [];
 

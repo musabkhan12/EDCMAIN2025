@@ -98,7 +98,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
         default:
       }
       setLoading(true);
-      if (props.ContentType != "Document Cancellation" && props.ContentType != "Change Request") {
+      if (props.ContentType != "Document Cancellation" && props.ContentType != "Change Request" && props.ContentType != "Annual Audit Plan") {
         sp.web.lists.getByTitle("ARGMyRequest").items
           .select("*,Requester/Id,Requester/Title,Approver/Id,Approver/Title")
           .expand("Approver,Requester")
@@ -228,7 +228,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                   </th>
 
-                 {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request") &&<th style={{ minWidth: '70px', maxWidth: '70px' }}>
+                 {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request"|| props.ContentType == "Annual Audit Plan") &&<th style={{ minWidth: '70px', maxWidth: '70px' }}>
 
 
                    Assigned To Role
@@ -324,7 +324,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                               : row.Level !== undefined && row.Level !== null
                                 ? row.Level === 0
                                   ? row.CurrentUserRole === "OES"
-                                    ? "OES"
+                                    ? "Organisation Escation Strategy"
                                     : row.CurrentUserRole == null || row.CurrentUserRole == "Initiator"
                                       ? "Initiator"
                                       : `Level ${row.Level}`
@@ -338,7 +338,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                         <td style={{ minWidth: '70px', maxWidth: '70px' }}> {row.Approver ? row.Approver.Title : row.AssignedTo.Title}</td>
 
-                        {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request") &&
+                        {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request"|| props.ContentType == "Annual Audit Plan") &&
                          <td style={{ minWidth: '70px', maxWidth: '70px' }}>{row.CurrentUserRole ||row.ActionTakenRole.Role ||""}</td>
                         }
 

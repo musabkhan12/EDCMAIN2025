@@ -52,6 +52,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
     let allprocessitems = await getallProcessApprovalitems(sp, Number(props.currentItem.ListItemId));
 
     let currentReferenceNo = currentchangerequest[0].ReferenceNumber;
+    let RevisionNumber = currentchangerequest[0].RevisionNumber;
     let arrrr = currentReferenceNo.split('.')
     for (let i = 0; i < arrrr.length; i++) {
       if (arrrr[i].includes("TMP")) {
@@ -59,9 +60,10 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
       }
     }
     let test = arrrr.join('.');
+    let testRev = RevisionNumber!= null && Number(RevisionNumber) + 1;
     console.log("arrrr", arrrr, test);
     if (props.currentItem.Maxlevel == props.currentItem.Level) {
-      if ((props.currentItem.LevelType == "Everyone" && allprocessitems.length == 1) || props.currentItem.LevelType == "Anyone") {
+      if ((props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One") {
         currentReferenceNo = test
       }
     }
@@ -83,7 +85,9 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
         ActionTakenById: currentUser.Id,
         ActionTakenOn: new Date().toISOString(),
-        ContentTitle: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
+        ContentTitle: ((props.currentItem.LevelType == "All" && allprocessitems.length == 1) || 
+        props.currentItem.LevelType == "One" ) && Status == 'Approved'
+        ? test : currentReferenceNo
       };
 
       postPayload2 = {
@@ -101,6 +105,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
       };
       postPayloadapp1 = {
         // Status: Status,
+        RevisionNumber:(props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? testRev : RevisionNumber,
         ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
       };
     }

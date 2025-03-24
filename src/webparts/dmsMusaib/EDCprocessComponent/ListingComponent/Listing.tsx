@@ -32,8 +32,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             currentPage: 1,
             itemsPerPage: 10,
             totalItems: 0,
-            sortColumn: null, // Track the currently sorted column
-            sortDirection: 'asc', // Track the sort direction
+            sortColumn: 'ReqDt', // Track the currently sorted column
+            sortDirection: 'desc', // Track the sort direction
             searchValues: { // Track search input values for each column
                 RequestId: '',
                 Title: '',
@@ -127,7 +127,17 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     let actionType = "view";
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
                 }
-            } else {
+            }
+            else if ((item.ProcessName == "Annual Audit Plan") && item.Status == "Pending") {
+                if (item.ProcessItemId) {
+                    let actionType = "approve";
+                    path = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId}`;
+                } else {
+                    let actionType = "view";
+                    path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
+                }
+            }
+            else {
                 let actionType = (item.Status === "Save As Draft" || item.Status === "Rework" || item.Status === "Save as draft") ? "edit" : "view";
                 path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
             }
@@ -259,23 +269,64 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
         });
 
         const AnnualAuditPlanList = await spfi(this._sp).web.lists.getByTitle("AnnualAuditPlanList").items.select('Id,MemoNumber,Title,Author/Title,Created,Status,ReferenceNumber').expand('Author')();
-        AnnualAuditPlanList.forEach(itm => {
-            allItems.push({
-                RequestId: itm.MemoNumber?itm.MemoNumber:"",
-                Title: itm.ReferenceNumber?itm.ReferenceNumber:"",
-                ProcessName: "Annual Audit Plan",
-                ReqName: itm.Author ? itm.Author.Title : '',
-                ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
-                Status: itm.Status,
-                MainListId: itm.Id,
-                Id: itm.Id
-            });
+        AnnualAuditPlanList.forEach(async itm => {
+
+            if (itm.Status === "Pending") {
+                const processItems1 = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and (Status eq 'Pending' or Status eq 'Save as draft') and ProcessName eq 'Annual Audit Plan' and ListItemId eq ${itm.Id}`)();
+                if (processItems1.length > 0) {
+                    for (const itom of processItems1) {
+
+                        allItems.push({
+                            RequestId: itm.MemoNumber?itm.MemoNumber:"",
+                            Title: itm.ReferenceNumber?itm.ReferenceNumber:"",
+                            ProcessName: "Annual Audit Plan",
+                            ReqName: itm.Author ? itm.Author.Title : '',
+                            ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
+                            Status: itm.Status,
+                            MainListId: itm.Id,
+                            Id: itm.Id,
+                            ProcessItemId: itom.Id
+                        });
+
+                    }
+
+                }
+                else{
+
+                    allItems.push({
+                        RequestId: itm.MemoNumber?itm.MemoNumber:"",
+                        Title: itm.ReferenceNumber?itm.ReferenceNumber:"",
+                        ProcessName: "Annual Audit Plan",
+                        ReqName: itm.Author ? itm.Author.Title : '',
+                        ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
+                        Status: itm.Status,
+                        MainListId: itm.Id,
+                        Id: itm.Id
+                    });
+   
+                }
+            }
+            else{
+
+                allItems.push({
+                    RequestId: itm.MemoNumber?itm.MemoNumber:"",
+                    Title: itm.ReferenceNumber?itm.ReferenceNumber:"",
+                    ProcessName: "Annual Audit Plan",
+                    ReqName: itm.Author ? itm.Author.Title : '',
+                    ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
+                    Status: itm.Status,
+                    MainListId: itm.Id,
+                    Id: itm.Id
+                });
+
+            }
+           
         });
 
-        const ChangeRequestDocumentCancellationListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,ReferenceNumber').expand('Author', 'RequesterName')();
+        const ChangeRequestDocumentCancellationListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,ReferenceNumber').expand('Author', 'RequesterName').orderBy("Modified", false)();
         for (const item of ChangeRequestDocumentCancellationListItems) {
             if (item.Status === "Rework") {
-                const processItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and Status eq 'Pending' and ProcessName eq 'Document Cancellation' and ListItemId eq ${item.Id}`)();
+                const processItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and (Status eq 'Pending' or Status eq 'Save as draft') and ProcessName eq 'Document Cancellation' and ListItemId eq ${item.Id}`)();
                 if (processItems.length > 0) {
                     for (const itm of processItems) {
                         allItems.push({
@@ -316,15 +367,15 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             }
         }
 
-        const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList").items.select('Id,ReferenceNumber,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode').expand('Author', 'RequesterName')();
+        const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList").items.select('Id,ReferenceNumber,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode').expand('Author', 'RequesterName').orderBy("Modified", false)();
         for (const item of ChangeRequestListItems) {
             if (item.Status === "Rework") {
                 const processItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and Status eq 'Pending' and ProcessName eq 'Change Request' and ListItemId eq ${item.Id}`)();
                 if (processItems.length > 0) {
                     for (const itm of processItems) {
                         allItems.push({
-                            RequestId: item.DocumentCode,
-                            Title: item.ReferenceNumber,
+                            RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " ":item.DocumentCode,
+                            Title: item.ReferenceNumber == "" || item.ReferenceNumber == null?" ":item.ReferenceNumber,
                             ProcessName: "Change Request",
                             ReqName: item.RequesterName?.Title || '',
                             ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
@@ -336,8 +387,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     }
                 } else {
                     allItems.push({
-                        RequestId: item.DocumentCode,
-                        Title: item.ReferenceNumber,
+                        RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " ":item.DocumentCode,
+                        Title: item.ReferenceNumber == "" || item.ReferenceNumber == null?" ":item.ReferenceNumber,
                         ProcessName: "Change Request",
                         ReqName: item.RequesterName?.Title || '',
                         ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
@@ -348,8 +399,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 }
             } else {
                 allItems.push({
-                    RequestId: item.DocumentCode,
-                    Title: item.ReferenceNumber,
+                    RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " ":item.DocumentCode,
+                    Title: item.ReferenceNumber == "" || item.ReferenceNumber == null?" ":item.ReferenceNumber,
                     ProcessName: "Change Request",
                     ReqName: item.RequesterName?.Title || '',
                     ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',

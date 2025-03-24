@@ -25,7 +25,8 @@ import {
   getDocumentLinkByID, getFormNameID, getItemByID, getItemByIDChangeRequest, getItemByIDCR,
   getListNameID, GetQueryString, getRequesterID, UpdateAllProcessItem, updateApprovalItem,
   updateItem, updateItemChangeRequestReasonList, updateItemChangeRequestList,
-  getDocumentCodeselected, getDocumentLinkByIDarr
+  getDocumentCodeselected, getDocumentLinkByIDarr,
+  getAllDepartment
 } from './DocumentCancellation';
 import Select from "react-select";
 import Swal from 'sweetalert2';
@@ -38,7 +39,7 @@ import { WorkflowAuditHistory } from '../../../CustomJSComponents/WorkflowAuditH
 import { CONTENTTYPE_ChangeDocument, CONTENTTYPE_DocumentCancel, LIST_TITLE_ChangeRequest, Tenant_URL } from './Constants';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDownload, faPaperclip } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faEye, faPaperclip } from '@fortawesome/free-solid-svg-icons';
 // import { uploadFile } from '../../../APISearvice/MediaService';
 import { Modal } from 'react-bootstrap';
 import { Link } from '@fluentui/react';
@@ -101,13 +102,14 @@ interface IEmployeeDetails {
 const ChangeDocumentRequestContext = ({ props }: any) => {
   const sp: SPFI = getSP();
   const elementRef = React.useRef<HTMLDivElement>(null);
+  const elementRef1 = React.useRef<HTMLDivElement>(null);
   const siteUrl = props.siteUrl;
   const tenantUrl = props.siteUrl?.split("/sites/")[0];
   const { useHide }: any = React.useContext(UserContext);
   const [InputDisabled, setInputDisabled] = React.useState(false);
-  const selectedTextDiv=document.getElementById('selectedText');
-   
-selectedTextDiv.style.display='none';
+  const selectedTextDiv = document.getElementById('selectedText');
+
+  selectedTextDiv.style.display = 'none';
   const Breadcrumb = [
     {
       MainComponent: "My Request",
@@ -118,6 +120,17 @@ selectedTextDiv.style.display='none';
       ChildComponentURl: `${siteUrl}/SitePages/EDCMAIN.aspx#/ChangeDocumentRequest`,
     },
   ];
+  const [requesttypeerr, setrequesttypeerr] = React.useState(false);
+  const [documentcodeerr, setdocumentcodeerr] = React.useState(false);
+  const [amendmenterr, setamendmenterr] = React.useState(false);
+  const [departmenterr, setdepartmenterr] = React.useState(false);
+  const [classificationerr, setclassificationerr] = React.useState(false);
+  const [custodianerr, setcustodianerr] = React.useState(false);
+  const [locationerr, setlocationerr] = React.useState(false);
+  const [documenttypeerr, setdocumenttypeerr] = React.useState(false);
+  const [attachmenterr, setattachmenterr] = React.useState(false);
+  const [changedescriptionerr, setchangedescriptionerr] = React.useState(false);
+  const [changereasonerr, setchangereasonerr] = React.useState(false);
   const [Loading, setLoading] = React.useState(false);
   const [FormItemId, setFormItemId] = React.useState(null);
   const [editID, setEditID] = React.useState(null);
@@ -125,6 +138,7 @@ selectedTextDiv.style.display='none';
   const [MainEditItem, setMainEditItem] = React.useState(null);
   const [rows, setRows] = React.useState<any>([]);
   const [ReqType, setReqType] = React.useState<any>([]);
+  const [Departopt, setDepartment] = React.useState<any>([]);
   const [Amendtype, setAmendtype] = React.useState<any>([]);
   const [Classificationopt, setClassificationopt] = React.useState<any>([]);
   const [LocationOpt, setLocationOpt] = React.useState<any>([]);
@@ -137,6 +151,7 @@ selectedTextDiv.style.display='none';
   const [selectedOption, setSelectedOption] = React.useState(null);
   const [selectedOptionReq, setSelectedOptionReq] = React.useState(null);
   const [selectedOptionAmend, setSelectedOptionAmend] = React.useState(null);
+  const [SelectedOptionDepart, setSelectedOptionDepart] = React.useState(null);
   const [selectedOptionClass, setSelectedOptionClassification] = React.useState(null);
   const [selectedOptionLoc, setselectedOptionLoc] = React.useState(null);
   const [selectedOptionCusto, setselectedOptionCusto] = React.useState(null);
@@ -149,7 +164,7 @@ selectedTextDiv.style.display='none';
   const [RequesterRoleId, setRequesterRoleId] = React.useState(null);
   const [FormNameId, setFormNameId] = React.useState(null);
   const [ListNameId, setListNameId] = React.useState(null);
-
+  const [ValidCancelReason, setValidCancelReason] = React.useState(true);
   const [showdate, setshowdate] = React.useState(false);
   const [editForm, setEditForm] = React.useState(false);
   const [disabledforwardarr, setdisabledforwardarr] = React.useState(false);
@@ -166,7 +181,7 @@ selectedTextDiv.style.display='none';
     RequesterNameId: 0,
     RequesterName: "",
     RequesterDesignation: "",
-    Department: "",
+    DepartmentId: 0,
     RequestDate: "",
     IssueDate: "",
     LocationId: 0,
@@ -196,6 +211,8 @@ selectedTextDiv.style.display='none';
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null); // To store the file preview URL
   const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
   const [showModal, setShowModal] = React.useState(false);
+  const [ShowModalAtt, setShowModalAtt] = React.useState(false);
+
   const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
     { id: 0, role: 0, level: 1, approvers: [], leveltype: "One" } // Default row
   ]);
@@ -208,7 +225,7 @@ selectedTextDiv.style.display='none';
   const [fileType, setFileType] = React.useState("");
   const [selectedUsers, setSelectedUsers] = React.useState<any[]>([]);
   const [remark, setRemark] = React.useState("");
-
+  const [showButton, setShowButton] = React.useState(false);
   // Function to handle People Picker selection
   const onPeoplePickerChange = (items: any[]) => {
     setSelectedUsers(items);
@@ -219,13 +236,17 @@ selectedTextDiv.style.display='none';
     debugger
     locationPath = window.location.href.match(/\/sites\/[^\/]+/)[0];
     if (path1.includes("/view/") || path1.includes("/approve/")) {
+      setLoading(true);
       setInputDisabled(true);
     }
     else {
       setInputDisabled(false);
     }
+    if (path1.includes("/edit/")) {
+      setLoading(true); ////
+    }
     console.log("inpt diasba", InputDisabled, path1, path1.includes("/view/"))
-    setLoading(true);
+    //setLoading(true);
     var ReqTypeArr = await getAllRequestType(sp);
     const optionsreq = ReqTypeArr.map((item: any) => ({
       value: item.ID,
@@ -233,6 +254,15 @@ selectedTextDiv.style.display='none';
       itemId: item.ID
     }));
     setReqType(optionsreq);
+    var DepartmentArr = await getAllDepartment(sp);
+    const optionsDepartment = DepartmentArr.map((item: any) => ({
+      value: item.ID,
+      label: item.Department,
+      itemId: item.ID,
+      department: item.Department,
+      departmentcode:item.DepartmentCode
+    }));
+    setDepartment(optionsDepartment);
     var AmendmentTypeArr = await getAllAmendmentType(sp);
     const optionsamendment = AmendmentTypeArr.map((item: any) => ({
       value: item.ID,
@@ -286,7 +316,7 @@ selectedTextDiv.style.display='none';
       RequesterDesignation: userProfile?.Title || "",
       RequesterName: userProfile?.DisplayName || "",
       RequestDate: new Date().toLocaleDateString("en-CA"),
-      Department: UserDept
+     // Department: UserDept
       //RequestedDate: new Date().toISOString().split("T")[0] // Format as YYYY-MM-DD
 
     }));
@@ -312,7 +342,7 @@ selectedTextDiv.style.display='none';
       SubmiitedDate: item.SubmiitedDate,
       SubmitStatus: item.SubmitStatus,
       DocumentTypeId: item.DocumentTypeId,
-      Department: item.Department,
+      DepartmentId: item.DepartmentId,
       AttachmentId: item.AttachmentId,
       AttachmentJson: item.AttachmentJson,
       ID: item.ID,
@@ -388,7 +418,7 @@ selectedTextDiv.style.display='none';
         setEditForm(true);
         setMainEditItem(setBannerById[0]);
         // setCategoryData(await getCategory(sp, Number(setBannerById[0]?.TypeMaster))) // Category
-        if (setBannerById[0].AttachmentId) {
+        if (setBannerById[0].AttachmentId.length > 0) {
           let arrn = await getDocumentLinkByIDarr(sp, setBannerById[0].AttachmentId[0]);
           //let arraynew: any[];
           //arraynew.push(arrn)
@@ -400,36 +430,36 @@ selectedTextDiv.style.display='none';
           setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId[0]))
         }
 
-        // if (ProcessItemId && ProcessItemId.Level === 0 && ProcessItemId.CurrentUserRole === "OES" && ProcessItemId.IsInitiator == "No") {
-        const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_ChangeDocument, setBannerById[0].DocumentCode)
+        if (ProcessItemId && ProcessItemId.Level === 0 && ProcessItemId.CurrentUserRole === "OES" && ProcessItemId.IsInitiator == "No") {
+          const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_ChangeDocument, setBannerById[0].DocumentCode)
 
-        if (ApprowData.length > 0) {
+          if (ApprowData.length > 0) {
 
-          const EditApprowData = ApprowData.map((item: any) => ({
-            id: item.ID,
-            leveltype: item.LevelType,
-            role: item.ApproverRole?.Id || 0, // Assuming role comes from ApproverRole
-            level: item.Level || 1, // Default to 1 if missing
-            approvers: item.Approvers?.map((approver: any) => ({
-              value: approver.Id,
-              label: approver.Title,
+            const EditApprowData = ApprowData.map((item: any) => ({
+              id: item.ID,
+              leveltype: item.LevelType,
+              role: item.ApproverRole?.Id || 0, // Assuming role comes from ApproverRole
+              level: item.Level || 1, // Default to 1 if missing
+              approvers: item.Approvers?.map((approver: any) => ({
+                value: approver.Id,
+                label: approver.Title,
 
-            })) || []
-          }));
+              })) || []
+            }));
 
-          setForwardToArr(EditApprowData);
-          setForwardToArrEdit(EditApprowData);
+            setForwardToArr(EditApprowData);
+            setForwardToArrEdit(EditApprowData);
 
+          }
+
+          // MainListID
         }
-
-        // MainListID
-        // }
         let arr = {
 
           RequesterName: setBannerById[0].RequesterName,
           RequesterNameId: setBannerById[0].RequesterNameId,
           RequesterDesignation: setBannerById[0].RequesterDesignation,
-          Department: setBannerById[0].Department,
+          DepartmentId: setBannerById[0].DepartmentId,
           RequestDate: setBannerById[0].RequestDate,
           IssueDate: setBannerById[0].IssueDate,
           LocationId: setBannerById[0].LocationId,
@@ -506,7 +536,7 @@ selectedTextDiv.style.display='none';
           DocumentCode: setBannerById[0].DocumentCode,
           RequestTypeId: setBannerById[0].RequestTypeId,
           DocumentTypeId: setBannerById[0].DocumentTypeId,
-          Department: setBannerById[0].Department,
+          DepartmentId: setBannerById[0].DepartmentId,
           AttachmentId: setBannerById[0].AttachmentId,
           AttachmentJson: setBannerById[0].AttachmentJson,
           Status: setBannerById[0].Status
@@ -515,22 +545,26 @@ selectedTextDiv.style.display='none';
 
         // setFormData(arr2);
 
-        setSelectedOption(arr);
+        debugger
+        const selectedDocCode = options.filter((code: { value: any; }) => code.value === setBannerById[0].DocumentCode) || null;
         const selectedLocation = locationoptions.filter((loc: { locationId: any; }) => loc.locationId === setBannerById[0].LocationId)[0] || null;
         const selectedCustodian = custodianoptions.filter((cust: { custodianId: any; }) => cust.custodianId === setBannerById[0].CustodianId)[0] || null;
         const selectedDocumentType = documenttypeoptions.filter((docType: { documentTypeId: any; }) => docType.documentTypeId === setBannerById[0].DocumentTypeId)[0] || null;
         const selectedAmendment = optionsamendment.filter((amend: { value: any; }) => amend.value === setBannerById[0].AmendmentTypeId)[0] || null;
         const selectedClassifiction = optionsclassification.filter((classi: { value: any; }) => classi.value === setBannerById[0].ClassificationId)[0] || null;
         const selectedRequesttype = optionsreq.filter((cust: { value: any; }) => cust.value === setBannerById[0].RequestTypeId)[0] || null;
+        const selecteddepart = optionsDepartment.filter((cust: { value: any; }) => cust.value === setBannerById[0].DepartmentId)[0] || null;
+        setSelectedOption(selectedDocCode.length > 0 && selectedDocCode[0]);
         setselectedOptionDoctype(selectedDocumentType);
         setSelectedOptionClassification(selectedClassifiction);
         setSelectedOptionAmend(selectedAmendment);
+        setSelectedOptionDepart(selecteddepart);
         setselectedOptionCusto(selectedCustodian);
         setselectedOptionLoc(selectedLocation);
         setselectedCheckboxIds(setBannerById[0].ChangeRequestTypeId);
         setSelectedOptionReq(selectedRequesttype);
 
-        if (setBannerById[0].AttachmentId) {
+        if (setBannerById[0].AttachmentId.length > 0) {
           setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId[0]));
           let arrn = await getDocumentLinkByIDarr(sp, setBannerById[0].AttachmentId[0]);
           //let arraynew: any[];
@@ -550,8 +584,8 @@ selectedTextDiv.style.display='none';
           description: item.ChangeDescription,
           reason: item.ReasonforChange,
         }));
-        setcancellReason(initialRows);
-        setcancellReasonEdit(initialRows);
+        setcancellReason(initialRows.length > 0?initialRows :[{ id: 0, description: "", reason: "" }]);
+        setcancellReasonEdit(initialRows.length > 0?initialRows :[{ id: 0, description: "", reason: "" }]);
 
 
       }
@@ -589,7 +623,7 @@ selectedTextDiv.style.display='none';
         SubmitStatus: selectedList.SubmitStatus,
         DocumentCode: selectedList.value,
         DocumentTypeId: selectedList.DocumentTypeId,
-        Department: selectedList.Department,
+        DepartmentId: selectedList.DepartmentId,
         AttachmentId: selectedList.AttachmentId,
         AttachmentJson: selectedList.AttachmentJson
         // Format as YYYY-MM-DD
@@ -601,21 +635,26 @@ selectedTextDiv.style.display='none';
         description: item.ChangeDescription,
         reason: item.ReasonforChange,
       }));
-      setcancellReason(initialRows);
-      setcancellReasonEdit(initialRows);
+      // setcancellReason(initialRows);
+      // setcancellReasonEdit(initialRows);
+      setcancellReason([{ id: 0, description: "", reason: "" }]);
+      setcancellReasonEdit([{ id: 0, description: "", reason: "" }]);
       const selectedLocation = LocationOpt.filter((loc: { locationId: any; }) => loc.locationId === selectedList.LocationId)[0] || null;
       const selectedCustodian = Custodianopt.filter((cust: { custodianId: any; }) => cust.custodianId === selectedList.CustodianId)[0] || null;
       const selectedDocumentType = DocumentTypeOpt.filter((docType: { documentTypeId: any; }) => docType.documentTypeId === selectedList.DocumentTypeId)[0] || null;
       const selectedAmendment = Amendtype.filter((cust: { value: any; }) => cust.value === selectedList.AmendmentTypeId)[0] || null;
       const selectedClassifiction = Classificationopt.filter((docType: { value: any; }) => docType.value === selectedList.ClassificationId)[0] || null;
       //const selectedRequesttype = optionsreq.filter((cust: { value: any; }) => cust.value === selectedList.RequestTypeId)[0] || null;
+      const selecteddepart = Departopt.filter((cust: { value: any; }) => cust.value === selectedList.DepartmentId)[0] || null;
       setselectedOptionDoctype(selectedDocumentType);
       setSelectedOptionClassification(selectedClassifiction);
       setSelectedOptionAmend(selectedAmendment);
+      setSelectedOptionDepart(selecteddepart);
       setselectedOptionCusto(selectedCustodian);
       setselectedOptionLoc(selectedLocation);
-      setselectedCheckboxIds(selectedList.ChangeRequestTypeId)
-      if (selectedList.AttachmentId) {
+      //setselectedCheckboxIds(selectedList.ChangeRequestTypeId);
+      setselectedCheckboxIds([])
+      if (selectedList.AttachmentId.length > 0) {
         let arrn = await getDocumentLinkByIDarr(sp, selectedList.AttachmentId[0]);
         //let arraynew: any[];
         //arraynew.push(arrn)
@@ -630,7 +669,35 @@ selectedTextDiv.style.display='none';
     };
   }
 
+  const scrollToTop = () => {
+    if (elementRef1.current) {
+      elementRef1.current.scrollTo({
+        top: 0,
+        behavior: 'smooth', // Smooth scroll to top
+      });
+    }
+  };
   const onSelectReq = (selectedList: any) => {
+    setFormData(prevData => ({
+      ...prevData,
+      SerialNumber: "",
+      IssueNumber: "",
+      RevisionNumber: "",
+      RevisionDate: "",
+      DocumentCode: "",
+      ReferenceNumber: "",
+    }));
+    setselectedCheckboxIds([]);
+    setselectedOptionDoctype(null);
+    setSelectedOptionClassification(null);
+    setSelectedOptionAmend(null);
+    //setSelectedOptionDepart(null);
+    setselectedOptionCusto(null);
+    setselectedOptionLoc(null);
+    setSelectedOptionReq(null);
+    setSelectedOption(null);
+    setAttachmentarr([]);
+    setcancellReason([{ id: 0, description: "", reason: "" }]);
     console.log(selectedList, "selectedListreq");
     setFormData(prevData => ({
       ...prevData,
@@ -647,6 +714,15 @@ selectedTextDiv.style.display='none';
       // Format as YYYY-MM-DD
     }));
     setSelectedOptionAmend(selectedList);  // Set the selected users
+  };
+  const onSelectDepart = (selectedList: any) => {
+    console.log(selectedList, "selectedListadepartttt");
+    setFormData(prevData => ({
+      ...prevData,
+      DepartmentId: selectedList.value
+      // Format as YYYY-MM-DD
+    }));
+    setSelectedOptionDepart(selectedList);  // Set the selected users
   };
   const onSelectClassification = (selectedList: any) => {
     console.log(selectedList, "selectedListclasss");
@@ -816,6 +892,28 @@ selectedTextDiv.style.display='none';
     //setForwardToArr(forwardToArr);
   };
 
+  React.useEffect(() => {
+    const handleScroll = () => {
+      console.log("elementRef.current", elementRef.current)
+      // If the user has scrolled down 20px or more, show the button
+      if (elementRef1.current) {
+        // Check if scrolled down more than 20px
+        if (elementRef1.current.scrollTop > 20) {
+          setShowButton(true);
+        } else {
+          setShowButton(false);
+        }
+      }
+    };
+
+    // Add scroll event listener
+    window.addEventListener('scroll', handleScroll);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   React.useEffect(() => {
     ApiCallFunc();
@@ -849,10 +947,27 @@ selectedTextDiv.style.display='none';
   };
 
   //#endregion
-  const OpenFile = (obj: any) => {
+  const OpenFile = (obj: any, sts: string) => {
+    debugger
     console.log("ttrtrtrtt", obj)
-    const fileUrl = `${Tenant_URL}${obj.FileRef}`;
+    const fileUrl = `${Tenant_URL}${obj?.FileRef != "" ? obj.FileRef : obj.fileUrl}`;
+    if (sts == "Open") {
+      if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
 
+        window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=default`, "_blank");
+      } else {
+        window.open(fileUrl, "_blank"); // Open PDF and other files normally
+      }
+
+    } else if (sts == "Download") {
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.setAttribute("download", obj?.FileLeafRef != "" ? obj.FileLeafRef : obj.name); // Suggests a filename for download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+    }
     // if (obj.FileRef.endsWith(".docx")) {
     //     window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(fileUrl)}`, "_blank");
     //   } else if (obj.FileRef.endsWith(".xlsx")) {
@@ -861,12 +976,12 @@ selectedTextDiv.style.display='none';
     //     window.open(fileUrl, "_blank"); // Open PDF and other files normally
     //   }
 
-    if (fileUrl.endsWith(".docx") || fileUrl.endsWith(".xlsx") || fileUrl.endsWith(".pptx")) {
-      //window.open(`${siteUrl}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=default`, "_blank");
-      window.open(obj, "_blank");
-    } else {
-      window.open(fileUrl, "_blank"); // Open PDF and other files normally
-    }
+    // if (fileUrl.endsWith(".docx") || fileUrl.endsWith(".xlsx") || fileUrl.endsWith(".pptx")) {
+    //   //window.open(`${siteUrl}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=default`, "_blank");
+    //   window.open(obj, "_blank");
+    // } else {
+    //   window.open(fileUrl, "_blank"); // Open PDF and other files normally
+    // }
   }
   const ApprovalTypeOptions = [
     { value: 'One', label: 'Anyone' },
@@ -881,111 +996,162 @@ selectedTextDiv.style.display='none';
     const { RequesterName, RequesterDesignation, RequestDate, DocumentCode, IssueNumber, RevisionNumber, ReferenceNumber } = formData;
     // const { description } = richTextValues;
     let valid = true;
+    let valid1 = true;
     // let validateOverview:boolean = false;
     // let validatetitlelength = false;
     // let validateTitle = false;
+    setlocationerr(false);
+    setcustodianerr(false);
+    setdocumenttypeerr(false);
+    setclassificationerr(false);
+    setrequesttypeerr(false);
+    setdocumentcodeerr(false);
+    setamendmenterr(false);
+    setdepartmenterr(false);
+    setattachmenterr(false);
+    setchangedescriptionerr(false);
+    setchangereasonerr(false);
     setValidDraft(true);
     setValidSubmit(true);
-
+    setValidCancelReason(true);
     let errormsg = "";
 
     if (fmode == FormSubmissionMode.SUBMIT) {
       if (!RequesterName) {
-        //Swal.fire('Error', 'Title is required!', 'error');
         valid = false;
       }
-      //  else if (!RequesterDesignation) {
-      //   //Swal.fire('Error', 'Type is required!', 'error');
-      //   valid = false;
-      // }
-      else if (!selectedOptionLoc) {
-        //Swal.fire('Error', 'Category is required!', 'error');
-        //errormsg = "Please select Location"
+      if (!selectedOptionLoc) {
+        setlocationerr(true);
         valid = false;
       }
-      else if (!selectedOptionCusto) {
-        //Swal.fire('Error', 'Category is required!', 'error');
-        //errormsg = "Please select Custodian"
+      if (!selectedOptionCusto) {
+        setcustodianerr(true);
         valid = false;
       }
-      else if (!selectedOptionDoctype) {
-        //errormsg = "Please select Document Type"
-        //Swal.fire('Error', 'Category is required!', 'error');
+      if (!selectedOptionDoctype) {
+        setdocumenttypeerr(true);
         valid = false;
       }
-      else if (!selectedOptionClass) {
-        //errormsg = "Please select Classification"
-        //Swal.fire('Error', 'Category is required!', 'error');
+      if (!selectedOptionClass) {
+        setclassificationerr(true);
         valid = false;
       }
-      else if (!selectedOptionReq) {
-        //errormsg = "Please select Classification"
-        //Swal.fire('Error', 'Category is required!', 'error');
+      if (!selectedOptionReq) {
+        setrequesttypeerr(true);
         valid = false;
       }
-      else if (selectedOptionReq.label != "Change Request for New Addition" && !selectedOption.value) {
-        //errormsg = "Please select Document code"
-        //Swal.fire('Error', 'Entity is required!', 'error');
+      if (selectedOptionReq && selectedOptionReq.label != "Change Request for New Addition" && !selectedOption) {
+        setdocumentcodeerr(true);
         valid = false;
       }
-      else if (!selectedOptionAmend) {
-        //errormsg = "Please select Amendment Type"
-        //Swal.fire('Error', 'Category is required!', 'error');
+      if (!selectedOptionAmend) {
+        setamendmenterr(true);
         valid = false;
       }
-      else if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" && row.reason.trim() !== "") == false) {
-        // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
-        //errormsg = "Please enter Description and Reason"
+      if (!SelectedOptionDepart) {
+        setdepartmenterr(true);
         valid = false;
       }
-      else if (cancellReason.length == 0) {
-        //errormsg = "Please enter atleast Anyone Description and Reason"
-        // const isValid = rows.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
-        valid = false;
-      }
-      else if (Attachmentarr.length == 0) {
-        //errormsg = "Please enter atleast Anyone Description and Reason"
-        // const isValid = rows.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
-        valid = false;
-      }
-      // else if (IssueNumber === "") {
-      //   //Swal.fire('Error', 'Entity is required!', 'error');
-      //   valid = false;
-      // }
-      // else if (RevisionNumber === "") {
-      //   //Swal.fire('Error', 'Entity is required!', 'error');
-      //   valid = false;
-      // }
-      // else if (!ReferenceNumber) {
-      //   //Swal.fire('Error', 'Entity is required!', 'error');
-      //   valid = false;
-      // }
+      if (cancellReason.length > 0) {
+        let descriptionError = false;
+        let reasonError = false;
 
+        cancellReason.forEach((row: any) => {
+          if (row.description === null || row.reason === null) {
+            if (row.description === null) {
+              descriptionError = true;
+            }
+            if (row.reason === null) {
+              reasonError = true;
+            }
+          } else {
+            if (row.description != null && row.description.trim() === "") {
+              descriptionError = true;
+            }
+            if (row.reason != null && row.reason.trim() === "") {
+              reasonError = true;
+            }
+          }
+
+        });
+
+        // If any description or reason is blank, set the respective error flags to true
+        if (descriptionError) {
+          setchangedescriptionerr(true);
+        }
+        if (reasonError) {
+          setchangereasonerr(true);
+        }
+        if (descriptionError || reasonError) {
+          valid1 = false;
+        }
+      }
+      // if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" || row.reason.trim() !== "") == false) {
+      //   setchangedescriptionerr(true);
+      //   setchangereasonerr(true);
+      //   valid1 = false;
+      // }
+      if (cancellReason.length == 0) {
+        setchangedescriptionerr(true);
+        setchangereasonerr(true);
+        valid1 = false;
+      }
+      if (Attachmentarr.length == 0 && DocumentLink == null) {
+        setattachmenterr(true);
+        valid = false;
+      }
       // return true;
 
       setValidSubmit(valid);
-
+      setValidCancelReason(valid1);
     }
     else {
       if (!RequesterName) {
-        //Swal.fire('Error', 'Title is required!', 'error');
         valid = false;
       }
-      // else if (!RequesterDesignation) {
-      //   //Swal.fire('Error', 'Type is required!', 'error');
-      //   valid = false;
+      if (!selectedOptionReq) {
+        setrequesttypeerr(true);
+        valid = false;
+      }
+      if (selectedOptionReq && selectedOptionReq.label != "Change Request for New Addition" && !selectedOption) {
+        setdocumentcodeerr(true);
+        valid = false;
+      }
+      if (!SelectedOptionDepart) {
+        setdepartmenterr(true);
+        valid = false;
+      }
+      // if (cancellReason.length > 0) {
+      //   let descriptionError = false;
+      //   let reasonError = false;
+
+      //   cancellReason.forEach((row: any) => {
+      //     if (row.description.trim() === "") {
+      //       descriptionError = true;
+      //     }
+      //     if (row.reason.trim() === "") {
+      //       reasonError = true;
+      //     }
+      //   });
+
+      //   // If any description or reason is blank, set the respective error flags to true
+      //   if (descriptionError) {
+      //     setchangedescriptionerr(true);
+      //   }
+      //   if (reasonError) {
+      //     setchangereasonerr(true);
+      //   }
+      //   if (descriptionError || reasonError) {
+      //     valid1 = false;
+      //   }
       // }
-      else if (!selectedOptionReq) {
-        //errormsg = "Please select Classification"
-        //Swal.fire('Error', 'Category is required!', 'error');
-        valid = false;
-      }
-      // else if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" && row.reason.trim() !== "") == false) {
-      //   // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
-      //   valid = false;
+      // if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" || row.reason.trim() !== "") == false) {
+      //   setchangedescriptionerr(true);
+      //   setchangereasonerr(true);
+      //   valid1 = false;
       // }
       setValidDraft(valid);
-
+      setValidCancelReason(valid1);
     }
 
     if (!valid && fmode == FormSubmissionMode.SUBMIT)
@@ -993,13 +1159,25 @@ selectedTextDiv.style.display='none';
     // else if (!valid && fmode == FormSubmissionMode.SUBMIT && rows.length >0){
     //     Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
     // }
+    else if (!valid1 && fmode == FormSubmissionMode.SUBMIT)
+      Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields in description section.');
     else if (!valid && fmode == FormSubmissionMode.DRAFT) {
-      Swal.fire(errormsg !== "" ? errormsg : 'Please fill the mandatory fields for draft - Title and Type');
+      Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
     }
-    return valid;
+    else if (!valid1 && fmode == FormSubmissionMode.DRAFT) {
+      Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields in description section..');
+    }
+    if (valid == false || valid1 == false) {
+      return false
+    }
+    else {
+      return true
+    }
   };
   //#region  Submit Form
   const handleFormSubmit = async () => {
+    debugger
+    scrollToTop();
     let url = window.location.href.split('/sites/')[0];
     console.log("topp submit", editItemID, cancellReason);
     if (await validateForm(FormSubmissionMode.SUBMIT)) {
@@ -1026,7 +1204,7 @@ selectedTextDiv.style.display='none';
       } else {
         issueno = (Number(selectedOption.IssueNumber) + 1).toString();
         serialno = selectedOption.SerialNumber;
-        revisionno = (Number(selectedOption.RevisionNumber) + 1).toString();
+        revisionno = Number(selectedOption.RevisionNumber).toString();
         setissueNo(issueno);
         setserialNo(serialno);
         setrevisionNo(revisionno);
@@ -1065,6 +1243,7 @@ selectedTextDiv.style.display='none';
                 const itemId = currentItemId.Id;
                 await currentItemId.update({
                   FileName: documentName, // Assuming FileName is the internal name of the column
+                  DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption.DocumentCode,
                 });
 
                 // Save the document ID for the attachment field in ChangeRequestList
@@ -1078,7 +1257,7 @@ selectedTextDiv.style.display='none';
               Title: formData.RequesterName,
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
-              Department: formData.Department,
+              DepartmentId: formData.DepartmentId,
               RequestDate: new Date(formData.RequestDate).toISOString(),
               IssueDate: new Date(formData.IssueDate).toISOString(),
               LocationId: formData.LocationId,
@@ -1196,6 +1375,7 @@ selectedTextDiv.style.display='none';
                 const itemId = currentItemId.Id;
                 await currentItemId.update({
                   FileName: documentName, // Assuming FileName is the internal name of the column
+                  DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption.DocumentCode,
                 });
 
                 // Save the document ID for the attachment field in ChangeRequestList
@@ -1208,7 +1388,7 @@ selectedTextDiv.style.display='none';
               Title: formData.RequesterName,
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
-              Department: formData.Department,
+              DepartmentId: formData.DepartmentId,
               RequestDate: formData.RequestDate != "" ? new Date(formData.RequestDate).toISOString() : new Date().toISOString(),
               //IssueDate: formData.IssueDate,
               LocationId: formData.LocationId,
@@ -1292,7 +1472,7 @@ selectedTextDiv.style.display='none';
 
     // If all selections are available, generate the document code
     if (selectedLocation && selectedCustodian && selectedDocumentType) {
-      const docCode = `${selectedCustodian.custodianCode}.${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.${serialno.toString().padStart(2, '0')}`;
+      const docCode = `${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.${selectedCustodian.custodianCode}.${serialno.toString().padStart(2, '0')}`;
       setdocCode(docCode)
       return docCode;
       // Store docCode in state
@@ -1310,7 +1490,7 @@ selectedTextDiv.style.display='none';
     const selectedCustodian = Custodianopt.filter((cust: { custodianId: any; }) => cust.custodianId === selectedOptionCusto.custodianId)[0] || null;
     const selectedDocumentType = DocumentTypeOpt.filter((docType: { documentTypeId: any; }) => docType.documentTypeId === selectedOptionDoctype.documentTypeId)[0] || null;
     if (selectedLocation && selectedCustodian && selectedDocumentType) {
-      const referencedocCode = `${selectedCustodian.custodianCode}.${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.TMP-${serialno.toString().padStart(2, '0')}.${issueno.toString().padStart(2, '0')}`;
+      const referencedocCode = `${selectedDocumentType.documentTypeCode}.${selectedLocation.locationCode}.${selectedCustodian.custodianCode}.TMP-${serialno.toString().padStart(2, '0')}.${issueno.toString().padStart(2, '0')}`;
       setreferencedocCode(referencedocCode);
       return referencedocCode;
       // Store docCode in state
@@ -1323,7 +1503,8 @@ selectedTextDiv.style.display='none';
 
   }
   const handleSaveAsDraft = async () => {
-
+    debugger
+    scrollToTop();
     let url = window.location.href.split('/sites/')[0];
     console.log("topp draft", editItemID, cancellReason);
     if (await validateForm(FormSubmissionMode.DRAFT)) {
@@ -1371,16 +1552,15 @@ selectedTextDiv.style.display='none';
               Title: formData.RequesterName,
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
-              Department: formData.Department,
+              DepartmentId: formData.DepartmentId,
               RequestDate: new Date(formData.RequestDate).toISOString(),
               LocationId: formData.LocationId,
               CustodianId: formData.CustodianId,
-              //SerialNumber: formData.SerialNumber,
-              //IssueNumber: formData.IssueNumber,
-              //RevisionNumber: formData.RevisionNumber,
-              //RevisionDate: formData.RevisionDate,
-              //DocumentCode: formData.DocumentCode,
-              //ReferenceNumber: formData.ReferenceNumber,
+              SerialNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption.SerialNumber) : null,
+              IssueNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption.IssueNumber) : null,
+              RevisionNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption.RevisionNumber) : null,
+              DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? "" : selectedOption && selectedOption.DocumentCode,
+              ReferenceNumber: selectedOptionReq.label == "Change in Existing Content" ? selectedOption && selectedOption.ReferenceNumber : "",
               AmendmentTypeId: formData.AmendmentTypeId,
               RequestTypeId: formData.RequestTypeId,
               ClassificationId: formData.ClassificationId,
@@ -1399,34 +1579,40 @@ selectedTextDiv.style.display='none';
               AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson
 
             }
+            let descriptionError = false;
+            let reasonError = false;
             console.log("postPayloaddrafttedit", arr, editItemID, cancellReason);
             const postResult = await updateItemChangeRequestList(arr, sp, editItemID);
             const postId = postResult?.data?.ID;
-
-
             for (const row of cancellReason) {
-
+              if (row.description.trim() === "") {
+                descriptionError = true;
+              }
+              if (row.reason.trim() === "") {
+                reasonError = true;
+              }
               const postPayload2 = {
                 ChangeRequestIDId: editItemID, // Assuming "Title" column exists
                 ChangeDescription: row.description,
                 ReasonforChange: row.reason,
               }
+              if (!descriptionError || !reasonError) {
+                if (!row.id) {
+                  const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
+                  const postId2 = postResult2?.data?.ID;
+                  // debugger
+                  if (!postId2) {
+                    console.error("Post creation failed.");
+                    return;
+                  }
 
-              if (!row.id) {
-
-                const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
-                const postId2 = postResult2?.data?.ID;
-                // debugger
-                if (!postId2) {
-                  console.error("Post creation failed.");
-                  return;
                 }
+                else if (row.id > 0) {
+                  const postResult2 = await updateItemChangeRequestReasonList(postPayload2, sp, row.id);
+                  const postId2 = postResult2?.data?.ID;
+                }
+              }
 
-              }
-              else if (row.id > 0) {
-                const postResult2 = await updateItemChangeRequestReasonList(postPayload2, sp, row.id);
-                const postId2 = postResult2?.data?.ID;
-              }
 
             }
             // await AddContentMaster(sp, arr)
@@ -1459,7 +1645,7 @@ selectedTextDiv.style.display='none';
             setTimeout(() => {
               //window.location.reload();
               window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
-            }, 1000);
+            }, 2000);
             // }
           }
 
@@ -1503,19 +1689,22 @@ selectedTextDiv.style.display='none';
               }
             }
 
-
+            let Attachmentidsss = attachmentIds.length != 0 ? attachmentIds : formData.AttachmentId;
+            let AttachmentJso = attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson;
             const postPayload = {
               Title: formData.RequesterName,
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
-              Department: formData.Department,
+              DepartmentId: formData.DepartmentId,
               RequestDate: new Date(formData.RequestDate).toISOString(),
               IssueDate: new Date().toISOString(),
               LocationId: formData.LocationId,
               CustodianId: formData.CustodianId,
-              // SerialNumber: Number("01"),
-              // IssueNumber: Number("01"),
-              // RevisionNumber: Number("00"),
+              SerialNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption.SerialNumber) : null,
+              IssueNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption.IssueNumber) : null,
+              RevisionNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption.RevisionNumber) : null,
+              DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? "" : selectedOption && selectedOption.DocumentCode,
+              ReferenceNumber: selectedOptionReq.label == "Change in Existing Content" ? selectedOption && selectedOption.ReferenceNumber : "",
               RequestTypeId: formData.RequestTypeId,
               AmendmentTypeId: formData.AmendmentTypeId,
               ClassificationId: formData.ClassificationId,
@@ -1525,8 +1714,9 @@ selectedTextDiv.style.display='none';
               Status: "Save as draft",
               DocumentName: DocumentName,
               DocumentTypeId: formData.DocumentTypeId,
-              AttachmentId: attachmentIds,
-              AttachmentJson: JSON.stringify(bannerImageArray)
+              AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption.AttachmentId,
+              AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson
+
             };
             console.log("postPayloaddraftttt", postPayload);
 
@@ -1537,21 +1727,29 @@ selectedTextDiv.style.display='none';
               console.error("Post creation failed.");
               return;
             }
+            let descriptionError = false;
+            let reasonError = false;
 
             for (const row of cancellReason) {
-
+              if (row.description.trim() === "") {
+                descriptionError = true;
+              }
+              if (row.reason.trim() === "") {
+                reasonError = true;
+              }
               const postPayload2 = {
                 ChangeRequestIDId: postId, // Assuming "Title" column exists
                 ChangeDescription: row.description,
                 ReasonforChange: row.reason,
               }
-
-              const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
-              const postId2 = postResult2?.data?.ID;
-              // debugger
-              if (!postId2) {
-                console.error("Post creation failed.");
-                return;
+              if (!descriptionError || !reasonError) {
+                const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
+                const postId2 = postResult2?.data?.ID;
+                // debugger
+                if (!postId2) {
+                  console.error("Post creation failed.");
+                  return;
+                }
               }
             }
 
@@ -1623,6 +1821,7 @@ selectedTextDiv.style.display='none';
     }
   }
   const ForwardApproval = (status: string) => {
+    scrollToTop();
     let url = window.location.href.split('/sites/')[0];
     console.log("topp draf fprt", editItemID, cancellReason, url);
     let valid = true;
@@ -1933,7 +2132,7 @@ selectedTextDiv.style.display='none';
               Title: formData.RequesterName,
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
-              Department: formData.Department,
+              DepartmentId: formData.DepartmentId,
               RequestDate: formData.RequestDate,
               IssueDate: formData.IssueDate,
               LocationId: selectedOption.LocationId,
@@ -2058,7 +2257,7 @@ selectedTextDiv.style.display='none';
               Title: formData.RequesterName,
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
-              Department: formData.Department,
+              DepartmentId: formData.DepartmentId,
               RequestDate: formData.RequestDate,
               IssueDate: formData.IssueDate,
               LocationId: selectedOption.LocationId,
@@ -2155,6 +2354,9 @@ selectedTextDiv.style.display='none';
 
   const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>, libraryName: string, docLib: string) => {
     event.preventDefault();
+    setAttachmentarr([]);
+    debugger
+    //setDocumentLink(null);
     filechanged = true;
     newfileupload = true;
     let uloadBannerImageFiles: any[] = [];
@@ -2177,7 +2379,7 @@ selectedTextDiv.style.display='none';
         "application/vnd.ms-powerpoint",
         "application/vnd.openxmlformats-officedocument.presentationml.presentation"
       ];
-      
+
       if (files.length > 0) {
         const file = files[0];
         if (!allowedTypes.includes(file.type)) {
@@ -2188,18 +2390,22 @@ selectedTextDiv.style.display='none';
           });
           return;
         }
-        
+
         const fileType = file.type.split("/")[0]; // Extract file type (image, pdf, etc.)
         const folder = sp.web.getFolderByServerRelativePath('Socialfeedimages');
         const uploadResult = await folder.files.addChunked(file.name, file);
         console.log("File uploaded successfully", uploadResult);
-
+        let previewUrl: any;
         // Generate the preview URL dynamically
-        const previewUrl = await generatePreviewUrl(uploadResult.data.ServerRelativeUrl);
+        if (uploadResult) {
+          previewUrl = uploadResult.data.ServerRelativeUrl;
+        }
+
+        //await generatePreviewUrl(uploadResult.data.ServerRelativeUrl);
 
         //previewFile(previewUrl);
         const preview = URL.createObjectURL(file);
-       
+
         newfilepreview = preview
         setPreviewUrl(preview);
         setFileType(fileType);
@@ -2210,13 +2416,16 @@ selectedTextDiv.style.display='none';
           docLib: docLib,
           name: files[0].name,
           fileName: files[0].name,
+          FileName: files[0].name,
           fileSize: files[0].size,
-          date : new Date().toLocaleDateString("en-GB", {
+          date: new Date().toLocaleDateString("en-GB", {
             day: "2-digit",
             month: "short",
             year: "numeric"
-        }).replace(/ /g, "/"),
-          fileUrl: preview,
+          }).replace(/ /g, "/"),
+          FileRef: previewUrl,
+          FileLeafRef: files[0].name,
+          fileUrl: previewUrl,
           fileType: fileType,
           previewUrl: previewUrl
         };
@@ -2326,39 +2535,40 @@ selectedTextDiv.style.display='none';
       </div>
     ));
   };
-  const deleteLocalFileAttachment = async (index: number, ImagepostArr: any[], columnName: string) => {
+
+  const deleteLocalFileAttachment = async (index: number, ImagepostArr: any[]) => {
     try {
       // Extract the file information from the array
       const fileToDelete = ImagepostArr[index];
 
-      if (!fileToDelete || !fileToDelete.fileUrl) {
+      if (!fileToDelete || (!fileToDelete.fileUrl && !fileToDelete.FileRef)) {
         throw new Error("File URL not found");
       }
 
       // Delete the file from SharePoint document library
-      const fileUrl = fileToDelete.fileUrl;
-      console.log(fileUrl, "fileUrl")
+      const fileUrl = !fileToDelete.fileUrl ? fileToDelete.FileRef : fileToDelete.fileUrl;
+      console.log(fileUrl, "fileUrl", editID)
       debugger
       const removeimage = await sp.web.getFileByServerRelativePath(fileUrl).recycle(); // Sends the file to the recycle bin
       console.log(removeimage, "removeimage")
       debugger
       // Remove the file from the MediaGalleryJSON column
-      if (editID > 0) {
-        const list = sp.web.lists.getByTitle("ChangeRequestList");
-        const item = await list.items.getById(editID).select("AttachmentJson")();
-        debugger
-        console.log("items of MediaGalleryJSON", item)
-        const AttachmentJSON = item.AttachmentJson ? JSON.parse(item.AttachmentJson) : [];
+      // if (editID > 0) {
+      //   const list = sp.web.lists.getByTitle("ChangeRequestList");
+      //   const item = await list.items.getById(editID).select("AttachmentJson")();
+      //   debugger
+      //   console.log("items of MediaGalleryJSON", item)
+      //   const AttachmentJSON = item.AttachmentJson ? JSON.parse(item.AttachmentJson) : [];
 
-        // Filter out the deleted file from the JSON array
-        const updatedGalleryJSON = AttachmentJSON.filter((image: any) => image.ID !== fileToDelete.ID);
-        console.log(updatedGalleryJSON, "updatedGalleryJSON")
-        debugger
-        // Update the item in SharePoint
-        await list.items.getById(editID).update({
-          MediaGalleryJSON: JSON.stringify(updatedGalleryJSON),
-        });
-      }
+      //   // Filter out the deleted file from the JSON array
+      //   const updatedGalleryJSON = AttachmentJSON.filter((image: any) => image.ID !== fileToDelete.ID);
+      //   console.log(updatedGalleryJSON, "updatedGalleryJSON")
+      //   debugger
+      //   // Update the item in SharePoint
+      //   // await list.items.getById(editID).update({
+      //   //   MediaGalleryJSON: JSON.stringify(updatedGalleryJSON),
+      //   // });
+      // }
       // Remove the file from the local array and update the state
       const updatedArray = [...ImagepostArr];
       updatedArray.splice(index, 1);
@@ -2404,7 +2614,7 @@ selectedTextDiv.style.display='none';
   };
   const onDateChange = (date: Date) => {
     // Format the selected date to DD-MMM-YYYY format
-    const formattedDate = moment(date).format('DD-MMM-YYYY');
+    const formattedDate = moment(date).format('DD/MMM/YYYY');
     setFormData({ ...formData, RequestDate: formattedDate });
   };
   return (
@@ -2436,7 +2646,7 @@ selectedTextDiv.style.display='none';
                       // <div className="loadercss" role="status">Loading...
                       //   <img src={require('../../../Assets/ExtraImage/loader.gif')} style={{ height: '80px', width: '70px' }} alt="Check" />
                       // </div>
-                      <div style={{ minHeight: '100vh', marginTop: '100px' }} className="loadernewadd mt-10">
+                      <div style={{ position: 'fixed', zIndex: '9', left: '43%', top: '40%' }} className="loadernewadd mt-10">
                         <div>
                           <img
                             src={require("../assets/edc-gif.gif")}
@@ -2455,7 +2665,7 @@ selectedTextDiv.style.display='none';
                       </div>
                       :
 
-                      <div style={{ width: '100%' }} className="inbox-rightbar">
+                      <div style={{ width: '100%' }} className="inbox-rightbar" ref={elementRef1}>
 
                         <div className="card">
                           <div className="card-body">
@@ -2478,6 +2688,24 @@ selectedTextDiv.style.display='none';
 
 
                                 <div className="mb-3">
+                                  <label htmlFor="RequesterName" className="form-label">Department:<span className="text-danger1">*</span></label>
+                                  {/* <input type="text" id="Name" name="department" className="form-control" value={formData.Department} disabled={true} />
+                                   */}
+                                  <Select
+                                    options={Departopt}
+                                    value={SelectedOptionDepart}
+                                    name="Department"
+                                    className={`${(!ValidDraft && departmenterr) ? "border-on-error" : ""} ${(!ValidSubmit && departmenterr) ? "border-on-error" : ""}`}
+                                    onChange={(selectedOption: any) => onSelectDepart(selectedOption)}
+                                    placeholder="Search Department"
+                                    isDisabled={InputDisabled || formData?.Status == "Rework"}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-lg-4">
+
+
+                                <div className="mb-3">
                                   <label htmlFor="RequesterDesignation" className="form-label">Designation:</label>
                                   <input type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" value={formData.RequesterDesignation} disabled={true} />
                                 </div>
@@ -2487,12 +2715,13 @@ selectedTextDiv.style.display='none';
                                 <div className="mb-3">
                                   <label htmlFor="RequestDate" className="form-label">Request Date:</label>
                                   <DatePicker
-                                    value={formData?.RequestDate ? new Date(moment(formData?.RequestDate).format('DD-MMM-YYYY')) : null} // Convert the date to Date object
+                                    value={formData?.RequestDate ? new Date(moment(formData?.RequestDate).format('DD/MMM/YYYY')) : null} // Convert the date to Date object
                                     onSelectDate={onDateChange}
                                     maxDate={new Date()}
+                                    minDate={new Date()}
                                     disabled={InputDisabled && formData?.Status != "Rework"}
                                     //defaultValue={new Date().toDateString()}
-                                    formatDate={(date) => moment(date).format('DD-MMM-YYYY')} // Custom date format for display
+                                    formatDate={(date) => moment(date).format('DD/MMM/YYYY')} // Custom date format for display
                                   />
 
                                   {/* <input type="date" id="RequestDate" name="RequestDate" className="form-control" value={formData?.RequestDate} 
@@ -2511,16 +2740,20 @@ selectedTextDiv.style.display='none';
                                     options={ReqType}
                                     value={selectedOptionReq}
                                     name="Request Type"
-                                    className={`${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                    className={`${(!ValidDraft && requesttypeerr) ? "border-on-error" : ""} ${(!ValidSubmit && requesttypeerr) ? "border-on-error" : ""}`}
                                     onChange={(selectedOption: any) => onSelectReq(selectedOption)}
-                                    placeholder="Search Request Type" isDisabled={InputDisabled && formData?.Status != "Rework"}
+                                    placeholder="Search Request Type"
+                                    isDisabled={InputDisabled || formData?.Status == "Rework"}
                                   />
                                 </div>
                               </div>
                               <div className="col-lg-4">
                                 {console.log("selectedOptionReqselectedOptionReq", selectedOptionReq)}
                                 <div className="mb-3">
-                                  <label htmlFor="DocumentCode" className="form-label">Document Code:</label>
+                                  <label htmlFor="DocumentCode" className="form-label">Document Code:
+                                    {selectedOptionReq?.label != "Change Request for New Addition" && <span className="text-danger1">*</span>}
+
+                                  </label>
                                   {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
                                   <Select
                                     options={rows}
@@ -2529,11 +2762,13 @@ selectedTextDiv.style.display='none';
                                     isClearable={true}
                                     //isOptionDisabled={() => selectedOptionReq.label == "Change Request for New Addition"}
                                     isSearchable={true}
-                                    className={`${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidSubmit) ? "border-on-error" : ""}`}
+                                    className={`${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidDraft && documentcodeerr) ? "border-on-error" : ""} ${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidSubmit && documentcodeerr) ? "border-on-error" : ""}`}
+                                    //className={`${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidSubmit && documentcodeerr) ? "border-on-error" : ""}`}
                                     onChange={(selectedOption: any) => onSelectDocCode(selectedOption)}
-                                    placeholder="Search Document Code"
+                                    placeholder={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.label == "Change Request for New Addition")
+                                      || InputDisabled ? "" : "Search Document Code"}
                                     isDisabled={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.label == "Change Request for New Addition")
-                                      || InputDisabled && formData?.Status != "Rework"
+                                      || InputDisabled
                                     }
                                   />
                                 </div>
@@ -2563,13 +2798,60 @@ selectedTextDiv.style.display='none';
                               <div className="col-lg-4">
 
                                 <div className="mb-3">
+                                  <label htmlFor="DocumentCode" className="form-label">Document Type:<span className="text-danger1">*</span></label>
+                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                                  <Select
+                                    options={DocumentTypeOpt}
+                                    value={selectedOptionDoctype}
+                                    name="Document Type"
+                                    className={` ${(!ValidSubmit && documenttypeerr) ? "border-on-error" : ""}`}
+                                    onChange={(selectedOption: any) => onSelectDocumentType(selectedOption)}
+                                    placeholder="Search Document Type"
+                                    isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.label != "Change Request for New Addition") || formData?.Status == "Rework"}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-lg-4">
+
+                                <div className="mb-3">
+                                  <label htmlFor="DocumentCode" className="form-label">Location:<span className="text-danger1">*</span></label>
+                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                                  <Select
+                                    options={LocationOpt}
+                                    value={selectedOptionLoc}
+                                    name="Location"
+                                    className={` ${(!ValidSubmit && locationerr) ? "border-on-error" : ""}`}
+                                    onChange={(selectedOption: any) => onSelectLocation(selectedOption)}
+                                    placeholder="Search Location" isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.label != "Change Request for New Addition") || formData?.Status == "Rework"}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-lg-4">
+
+                                <div className="mb-3">
+                                  <label htmlFor="DocumentCode" className="form-label">Custodian:<span className="text-danger1">*</span></label>
+                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                                  <Select
+                                    options={Custodianopt}
+                                    value={selectedOptionCusto}
+                                    name="Custodian"
+                                    className={` ${(!ValidSubmit && custodianerr) ? "border-on-error" : ""}`}
+                                    onChange={(selectedOption: any) => onSelectCustodian(selectedOption)}
+                                    placeholder="Search Custodian"
+                                    isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.label != "Change Request for New Addition") || formData?.Status == "Rework"}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-lg-4">
+
+                                <div className="mb-3">
                                   <label htmlFor="DocumentCode" className="form-label">Amendment Type:<span className="text-danger1">*</span></label>
                                   {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
                                   <Select
                                     options={Amendtype}
                                     value={selectedOptionAmend}
                                     name="Amendment Type"
-                                    className={`${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                    className={`${(!ValidSubmit && amendmenterr) ? "border-on-error" : ""}`}
                                     onChange={(selectedOption: any) => onSelectAmend(selectedOption)}
                                     placeholder="Search" isDisabled={InputDisabled && formData?.Status != "Rework"}
                                   />
@@ -2584,60 +2866,16 @@ selectedTextDiv.style.display='none';
                                     options={Classificationopt}
                                     value={selectedOptionClass}
                                     name="Classification"
-                                    className={`${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                    className={`${(!ValidSubmit && classificationerr) ? "border-on-error" : ""}`}
                                     onChange={(selectedOption: any) => onSelectClassification(selectedOption)}
                                     placeholder="Search Classification" isDisabled={InputDisabled && formData?.Status != "Rework"}
                                   />
                                 </div>
                               </div>
-                              <div className="col-lg-4">
 
-                                <div className="mb-3">
-                                  <label htmlFor="DocumentCode" className="form-label">Location:<span className="text-danger1">*</span></label>
-                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={LocationOpt}
-                                    value={selectedOptionLoc}
-                                    name="Location"
-                                    className={` ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectLocation(selectedOption)}
-                                    placeholder="Search Location" isDisabled={InputDisabled && formData?.Status != "Rework"}
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-4">
-
-                                <div className="mb-3">
-                                  <label htmlFor="DocumentCode" className="form-label">Custodian:<span className="text-danger1">*</span></label>
-                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={Custodianopt}
-                                    value={selectedOptionCusto}
-                                    name="Custodian"
-                                    className={` ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectCustodian(selectedOption)}
-                                    placeholder="Search Custodian" isDisabled={InputDisabled && formData?.Status != "Rework"}
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-4">
-
-                                <div className="mb-3">
-                                  <label htmlFor="DocumentCode" className="form-label">Document Type:<span className="text-danger1">*</span></label>
-                                  {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={DocumentTypeOpt}
-                                    value={selectedOptionDoctype}
-                                    name="Document Type"
-                                    className={` ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectDocumentType(selectedOption)}
-                                    placeholder="Search Document Type" isDisabled={InputDisabled && formData?.Status != "Rework"}
-                                  />
-                                </div>
-                              </div>
-                              {console.log("FormItemIdFormItemIdFormItemId", FormItemId, modeValue, selectedOption)}
+                              {console.log("FormItemIdFormItemIdFormItemId", FormItemId, modeValue, selectedOption, Attachmentarr, DocumentLink)}
                               {/* //modeValue != "view" || modeValue == "edit" || modeValue != "approve"  && */}
-                              {(FormItemId == null || (FormItemId != null && modeValue == "edit") || (modeValue != "view" && modeValue != "approve")
+                              {(FormItemId == null || (FormItemId != null && modeValue == "edit") || (modeValue == "view" || modeValue == "approve")
                                 || (modeValue == "approve" && formData?.Status == "Rework")) &&
                                 <div className="col-lg-4">
 
@@ -2645,16 +2883,16 @@ selectedTextDiv.style.display='none';
                                     <div className='d-flex justify-content-between'>
                                       <div>
                                         <label htmlFor="bannerImage" className="form-label">
-                                        Attachment
+                                          Attachment<span className="text-danger1">*</span>
                                         </label>
                                       </div>
                                       <div>
                                         <div>
                                           {Attachmentarr[0] != false && Attachmentarr.length > 0 &&
-                                      Attachmentarr != undefined ? Attachmentarr.length == 1 && 
-                                            (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
-                                              <FontAwesomeIcon icon={faPaperclip} />1 file Attached
-                                            </a>) : ""
+                                            Attachmentarr != undefined ? Attachmentarr.length == 1 &&
+                                          (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModalAtt(true)}>
+                                            <FontAwesomeIcon icon={faPaperclip} />1 file Attached
+                                          </a>) : ""
 
                                           }
                                         </div>
@@ -2677,19 +2915,20 @@ selectedTextDiv.style.display='none';
                                       disabled={InputDisabled && formData?.Status != "Rework"}
                                       //disabled={handleSectionState('requestedBySection')}
                                       accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                                      className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                      className={`form-control ${(!ValidSubmit && attachmenterr) ? "border-on-error" : ""}`}
                                       onChange={(e) => onFileChange(e, "bannerimg", "Document")}
                                     />
 
                                   </div>
                                 </div>
                               }
-                              {(modeValue == "view" || modeValue == "approve" ||
-                                (selectedOptionReq?.label != "Change Request for New Addition" && selectedOption)) &&
+                              {((modeValue == "view" || modeValue == "approve" ||
+                                (selectedOptionReq?.label != "Change Request for New Addition" && selectedOption)) ||
+                                (modeValue == "edit" && formData?.Status == "Save as draft")) && DocumentLink && Attachmentarr.length == 0 &&
 
                                 <div className="col-lg-4">
                                   <div className="mb-3">
-                                    <label htmlFor="DocumentCode" className="form-label">Document Link:</label>
+                                    <label htmlFor="DocumentCode" className="form-label">Previous Document:</label>
                                     {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
 
                                     <div className="text-dark mt-0"> <span >
@@ -2711,8 +2950,8 @@ selectedTextDiv.style.display='none';
                           <div className="card-body">
                             <div className='row'>
                               <div className='col-sm-12'>
-                                <h3 className="text-dark font-16 mb-1">Request Details</h3>
-                                <label className="form-label text-muted font-16">Change Request Type</label>
+                                <h3 className="text-dark font-16 mb-1">Change Request Type</h3>
+                                {/* <label className="form-label text-muted font-16">Change Request Type</label> */}
                                 <div className="row"> {renderCheckboxes()}</div>
                               </div>
                             </div>
@@ -2750,8 +2989,8 @@ selectedTextDiv.style.display='none';
                                 <thead>
                                   <tr>
                                     <th style={{ minWidth: "40px", maxWidth: "40px" }}>S.No</th>
-                                    <th>Change Description</th>
-                                    <th>Reason for Change</th>
+                                    <th>Change Description<span className="text-danger1">*</span></th>
+                                    <th>Reason for Change<span className="text-danger1">*</span></th>
                                     {(modeValue === "" || modeValue === "edit" || InputDisabled != true || (modeValue == "approve" && formData?.Status == "Rework")) &&
                                       <th style={{ minWidth: "60px", maxWidth: "60px" }}>Action</th>
                                     }
@@ -2781,7 +3020,7 @@ selectedTextDiv.style.display='none';
                                           id="simpleinput"
                                           disabled={InputDisabled && formData?.Status !== "Rework"}
                                           value={row.description}
-                                          className={`form-control mb-0 ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                          className={`form-control mb-0 ${(!ValidCancelReason && changedescriptionerr) ? "border-on-error" : ""}`}
                                           onChange={(e) => {
                                             const newRowscancellReason = [...cancellReason];
                                             newRowscancellReason[index].description = e.target.value;
@@ -2803,7 +3042,7 @@ selectedTextDiv.style.display='none';
                                         <textarea
                                           id="simpleinput"
                                           disabled={InputDisabled && formData?.Status !== "Rework"}
-                                          className={`form-control mb-0 ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                          className={`form-control mb-0 ${(!ValidCancelReason && changereasonerr) ? "border-on-error" : ""}`}
                                           value={row.reason}
                                           onChange={(e) => {
                                             const newRowscancellReason = [...cancellReason];
@@ -2834,9 +3073,10 @@ selectedTextDiv.style.display='none';
                         {console.log("editiiiiifhifassignmentt", editID, modeValue, InputDisabled, ApprovalTypeOptions, MainEditItem,
                           (modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES"),
                           (MainEditItem !== null && MainEditItem.length != 0 && MainEditItem.Status != "Save as draft" && MainEditItem.Status != "Rework" && modeValue !== "view"))}
-                        {((modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES") ||
+                        {/* {((modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES") ||
                           (MainEditItem !== null && MainEditItem.length != 0 && MainEditItem.Status != "Save as draft" && MainEditItem.Status != "Rework" && modeValue !== "view"))
-                          &&
+                          && */}
+                        {modeValue === "approve" && editID != null && editID.Status === "Pending" && editID.CurrentUserRole !== "Initiator" &&
                           <div className="card mt-2" style={{ marginBottom: '17px' }}>
                             <div className="card-body">
                               <div className='row'>
@@ -2847,11 +3087,13 @@ selectedTextDiv.style.display='none';
 
                                 <div className='col-sm-4'>
                                   {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" &&
+
                                     <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
-                                      <img style={{ width: '30px', cursor:'pointer' }} src={require("../assets/plus.png")}
+                                      <img style={{ width: '30px', cursor: 'pointer' }} src={require("../assets/plus.png")}
                                         onClick={handleAddRow} className='' />
 
-                                      {/* <i style={{ cursor: "pointer" }} onClick={handleAddRow} className="fe-plus-circle font-20 text-warning"></i> */}
+                                      {/*  {/* {modeValue === "approve" && editID != null && editID.CurrentUserRole !== "Initiator" && MainEditItem !== null && MainEditItem?.Status !== "Save as draft" && 
+                                      <i style={{ cursor: "pointer" }} onClick={handleAddRow} className="fe-plus-circle font-20 text-warning"></i> */}
                                     </div>
                                   }
                                 </div>
@@ -2870,17 +3112,17 @@ selectedTextDiv.style.display='none';
                                       <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
                                     </tr>
                                   </thead>
-                                  <tbody style={{ maxHeight: "8007px", overflow: 'inherit'  }}>
+                                  <tbody style={{ maxHeight: "8007px", overflow: 'inherit' }}>
                                     {console.log("forwardToArrforwardToArrforwardToArr", forwardToArr, UserRoles, ApprovalTypeOptions)}
                                     {forwardToArr.map((row, index) => (
 
                                       <tr key={index}> <td style={{ minWidth: "30px", maxWidth: "30px" }}>
                                         <div
-                                          style={{ marginLeft: "0px", overflow: 'inherit'  }}
+                                          style={{ marginLeft: "0px", overflow: 'inherit' }}
                                           className="indexdesign"
                                         >
                                           {index + 1}</div></td>
-                                        <td style={{overflow: 'inherit' }} className="ng-binding">
+                                        <td style={{ overflow: 'inherit' }} className="ng-binding">
                                           <select onChange={(e) => onSelectRole(e, row.level)} value={row.role}
                                             disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}
                                             className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}>
@@ -2897,8 +3139,8 @@ selectedTextDiv.style.display='none';
                                           </select>
 
                                         </td>
-                                        <td style={{ minWidth: '70px', maxWidth: '70px',overflow: 'inherit' }}>Level {index + 1}</td>
-                                        <td style={{overflow: 'inherit' }}>
+                                        <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>Level {index + 1}</td>
+                                        <td style={{ overflow: 'inherit' }}>
 
                                           <Select
                                             options={rows1}
@@ -2916,7 +3158,7 @@ selectedTextDiv.style.display='none';
 
 
                                         </td>
-                                        <td style={{overflow: 'inherit' }} className="ng-binding">
+                                        <td style={{ overflow: 'inherit' }} className="ng-binding">
                                           <select className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}
                                             onChange={(e) => onSelectApprovalType(e, row.level)}
                                             value={row.leveltype}
@@ -2931,7 +3173,7 @@ selectedTextDiv.style.display='none';
                                           </select>
 
                                         </td>
-                                        <td style={{ minWidth: '70px', maxWidth: '70px',overflow: 'inherit' }}>
+                                        <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>
                                           {/* <i className="fe-trash-2 text-danger"></i> */}
                                           {editID.CurrentUserRole === "OES" ? <img src={require("../assets/del.png")} onClick={() => handleDeleteRow(index)} /> :
                                             <img src={require("../assets/recycle-bin.png")} className='sidebariconsmall' />}
@@ -3001,17 +3243,17 @@ selectedTextDiv.style.display='none';
                   </div>  */}
                         <div className="row mt-3">
                           <div className="col-12 text-center">
-                            {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button style={{width:'145px'}} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
+                            {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
                               <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
                               Save As Draft</button>}
 
-                            {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button style={{width:'145px'}} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
+                            {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
                               <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
                               Submit</button>}
-                            {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button style={{width:'145px'}} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</button>}
-                            {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button style={{width:'145px'}} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</button>}
+                            {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</button>}
+                            {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</button>}
                             {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.IsInitiator == "Yes")) &&
-                              <button style={{width:'145px'}} type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
+                              <button style={{ width: '145px' }} type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                 className='me-1' alt="x" /> Cancel</button>
                             }
                             {/* </a> */}
@@ -3036,9 +3278,11 @@ selectedTextDiv.style.display='none';
 
                         <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" className='newmobmodal'>
                           <Modal.Header closeButton>
-                            <Modal.Title>
-                              <FontAwesomeIcon icon={faPaperclip} style={{ width: '27px', height: '23px' }} />
-                              Attachment Details</Modal.Title>
+                            <Modal.Title> Attachment Details <br></br>
+                              {/* <p className='text-muted font-14 fw-400'>Below are the attachment details for Change Request
+                              </p> */}
+
+                            </Modal.Title>
                             {/* {ImagepostArr1.length > 0 && showBannerModal && <Modal.Title>Media Images</Modal.Title>} */}
                           </Modal.Header>
                           <Modal.Body className="" id="style-5">
@@ -3046,40 +3290,74 @@ selectedTextDiv.style.display='none';
                               <table className="mtbalenew" >
                                 <thead>
                                   <tr>
+                                    <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
                                     <th>File Name</th>
                                     <th > File Link </th>
-
-                                    <th>Upload date</th>
-                                    {/* {modeValue == null && */}
-                                    {/* <th className='text-center'>Action</th> */}
-                                    {/* } */}
+                                    <th className='text-center'>Upload date</th>
+                                    {/* <th > Action </th> */}
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {console.log("Attachmentarrnmnm", Attachmentarr, DocumentLink)}
-                                  {/* {Attachmentarr.map((file: any, index: number) => ( */}
+                                  {console.log("Attachmentarrnmnm doc link", DocumentLink, DocumentLink != null)}
                                   <tr >
-                                    {/* <td className='text-center'>{index + 1}</td> */}
-                                    <td>{DocumentLink != null ? `${DocumentLink?.FileLeafRef}` : Attachmentarr && Attachmentarr[0]?.fileName}</td>
+                                    <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
+                                    <td>{DocumentLink != null && `${DocumentLink?.FileLeafRef}`}</td>
                                     <td style={{ textAlign: 'center' }}>
-                                      <FontAwesomeIcon icon={faDownload} style={{ width: '35px', height: '30px' }}
-                                        onClick={() => OpenFile(DocumentLink != null ? DocumentLink : Attachmentarr && Attachmentarr[0]?.fileUrl)} />
-                                      {/* <Link
-                              href={file.fileUrl}
-                              className="anchor"
-                              target="_blank"
-                            >
-                              {file.fileUrl}
-                            </Link> */}
+                                      <span onClick={() => OpenFile(DocumentLink != null && DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                        <FontAwesomeIcon icon={faEye} /></span>
                                     </td>
-                                    <td>{DocumentLink ? moment(DocumentLink?.Created).format("DD-MMM-YYYY") : Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD-MMM-YYYY")}</td>
-                                    {/* <td>{file.fileName}</td>
-                          <td className='text-right'>{file.fileSize}</td> */}
-                                    {/* <td className='text-center'>
-                            <img src={require("../../../CustomAsset/trashed.svg")} style={{ width: '15px' }}
-                              onClick={() => deleteLocalFileAttachment(index, Attachmentarr, "Gallery")} /> </td> */}
+                                    <td>{DocumentLink && moment(DocumentLink?.Created).format("DD/MMM/YYYY")}</td>
+                                    {/* <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
+                                      <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFileAttachment(0, Attachmentarr)}></img>
+                                    </td> */}
                                   </tr>
-                                  {/* ))} */}
+                                </tbody>
+
+                              </table>
+                            </>
+                          </Modal.Body>
+                        </Modal>
+                        <Modal show={ShowModalAtt} onHide={() => setShowModalAtt(false)} size="lg" className='newmobmodal'>
+                          <Modal.Header closeButton>
+                            <Modal.Title> Attachment Details <br></br>
+                              {/* <p className='text-muted font-14 fw-400'>Below are the attachment details for Change Request
+                              </p> */}
+
+                            </Modal.Title>
+                            {/* {ImagepostArr1.length > 0 && showBannerModal && <Modal.Title>Media Images</Modal.Title>} */}
+                          </Modal.Header>
+                          <Modal.Body className="" id="style-5">
+                            <>
+                              <table className="mtbalenew" >
+                                <thead>
+                                  <tr>
+                                    <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                                    <th>File Name</th>
+                                    <th > File Link </th>
+                                    <th className='text-center'>Upload date</th>
+                                    {(modeValue == "edit"
+                                      || (modeValue == "approve" && formData?.Status == "Rework")) &&
+                                      <th > Action </th>
+                                    }
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {console.log("Attachmentarrnmnm attach only", Attachmentarr)}
+                                  <tr >
+                                    <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
+                                    <td>{Attachmentarr && Attachmentarr[0]?.FileName}</td>
+                                    <td style={{ textAlign: 'center' }}>
+                                      <span onClick={() => OpenFile(Attachmentarr && Attachmentarr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                        <FontAwesomeIcon icon={faEye} /></span>
+                                    </td>
+                                    <td>{Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD/MMM/YYYY")}</td>
+                                    {(modeValue == "edit"
+                                      || (modeValue == "approve" && formData?.Status == "Rework")) &&
+                                      <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
+                                        <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFileAttachment(0, Attachmentarr)}></img>
+                                      </td>
+                                    }
+                                  </tr>
                                 </tbody>
                               </table>
                             </>

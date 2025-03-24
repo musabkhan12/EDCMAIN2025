@@ -346,4 +346,98 @@ export const getDataRoles = async (_sp) => {
     return arr
   }
 
+
+  export const getDraftApprovalByID = async (_sp, id,processName) => {
  
+  let arr =[];
+  let val = "Yes"
+  let Sts = "Save as draft";
+  let sts ="Pending"
+  const currentUser = await _sp.web.currentUser();
+  await _sp.web.lists.getByTitle("ProcessApprovalList").items
+  .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`AssignedTo/ID  eq '${currentUser.Id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).top(1)()
+    .then((res) => {
+      console.log(res, ' let arrs=[]');
+      // if(res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 && res.CurrentUserRole !=="OES" ){
+      //   arr = false;
+      // }
+      // else{
+      //   arr = true;
+      // }
+      // .filter(`AssignedTo/Id eq ${currentUser.Id} and ProcessName eq ${processName}`)
+
+      //  arr.push(res)
+
+      arr =res;
+   
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  console.log(arr, 'arr');
+  return arr;
+}
+
+export const uploadAllFiles = async (files, sp, docLib) => {
+  // Ensure files is an array
+  const filesArray = Array.isArray(files) ? files : [files];
+   console.log(filesArray , "filesArray")
+   debugger
+  //alert(`Files: ${JSON.stringify(filesArray)}`);
+  console.log(filesArray, "Files Array");
+
+  // Proceed with mapping only if filesArray is valid
+  const uploadPromises = filesArray.map(file =>
+    uploadFileToLibrary(file, sp, docLib)
+  );
+
+  const uploadResults = await Promise.all(uploadPromises);
+  return uploadResults.flat(); // Flatten the results if each upload returns an array
+};
+
+export const uploadFileToLibrary = async (file, sp, docLib) => {
+  let arrFIleData = [];
+  let fileSize = 0;
+  const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditPlanDocs');
+  try {
+    // await sp.web.lists.getByTitle(docLib).rootFolder
+    const result = folder.files.addChunked(file.name, file, (progress, data) => {
+      console.log(progress, data);
+      fileSize = progress.fileSize;
+    }, true);
+    const item = await sp.web.getFileByServerRelativePath(result.data.ServerRelativeUrl).getItem("*", "ID", "AuthorId", "Modified");
+    console.log(item.Id, 'itemitem');
+    let arr = {
+      ID: item.Id,
+      Createdby: item.AuthorId,
+      Modified: item.Modified,
+      fileUrl: result.data.ServerRelativeUrl,
+      fileSize: fileSize,
+      fileType: file.type,
+      fileName: file.name,
+    }
+    arrFIleData.push(arr);
+    console.log(arrFIleData , 'arrFIleData');
+    return arrFIleData;
+  } catch (error) {
+    console.log("Error uploading file:", error);
+    return null;
+  }
+};
+
+export const getDocumentLinkByID = async (_sp, AttachmentIds) => {
+  let results = [];
+  for (let itemId of AttachmentIds) {
+    await _sp.web.lists.getByTitle("AnnualAuditPlanDocs").items.getById(itemId)
+      .select("*,FileRef, FileLeafRef")()
+      .then((res) => {
+        console.log(res, ' let arrs=[]');
+        results.push(res);
+      })
+      .catch((error) => {
+        console.log("Error fetching data: ", error);
+      });
+  }
+  console.log(results, 'results');
+  return results;
+}
