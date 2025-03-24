@@ -662,7 +662,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 valid = false;
             }
 
-            if (!recommendationRows) {
+            if (!recommendationRows.length) {
                 validRec = false;
             }
 
