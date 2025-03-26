@@ -99,7 +99,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         RequesterNameId: 0,
         RequesterName: "",
         RequesterDesignation: "",
-        Department: "",
+        Department: null,
         RequestDate: "",
         RequestDateNew: "",
         IssueDate: "",
@@ -263,8 +263,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             SubmiitedDate: item.SubmiitedDate,
             SubmitStatus: item.SubmitStatus,
             DocumentTypeId: item.DocumentTypeId,
-            // Department: UserDept,
-            Department: item.Department,
+            Department: item.DepartmentId||null,
+            // Department: item.Department.Department||"",
             AttachmentId: item.AttachmentId,
             AttachmentJson: item.AttachmentJson,
 
@@ -377,7 +377,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     RequesterName: setBannerById[0].Title,
                     RequesterNameId: setBannerById[0].RequesterNameId,
                     RequesterDesignation: setBannerById[0].RequesterDesignation,
-                    Department: setBannerById[0].Department,
+                    // Department: setBannerById[0].Department.Department||"",
+                    Department: setBannerById[0].DepartmentId||null,
                     RequestDate: setBannerById[0].RequestDate,
                     RequestDateNew: new Date(setBannerById[0].RequestDate).toLocaleDateString("en-GB", {
                         day: "2-digit",
@@ -451,7 +452,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     SubmitStatus: setBannerById[0].SubmitStatus,
                     DocumentCode: setBannerById[0].DocumentCode,
                     DocumentTypeId: setBannerById[0].DocumentTypeId,
-                    Department: setBannerById[0].Department,
+                    // Department: setBannerById[0].Department.Department||"",
+                    Department: setBannerById[0].DepartmentId||null,
                     AttachmentId: setBannerById[0].AttachmentId,
                     AttachmentJson: setBannerById[0].AttachmentJson,
 
@@ -779,7 +781,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             // Title: formData.RequesterName,
                             // RequesterNameId: formData.RequesterNameId,
                             // RequesterDesignation: formData.RequesterDesignation,
-                            // Department: formData.Department,
+                            DepartmentId: formData.Department,
                             RequestDate: formData.RequestDate,
                             IssueDate: formData.IssueDate,
                             LocationId: selectedOption.LocationId,
@@ -915,7 +917,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             Title: formData.RequesterName,
                             RequesterNameId: formData.RequesterNameId,
                             RequesterDesignation: formData.RequesterDesignation,
-                            Department: formData.Department,
+                            DepartmentId: formData.Department,
                             RequestDate: formData.RequestDate,
                             IssueDate: formData.IssueDate ? formData.IssueDate : null,
                             LocationId: selectedOption.LocationId,
@@ -1018,7 +1020,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             // Title: formData.RequesterName,
                             // RequesterNameId: formData.RequesterNameId,
                             // RequesterDesignation: formData.RequesterDesignation,
-                            // Department: formData.Department,
+                            DepartmentId: formData.Department,
                             RequestDate: formData.RequestDate,
                             IssueDate: formData.IssueDate,
                             LocationId: selectedOption.LocationId,
@@ -1152,7 +1154,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             Title: formData.RequesterName,
                             RequesterNameId: formData.RequesterNameId,
                             RequesterDesignation: formData.RequesterDesignation,
-                            Department: formData.Department,
+                            DepartmentId: formData.Department,
                             RequestDate: formData.RequestDate,
                             IssueDate: formData.IssueDate,
                             LocationId: selectedOption.LocationId,
@@ -1885,7 +1887,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                         {Loading ?
 
-                                            <div style={{ minHeight: '100vh', marginTop: '200px' }} className="loadernewadd mt-10">
+                                            <div  className="loadernewadd mt-10">
                                                 <div>
                                                     <img
                                                         src={require("../../assets/edc-gif.gif")}
@@ -1913,7 +1915,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                         {FormLoading ?
 
-                                                            <div style={{ minHeight: '15vh', marginTop: '100px' }} className="loadernewadd mt-10">
+                                                            <div  className="loadernewadd mt-10">
                                                                 <div>
                                                                     <img
                                                                         src={require("../../assets/edc-gif.gif")}

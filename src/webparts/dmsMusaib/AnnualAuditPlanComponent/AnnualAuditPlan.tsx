@@ -1860,7 +1860,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                         {Loading ?
 
-                                            <div style={{ minHeight: '100vh', marginTop: '200px' }} className="loadernewadd mt-10">
+                                            <div  className="loadernewadd mt-10">
                                                 <div>
                                                     <img
                                                         src={require("../assets/edc-gif.gif")}
@@ -1886,12 +1886,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                 <div className="card">
                                                     <div className="card-body">
-                                                        <h4 className="header-title text-dark mb-0">Memo Details</h4>
+                                                        <h4 className="text-dark font-16 fw-bold mb-3">Memo Details</h4>
                                                         {/* <p className="sub-header">
                                                             Lorem ipsum dolor sit amet consectetur adipisicing elit. Numquam, autem.
                                                         </p> */}
 
-                                                        <div className="row justify-content-center">
+                                                        <div className="row mb-3">
                                                             {AuditPlanType.map((row, index) => (<div className="col-lg-3">
                                                                 <div className="mb-2">
                                                                     <div className="form-check">
@@ -1946,7 +1946,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
                                                                         <label htmlFor="Department" className="col-4 col-xl-3 col-form-label">Department<span className="text-danger1"> *</span></label>
-                                                                        <Select
+                                                                        <div className="col-8 col-xl-9">   <Select
                                                                             options={AllDept}
                                                                             isDisabled={InputDisabled}
                                                                             value={selectUserDept}
@@ -1959,6 +1959,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                             placeholder="Select Department"
                                                                         />
                                                                     </div>
+                                                                </div>
                                                                 </div>
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
@@ -2028,7 +2029,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
                                                                         <label htmlFor="recommendation" className="col-4 col-xl-3 col-form-label">CC<span className="text-danger1"> *</span></label>
-                                                                        <Select
+                                                                        <div className="col-8 col-xl-9"><Select
                                                                             options={rows1}
                                                                             isMulti
                                                                             // value={formData.CC}
@@ -2040,7 +2041,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                             // onChange={(selectedOptions) => setFormData({ ...formData, CC: selectedOptions })}
                                                                             placeholder="Select"
                                                                             isDisabled={InputDisabled}
-                                                                        />
+                                                                        /></div>   
                                                                     </div>
                                                                 </div>
 
@@ -2099,18 +2100,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
                                                                         <label htmlFor="attachment" className="col-4 col-xl-3 col-form-label">Attachment<span className="text-danger1"> *</span></label>
-                                                                        <div>
-                                                                            <div>
-                                                                                {FilesArr.length > 0 ?
-                                                                                    (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
-                                                                                        <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
-                                                                                    </a>) : ""
-
-                                                                                }
-                                                                            </div>
-                                                                        </div>
                                                                         <div className="col-8 col-xl-9">
-                                                                            <input
+                                                                            
+      <div>
+      <input
                                                                                 type="file"
                                                                                 className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                                                                 // className="form-control"
@@ -2121,7 +2114,22 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 disabled={InputDisabled}
                                                                                 multiple
                                                                             />
+
+      </div>
+                                                                           
+                                                                            <div>
+                                                                                {FilesArr.length > 0 ?
+                                                                                    (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
+                                                                                        <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
+                                                                                    </a>) : ""
+
+                                                                                }
+                                                                            </div>
+
+
+
                                                                         </div>
+                                                                        
                                                                     </div>
                                                                 </div>
 
@@ -2191,7 +2199,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                         </div>
 
 
-                                                        <table id="tabRec" className='mtbalenew'>
+                                                        <table id="tabRec" className='mtbalenew overhi'>
                                                             <thead>
                                                                 <tr><th>Section<span className="text-danger1"> *</span></th>
                                                                     <th>Date<span className="text-danger1"> *</span></th>
@@ -2246,7 +2254,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                             <Select
                                                                                 options={rows1}
                                                                                 // isMulti
-                                                                                className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                className={`${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                 value={row.auditor}
                                                                                 onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
                                                                                 placeholder="Select"
@@ -2272,9 +2280,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                     </fieldset>
                                                 </section>
 
-                                                <div className="card">
+                                                <div className="card mt-2">
                                                     <div className="card-body">
-                                                        <h4 className="header-title mb-3">Audit Plan Detail</h4>
+                                                        <h4 className="text-dark font-16 fw-bold mb-3">Audit Plan Detail</h4>
 
                                                         <div className="row">
                                                             {/* <div className="col-lg-4">
@@ -2383,11 +2391,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                 {/* {modeValue === "approve" && editID != null && editID.Status === "Pending" && editID.CurrentUserRole !== "Initiator" && */}
 
-                                                <div className="card mt-3" style={{ marginBottom: '17px' }}>
+                                                <div className="card mt-2" style={{ marginBottom: '17px' }}>
                                                     <div className="card-body">
                                                         <div className='row'>
                                                             <div className='col-sm-8'>
-                                                                <h4 className="header-title text-dark font-16 mb-3 ">Forward Approval To</h4>
+                                                                <h4 className="text-dark font-16 fw-bold mb-3 ">Forward Approval To</h4>
 
                                                             </div>
                                                             <div className='col-sm-4'>
@@ -2452,7 +2460,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     isMulti
                                                                                     value={row.approvers}
                                                                                     name="Approvers"
-                                                                                    className={`form-select newse ${(!ValidForwardTo) ? "border-on-error" : ""}`}
+                                                                                    className={`newse ${(!ValidForwardTo) ? "border-on-error" : ""}`}
                                                                                     // onChange={(selectedOption: any) => onSelect(selectedOption)}
                                                                                     onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
                                                                                     placeholder="Enter Approver Name"

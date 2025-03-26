@@ -210,13 +210,13 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                 <tr>
 
-                  <th style={{ minWidth: '60px', maxWidth: '60px' }}>
+                  <th style={{ minWidth: '40px', maxWidth: '40px' }}>
 
                     S.No.
 
                   </th>
 
-                  <th style={{ minWidth: '70px', maxWidth: '70px' }}>
+                  <th style={{ minWidth: '50px', maxWidth: '50px' }}>
 
                     Level
 
@@ -271,7 +271,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                   </th>
 
-                  <th style={{ minWidth: '70px', maxWidth: '70px' }}>
+                  <th style={{ minWidth: '90px', maxWidth: '90px' }}>
 
                     Status
 
@@ -312,10 +312,10 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                       <tr>
 
-                        <td style={{ minWidth: '60px', maxWidth: '60px' }}> {index + 1}</td>
+                        <td style={{ minWidth: '40px', maxWidth: '40px' }}> {index + 1}</td>
 
 
-                        <td style={{ minWidth: '70px', maxWidth: '70px' }}>
+                        <td style={{ minWidth: '50px', maxWidth: '50px' }}>
                           {
                             row.LevelId !== undefined && row.LevelId !== null
                               ? row.LevelId === 0
@@ -402,7 +402,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                         <td style={{ minWidth: '70px', maxWidth: '70px', cursor: 'pointer' }} title={row.Remark}> {row.Remark}</td>
 
-                        <td style={{ minWidth: '70px', maxWidth: '70px', cursor: 'pointer' }}> <div className="btn  btn-status">{row.Status}</div> </td>
+                        <td style={{ minWidth: '90px', maxWidth: '90px', cursor: 'pointer' }}> <div className="">{row.Status}</div> </td>
 
 
                       </tr>

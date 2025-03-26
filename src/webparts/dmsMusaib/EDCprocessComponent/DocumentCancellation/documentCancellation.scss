@@ -729,3 +729,20 @@ width: 100%;
 .filemodal .btn-close{
   right: 25px;
 }
+.loadernewadd{
+  text-align: center;
+    vertical-align: middle;
+    position: fixed;
+    /* display: flex
+; */
+    /* align-items: center; */
+    justify-content: center;
+    left: auto;
+    width: 100%;
+    /* flex-direction: column; */
+    z-index: 9999;
+    left: 4%;
+    top: 17%;
+    height: 100%;
+   
+}
