@@ -411,6 +411,24 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             }
         }
 
+
+        const listItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items
+        .select('Id,RequesterNameId,RequestId,Title,CurrentUserRole,ProcessName,ApprovalLevelListItemId ,RequesterName/Title,Status,AssignedToId,RequestedDate,AssignedToId,ListItemId').expand('RequesterName')
+        .filter(`AssignedToId eq ${this.props.userid} and Status eq 'Pending'`).orderBy("Id", false)();
+        console.log(listItems, "listItems listItems");
+        for (const item of listItems) {
+            allItems.push({
+                RequestId: item.RequestId,
+                Title: item.Title,
+                ProcessName: item.ProcessName,
+                ReqName: item.RequesterName?.Title || '',
+                ReqDt: item.RequestedDate ? moment(item.RequestedDate).format("DD-MMM-YYYY") : '',
+                Status: item.Status,
+                MainListId: item.ListItemId,
+                Id: item.ListItemId
+            });
+        }
+
         _self.setState({ items: allItems, totalItems: allItems.length });
     }
 }

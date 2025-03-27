@@ -6,4 +6,5 @@ export interface IDmsMusaibProps {
   userDisplayName: string;
   context: any;
   siteUrl: string;
+  currentUserID: any,
 }

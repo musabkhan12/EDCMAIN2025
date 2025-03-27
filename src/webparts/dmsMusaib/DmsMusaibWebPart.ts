@@ -46,6 +46,7 @@ export default class DmsMusaibWebPart extends BaseClientSideWebPart<IDmsMusaibWe
         userDisplayName: this.context.pageContext.user.displayName,
         context: this.context,
         siteUrl: this.context.pageContext.web.absoluteUrl,
+        currentUserID: this.context.pageContext.legacyPageContext["userId"],
       }
     );
 

@@ -126,6 +126,7 @@ import NC from "../processcomponents/NC";
 import { FormComponent } from "../EDCprocessComponent/FormComponent/Form";
 import { Listing } from "../EDCprocessComponent/ListingComponent/Listing";
 import AnnualAuditPlan from "../AnnualAuditPlanComponent/AnnualAuditPlan";
+import AuditPlan from "../NonConformityComponent/AddForm";
 
 let Undo = require('../assets/Undo.svg');
 let sharewithmeicon = require('../assets/nodes.png')
@@ -10435,6 +10436,20 @@ const ChangeRequest = async (event:React.MouseEvent<HTMLButtonElement> ) => {
     setSelectedText(null);
     window.location.hash = "/AnnualAuditProgram";
 }
+const NonConformityfunc = async (event:React.MouseEvent<HTMLButtonElement> ) => {
+  const selectedTextDiv=document.getElementById('selectedText');
+  const breadcrumbElement=document.getElementById("breadcrumb");
+  breadcrumbElement.style.display='none';
+  selectedTextDiv.style.display='none';
+    const getfilescontainer = document.getElementById('files-container')
+    if(getfilescontainer){
+      getfilescontainer.classList.add('hidemydatacards')
+    }
+    setlistorgriddata('NonConformity');
+    setDynamicContent(null);
+    setSelectedText(null);
+    window.location.hash = "/NonConformity";
+}
 const AuditPlanFunc = async (event:React.MouseEvent<HTMLButtonElement> ) => {
   const selectedTextDiv=document.getElementById('selectedText');
   const breadcrumbElement=document.getElementById("breadcrumb");
@@ -10970,6 +10985,9 @@ const fileNotFound=(fileName:any)=>{
           break;
         case 'Annual Audit Program':
           setDynamicContent('Annual Audit Program');
+          break;
+        case 'Non Conformity':
+          setDynamicContent('Non Conformity');
           break;
         default:
           setDynamicContent(null);
@@ -13799,6 +13817,12 @@ librarydiv.appendChild(mainContainer)
             handleShowContent(event as any);
           }}
           >Annual Audit Plan </Dropdown.Item>
+          <Dropdown.Item href="#/NonConformity"
+           onClick={(event) => {
+            NonConformityfunc(event as any);
+            handleShowContent(event as any);
+          }}
+          >Non Conformity</Dropdown.Item>
         </Dropdown.Menu>
       </Dropdown>
                               </div>
@@ -14119,6 +14143,11 @@ librarydiv.appendChild(mainContainer)
       )}
       {listorgriddata === 'AnnualAuditPlan' && (
         <AnnualAuditPlan 
+         {...props}
+        />
+      )}
+      {listorgriddata === 'NonConformity' && (
+        <AuditPlan 
          {...props}
         />
       )}
