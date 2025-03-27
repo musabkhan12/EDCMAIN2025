@@ -148,11 +148,11 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         <div style={{ marginLeft: '5px' }} className='indexdesign'>{i + 1}</div>
                     </td>
                     <td style={{ minWidth: '85px', maxWidth: '85px' }}>{item?.RequestId}</td>
-                    <td>{item.Title}</td>
+                    <td  style={{ minWidth: '85px', maxWidth: '85px' }}>{item.Title}</td>
                     <td title={item?.ProcessName} style={{ minWidth: '85px', maxWidth: '85px' }}>{item?.ProcessName}</td>
                     <td title={item.ReqName} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.ReqName}</td>
                     <td title={moment(item.ReqDt).format("DD-MMM-YYYY")} style={{ minWidth: '85px', maxWidth: '85px' }}>{moment(item.ReqDt).format("DD-MMM-YYYY")}</td>
-                    <td title={item.Status} style={{ minWidth: '75px', maxWidth: '75px' }}>{item.Status}</td>
+                    <td title={item.Status} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.Status}</td>
                     <td style={{ minWidth: '75px', maxWidth: '75px' }}>
                         <a href={path} onClick={() => this.editItem(item)}>
                             <img src={require("../../assets/edit.png")} className="fas fa-trash" alt="delete" />
@@ -193,7 +193,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                     {['RequestId', 'Title', 'ProcessName', 'ReqName', 'ReqDt', 'Status'].map(column => (
                                         <th key={column} style={{ minWidth: '85px', maxWidth: '85px' }}>
                                             <div>
-                                                <div onClick={() => this.handleSort(column)} style={{ cursor: 'pointer' }}>
+                                                <div onClick={() => this.handleSort(column)} style={{ cursor: 'pointer', display:'flex' }}>
                                                     {column}
                                                     {sortColumn === column && (
                                                         <span>

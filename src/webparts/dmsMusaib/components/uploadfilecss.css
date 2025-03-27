@@ -545,3 +545,12 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
+
+
+ /* i added this becuase in upload file checkbox was not working */
+.input-container {
+  input[type="checkbox"] {
+    -webkit-appearance: auto !important;
+    appearance: auto;
+  }
+}

@@ -123,7 +123,7 @@ margin-bottom: 4px;
   color: #212529 !important;
   font-size: 1rem;
   font-size: 1rem !important;
-  font-weight: 500;opacity: 1; height: 40px;
+  font-weight: 500;opacity: 1; height: 42px;
   padding: 0px 0px; border-radius: 4px;
 }
 
@@ -1068,3 +1068,11 @@ textarea .ms-TextField-field{
   height: auto;
 }
  
+
+// i added this becuase in upload file checkbox was not working
+.input-container {
+  input[type="checkbox"] {
+    -webkit-appearance: auto !important;
+    appearance: auto;
+  }
+}

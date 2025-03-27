@@ -2646,7 +2646,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                       // <div className="loadercss" role="status">Loading...
                       //   <img src={require('../../../Assets/ExtraImage/loader.gif')} style={{ height: '80px', width: '70px' }} alt="Check" />
                       // </div>
-                      <div style={{ position: 'fixed', zIndex: '9', left: '43%', top: '40%' }} className="loadernewadd mt-10">
+                      <div style={{ position: 'fixed', zIndex: '9', left: '0%', top: '0%' }} className="loadernewadd mt-10">
                         <div>
                           <img
                             src={require("../assets/edc-gif.gif")}

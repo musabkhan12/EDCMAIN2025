@@ -97,3 +97,9 @@
 .flexContainer-75, .ms-TooltipHost, .root-53, .root-61 {
   display: block !important;
 }
+.footer{display: none !important;}
+.newbutoom{display: flex; gap: 10px;}
+.newbutoom button+button{background: #dc3545 !important; border-color: #dc3545 !important;}
+.newbutoom button+button+button{background: #ffc107 !important; border-color: #ffc107 !important;}
+.newbutoom button+button+button+button{background: #f8f9fa !important; border-color: #f8f9fa !important;}
+#bac,#iss{height: 80px !important;}

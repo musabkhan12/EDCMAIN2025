@@ -1021,3 +1021,22 @@ text-align: center;
 .flexContainer-75, .ms-TooltipHost, .root-53, .root-61 {
   display: block !important;
 }
+input:not([type])[disabled]{
+  display: none !important
+
+}
+.ms-Button--primary+.ms-Button--primary+.ms-Button--primary
+.newbutoom{display: flex; justify-content: center; gap: 10px;}
+.newbutoom button + button{background-color: #dc3545 !important; border-color: #dc3545 !important;}
+.newbutoom .ms-Button--primary+ .newbutoom .ms-Button--primary+.newbutoom .ms-Button--primary{background-color: #ffc107 !important; border-color: #ffc107 !important;}
+.newbutoom .ms-Button--primary+ .newbutoom .ms-Button--primary+.newbutoom .ms-Button--primary + .newbutoom .ms-Button--primary{background-color: #f8f9fa !important; border-color: #f8f9fa !important;}
+.pagination button{background: #fff !important; color: #000 !important;}
+
+
+/* i added this becuase in upload file checkbox was not working */
+.input-container {
+  input[type="checkbox"] {
+    -webkit-appearance: auto !important;
+    appearance: auto;
+  }
+}

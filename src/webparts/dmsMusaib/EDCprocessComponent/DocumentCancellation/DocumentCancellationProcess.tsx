@@ -2368,10 +2368,10 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         <tr>
                                                                             <th style={{ minWidth: "35px", maxWidth: "35px" }}>S.No</th>
                                                                             <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Role</th>
-                                                                            <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level</th>
-                                                                            <th>Approver name</th>
+                                                                            <th style={{ minWidth: '40px', maxWidth: '40px' }} >Level</th>
+                                                                            <th style={{ minWidth: '120px', maxWidth: '120px' }}>Approver name</th>
                                                                             <th style={{ minWidth: '70px', maxWidth: '70px' }} >Approval criteria</th>
-                                                                            <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
+                                                                            <th style={{ minWidth: '50px', maxWidth: '50px' }}>Action</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody style={{ maxHeight: "8007px", overflow: 'inherit' }}>
@@ -2403,7 +2403,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                                 </td>
                                                                                 <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>Level {index + 1}</td>
-                                                                                <td style={{ overflow: 'inherit' }}>
+                                                                                <td style={{ overflow: 'inherit', minWidth: '120px', maxWidth: '120px', }}>
 
                                                                                     <Select
                                                                                         options={rows1}
@@ -2428,7 +2428,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                         <option value="All">Everyone</option>
                                                                                     </select>
                                                                                 </td>
-                                                                                <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>
+                                                                                <td style={{ minWidth: '50px', maxWidth: '50px', overflow: 'inherit' }}>
                                                                                     {/* <i className="fe-trash-2 text-danger"></i> */}
                                                                                     {/* {editID.CurrentUserRole === "OES"? <img src={require("../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} />:
                             <img src={require("../assets/recycle-bin.png")}  className='sidebariconsmall' />} */}
@@ -2564,8 +2564,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                 <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
                                                     <Modal.Header closeButton>
-                                                        <Modal.Title> Attachment Details <br></br>
-                                                            <p className='text-muted font-14 fw-400'>Below are the attachment details for document cancellation
+                                                        <Modal.Title> <h4 className='font-16 fw-bold text-dark'></h4> Attachment Details <br></br>
+                                                            <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for document cancellation
                                                             </p>
 
                                                         </Modal.Title>
@@ -2582,8 +2582,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                             <tr>
                                                                                 <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
                                                                                 <th>File Name</th>
-                                                                                <th>File Link</th>
-                                                                                <th className='text-center'>Upload date</th>
+                                                                                <th style={{ minWidth: '50px', maxWidth: '50px' }}>File Link</th>
+                                                                                <th style={{ minWidth: '70px', maxWidth: '70px' }} className='text-center'>Upload date</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
@@ -2591,11 +2591,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 <tr>
                                                                                     <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
                                                                                     <td title={DocumentLink?.FileLeafRef}>{DocumentLink?.FileLeafRef}</td>
-                                                                                    <td style={{ textAlign: 'center' }} >
+                                                                                    <td style={{ textAlign: 'center',minWidth: '50px', maxWidth: '50px' }} >
                                                                                         {/* <span onClick={() => OpenFile(DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                                                                         <FontAwesomeIcon icon={faDownload} /></span> */}
                                                                                         <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span> </td>
-                                                                                    <td>{DocumentLink.Created
+                                                                                    <td style={{ minWidth: '70px', maxWidth: '70px' }}>{DocumentLink.Created
                                                                                         ? new Intl.DateTimeFormat('en-GB', {
                                                                                             day: '2-digit',
                                                                                             month: 'short',

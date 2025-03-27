@@ -2587,8 +2587,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                 <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
                                                     <Modal.Header closeButton>
-                                                        <Modal.Title> Attachment Details <br></br>
-                                                            <p className='text-muted font-14 fw-400'>Below are the attachment details for Annual Audit Plan
+                                                        <Modal.Title > <h4 className='font-16 text-dark fw-bold'>Attachment Details</h4>  <br></br>
+                                                            <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for Annual Audit Plan
                                                             </p>
 
                                                         </Modal.Title>
@@ -2606,7 +2606,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
                                                                     <th>File Name</th>
                                                                     {/* <th>File Link</th> */}
-                                                                    <th className='text-center'>Upload date</th>
+                                                                    <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th>
                                                                     {!InputDisabled &&  <th className='text-center'>Action</th>}
                                                                 </tr>
                                                             </thead>
@@ -2627,7 +2627,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                             year: 'numeric'
                                                                                         }).format(new Date(DocumentLink.Created)).replace(/ /g, "/")
                                                                                         : ""}</td> */}
-                                                                            <td>{row.Created ?new Date(row.Created).toLocaleDateString("en-GB", {
+                                                                            <td style={{ minWidth: '50px', maxWidth: '50px' }}>{row.Created ?new Date(row.Created).toLocaleDateString("en-GB", {
                                                                                 day: "2-digit",
                                                                                 month: "short",
                                                                                 year: "numeric"
