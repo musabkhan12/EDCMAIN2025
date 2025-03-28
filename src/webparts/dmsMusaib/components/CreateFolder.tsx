@@ -288,6 +288,11 @@ const validateFields = () => {
         newErrors[field.id] = { ...newErrors[field.id], fieldName: 'Field name is required.' };
         isValid = false;
       }
+      
+         if(field.fieldName.trim() === folderName.trim()){
+        newErrors[field.id] = { ...newErrors[field.id], fieldName: 'Meta tags and folder names should not be the same.' };
+        isValid = false;
+    }
   });
 
   setErrors1(newErrors);
@@ -605,30 +610,50 @@ const validateFields = () => {
   // }
 
   // Handle form submission (Create button click)
-  const checkDuplicateFolderNameValidation=async()=>{
-    let isValid = true;
-    if(OthProps.DocumentLibrary !== ""){
-      // alert('check for folder');
-      const getDMSFolderMasterData=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`SiteTitle eq '${OthProps.Entity}' and DocumentLibraryName eq '${OthProps.DocumentLibrary}'`)();
-      console.log("getDMSFolderMasterData",getDMSFolderMasterData);
-      if(getDMSFolderMasterData.length > 0){
-        for(const item of getDMSFolderMasterData){
-          if(item?.FolderName === folderName.trim()){
-            isValid=false;
-          }
+  // const checkDuplicateFolderNameValidation=async()=>{
+  //   let isValid = true;
+  //   if(OthProps.DocumentLibrary !== ""){
+  //     // alert('check for folder');
+  //     const getDMSFolderMasterData=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`SiteTitle eq '${OthProps.Entity}' and DocumentLibraryName eq '${OthProps.DocumentLibrary}'`)();
+  //     console.log("getDMSFolderMasterData",getDMSFolderMasterData);
+  //     if(getDMSFolderMasterData.length > 0){
+  //       for(const item of getDMSFolderMasterData){
+  //         if(item?.FolderName === folderName.trim()){
+  //           isValid=false;
+  //         }
+  //       }
+  //     }
+  //   }else if(OthProps.DocumentLibrary === ""){
+  //     const getDMSFolderMasterData=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`SiteTitle eq '${OthProps.Entity}'`)();
+  //     console.log("getDMSFolderMasterData",getDMSFolderMasterData);
+  //     if(getDMSFolderMasterData.length > 0){
+  //       for(const item of getDMSFolderMasterData){
+  //         if(item?.DocumentLibraryName === folderName.trim()){
+  //           isValid=false;
+  //         }
+  //       }
+  //     }
+  //   }
+  //   return isValid;
+  // }
+  const checkFolderNameValidation=async ()=>{
+    let isValid=true;
+    if(OthProps.DocumentLibrary === ""){
+        const getFolderData=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`SiteTitle eq '${OthProps.Entity}' and DocumentLibraryName eq '${folderName.trim()}' and FolderPath eq '${locationPath}/${OthProps.Entity}/${folderName.trim()}'`)();
+
+        if(getFolderData.length > 0 ){
+          isValid=false;
         }
+    }else if(OthProps.DocumentLibrary !== ""){
+
+      const getFolderData=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`SiteTitle eq '${OthProps.Entity}' and DocumentLibraryName eq '${OthProps.DocumentLibrary}' and FolderPath eq '${OthProps.folderpath}/${folderName.trim()}'`)();
+
+      if(getFolderData.length > 0 ){
+        isValid=false;
       }
-    }else if(OthProps.DocumentLibrary === ""){
-      const getDMSFolderMasterData=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`SiteTitle eq '${OthProps.Entity}'`)();
-      console.log("getDMSFolderMasterData",getDMSFolderMasterData);
-      if(getDMSFolderMasterData.length > 0){
-        for(const item of getDMSFolderMasterData){
-          if(item?.DocumentLibraryName === folderName.trim()){
-            isValid=false;
-          }
-        }
-      }
+
     }
+
     return isValid;
   }
   const handleCreate = async(e: any) => {
@@ -660,9 +685,12 @@ const validateFields = () => {
       if(!validatePermissionsSelect() && showDiv){
         validatePermissionAndUser=true;
       }
-      if(!await checkDuplicateFolderNameValidation()){
-        validationErrors.folderName = "Folder name already exist.";
-      }
+      // if(!await checkDuplicateFolderNameValidation()){
+      //   validationErrors.folderName = "Folder name already exist.";
+      // }
+      if(!await checkFolderNameValidation()){
+        validationErrors.folderName = "Folder already exists. Please change the folder name."
+     }
     }else{
       console.log("create document library");
       if (!folderName.trim()) {
@@ -695,8 +723,12 @@ const validateFields = () => {
       if(!validatePermissionsSelect() && showDiv){
         validatePermissionAndUser=true;
       }
-      if(!await checkDuplicateFolderNameValidation()){
-        validationErrors.folderName = "Folder name already exist.";
+      // if(!await checkDuplicateFolderNameValidation()){
+      //   validationErrors.folderName = "Folder name already exist.";
+      // }
+
+      if(!await checkFolderNameValidation()){
+         validationErrors.folderName = "Folder already exists. Please change the folder name."
       }
     }
     
@@ -726,7 +758,8 @@ const validateFields = () => {
 
     }
     else {
-      
+      const createFolderButton=document.getElementById('CreateFolderInsideSharePoint') as HTMLButtonElement;
+      createFolderButton.disabled=true;
       const payloadForFolderMaster={
         SiteTitle:OthProps.Entity,
         CurrentUser:currentUserEmailRef.current
@@ -766,6 +799,11 @@ const validateFields = () => {
         }else{
             (payloadForFolderMaster as any).FolderName=folderName.trim();
             (payloadForFolderMaster as any).ParentFolderId=OthProps.Folder;
+
+            const parentIdData=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`FolderPath eq '${OthProps.folderpath}'`)();
+            console.log("parentIdData",parentIdData);
+
+            (payloadForFolderMaster as any).ParentID=parentIdData[0].ID;
             
         }
         if(folderPrivacy === "private"){
@@ -1006,10 +1044,21 @@ const validateFields = () => {
         // if(permission === true){
 
     // Add permission  to all whetehr its document library folder or subfolder
+    let Id:any;
+    if(OthProps.DocumentLibrary === ""){
+      const getIDDetailsOfTheCurrentFolder=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`FolderPath eq '${locationPath}/${OthProps.Entity}/${folderName.trim()}'`)();
+
+      Id=getIDDetailsOfTheCurrentFolder[0].ID;
+    }else{
+      const getIDDetailsOfTheCurrentFolder=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`FolderPath eq '${OthProps.folderpath}/${folderName.trim()}'`)();
+
+      Id=getIDDetailsOfTheCurrentFolder[0].ID;
+    }
           const payloadForDMSFolderPrivacy={
             SiteName:OthProps.Entity,
             CurrentUser:currentUserEmailRef.current,
             IsModified:false,
+            FolderID:Id
             // DocumentLibraryName:folderName
           }
           if(OthProps.DocumentLibrary === ""){
@@ -1812,6 +1861,7 @@ const validateFields = () => {
         <button
           className="btn btn-create me-2 mt-0 btncolorCreate"
           onClick={handleCreate}
+          id="CreateFolderInsideSharePoint"
         >
           <img
             className="bi"

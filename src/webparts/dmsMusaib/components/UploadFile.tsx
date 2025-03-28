@@ -916,7 +916,7 @@ const UploadFile: React.FC<UploadFileProps> = ({ currentfolderpath, onReturnToMa
         SiteName: String(currentfolderpath.Entity),
         MyRequest: true,
         Processname: 'New File Request',
-        // RequestNo: newRequestNo
+         RequestNo: newRequestNo,
       });
       console.log(newItem, "New item added FileMaster");
 
@@ -934,7 +934,8 @@ const UploadFile: React.FC<UploadFileProps> = ({ currentfolderpath, onReturnToMa
           ApprovedLevel: 1,
           RequestNo: newRequestNo,
           Processname: 'New File Request',
-        });
+          CurrentLevel : 1
+          });
       }
 
       if (newItem) {
