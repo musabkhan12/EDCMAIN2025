@@ -22,6 +22,7 @@ import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-con
 import { getSP } from "../../loc/pnpjsConfig";
 import { SPFI , spfi} from "@pnp/sp";
 
+
 //import {  useHistory } from 'react-router-dom'
 //const _dropdown = 
 const dropdownStyles: Partial<IDropdownStyles> = {
@@ -167,6 +168,7 @@ export class FormComponent extends React.Component<IFormProps, IState> {
     this.createDraft = this.createDraft.bind(this);
     this.submitDraft = this.submitDraft.bind(this);
     this.state={
+      From:"",
       Breadcrumb: [],
       status:"Ready",
       items:[],
@@ -398,29 +400,29 @@ this.setState({showSubmit: false});
    // var idAss="ppAss_"+i;
  return(
     <tr className='tblCls'>
-     <td style={{minWidth:'80px', maxWidth:'80px'}}>
+     <td>
      <TextField id={idtxt} className={this.state.recommendations[i].errSec} value={this.state.recommendations[i].section} onChange={(e) => this.onSectionChange(e,i)} disabled={this.state.isDisabled} ></TextField>
      </td>
-     <td style={{minWidth:'80px', maxWidth:'80px'}} className='newdate'>
+     <td>
      <DateTimePicker  dateConvention={DateConvention.Date}  value={this.state.recommendations[i].date} disabled={this.state.isDisabled}
         showLabels={false}    formatDate={(date: Date) => date.toLocaleDateString()}
         onChange={(date: Date) =>this.setDueDate(date,i)}/>
           </td>
-     <td style={{minWidth:'80px', maxWidth:'80px'}}>
+     <td>
      <Dropdown id={idHr} className={this.state.recommendations[i].errHr}  placeholder="Select" selectedKey={this.state.recommendations[i].hours}  options={optionsHours} styles={dropdownStylesNew} onChange={(e,itm:IDropdownOption) => this.onHoursChange(e,itm,i)} disabled={this.state.isDisabled}/>
     </td>
-    <td style={{minWidth:'80px', maxWidth:'80px'}}>
+    <td>
      <Dropdown id={idMin} className={this.state.recommendations[i].errMin}  placeholder="Select" selectedKey={this.state.recommendations[i].minutes}  options={optionsMinutes} styles={dropdownStylesNew} onChange={(e,itm:IDropdownOption) => this.onMinutesChange(e,itm,i)} disabled={this.state.isDisabled}/>
        
   
      </td>
-     <td style={{minWidth:'80px', maxWidth:'80px'}}>
-     <PeoplePicker peoplePickerWPclassName={this.state.recommendations[i].errTo} ensureUser={true}  disabled={this.state.isDisabled}  context={peoplePickerContext} personSelectionLimit={1} groupName={""} showtooltip={true}  searchTextLimit={5} onChange={(e) =>this._getPeoplePickerItemsAud(e,i)}
+     <td>
+     <PeoplePicker peoplePickerWPclassName={this.state.recommendations[i].errTo} ensureUser={true}  disabled={this.state.isDisabled}  context={peoplePickerContext} personSelectionLimit={1} groupName={""} showtooltip={true}  searchTextLimit={5} onChange={(e) =>this._getPeoplePickerItemsAud(e,i)} 
          defaultSelectedUsers={this.state.recommendations[i].approverDef ? this.state.recommendations[i].approverDef : []}   principalTypes={[PrincipalType.User]} resolveDelay={1000} />
      </td>
-   
-     <td style={{minWidth:'60px', maxWidth:'60px'}}>
-     
+    
+     <td>
+      
      <img style={{width:'30px', cursor:'pointer'}} className='mt-0' src={require("../../assets/del.png")} onClick={(e) =>this.deleteItem(i)} ></img>
       
       {/* <button   onClick={(e) =>this.deleteItem(i)}>Delete</button> */}
@@ -457,8 +459,7 @@ this.setState({showSubmit: false});
       {item.Uploaded}
         </td>
         <td>
-        {/* <img style={{width:'30px', cursor:'pointer'}} className='mt-0' src={require("../../assets/del.png")} onClick={(e) =>this.toBeDeleted(i)} disabled={this.state.isDisabled} ></img> */}
-          <button className='mt-0' onClick={(e) =>this.toBeDeleted(i)} disabled={this.state.isDisabled}>Delete</button>
+          <button onClick={(e) =>this.toBeDeleted(i)} disabled={this.state.isDisabled}>Delete</button>
         </td>
       </tr> 
        )    
@@ -467,20 +468,20 @@ this.setState({showSubmit: false});
    var approval = this.state.approvers.map((item: any,i:number) => {  
     return(
        <tr className='tblCls'>
-        <td style={{minWidth:'30px', textAlign:'center', maxWidth:"30px"}}>
+        <td style={{minWidth:'60px', textAlign:'center', maxWidth:"60px"}}>
         <TextField value={(i+1).toString()} disabled={true} className={styles.width} ></TextField>
         </td>
-        <td style={{minWidth:'70px', maxWidth:"70px"}}>
+        <td>
         <Dropdown className={this.state.approvers[i].errLevel} placeholder="Select" disabled={this.state.isDisabled} selectedKey={this.state.approvers[i].Role} options={this.state.optionsRole} styles={dropdownStyles} onChange={(e,itm:IDropdownOption) => this.onRoleChange(e,itm,i)}/>
         </td>
-        <td style={{minWidth:'70px', maxWidth:"70px"}}>
+        <td>
         <TextField value={(i+1).toString()} disabled={true}></TextField>
         </td>
-        <td style={{minWidth:'150px', maxWidth:"150px"}}>
+        <td>
         <PeoplePicker peoplePickerWPclassName={this.state.approvers[i].errType} ensureUser={true}  context={peoplePickerContext} personSelectionLimit={5} groupName={""} showtooltip={true}  disabled={this.state.isDisabled} searchTextLimit={5} onChange={(e) =>this._getPeoplePickerItemsApp(e,i)}
            defaultSelectedUsers={this.state.approvers[i].appEx ? this.state.approvers[i].appEx : []}  principalTypes={[PrincipalType.User]} resolveDelay={1000} />
         </td>
-        <td style={{minWidth:'70px', maxWidth:"70px"}}>
+        <td>
         <Dropdown disabled={this.state.isDisabled} placeholder="Select" selectedKey={this.state.approvers[i].Type} options={optionsApp} styles={dropdownStylesNew} onChange={(e,itm:IDropdownOption) => this.onTypeChange(e,itm,i)}/>
      </td>
         <td style={{minWidth:'60px', textAlign:'center', maxWidth:"60px"}}>
@@ -538,8 +539,8 @@ this.setState({showSubmit: false});
             <fieldset disabled={this.state.isDisabled}>
             <h3 className='text-dark font-16 fw-bold mb-3'>Memo Details</h3>
           <div className={styles['cl-12']}>
-           {/* <label>For Information *</label> */}
-           <div style={{justifyContent:'center'}} className="row">
+           <label>For Information *</label>
+           <div className="row">
             <div className='col-sm-3 mb-3'>
             <Checkbox className={this.state.isInfo ? "":styles.errCls} checked={this.state.isChecked} label="For Information"  onChange={this.onInfoChange}  disabled={this.state.isDisabled}/>
             </div>
@@ -562,7 +563,11 @@ this.setState({showSubmit: false});
             <TextField label="Memo Number" className={this.state.errDep ? "":styles.errCls}  required={ true } value={(this.state.memoNumber)} name='memoNumber' disabled={true}/>
             </div>
             <div className='col-sm-4 mb-3'>
-            <TextField label="From" required={ true } defaultValue={(this.props.userDisplayName)} name='lastname' disabled={true}/>
+            <TextField label="From" required={ true } 
+            // defaultValue={(this.props.userDisplayName)} 
+            defaultValue={(this.state.From)} 
+            value={(this.state.From)}
+            name='lastname' disabled={true}/>
             </div>
             <div className='col-sm-4 mb-3'>
             <PeoplePicker  errorMessage={this.state.errTo} ensureUser={true}  context={peoplePickerContext}  titleText="To"  personSelectionLimit={3}   groupName={""}   showtooltip={true}  required={true} disabled={this.state.isDisabled}  searchTextLimit={5}
@@ -586,11 +591,11 @@ this.setState({showSubmit: false});
         onChange={(date: Date) => this.setState({ dueDate: date })} disabled={this.state.isDisabled}/>
               </div>
 
-              <div className='col-sm-6 mb-3'>
+              <div className='col-sm-4 mb-3'>
               <TextField id="bac" errorMessage={this.state.errback} multiline autoAdjustHeight value={this.state.background}  onNotifyValidationResult={this.bacOnClick}  validateOnFocusOut={true} onChange={this.onChangeBack} required={ true } label="Background"  disabled={this.state.isDisabled}/>
               </div>
 
-<div className='col-sm-12 mb-3'>
+<div className='col-sm-4 mb-3'>
 <TextField id="iss" errorMessage={this.state.errIss} multiline autoAdjustHeight value={this.state.issues}  onNotifyValidationResult={this.issOnClick}  validateOnFocusOut={true} onChange={this.onChangeIss} required={ true } label="Issues" disabled={this.state.isDisabled} />
 </div>
 
@@ -619,11 +624,11 @@ this.setState({showSubmit: false});
               
     <table id="tabRec" className='mtbalenew'>
       <thead>
-      <tr><th style={{minWidth:'80px', maxWidth:'80px'}}>Section</th>
-            <th style={{minWidth:'80px', maxWidth:'80px'}}>Date</th>
-            <th style={{minWidth:'160px', maxWidth:'160px'}} colSpan={2}>Time</th>
-            <th  style={{minWidth:'80px', maxWidth:'80px'}}>Auditor</th>
-            <th style={{minWidth:'60px', maxWidth:'60px'}}>Delete</th>
+      <tr><th>Section</th>
+            <th>Date</th>
+            <th colSpan={2}>Time</th>
+            <th>Auditor</th>
+            <th>Delete</th>
             </tr>  
       </thead>
          
@@ -670,7 +675,7 @@ styles={dropdownStyles} onChange={this.onMonthChange}
             </div>
             <div className='col-sm-4 mb-3'>
             <input className="form-control" type="file" disabled={this.state.isDisabled} name="myFile" onChange={(e)=>this.handleFileChange(e,this)}  id="newfile" multiple/>
-            <label>FIles Selected:<span style={{color:'blue', cursor:'pointer'}} className='font-12' onClick={this._OpenModal}>{this.state.fileCount}</span></label>  
+            <label>FIles Selected:</label>  <span  className='font-12' onClick={this._OpenModal}>{this.state.fileCount}</span>
             </div>
           </div>
 
@@ -694,7 +699,7 @@ styles={dropdownStyles} onChange={this.onMonthChange}
             <h3 className='text-dark font-16 fw-bold'> Approval Detail</h3>
             </div>
             <div style={{textAlign:'right'}} className='col-sm-6'>
-            <img style={{width:'30px', cursor:'pointer'}} className='mt-0 mb-3' src={require("../../assets/plus.png")} onClick={this.addApprover} ></img>
+            <img style={{width:'30px', cursor:'pointer'}} className='mt-0 mb-2' src={require("../../assets/plus.png")} onClick={this.addApprover} ></img>
 
             {/* <button  onClick={this.addApprover}>Add
             </button> */}
@@ -705,11 +710,11 @@ styles={dropdownStyles} onChange={this.onMonthChange}
          <table id="tblAppr" className='mtbalenew'>
 
           <thead>
-          <tr><th style={{minWidth:'30px', maxWidth:"30px"}}>Sl.</th>
-          <th style={{minWidth:'70px', maxWidth:"70px"}}>Role</th>
-          <th style={{minWidth:'70px', maxWidth:"70px"}}>Approver Level</th>
-          <th style={{minWidth:'150px', maxWidth:"150px"}}>Approver Name</th>
-          <th style={{minWidth:'70px', maxWidth:"70px"}}>Approval Type</th>
+          <tr><th style={{minWidth:'60px', maxWidth:"60px"}}>Sl.</th>
+          <th>Role</th>
+          <th>Approver Level</th>
+          <th>Approver Name</th>
+          <th>Approval Type</th>
           <th style={{minWidth:'60px', maxWidth:"60px"}}>Delete</th>
           </tr>
           </thead>
@@ -724,25 +729,24 @@ styles={dropdownStyles} onChange={this.onMonthChange}
          </section>
          
 
-   {this.state.showSubmit &&  <section className='mb-2' style={{display:'flex', gap:'10px', justifyContent:'center'}} id="editDetails ">
-      <PrimaryButton style={{width:'145px'}} className={(styles as any)['mar-10 btn-primary']} onClick={this.createDraft}>  <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</PrimaryButton>
-      <PrimaryButton style={{width:'145px'}} className={(styles as any)['mar-10 btn-primary']} onClick={this.submitDraft}>  <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</PrimaryButton>
-      <PrimaryButton style={{width:'145px'}} className={(styles as any)['mar-10 cancel-btn']} onClick={this.cancelDraft}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}/> Cancel</PrimaryButton>
+   {this.state.showSubmit &&  <section style={{display:'flex', gap:'10px', justifyContent:'center'}} id="editDetails ">
+      <PrimaryButton className={(styles as any)['mar-10 btn-primary']} onClick={this.createDraft}>Save As Draft</PrimaryButton>
+      <PrimaryButton className={(styles as any)['mar-10 btn-primary']} onClick={this.submitDraft}>Submit</PrimaryButton> 
+      <PrimaryButton className={(styles as any)['mar-10 cancel-btn']} onClick={this.cancelDraft}>Cancel</PrimaryButton> 
       </section>}
       {this.state.showApprove &&
-      <section id="approvalSection" className='card card-body'>
+      <section id="approvalSection">
            <Field label="Remarks">
             <Textarea id="comm" value={this.state.remarks} onChange={this.onRemarksChange} />
           </Field>
-          <div style={{textAlign:'center'}} className='newbutoom'>
                      <PrimaryButton className={(styles as any)['mar-10']} onClick={this.approveRequest}>Approve</PrimaryButton>
-                      <PrimaryButton  className={(styles as any)['mar-10 btn btn-danger']} onClick={this.rejectRequest}>Reject</PrimaryButton>
-                       <PrimaryButton className={(styles as any)['mar-10 btn btn-warning']} onClick={this.reworkRequest}>Rework</PrimaryButton>
-                       <a href='#/listing'> <PrimaryButton className='btn btn-light' onClick={this.cancelRequest}>Cancel</PrimaryButton></a>
-                       </div>
+                      <PrimaryButton  className={(styles as any)['mar-10']} onClick={this.rejectRequest}>Reject</PrimaryButton>
+                       <PrimaryButton className={(styles as any)['mar-10']} onClick={this.reworkRequest}>Rework</PrimaryButton>
+                       <a href='#/listing'> <PrimaryButton onClick={this.cancelRequest}>Cancel</PrimaryButton></a>
+        
       </section>}
-      <section id='audit' className='card card-body mt-3'>
-       
+      <section id='audit' className='card card-body mt-2'>
+        
         <h3 style={{margin:'inherit'}} className='fw-bold font-16 text- mb-2'>Audit Trial</h3>
         <div style={{display:'grid'}}>
                   <table className='mtbalenew'>
@@ -772,14 +776,12 @@ styles={dropdownStyles} onChange={this.onMonthChange}
             <br/>
             <span>Below are the attachment details for the Initiative</span>
           <span className={styles.close} onClick={e => this._CloseModal()}>&times;</span>
-          <table className='mtbalenew mt-2'>
+          <table>
             <thead>
-              <tr>
             <th>File Name</th>
               <th>File Link</th>
               <th>Upload Date</th>
               <th>Delete</th>
-              </tr>
             </thead>
          
             {upFiles}
@@ -1122,11 +1124,16 @@ private clearAllValidations(){
       });
 }
 
-  private async submitAllDraft(){
+  private async submitAllDraft (){
          // var _self= this; 
-         
+         var _self= this;
+         const userdata = await spfi(_self._sp).web.currentUser();
+         const userid = userdata.Id
+         this.setState({currUserId:userid});
+         alert(this.state.currUserId + 'state user id')
+         alert( userid + 'user id is ')
      // const spCache = spfi(this._sp).using(Caching({store:"session"}));
-  var _self= this;
+
   var depCode:any = this.state.allDepartments.filter(function(it){
     return it['Id'] == _self.state.department;
   })
@@ -1254,12 +1261,20 @@ private clearAllValidations(){
         }
         if(_self.state.isRework){
           const userdata = await spfi(_self._sp).web.currentUser();
-          spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.getById(parseInt(_self.state.approvalItemId)).update({
+          console.log(userdata.Id , "userdata in rework");
+          console.log(_self.state.approvalItemId, "approval item id");
+          console.log(typeof(_self.state.approvalItemId), "typem of approval item id");
+          spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.getById(_self.state.approvalItemId).update({
             Status: "Approved",
             ActionTakenById:userdata.Id,
+                  
             ActionTakenOn:new Date()
           });
-
+          debugger;
+          console.log(_self.state.approvalItemId, "approval item id 2");
+          console.log(typeof(_self.state.approvalItemId), "typem of approval item id 2");
+           const mydata  = await spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.getById(parseInt(_self.state.approvalItemId))
+           console.log(mydata, "mydata");
         }
         if(_self.state.recomDeleteId.length>0){
           _self.state.recomDeleteId.forEach(function(ids){
@@ -1979,12 +1994,38 @@ private async getData()
   this.setState({itemId:parseInt(this.state.edItm)});
  // const spCache = spfi(this._sp).using(Caching({store:"session"}));
  console.log(this.state.itemId , typeof(this.state.itemId) , "items id");
-  const listItems = await  spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgram").items.getById(this.state.itemId).select("*", "To/Name","Cc/Name,Department/DepartmentCode").expand("To","Department","Cc")();
+  const listItems = await  spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgram").items.getById(this.state.itemId).select("*", "From/Title", "To/Name","Cc/Name,Department/DepartmentCode").expand("From","To","Department","Cc")();
+   
+  // add this code musaib becuase action taken by and on was not updating
+  alert(this.state.approvalItemId);
+  console.log(this.state.approvalItemId , "this.state.approvalItemId in getdata");
+  console.log(typeof(this.state.approvalItemId) , "this.state.approvalItemId in getdata");
+  if (this.state.approvalItemId === "" || this.state.approvalItemId === null || this.state.approvalItemId== undefined) {
+  //   it was giving error so i made this and remove parseint
+    const myid = this.state.itemId;
+    // const myid = parseInt(this.state.itemId);
+    console.log(myid, "myid");
+    const level:Number = 0; 
+    console.log(myid, "myid");
+    console.log(typeof(myid), "type of myid");
+
+    const filterQuery = `ListItemId eq ${myid} and ProcessName eq 'Annual Audit Program' and ActionTakenBy eq null and Level eq ${level}`;
+    const getreworkdata = await spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.select("*").filter(filterQuery)()
+    console.log(getreworkdata, "getreworkdata");
+    this.setState({approvalItemId:getreworkdata[0].Id});
+    alert(this.state.approvalItemId);
+  }
+ 
+
+
+  console.log(listItems, "listItems");
     this.setState({department:listItems.DepartmentId});
     if(listItems.DepartmentId !="")
     this.setState({departmentVal:listItems.Department.DepartmentCode});
     this.setState({memoNumber:listItems.MemoNumber});
     this.setState({subject:listItems.Subject});
+    this.setState({From:listItems.From.Title});
+
     //this.setState({dueDate:listItems.Date});
     this.setState({background:listItems.Background});
     this.setState({issues:listItems.Issues});
@@ -2195,12 +2236,15 @@ private async getRequestorRole(){
 }
 
  private async getDataDepartment(){
+  var _self=this;
     // const spCache = spfi(this._sp).using(Caching({store:"session"}));
     // const user = await spCache.web.ensureUser(this.props.userid);
     //console.log(userId);
-  //  this.setState({currUserId:this.props.userid});
+    const userdata = await spfi(_self._sp).web.currentUser();
+    const userid = userdata.Id
+    this.setState({currUserId:userid});
   try {
-    var _self=this;
+
     const listItems = await spfi(_self._sp).web.lists.getByTitle("DepartmentMasterList").items.filter("Active eq 'Yes'")();
     
     let dropdownItems: IDropdownOption[] =[];
