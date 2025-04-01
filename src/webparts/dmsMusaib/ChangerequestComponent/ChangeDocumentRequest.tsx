@@ -3252,7 +3252,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                               Submit</button>}
                             {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</button>}
                             {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</button>}
-                            {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.IsInitiator == "Yes")) &&
+                            {((modeValue === "" || modeValue === "edit" || modeValue === "view") || 
+                              (InputDisabled && editID != null && modeValue === "approve" && editID.Status === "Approved") ||
+                            (editID !== null && editID.IsInitiator == "Yes")) &&
                               <button style={{ width: '145px' }} type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                 className='me-1' alt="x" /> Cancel</button>
                             }
@@ -3335,7 +3337,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     <th>File Name</th>
                                     <th > File Link </th>
                                     <th className='text-center'>Upload date</th>
-                                    {(modeValue == "edit"
+                                    {(modeValue == "edit" || modeValue == null || modeValue == ""
                                       || (modeValue == "approve" && formData?.Status == "Rework")) &&
                                       <th > Action </th>
                                     }
@@ -3351,7 +3353,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         <FontAwesomeIcon icon={faEye} /></span>
                                     </td>
                                     <td>{Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD/MMM/YYYY")}</td>
-                                    {(modeValue == "edit"
+                                     {(modeValue == "edit" || modeValue == null || modeValue == ""
                                       || (modeValue == "approve" && formData?.Status == "Rework")) &&
                                       <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
                                         <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFileAttachment(0, Attachmentarr)}></img>
