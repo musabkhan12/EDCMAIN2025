@@ -98,7 +98,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
         default:
       }
       setLoading(true);
-      if (props.ContentType != "Document Cancellation" && props.ContentType != "Change Request" && props.ContentType != "Annual Audit Plan") {
+      if (props.ContentType != "Document Cancellation" && props.ContentType != "Change Request" && props.ContentType != "Annual Audit Plan" && props.ContentType != "Annual Audit Report") {
         sp.web.lists.getByTitle("ARGMyRequest").items
           .select("*,Requester/Id,Requester/Title,Approver/Id,Approver/Title")
           .expand("Approver,Requester")
@@ -228,7 +228,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                   </th>
 
-                 {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request"|| props.ContentType == "Annual Audit Plan") &&<th style={{ minWidth: '70px', maxWidth: '70px' }}>
+                  {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request" || props.ContentType == "Annual Audit Plan" || props.ContentType == "Annual Audit Report") &&<th style={{ minWidth: '70px', maxWidth: '70px' }}>
 
 
                    Assigned To Role
@@ -338,7 +338,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                         <td style={{ minWidth: '70px', maxWidth: '70px' }}> {row.Approver ? row.Approver.Title : row.AssignedTo.Title}</td>
 
-                        {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request"|| props.ContentType == "Annual Audit Plan") &&
+                        {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request" || props.ContentType == "Annual Audit Plan" || props.ContentType == "Annual Audit Report") &&
                          <td style={{ minWidth: '70px', maxWidth: '70px' }}>{row.CurrentUserRole ||row.ActionTakenRole.Role ||""}</td>
                         }
 

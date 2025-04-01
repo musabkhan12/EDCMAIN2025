@@ -16,6 +16,7 @@ import ChangeDocumentRequest from '../../ChangerequestComponent/ChangeDocumentRe
 import DocumentCancellationProcess from '../DocumentCancellation/DocumentCancellationProcess';
 import moment from 'moment';
 import AnnualAuditPlan from '../../AnnualAuditPlanComponent/AnnualAuditPlan';
+import AnnualAuditReport from '../../AnnualAuditReportComponent/AnnualAuditReport';
 
 export class Listing extends React.Component<IListingProps, IListingState, IFormProps> {
     private _sp: SPFI;
@@ -137,6 +138,15 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
                 }
             }
+            else if ((item.ProcessName == "Annual Audit Report") && item.Status == "Pending") {
+                if (item.ProcessItemId) {
+                    let actionType = "approve";
+                    path = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId}`;
+                } else {
+                    let actionType = "view";
+                    path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
+                }
+            }
             else {
                 let actionType = (item.Status === "Save As Draft" || item.Status === "Rework" || item.Status === "Save as draft") ? "edit" : "view";
                 path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
@@ -179,6 +189,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         {this.state.process == "Document Cancellation" && <DocumentCancellationProcess description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''}></DocumentCancellationProcess>}
                         {this.state.process == "Annual Audit Program" && <FormComponent userDisplayName={''} userid={this.props.userid} context={this.props.context} item={this.state.edItm} onClose={this.closeForm} />}
                         {this.state.process == "Annual Audit Plan" && <AnnualAuditPlan description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''} />}
+                        {this.state.process == "Annual Audit Report" && <AnnualAuditReport description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''} />}
 
                     </div>
                 ) : (
@@ -411,23 +422,60 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             }
         }
 
+        const AnnualAuditReportList = await spfi(this._sp).web.lists.getByTitle("AnnualAuditReportList").items.select('*,Id,Title,Author/Title,Created,Status,ReferenceNumber').expand('Author')();
+        AnnualAuditReportList.forEach(async itm => {
 
-        const listItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items
-        .select('Id,RequesterNameId,RequestId,Title,CurrentUserRole,ProcessName,ApprovalLevelListItemId ,RequesterName/Title,Status,AssignedToId,RequestedDate,AssignedToId,ListItemId').expand('RequesterName')
-        .filter(`AssignedToId eq ${this.props.userid} and Status eq 'Pending'`).orderBy("Id", false)();
-        console.log(listItems, "listItems listItems");
-        for (const item of listItems) {
-            allItems.push({
-                RequestId: item.RequestId,
-                Title: item.Title,
-                ProcessName: item.ProcessName,
-                ReqName: item.RequesterName?.Title || '',
-                ReqDt: item.RequestedDate ? moment(item.RequestedDate).format("DD-MMM-YYYY") : '',
-                Status: item.Status,
-                MainListId: item.ListItemId,
-                Id: item.ListItemId
-            });
-        }
+            if (itm.Status === "Pending") {
+                const processItems2 = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and (Status eq 'Pending' or Status eq 'Save as draft') and ProcessName eq 'Annual Audit Report' and ListItemId eq ${itm.Id}`)();
+                if (processItems2.length > 0) {
+                    for (const itom of processItems2) {
+
+                        allItems.push({
+                            RequestId: "",
+                            Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
+                            ProcessName: "Annual Audit Report",
+                            ReqName: itm.Author ? itm.Author.Title : '',
+                            ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
+                            Status: itm.Status,
+                            MainListId: itm.Id,
+                            Id: itm.Id,
+                            ProcessItemId: itom.Id
+                        });
+
+                    }
+
+                }
+                else {
+
+                    allItems.push({
+                        RequestId: "",
+                        Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
+                        ProcessName: "Annual Audit Report",
+                        ReqName: itm.Author ? itm.Author.Title : '',
+                        ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
+                        Status: itm.Status,
+                        MainListId: itm.Id,
+                        Id: itm.Id
+                    });
+
+                }
+            }
+            else {
+
+                allItems.push({
+                    RequestId: "",
+                    Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
+                    ProcessName: "Annual Audit Report",
+                    ReqName: itm.Author ? itm.Author.Title : '',
+                    ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
+                    Status: itm.Status,
+                    MainListId: itm.Id,
+                    Id: itm.Id
+                });
+
+            }
+
+        });
 
         _self.setState({ items: allItems, totalItems: allItems.length });
     }

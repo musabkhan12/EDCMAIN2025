@@ -10,105 +10,104 @@ import Swal from "sweetalert2";
 // import { updateItem, updateItemChangeRequestList } from "../../APISearvice/DocumentCancellation";
 import { updateItem, updateItemChangeRequestList } from "../../APISearvice/DocumentCancellation";
 
-export interface IWorkflowActionProps
-{
-    currentItem:any;
-    ContentType:string;
-    ctx:WebPartContext;
-    DisableApproval?:boolean;
-    DisableRework?:boolean;
-    DisableReject?:boolean;
-    DisableCancel?:boolean;
+export interface IWorkflowActionProps {
+  currentItem: any;
+  ContentType: string;
+  ctx: WebPartContext;
+  DisableApproval?: boolean;
+  DisableRework?: boolean;
+  DisableReject?: boolean;
+  DisableCancel?: boolean;
 
 }
 
-export const WorkflowAction=(props: IWorkflowActionProps) => {
-
-    
-    const siteUrl = props.ctx.pageContext.site.absoluteUrl;
-
-    const sp=getSP(props.ctx);
-
-    const [formData, setFormData] = React.useState({
-        Remark: '',    
-      })
-
-    const onChange = (name: string, value: string) => {
-
-        debugger
-    
-        setFormData((prevData) => ({
-    
-          ...prevData,
-    
-          [name]: value,
-    
-        }));
-    
-      };
-      const handleCancel = () => {   
-        window.location.href = `${siteUrl}/SitePages/MyApprovals.aspx`;
-      }
-      const handleFromSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, Status: string) => {
-
-        e.preventDefault();
-        let postPayload ={}
-        let postPayload2 = {}
+export const WorkflowAction = (props: IWorkflowActionProps) => {
 
 
-    if (props.ContentType == "Document Cancellation" || props.ContentType == "Change Request"|| props.ContentType == "Annual Audit Plan") {
+  const siteUrl = props.ctx.pageContext.site.absoluteUrl;
+
+  const sp = getSP(props.ctx);
+
+  const [formData, setFormData] = React.useState({
+    Remark: '',
+  })
+
+  const onChange = (name: string, value: string) => {
+
+    debugger
+
+    setFormData((prevData) => ({
+
+      ...prevData,
+
+      [name]: value,
+
+    }));
+
+  };
+  const handleCancel = () => {
+    window.location.href = `${siteUrl}/SitePages/MyApprovals.aspx`;
+  }
+  const handleFromSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, Status: string) => {
+
+    e.preventDefault();
+    let postPayload = {}
+    let postPayload2 = {}
+
+
+    if (props.ContentType == "Document Cancellation" || props.ContentType == "Change Request" || props.ContentType == "Annual Audit Plan" || props.ContentType == "Annual Audit Report") {
       const currentUser = await sp.web.currentUser();
 
-          postPayload = {
-   
-            Remark: formData.Remark,
-     
-            Status: Status,
+      postPayload = {
 
-            ActionTakenById:currentUser.Id,
-            ActionTakenOn:new Date().toLocaleDateString("en-CA")
-     
-          };
+        Remark: formData.Remark,
 
-          postPayload2 = {
-   
-            Status: Status,
-            OESSubmitStatus: "No",
-            InitiatorSubmitStatus: "No",
-            CurrentUserRole: "Initiator",
-            SubmitStatus: "No",
-     
-          };
+        Status: Status,
 
-        }
-        else{
-           postPayload = {
-   
-            Remark: formData.Remark,
-     
-            Status: Status
-     
-          };
-        }
-       
-   
-        console.log(postPayload);
-       let confirmation,resultmessage="";
+        ActionTakenById: currentUser.Id,
+        ActionTakenOn: new Date().toLocaleDateString("en-CA")
 
-       if(Status=='Approved') 
-        {
-          confirmation="Do you want to approve this request?";
-          resultmessage='Approved successfully.'
+      };
 
-        }
-       else if(Status=='Rejected') {
-         confirmation="Do you want to reject this request?";
-         resultmessage='Rejected successfully.'}
+      postPayload2 = {
 
-       else if(Status=='Rework') { 
-        confirmation="Do you want to rework this request?";
-        resultmessage='Sent for rework.'
-       }
+        Status: Status,
+        OESSubmitStatus: "No",
+        InitiatorSubmitStatus: "No",
+        CurrentUserRole: "Initiator",
+        SubmitStatus: "No",
+
+      };
+
+    }
+    else {
+      postPayload = {
+
+        Remark: formData.Remark,
+
+        Status: Status
+
+      };
+    }
+
+
+    console.log(postPayload);
+    let confirmation, resultmessage = "";
+
+    if (Status == 'Approved') {
+      confirmation = "Do you want to approve this request?";
+      resultmessage = 'Approved successfully.'
+
+    }
+    else if (Status == 'Rejected') {
+      confirmation = "Do you want to reject this request?";
+      resultmessage = 'Rejected successfully.'
+    }
+
+    else if (Status == 'Rework') {
+      confirmation = "Do you want to rework this request?";
+      resultmessage = 'Sent for rework.'
+    }
 
     Swal.fire({
       // title: 'Do you want to save?',
@@ -128,122 +127,127 @@ export const WorkflowAction=(props: IWorkflowActionProps) => {
             const postResult2 = props.ContentType == "Document Cancellation" ? await updateItem(postPayload2, sp, Number(props.currentItem.ListItemId)) :
               await updateItemChangeRequestList(postPayload2, sp, Number(props.currentItem.ListItemId))
 
-         }
-        // const postId = postResult?.data?.ID;
+          }
+          // const postId = postResult?.data?.ID;
+
+        }
+        else if (props.ContentType == "Annual Audit Plan") {
+          postResult = await updateItemApproval2(postPayload, sp, props.currentItem.Id);
+
+        }
+        else if (props.ContentType == "Annual Audit Report") {
+          postResult = await updateItemApproval2(postPayload, sp, props.currentItem.Id);
+
+        }
+        else {
+          postResult = await updateItemApproval(postPayload, sp, props.currentItem.Id);
+
+        }
+
+        if (postResult) {
+          Swal.fire(resultmessage, '', 'success');
+          setTimeout(() => {
+
+            // window.location.reload()
+
+            location.href = `${siteUrl}/SitePages/MyApprovals.aspx`;
+
+          }, 1000);
+
+
+        }
 
       }
-      else if(props.ContentType == "Annual Audit Plan"){
-        postResult = await updateItemApproval2(postPayload, sp, props.currentItem.Id);
-        
-      }
-      else{
-         postResult = await updateItemApproval(postPayload, sp, props.currentItem.Id);
-
-      }
-   
-          if (postResult) {
-              Swal.fire(resultmessage, '', 'success');
-              setTimeout(() => {
-        
-                // window.location.reload()
-    
-                location.href=`${siteUrl}/SitePages/MyApprovals.aspx`;
-        
-              }, 1000);
-        
-        
-            }
-
-        }}) 
-       
-    
-      }
-
-    return(
-         
-        <div className="card">
-
-                    <div className="card-body">
-
-                      <div className="row">
-                        {
-
-                        (props.currentItem.Status == "Pending" || props.currentItem.IsRework) && (<div className="col-lg-12">
-
-                            <div className="mb-0" >
-
-                              <label htmlFor="example-textarea" className="form-label text-dark font-14">Remarks:</label>
-
-                              <textarea style={{height:'80px'}} className="form-control" id="example-textarea" rows={5} name="Remark" value={formData.Remark}
-
-                                onChange={(e) => onChange(e.target.name, e.target.value)}></textarea>
-
-                            </div>
-
-                          </div>)
-
-                        }
+    })
 
 
-                      </div>
+  }
 
-                      {
+  return (
 
+    <div className="card">
 
-                        (props.currentItem.Status == "Pending" || props.currentItem.IsRework)  && (
+      <div className="card-body">
 
-                          <div className="row mt-3">
+        <div className="row">
+          {
 
-                            <div className="col-12 text-center">
+            (props.currentItem.Status == "Pending" || props.currentItem.IsRework) && (<div className="col-lg-12">
 
-                              {!props.DisableApproval? (<a href="my-approval.html">
+              <div className="mb-0" >
 
-                                <button type="button" className="btn btn-success waves-effect waves-light m-1" onClick={(e) => handleFromSubmit(e, 'Approved')}>
+                <label htmlFor="example-textarea" className="form-label text-dark font-14">Remarks:</label>
 
-                                  <i className="fe-check-circle me-1"></i> Approve
+                <textarea style={{ height: '80px' }} className="form-control" id="example-textarea" rows={5} name="Remark" value={formData.Remark}
 
-                                </button>
+                  onChange={(e) => onChange(e.target.name, e.target.value)}></textarea>
 
-                              </a>):(<div></div>)}
+              </div>
 
-                              { !props.DisableApproval?(<a href="my-approval.html">
+            </div>)
 
-                                <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={(e) => handleFromSubmit(e, 'Rework')}>
-
-                                  <i className="fe-corner-up-left me-1"></i> Rework
-
-                                </button>
-
-                              </a>):(<div></div>)}
-
-                              {!props.DisableApproval?(<a href="my-approval.html">
-
-                                <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={(e) => handleFromSubmit(e, 'Rejected')}>
-
-                                  <i className="fe-x-circle me-1"></i> Reject
-
-                                </button>
-
-                              </a>):(<div></div>)}
-
-                              {!props.DisableCancel?(<button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={(e) => handleCancel()}>
-
-                                <i className="fe-x me-1"></i> Cancel
-
-                              </button>):(<div></div>)}
-
-                            </div>
-
-                          </div>
-
-                        )
-
-                      }
+          }
 
 
-                    </div>
+        </div>
 
-                  </div>
-    )
+        {
+
+
+          (props.currentItem.Status == "Pending" || props.currentItem.IsRework) && (
+
+            <div className="row mt-3">
+
+              <div className="col-12 text-center">
+
+                {!props.DisableApproval ? (<a href="my-approval.html">
+
+                  <button type="button" className="btn btn-success waves-effect waves-light m-1" onClick={(e) => handleFromSubmit(e, 'Approved')}>
+
+                    <i className="fe-check-circle me-1"></i> Approve
+
+                  </button>
+
+                </a>) : (<div></div>)}
+
+                {!props.DisableApproval ? (<a href="my-approval.html">
+
+                  <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={(e) => handleFromSubmit(e, 'Rework')}>
+
+                    <i className="fe-corner-up-left me-1"></i> Rework
+
+                  </button>
+
+                </a>) : (<div></div>)}
+
+                {!props.DisableApproval ? (<a href="my-approval.html">
+
+                  <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={(e) => handleFromSubmit(e, 'Rejected')}>
+
+                    <i className="fe-x-circle me-1"></i> Reject
+
+                  </button>
+
+                </a>) : (<div></div>)}
+
+                {!props.DisableCancel ? (<button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={(e) => handleCancel()}>
+
+                  <i className="fe-x me-1"></i> Cancel
+
+                </button>) : (<div></div>)}
+
+              </div>
+
+            </div>
+
+          )
+
+        }
+
+
+      </div>
+
+    </div>
+  )
 
 }
