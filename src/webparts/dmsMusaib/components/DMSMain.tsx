@@ -13847,7 +13847,7 @@ const ArgPoc = ({ props }: any) => {
                               AuditPlanFunc(event as any);
                               handleShowContent(event as any);
                             }}
-                          >Annual Audit Plan </Dropdown.Item>
+                          >Audit Plan </Dropdown.Item>
                           <Dropdown.Item href="#/AnnualAuditReport"
                             onClick={(event) => {
                               AuditReportFunc(event as any);

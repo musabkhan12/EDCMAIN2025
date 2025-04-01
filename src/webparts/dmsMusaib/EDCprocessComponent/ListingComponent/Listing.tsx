@@ -159,7 +159,9 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     </td>
                     <td style={{ minWidth: '85px', maxWidth: '85px' }}>{item?.RequestId}</td>
                     <td  style={{ minWidth: '85px', maxWidth: '85px' }}>{item.Title}</td>
-                    <td title={item?.ProcessName} style={{ minWidth: '85px', maxWidth: '85px' }}>{item?.ProcessName}</td>
+                    <td title={item?.ProcessName === "Annual Audit Plan" ? "Audit Plan" : item?.ProcessName} style={{ minWidth: '85px', maxWidth: '85px' }}>
+                        {item?.ProcessName === "Annual Audit Plan" ? "Audit Plan" : item?.ProcessName}
+                    </td>
                     <td title={item.ReqName} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.ReqName}</td>
                     <td title={moment(item.ReqDt).format("DD-MMM-YYYY")} style={{ minWidth: '85px', maxWidth: '85px' }}>{moment(item.ReqDt).format("DD-MMM-YYYY")}</td>
                     <td title={item.Status} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.Status}</td>

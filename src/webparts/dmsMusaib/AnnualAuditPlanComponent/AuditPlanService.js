@@ -27,8 +27,9 @@ export const getDataRoles = async (_sp) => {
     let bannerimg = []
     const currentUser = await _sp.web.currentUser();
     await _sp.web.lists.getByTitle("AnnualAuditPlanList").items.getById(id)
-    .select("*,Author/ID,Author/Title,AuditPlanType/AuditPlanType,AuditPlanType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail").expand("Author,AuditPlanType,To,Cc,From")()
+    .select("*,Author/ID,Author/Title,AuditPlanType/AuditPlanType,AuditPlanType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Department,ToDepartments/DepartmentCode").expand("ToDepartments,CCDepartments,Author,AuditPlanType,To,Cc,From")()
       .then((res) => {
+        
         console.log(res, ' let arrs=[]');      
   
          arr.push(res)
@@ -130,6 +131,9 @@ export const getDataRoles = async (_sp) => {
             value: item.Id,
             label: item.Department,
             Department:item.Department,
+            DepartmentCode:item.DepartmentCode,
+            ToUsers:item.ToUsersId||[],
+            CCUsers:item.CCUsersId||[],
          
       }));
        
