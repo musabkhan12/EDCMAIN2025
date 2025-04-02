@@ -124,7 +124,7 @@ export const getDataRoles = async (_sp) => {
     let arrs = []
     let bannerimg = []
     await _sp.web.lists.getByTitle("DepartmentMasterList").items
-    .select("*").filter("Active eq 'Yes'")()
+    .select("*,ToUsers/Title,CCUsers/Title").expand("ToUsers,CCUsers").filter("Active eq 'Yes'")()
       .then((res) => {
         // console.log(res, ' let arrs=[]');
         arr = res.map((item) => ({
@@ -134,6 +134,8 @@ export const getDataRoles = async (_sp) => {
             DepartmentCode:item.DepartmentCode,
             ToUsers:item.ToUsersId||[],
             CCUsers:item.CCUsersId||[],
+            ToUsersTitle:item.ToUsers||[],
+            CCUsersTitle:item.CCUsers||[],
          
       }));
        

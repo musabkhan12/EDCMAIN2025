@@ -91,6 +91,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [selectAuditplan, setselectAuditplan] = React.useState(null);
     const [doccode, setdoccode] = React.useState("");
     const [AllDept, setAllDept] = React.useState([]);
+    const [RowErrors, setRowErrors] = React.useState([]);
     const [DocumentLink, setDocumentLink] = React.useState(null);
     const [DraftApprovalItem, setDraftApprovalItem] = React.useState(null);
     // const [cancellReason, setcancellReason] = React.useState([{ id: 0, description: "", reason: "" }]);
@@ -220,7 +221,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         console.log("DocCodeArrDocCodeArr", DocCodeArr);
         const options = DocCodeArr.map((item: any) => ({
             value: item.ID,
-            label: item.ID,
+            label: item.MemoNumber,
             ApprovedAuditPlanId: item.ID,
             IssueNumber: item.IssueNumber,
             ReferenceNumber: item.ReferenceNumber,
@@ -714,59 +715,101 @@ const AnnualAuditReportContext = ({ props }: any) => {
             //     && row.sharewith != null && row.sharewith.length != 0) == false) {
             //     validRec = false;
             // }
-            if (recommendationRows.length > 0) {
-                let isoreferenceError = false;
-                let imsprocedureError = false;
-                let inquiriesError = false;
-                let timeError = false;
-                let auditorcommentsError = false;
-                let sharewithError = false;
+            // if (recommendationRows.length > 0) {
+            //     let isoreferenceError = false;
+            //     let imsprocedureError = false;
+            //     let inquiriesError = false;
+            //     let timeError = false;
+            //     let auditorcommentsError = false;
+            //     let sharewithError = false;
 
-                recommendationRows.forEach((row: any) => {
-                    // Check each field individually
-                    if (row.isoreference === null || row.isoreference.trim() === "") {
-                        isoreferenceError = true;
+            //     recommendationRows.forEach((row: any) => {
+            //         // Check each field individually
+            //         if (row.isoreference === null || row.isoreference.trim() === "") {
+            //             isoreferenceError = true;
+            //         }
+            //         if (row.imsprocedure === null || row.imsprocedure.trim() === "") {
+            //             imsprocedureError = true;
+            //         }
+            //         if (row.inquiries === null || row.inquiries.trim() === "") {
+            //             inquiriesError = true;
+            //         }
+            //         if (row.time === null || row.time.trim() === "") {
+            //             timeError = true;
+            //         }
+            //         if (row.auditorcomments === null || row.auditorcomments.trim() === "") {
+            //             auditorcommentsError = true;
+            //         }
+            //         if (row.sharewith === null || row.sharewith.length === 0) {
+            //             sharewithError = true;
+            //         }
+            //     });
+
+            //     // Set error flags for fields that are invalid
+            //     if (isoreferenceError) {
+            //         setisoreferenceerr(true);
+            //     }
+            //     if (imsprocedureError) {
+            //         setimsprocedureerr(true);
+            //     }
+            //     if (inquiriesError) {
+            //         setinquirieserr(true);
+            //     }
+            //     if (timeError) {
+            //         settimeerr(true);
+            //     }
+            //     if (auditorcommentsError) {
+            //         setauditorcommentserr(true);
+            //     }
+            //     if (sharewithError) {
+            //         setsharewitherr(true);
+            //     }
+
+            //     // If any field has an error, set the validation flag to false
+            //     if (isoreferenceError || imsprocedureError || inquiriesError || timeError || auditorcommentsError || sharewithError) {
+            //         validRec = false;
+            //     }
+            // }
+            if (recommendationRows.length > 0) {
+                debugger
+                let validRec = true; // Assume valid initially
+                let rowErrors: any[] = []; // Store errors for each row
+
+                recommendationRows.forEach((row: any, index: number) => {
+                    let rowError: any = {}; // Store errors for this row
+
+                    if (!row.isoreference || row.isoreference.trim() === "") {
+                        rowError.isoreference = true;
                     }
-                    if (row.imsprocedure === null || row.imsprocedure.trim() === "") {
-                        imsprocedureError = true;
+                    if (!row.imsprocedure || row.imsprocedure.trim() === "") {
+                        rowError.imsprocedure = true;
                     }
-                    if (row.inquiries === null || row.inquiries.trim() === "") {
-                        inquiriesError = true;
+                    if (!row.inquiries || row.inquiries.trim() === "") {
+                        rowError.inquiries = true;
                     }
-                    if (row.time === null || row.time.trim() === "") {
-                        timeError = true;
+                    if (!row.time || row.time.trim() === "") {
+                        rowError.time = true;
                     }
-                    if (row.auditorcomments === null || row.auditorcomments.trim() === "") {
-                        auditorcommentsError = true;
+                    if (!row.auditorcomments || row.auditorcomments.trim() === "") {
+                        rowError.auditorcomments = true;
                     }
-                    if (row.sharewith === null || row.sharewith.length === 0) {
-                        sharewithError = true;
+                    if (!row.sharewith || row.sharewith.length === 0) {
+                        rowError.sharewith = true;
+                    }
+
+                    // If there are errors in this row, store them
+                    if (Object.keys(rowError).length > 0) {
+                        rowErrors[index] = rowError; // Assign the errors for this row
+                        validRec = false; // Mark as invalid
                     }
                 });
 
-                // Set error flags for fields that are invalid
-                if (isoreferenceError) {
-                    setisoreferenceerr(true);
-                }
-                if (imsprocedureError) {
-                    setimsprocedureerr(true);
-                }
-                if (inquiriesError) {
-                    setinquirieserr(true);
-                }
-                if (timeError) {
-                    settimeerr(true);
-                }
-                if (auditorcommentsError) {
-                    setauditorcommentserr(true);
-                }
-                if (sharewithError) {
-                    setsharewitherr(true);
-                }
+                // Update the state or UI with the errors
+                setRowErrors(rowErrors);
 
-                // If any field has an error, set the validation flag to false
-                if (isoreferenceError || imsprocedureError || inquiriesError || timeError || auditorcommentsError || sharewithError) {
-                    validRec = false;
+                // Set validation flag
+                if (!validRec) {
+                    console.log("Validation failed. Highlight errors accordingly.");
                 }
             }
 
@@ -1550,7 +1593,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                         // if (boolval == true) {
                         setLoading(false);
-                        Swal.fire('Saved successfully.', '', 'success');
+                        Swal.fire('Saved Successfully.', '', 'success');
                         sessionStorage.removeItem("DocumentCancelId")
                         setTimeout(() => {
 
@@ -1756,7 +1799,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
 
                         setLoading(false);
-                        Swal.fire('Saved successfully.', '', 'success');
+                        Swal.fire('Saved Successfully.', '', 'success');
                         // sessionStorage.removeItem("bannerId")
                         setTimeout(() => {
                             window.location.reload();
@@ -1940,7 +1983,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 {console.log("doccodedoccodedoccode", doccode)}
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
-                                                                        <label htmlFor="memoNo" className="col-4 col-xl-3 col-form-label">Document Code<span className="text-danger1"> *</span></label>
+                                                                        <label htmlFor="memoNo" className="col-4 col-xl-3 col-form-label">Memo Code<span className="text-danger1"> *</span></label>
                                                                         <div className="col-8 col-xl-9">
                                                                             <input
                                                                                 disabled
@@ -2090,20 +2133,20 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                             </thead>
 
                                                             <tbody>
-
+                                                                {console.log("ValidDRecommValidDRecomm", ValidDRecomm)}
                                                                 {recommendationRows.map((row, index) => (
                                                                     <tr key={index}>
                                                                         <td>
                                                                             <input
                                                                                 type="text"
-                                                                                className={`form-control ${(!ValidDRecomm && isoreferenceerr) ? "border-on-error" : ""}`}
+                                                                                className={`form-control ${(RowErrors[index]?.isoreference) ? "border-on-error" : ""}`}
                                                                                 // className="form-control"
                                                                                 value={row.isoreference}
                                                                                 onChange={(e) => handleRecommendationChange(index, 'isoreference', e.target.value)}
                                                                                 disabled={InputDisabled}
                                                                             />
                                                                         </td>
-                                                                        <td>
+                                                                        {/* <td>
                                                                             <input
                                                                                 type="text"
                                                                                 className={`form-control ${(!ValidDRecomm && imsprocedureerr) ? "border-on-error" : ""}`}
@@ -2112,11 +2155,20 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 onChange={(e) => handleRecommendationChange(index, 'imsprocedure', e.target.value)}
                                                                                 disabled={InputDisabled}
                                                                             />
+                                                                        </td> */}
+                                                                        <td>
+                                                                            <input
+                                                                                type="text"
+                                                                                className={`form-control ${RowErrors[index]?.imsprocedure ? "border-on-error" : ""}`}
+                                                                                value={row.imsprocedure}
+                                                                                onChange={(e) => handleRecommendationChange(index, 'imsprocedure', e.target.value)}
+                                                                                disabled={InputDisabled}
+                                                                            />
                                                                         </td>
                                                                         <td>
                                                                             <input
                                                                                 type="text"
-                                                                                className={`form-control ${(!ValidDRecomm && inquirieserr) ? "border-on-error" : ""}`}
+                                                                                className={`form-control ${(RowErrors[index]?.inquiries) ? "border-on-error" : ""}`}
                                                                                 // className="form-control"
                                                                                 value={row.inquiries}
                                                                                 onChange={(e) => handleRecommendationChange(index, 'inquiries', e.target.value)}
@@ -2124,9 +2176,17 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                             />
                                                                         </td>
                                                                         <td>
-                                                                            <input
+                                                                            {/* <input
                                                                                 type="text"
-                                                                                className={`form-control ${(!ValidDRecomm && auditorcommentserr) ? "border-on-error" : ""}`}
+                                                                                className={`form-control ${( RowErrors[index]?.auditorcomments) ? "border-on-error" : ""}`}
+                                                                                // className="form-control"
+                                                                                value={row.auditorcomments}
+                                                                                onChange={(e) => handleRecommendationChange(index, 'auditorcomments', e.target.value)}
+                                                                                disabled={InputDisabled}
+                                                                            /> */}
+                                                                            <textarea
+                                                                                id="simpleinput"
+                                                                                className={`form-control ${(RowErrors[index]?.auditorcomments) ? "border-on-error" : ""}`}
                                                                                 // className="form-control"
                                                                                 value={row.auditorcomments}
                                                                                 onChange={(e) => handleRecommendationChange(index, 'auditorcomments', e.target.value)}
@@ -2136,7 +2196,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         <td>
                                                                             <input
                                                                                 type="time"
-                                                                                className={`form-control ${(!ValidDRecomm && timeerr) ? "border-on-error" : ""}`}
+                                                                                className={`form-control ${( RowErrors[index]?.time) ? "border-on-error" : ""}`}
                                                                                 // className="form-control"
                                                                                 value={row.time}
                                                                                 onChange={(e) => handleRecommendationChange(index, 'time', e.target.value)}
@@ -2147,7 +2207,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                             <Select
                                                                                 options={rows1}
                                                                                 // isMulti
-                                                                                className={`${(!ValidDRecomm && sharewitherr) ? "border-on-error" : ""}`}
+                                                                                className={`${( RowErrors[index]?.sharewith) ? "border-on-error" : ""}`}
                                                                                 value={row.sharewith}
                                                                                 onChange={(selectedOptions: any) => handleRecommendationChange(index, 'sharewith', selectedOptions)}
                                                                                 placeholder="Select"

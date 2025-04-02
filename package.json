@@ -48,6 +48,7 @@
     "react-responsive": "^10.0.0",
     "react-router-dom": "^6.29.0",
     "react-select": "^5.8.1",
+    "react-tooltip": "^5.28.0",
     "sweetalert2": "^11.14.0",
     "tslib": "2.3.1",
     "xlsx": "^0.18.5"

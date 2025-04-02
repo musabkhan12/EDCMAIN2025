@@ -32,6 +32,9 @@ import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
 import { addAllProcessItem, addItem, addItem2, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles } from './AuditPlanService';
 import { TextField } from '@fluentui/react';
+import { Icon } from '@fluentui/react/lib/Icon';
+import { Tooltip } from 'react-tooltip';
+import 'react-tooltip/dist/react-tooltip.css';
 
 // let myloader = '../../'
 let newfileupload: any
@@ -85,14 +88,16 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     const [editForm, setEditForm] = React.useState(false);
     const [modeValue, setmode] = React.useState("");
     const [currentUserDept, setcurrentUserDept] = React.useState("");
-    const [selectUserDept, setselectUserDept] = React.useState(null);
-    const [selectUserDeptTo, setselectUserDeptTo] = React.useState(null);
+    const [selectUserDept, setselectUserDept] = React.useState([]);
+    const [selectUserDeptTo, setselectUserDeptTo] = React.useState([]);
     const [selectUserDeptCC, setselectUserDeptCC] = React.useState(null);
     const [AllDept, setAllDept] = React.useState([]);
     const [DocumentLink, setDocumentLink] = React.useState(null);
     const [DraftApprovalItem, setDraftApprovalItem] = React.useState(null);
     // const [cancellReason, setcancellReason] = React.useState([{ id: 0, description: "", reason: "" }]);
     // const [RecommendRows, setRecommendRows] = React.useState([]);
+    const [tooltipText, settooltipText] = React.useState("");
+    const [tooltipText1, settooltipText1] = React.useState("");
     const [showModal, setShowModal] = React.useState(false);
     const [formData, setFormData] = React.useState({
         // infoCheck: false,
@@ -184,6 +189,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         if (selectedOption) {
             document.getElementById("ToDept")?.classList.remove("border-on-error");
         }
+        createTooltipContentTo(selectedOption);
     }
 
     const handleDepartmentChangeCC = (selectedOption: any) => {
@@ -202,6 +208,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         if (selectedOption) {
             document.getElementById("CCDept")?.classList.remove("border-on-error");
         }
+        createTooltipContent(selectedOption);
     }
 
 
@@ -313,7 +320,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             setshowForwardapproval(true)
         }
         let memo: number = 0;
-
+        let filteredDeptArrayTo: any[] = [];
+        let filteredDeptArrayCC: any[] = [];
 
         const Currusers: any = await getCurrentUser(sp, siteUrl);
         setCurrentUser(await getCurrentUser(sp, siteUrl));
@@ -485,6 +493,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                 setselectUserDeptCC(setBannerById[0].CCDepartments?.map((obj: any) => {
                     const filteredDept = setAllDept1.find((dept: any) => dept.value === obj.ID);
+                    if (filteredDept) {
+                        filteredDeptArrayCC.push(filteredDept);
+                    }
                     return {
                         value: obj.ID,
                         label: obj.Department,
@@ -492,6 +503,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         DepartmentCode: obj.DepartmentCode,
                         ToUsers: filteredDept?.ToUsers || [],
                         CCUsers: filteredDept?.CCUsers || [],
+                        ToUsersTitle: filteredDept?.ToUsersTitle || [],
+                        CCUsersTitle: filteredDept?.CCUsersTitle || [],
 
                     };
 
@@ -499,6 +512,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                 setselectUserDeptTo(setBannerById[0].ToDepartments?.map((obj: any) => {
                     const filteredDept = setAllDept1.find((dept: any) => dept.value === obj.ID);
+                    if (filteredDept) {
+                        filteredDeptArrayTo.push(filteredDept);
+                    }
                     return {
                         value: obj.ID,
                         label: obj.Department,
@@ -506,6 +522,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         DepartmentCode: obj.DepartmentCode,
                         ToUsers: filteredDept?.ToUsers || [],
                         CCUsers: filteredDept?.CCUsers || [],
+                        ToUsersTitle: filteredDept?.ToUsersTitle || [],
+                        CCUsersTitle: filteredDept?.CCUsersTitle || [],
                     };
                 }) || []);
                 if (setBannerById[0].AttachmentId) {
@@ -563,6 +581,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         // setRequesterRoleId(await getRequesterID(sp))
         setFormNameId(await getFormNameID(sp, CONTENTTYPE_AuditPlan))
         setListNameId(await getListNameID(sp, LIST_TITLE_AuditPlan))
+        createTooltipContent(filteredDeptArrayCC);
+        createTooltipContentTo(filteredDeptArrayTo)
 
         //}
         //#endregion
@@ -892,6 +912,24 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         }
         // return valid;
     };
+
+    const getNewFileName = async (originalFileName: string): Promise<string> => {
+        const userId = currentUser.Id; // Or however you get the current user ID
+        const date = new Date();
+        const fileExtension = originalFileName.split('.').pop();
+
+        const components = [
+            date.getFullYear(),
+            (date.getMonth() + 1).toString().padStart(2, '0'),
+            date.getDate().toString().padStart(2, '0'),
+            date.getHours().toString().padStart(2, '0'),
+            date.getMinutes().toString().padStart(2, '0'),
+            date.getSeconds().toString().padStart(2, '0'),
+            date.getMilliseconds().toString().padStart(3, '0')
+        ];
+
+        return `${userId}_${components.join('')}_${originalFileName}`;
+    };
     // #region  Submit Form
     const handleFormSubmit = async () => {
         if (await validateForm(FormSubmissionMode.SUBMIT)) {
@@ -1066,7 +1104,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                     // MainListID: String(editItemID),
                                     MainListID: String(editItemID),
-                                    // RequestId: selectedOption.DocumentCode,
+                                    RequestId: formData.memoNo,
                                     // RequestId:String(editID.Id),
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
@@ -1334,7 +1372,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                     // MainListID: String(editItemID),
                                     MainListID: String(postId),
-                                    // RequestId: selectedOption.DocumentCode,
+                                    RequestId: formData.memoNo,
                                     // RequestId:String(editID.Id),
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
@@ -1412,8 +1450,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             for (const file of FilesArr) {
                                 if (!file.ID) {
                                     //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
-                                    DocumentName = file.name;
-                                    const fileAddResult = await folder.files.addChunked(file.name, file);
+                                    // DocumentName = file.name;
+                                    const newFileName = await getNewFileName(file.name);
+                                    DocumentName = newFileName;
+                                    const fileAddResult = await folder.files.addChunked(newFileName, file);
                                     const fileNew = fileAddResult.file;
                                     const documentName = fileAddResult.data.Name;
                                     bannerImageArray = fileAddResult;
@@ -1555,7 +1595,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                 // MainListID: String(editItemID),
                                 MainListID: String(editItemID),
-                                // RequestId: selectedOption.DocumentCode,
+                                RequestId: formData.memoNo,
                                 // RequestId:String(editID.Id),
                                 RequesterNameId: currentUser.Id,
                                 RequestedDate: new Date().toLocaleDateString("en-CA"),
@@ -1683,8 +1723,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             for (const file of FilesArr) {
                                 if (!file.ID) {
                                     //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
-                                    DocumentName = file.name;
-                                    const fileAddResult = await folder.files.addChunked(file.name, file);
+                                    // DocumentName = file.name;
+                                    const newFileName = await getNewFileName(file.name);
+                                    DocumentName = newFileName;
+                                    const fileAddResult = await folder.files.addChunked(newFileName, file);
                                     const fileNew = fileAddResult.file;
                                     const documentName = fileAddResult.data.Name;
                                     bannerImageArray = fileAddResult;
@@ -1817,7 +1859,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                     // MainListID: String(editItemID),
                                     MainListID: String(postId),
-                                    // RequestId: selectedOption.DocumentCode,
+                                    RequestId: formData.memoNo,
                                     // RequestId:String(editID.Id),
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
@@ -1984,6 +2026,95 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
     const handleDelete = (index: number) => {
         setFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
+    };
+
+
+    const createTooltipContent = (deptArr: any) => {
+        // return "This is your tooltip content";
+
+        const tableHeader = `
+    <thead>
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="border: 1px solid #ddd; padding: 8px;">S.No</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Department</th>
+                       
+                        <th style="border: 1px solid #ddd; padding: 8px;">Users</th>
+                    </tr>
+    </thead>`;
+
+        // Generate table rows from AllDept data
+        const tableRows = deptArr.map((item: any, index: number) => {
+            // Extract and format data
+            const department = item.Department || '';
+
+            const ccUsers = item.CCUsersTitle?.map((user: any) => user.Title).join(", ") || '';
+
+            // Return formatted row
+            return `
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${index + 1}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">${department}</td>
+       
+        <td style="border: 1px solid #ddd; padding: 8px;">${ccUsers}</td>
+      </tr>`;
+        }).join('');
+
+        // Combine header and rows into complete table
+        const tooltipTable = `
+    <table style="border-collapse: collapse; width: 100%;">
+      ${tableHeader}
+      <tbody>
+        ${tableRows}
+                </tbody>
+    </table>
+  `;
+
+        // Set tooltip text
+        settooltipText(tooltipTable);
+    };
+
+    const createTooltipContentTo = (deptArr: any) => {
+        // return "This is your tooltip content";
+
+        const tableHeader = `
+    <thead>
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="border: 1px solid #ddd; padding: 8px;">S.No</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Department</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Users</th>
+                        
+                    </tr>
+    </thead>`;
+
+        // Generate table rows from AllDept data
+        const tableRows = deptArr.map((item: any, index: number) => {
+            // Extract and format data
+            const department = item.Department || '';
+            const toUsers = item.ToUsersTitle?.map((user: any) => user.Title).join(", ") || '';
+            // const ccUsers = item.CCUsersTitle?.map((user: any) => user.Title).join(", ") || '';
+
+            // Return formatted row
+            return `
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${index + 1}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">${department}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">${toUsers}</td>
+       
+      </tr>`;
+        }).join('');
+
+        // Combine header and rows into complete table
+        const tooltipTable = `
+    <table style="border-collapse: collapse; width: 100%;">
+      ${tableHeader}
+      <tbody>
+        ${tableRows}
+                </tbody>
+    </table>
+  `;
+
+
+        settooltipText1(tooltipTable);
     };
 
 
@@ -2179,7 +2310,31 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
-                                                                        <label htmlFor="to" className="col-4 col-xl-3 col-form-label">To<span className="text-danger1"> *</span></label>
+                                                                        <label htmlFor="to" className="col-4 col-xl-3 col-form-label">To
+
+                                                                            <Icon
+                                                                                iconName="Info"
+                                                                                className="ms-1"
+                                                                                // title={tooltipText}
+                                                                                // data-html={true}
+                                                                                // data-tip={tooltipText}
+                                                                                data-tooltip-id="my-tooltip"
+                                                                                style={{ fontSize: '14px', cursor: 'pointer' }}
+                                                                            />
+                                                                            <Tooltip
+                                                                                id="my-tooltip"
+                                                                                content={tooltipText1}
+                                                                                className="custom-tooltip"
+                                                                                render={({ content }) => (
+                                                                                    <div dangerouslySetInnerHTML={{ __html: content }} />
+                                                                                )}
+                                                                                style={{
+                                                                                    backgroundColor: 'white',
+                                                                                    color: 'black',
+                                                                                    zIndex: 999
+                                                                                }}
+                                                                            />
+                                                                            <span className="text-danger1"> *</span></label>
                                                                         <div className="col-8 col-xl-9">
                                                                             <Select
                                                                                 options={AllDept}
@@ -2214,7 +2369,32 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                 <div className="col-lg-6">
                                                                     <div className="row mb-3">
-                                                                        <label htmlFor="recommendation" className="col-4 col-xl-3 col-form-label">CC<span className="text-danger1"> *</span></label>
+                                                                        <label htmlFor="recommendation" className="col-4 col-xl-3 col-form-label">CC
+                                                                            <Icon
+                                                                                iconName="Info"
+                                                                                className="ms-1"
+                                                                                // title={tooltipText}
+                                                                                // data-html={true}
+                                                                                // data-tip={tooltipText}
+                                                                                data-tooltip-id="my-tooltip2"
+                                                                                style={{ fontSize: '14px', cursor: 'pointer' }}
+                                                                            />
+
+                                                                            <Tooltip
+                                                                                id="my-tooltip2"
+                                                                                content={tooltipText}
+                                                                                className="custom-tooltip"
+
+                                                                                render={({ content }) => (
+                                                                                    <div dangerouslySetInnerHTML={{ __html: content }} />
+                                                                                )}
+                                                                                style={{
+                                                                                    backgroundColor: 'white',
+                                                                                    color: 'black',
+                                                                                    zIndex: 999
+                                                                                }}
+                                                                            />
+                                                                            <span className="text-danger1"> *</span></label>
                                                                         <div className="col-8 col-xl-9">
                                                                             <Select
                                                                                 options={AllDept}
@@ -2829,7 +3009,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     <th>File Name</th>
                                                                     {/* {editForm && <th>File Link</th>} */}
                                                                     <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th>
-                                                                    {!InputDisabled && <th className='text-center'>Action</th>}
+                                                                    {/* {!InputDisabled && <th className='text-center'>Action</th>} */}
+                                                                    <th className='text-center'>Action</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>

@@ -128,7 +128,14 @@ import { Listing } from "../EDCprocessComponent/ListingComponent/Listing";
 import AnnualAuditPlan from "../AnnualAuditPlanComponent/AnnualAuditPlan";
 import AnnualAuditReport from "../AnnualAuditReportComponent/AnnualAuditReport";
 import AuditPlan from "../NonConformityComponent/AddForm";
-
+interface NavItem {
+  Title: string;
+  Url: string;
+  Icon: string;
+  ParentId?: number;
+  ID: number;
+  Process: string;
+}
 let Undo = require('../assets/Undo.svg');
 let sharewithmeicon = require('../assets/nodes.png')
 let recyclebin = require('../assets/recycle-bin.png')
@@ -218,6 +225,7 @@ const ArgPoc = ({ props }: any) => {
   const [showworkflowdiv, setshowworkflowdiv] = useState('');
   const [showWorkflow, setShowWorkflow] = useState(false);
   const [showfolderpermission, setShowfolderpermission] = useState(false);
+  const [navItems, setNavItems] = React.useState<NavItem[]>([]);
   let cleanUrlInMyRequest = false;
   // const handleButtonClickShow = () => {
   //   setShowFirstDiv(false);
@@ -2211,9 +2219,51 @@ const ArgPoc = ({ props }: any) => {
     }
   };
   useEffect(() => {
+    fetchNavItems();
     fetchAndBuildTree2();
   }, [])
+  const fetchNavItems = async () => {
 
+    const currentUser = await sp.web.currentUser();
+
+    // Get groups for the current user
+    const userGroups = await sp.web.currentUser.groups();
+
+    console.log("userGroups", userGroups);
+    let grptitle: String[] = [];
+    for (var i = 0; i < userGroups.length; i++) {
+      grptitle.push(userGroups[i].Title.toLowerCase());
+    }
+
+    console.log('%c Start', "background-color:red");
+    debugger
+    await sp.web.lists.getByTitle("DMSProcessNavigation").items.select("Title,Url,Icon,ParentId,ID,EnableAudienceTargeting,Audience/Title,IsActive").expand("Audience")
+      .filter(`IsActive eq '1'`)
+      .orderBy("Order0", true).getAll().then((res: any) => {
+        console.log('%c res', "background-color:red", res);
+       
+        // localStorage.setItem('Navitems', JSON.stringify(items))
+        // setNavItems(res);
+        let securednavitems = res.filter((nav: any) => {
+          return (!nav.EnableAudienceTargeting || (nav.EnableAudienceTargeting && nav.Audience && nav.Audience.some((nv1: any) => { return grptitle.includes(nv1.Title.toLowerCase()); })))
+        }
+        );
+        const items: NavItem[] = securednavitems.map((item: any) => {
+          return {
+            Title: item.Title,
+            Url: item.Url,
+            Icon: item.Icon,
+            ParentId: item.ParentId,
+            ID: item.ID,
+            Process: item.Url?.split('.aspx#/')[1]
+          };
+        });
+      
+        setNavItems(items);
+        return items;
+      });
+    // }
+  };
   // Call the function to fetch data and build the tree
   // thi is working new function for getting files from documnet library with pagination batching
   // const getdoclibdata = async (FolderPath: any , siteID:any , docLibName:any) => {
@@ -10528,6 +10578,47 @@ const ArgPoc = ({ props }: any) => {
     window.location.hash = "/DocumentCancellation";
 
   }
+
+  const NavigateProcess = async (event: React.MouseEvent<HTMLButtonElement>, processname: string) => {
+    if (processname == "DocumentCancellation") {
+      const getcol = document.getElementsByClassName('col-md-12');
+      const selectedTextDiv = document.getElementById('selectedText');
+      const breadcrumbElement = document.getElementById("breadcrumb");
+      breadcrumbElement.style.display = 'none';
+      selectedTextDiv.style.display = 'none';
+
+      if (getcol.length > 0) {
+        Array.from(getcol).forEach((element) => {
+          element.remove();
+        });
+      }
+
+
+      const getfilescontainer = document.getElementById('files-container')
+      if (getfilescontainer) {
+        getfilescontainer.classList.add('hidemydatacards')
+      }
+      setlistorgriddata('DocumentCancellation');
+      setDynamicContent(null);
+      window.location.hash = "/DocumentCancellation";
+    } else {
+      const selectedTextDiv = document.getElementById('selectedText');
+      const breadcrumbElement = document.getElementById("breadcrumb");
+      breadcrumbElement.style.display = 'none';
+      selectedTextDiv.style.display = 'none';
+      const getfilescontainer = document.getElementById('files-container')
+      if (getfilescontainer) {
+        getfilescontainer.classList.add('hidemydatacards')
+      }
+      setlistorgriddata(`${processname}`);
+      setDynamicContent(null);
+      setSelectedText(null);
+      window.location.hash = `/${processname}`;
+    }
+
+
+  }
+
   const myRequest = async (event: React.MouseEvent<HTMLButtonElement> = null, siteIdToUpdate: string = null, searchText: any = null) => {
     // alert('this function is calling')
     if (returnFromMyRequest) {
@@ -11012,7 +11103,7 @@ const ArgPoc = ({ props }: any) => {
         case 'Annual Audit Program':
           setDynamicContent('Annual Audit Program');
           break;
-        case 'Annual Audit Report':
+        case 'Audit Checklist and Report':
           setDynamicContent('Annual Audit Report');
           break;
         case 'Non Conformity':
@@ -13801,10 +13892,15 @@ const ArgPoc = ({ props }: any) => {
                         </Dropdown.Toggle>
 
                         <Dropdown.Menu className="dropdown-menu-start newtheme font-14">
-                          <Dropdown.Item href="#/AnnualAuditProgram" onClick={(event) => {
-                            ChangeRequest(event as any);
-                            handleShowContent(event as any);
-                          }}>Annual Audit Program</Dropdown.Item>
+                          {console.log("navItems", navItems)}
+                          {navItems.map(item => (
+                            <Dropdown.Item href={`#/${item.Process}`}
+                              onClick={(event) => {
+                                NavigateProcess(event as any, item.Process)
+                                //ChangeRequest(event as any);
+                                handleShowContent(event as any);
+                              }}>{item.Title}</Dropdown.Item>
+                          ))}
                           {/* <Dropdown.Item href="#/cancellationrequest"     
           onClick={(event) => {
             testProess2(event as any);
@@ -13830,7 +13926,7 @@ const ArgPoc = ({ props }: any) => {
           }}
           >Change Request edit</Dropdown.Item>
            */}
-                          <Dropdown.Item href="#/ChangeDocumentRequest"
+                          {/* <Dropdown.Item href="#/ChangeDocumentRequest"
                             onClick={(event) => {
                               ChangeDocumentRequest(event as any);
                               handleShowContent(event as any);
@@ -13859,7 +13955,7 @@ const ArgPoc = ({ props }: any) => {
                               NonConformityfunc(event as any);
                               handleShowContent(event as any);
                             }}
-                          >Non Conformity</Dropdown.Item>
+                          >Non Conformity</Dropdown.Item> */}
                         </Dropdown.Menu>
                       </Dropdown>
                     </div>
