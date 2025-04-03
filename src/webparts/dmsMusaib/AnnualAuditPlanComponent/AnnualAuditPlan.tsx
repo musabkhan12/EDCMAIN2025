@@ -2755,7 +2755,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                         onChange={(e) => {
                                                                             setFormData({ ...formData, criteria: e.target.value })
                                                                             if (e.target.value) {
-                                                                                document.getElementById("scope")?.classList.remove("border-on-error");
+                                                                                document.getElementById("criteria")?.classList.remove("border-on-error");
                                                                             }
                                                                         }}
                                                                         disabled={InputDisabled}
