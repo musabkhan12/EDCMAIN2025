@@ -672,7 +672,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           title: "Cancelled Successfully.",
           icon: "success"
         }).then(() => {
-          window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+          // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+          window.location.reload();
         });
       }
     });
@@ -1152,7 +1153,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           title: cText + " Successfully.",
           icon: "success"
         }).then(() => {
-          window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+          // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+          window.location.reload();
         });
       }
     })
@@ -1290,7 +1292,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           title: "Forwarded Successfully.",
           icon: "success"
         }).then(() => {
-          window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+          // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+          window.location.reload();
         });
       }
     });
@@ -1408,7 +1411,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           title: "Approved Successfully.",
           icon: "success"
         }).then(() => {
-          window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+          // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+          window.location.reload();
         });
       }
     });
@@ -1436,7 +1440,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           title: "Rejected Successfully.",
           icon: "success"
         }).then(() => {
-          window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+          // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+          window.location.reload();
         });
       }
     });
@@ -1555,7 +1560,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           title: "Sent for Rework.",
           icon: "success"
         }).then(() => {
-          window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+          // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+          window.location.reload();
         });
       }
     });

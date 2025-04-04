@@ -380,7 +380,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
           title: "Cancelled Successfully.",
           icon: "success"
         }).then(() => {
-          window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+          // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+          window.location.reload();
         });
       }
     });
@@ -468,7 +469,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
           title: cText + " Successfully.",
           icon: "success"
         }).then(() => {
-          window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+          // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+          window.location.reload();
         });
       }
     })

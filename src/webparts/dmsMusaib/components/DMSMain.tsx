@@ -10631,7 +10631,6 @@ const ArgPoc = ({ props }: any) => {
 
   const myRequest = async (event: React.MouseEvent<HTMLButtonElement> = null, siteIdToUpdate: string = null, searchText: any = null) => {
     // alert('this function is calling')
-    // setlistorgriddata('myRequest');
     if (returnFromMyRequest) {
       returnFromMyRequest = false;
       return;
@@ -11087,10 +11086,7 @@ const ArgPoc = ({ props }: any) => {
 
     const spanElement = button.querySelector('.sidebarText');
     const text = spanElement?.textContent;
-    
-     alert("text"+text)
-    console.log("text", text)
-  
+
     if (text) {
       setSelectedText(text);
 
