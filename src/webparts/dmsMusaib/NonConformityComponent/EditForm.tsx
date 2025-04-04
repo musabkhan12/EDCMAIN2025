@@ -38,8 +38,9 @@ const datePickerErrorStyles: Partial<IDatePickerStyles> = {
   },
 };;
 
-export class IEditState {
-  mainItemId?: any | null;
+export interface IEditState {
+  // mainItemId?: any | null;
+  mainItemId?: any;
   edType?: string;
   approvalItemId?: string;
   editDepartmentOption: IDropdownOption[];
@@ -136,7 +137,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   constructor(props: IAuditPlanProps) {
     super(props);
     this.state = {
-      mainItemId: props.edItm || null,
+      // mainItemId: props.edItm || null,
+      mainItemId: '',
       edType: this.props.edType,
       approvalItemId: this.props.approvalItemId,
       editDepartmentOption: [],
@@ -234,6 +236,69 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     this.handleFileChange = this.handleFileChange.bind(this);
     this.updateData = this.updateData.bind(this);
   }
+//   async componentDidMount(){
+  
+
+//     // Extracting the part after `#/`
+//     const url=window.location.href;
+    
+//     const parts = url.split("#/")[1].split("/");
+
+//     const programName = decodeURIComponent(parts[0]); // "Non Confirmity"
+//     const editType = parts[1]; // "edit"
+//     const id = parts[2]; // "165"
+
+//     console.log("Program Name:", programName);
+//     console.log("Edit Type:", editType);
+//     console.log("ID:", id);
+//     // alert(`${programName},${editType},${id}`);
+
+//     // Set state
+//     // this.setState((prevState) => ({
+//     //   edItm: id ? id : prevState.edItm, // Update only if `id` exists
+//     //   edType: editType ? editType : prevState.edType // Update only if `editType` exists
+//     // }));
+//     if(id){
+//       this.setState({mainItemId:id})
+//     }
+//     if(editType){
+//       this.setState({edType:editType})
+//     }
+    
+//     // alert(`after setting edtype and edItem ${this.state.edItm},${this.state.edType}`);
+//     if(this.state.edType=="approve"){
+//     //  alert("approve");
+//     const approvalItemId= parts[3];
+//     if(approvalItemId){
+//       this.setState({approvalItemId:approvalItemId})
+//     }
+    
+ 
+//       this.setState({isDisabled:true})
+//       this.setState({showApprove:true});
+//       this.setState({showSubmit: false});
+     
+//     }
+//     else if(this.state.edType =="edit"){
+// //alert("edit");
+
+// this.setState({isDisabled:false})
+// this.setState({showApprove:false});
+// this.setState({showSubmit: true});
+
+//     }
+//     else if(this.state.edType=="view"){
+   
+//       this.setState({isDisabled:true})
+// this.setState({showApprove:false});
+// this.setState({showSubmit: false});
+
+//     }
+//     else{
+// //alert("new");
+
+//     }
+//   }
   private handleFileChange(e: React.ChangeEvent<HTMLInputElement>, _self: any) {
     if (e.target.files) {
       _self.setState({ fileCount: e.target.files.length });
@@ -325,7 +390,35 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     };
 
   public async componentDidMount() {
-    await this.getListData();
+    // Extracting the part after `#/`
+    const url=window.location.href;
+    // alert(
+    //   url + "url"
+    // )
+    const parts = url.split("#/")[1].split("/");
+
+    const programName = decodeURIComponent(parts[0]); // "Non Confirmity"
+    const editType = parts[1]; // "edit"
+    const id = parts[2]; // "165"
+
+    console.log("Program Name:", programName);
+    console.log("Edit Type:", editType);
+    console.log("ID:", id);
+    // alert("Program Name:"+ programName)
+    // alert("Edit Type:"+ editType)
+    // alert("ID:"+ id)
+
+    if (id) {
+      this.setState({ mainItemId: id }, () => {
+          // This will run AFTER the state update is completed
+          // alert("Updated mainItemId: " + this.state.mainItemId);
+          this.getListData(); // Fetch list data after updating state
+      });
+  }
+    if(editType){
+      this.setState({edType:editType})
+    }
+    // await this.getListData();
     await this.getDepartment();
     await this.getDataRoles();
     await this.getMainListName();
@@ -363,6 +456,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       this.setState({ showReject: false });
     }
     else if (this.state.edType === "approve") {
+      const approvalItemId= parts[3];
+      if(approvalItemId){
+        this.setState({approvalItemId:approvalItemId})
+      }
       this.setState({ isDisabled: true });
       this.setState({ deptSectionDisable: true });
       this.setState({ showDelegate: true });

@@ -279,7 +279,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
         const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
         setselectUserDept(setAllDept1.filter(user => user.label === UserDept));
-        setFormData({ ...formData, deptId: setAllDept1.filter(user => user.label === UserDept)[0].value });
+        setFormData({ ...formData, deptId: setAllDept1.filter(user => user.label === UserDept)[0]?.value });
         const AllUserRoles = await getDataRoles(sp);
         const setRolesValue = AllUserRoles.map((item: any) => ({
             value: item.Id,

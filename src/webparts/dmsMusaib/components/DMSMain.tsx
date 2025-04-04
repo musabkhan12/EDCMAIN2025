@@ -127,7 +127,10 @@ import { FormComponent } from "../EDCprocessComponent/FormComponent/Form";
 import { Listing } from "../EDCprocessComponent/ListingComponent/Listing";
 import AnnualAuditPlan from "../AnnualAuditPlanComponent/AnnualAuditPlan";
 import AnnualAuditReport from "../AnnualAuditReportComponent/AnnualAuditReport";
-import AuditPlan from "../NonConformityComponent/AddForm";
+// import AuditPlan from "../NonConformityComponent/AddForm";
+
+import AuditPlan from "../NonConformityComponent/AuditPlan";
+import NonConfirmityApprove from "../NonConformityComponent/EditForm";
 interface NavItem {
   Title: string;
   Url: string;
@@ -550,6 +553,13 @@ const ArgPoc = ({ props }: any) => {
         cleanUrlInMyRequest = true;
         returnFromMyRequest = true;
         setlistorgriddata('AnnualAuditReport')
+      } else if(arrayToStoreURLParameter[1] === 'Non%20Conformity' ){
+        //  alert("Document Camcetllation")
+        const get = document.getElementById('files-container')
+        get.innerHTML = '';
+        cleanUrlInMyRequest=true;
+        returnFromMyRequest=true;
+        setlistorgriddata('NonConfirmityApprove')
       }
     }
 
@@ -10621,6 +10631,7 @@ const ArgPoc = ({ props }: any) => {
 
   const myRequest = async (event: React.MouseEvent<HTMLButtonElement> = null, siteIdToUpdate: string = null, searchText: any = null) => {
     // alert('this function is calling')
+    // setlistorgriddata('myRequest');
     if (returnFromMyRequest) {
       returnFromMyRequest = false;
       return;
@@ -11076,7 +11087,10 @@ const ArgPoc = ({ props }: any) => {
 
     const spanElement = button.querySelector('.sidebarText');
     const text = spanElement?.textContent;
-
+    
+     alert("text"+text)
+    console.log("text", text)
+  
     if (text) {
       setSelectedText(text);
 
@@ -14282,11 +14296,16 @@ const ArgPoc = ({ props }: any) => {
                             {...props}
                           />
                         )}
-                        {listorgriddata === 'NonConformity' && (
-                          <AuditPlan
-                            {...props}
-                          />
-                        )}
+                         {listorgriddata === 'NonConformity' && (
+        <AuditPlan 
+         {...props}
+        />
+      )}
+      {listorgriddata === 'NonConfirmityApprove' && (
+        <NonConfirmityApprove 
+         {...props}
+        />
+      )}
                       </>
                     )
                   }

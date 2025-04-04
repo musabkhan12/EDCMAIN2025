@@ -25,7 +25,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, {}> {
                 }
               />
               <Route
-                path="/new"
+                // path="/new"
+                path="/NonConformity"
                 element={
                   <HomePage
                     description=""

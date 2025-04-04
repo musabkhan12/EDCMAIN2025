@@ -17,10 +17,12 @@ import DocumentCancellationProcess from '../DocumentCancellation/DocumentCancell
 import moment from 'moment';
 import AnnualAuditPlan from '../../AnnualAuditPlanComponent/AnnualAuditPlan';
 import AnnualAuditReport from '../../AnnualAuditReportComponent/AnnualAuditReport';
-
+import NonConformity from '../../NonConformityComponent/EditForm';
+let currentuserid: any;
+let currentusertitle : any
 export class Listing extends React.Component<IListingProps, IListingState, IFormProps> {
     private _sp: SPFI;
-
+    
     constructor(props: IListingProps, state: IListingState) {
         super(props);
         this._sp = getSP();
@@ -53,13 +55,40 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
     }
 
     async componentDidMount() {
+        const userdata = await this._sp.web.currentUser();
+
+        console.log(userdata , "user data edc")
+        console.log(userdata.Id , "user data edc")
+        currentuserid = userdata.Id;
+        currentusertitle = userdata.Title
+        // alert(currentusertitle + "currentusertitle")
         await this.getAllItems();
     }
 
     private editItem(item: any) {
         console.log("Editing item:", item);
-        this.setState({ showform: !0, process: item.ProcessName });
+    
+        if (item.ProcessName === 'Non Conformity') {
+            alert("Non Conformity");
+    
+            const actionType = item.Status === "Save as draft" ? "edit" : "view";
+            const newPath = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId || ""}`;
+    
+            // Set URL before state update
+            window.location.hash = newPath;
+            alert(newPath + "new path");
+            // Update state and ensure UI updates before navigation
+            this.setState({ process: item.ProcessName, showform: true });
+        } else {
+            alert("else Non Conformity");
+            this.setState({ showform: true, process: item.ProcessName });
+        }
+        
     }
+//  private editItem(item: any) {
+//         console.log("Editing item:", item);
+//         this.setState({ showform: !0, process: item.ProcessName });
+//     }
 
     private handlePageChange(pageNumber: number) {
         this.setState({ currentPage: pageNumber });
@@ -147,6 +176,19 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
                 }
             }
+               else if ((item.ProcessName == "Non Conformity") && item.Status == "Pending") {
+                
+                if (item.ProcessItemId) {
+                    let actionType = "approve";
+                    path = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId}`;
+                } else if(item.Status == "Pending"){
+                    let actionType = "view";
+                    path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
+                } else if(item.Status == "Save as draft"){
+                    let actionType = "edit";
+                    path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
+                }
+            }
             else {
                 let actionType = (item.Status === "Save As Draft" || item.Status === "Rework" || item.Status === "Save as draft") ? "edit" : "view";
                 path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
@@ -192,7 +234,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         {this.state.process == "Annual Audit Program" && <FormComponent userDisplayName={''} userid={this.props.userid} context={this.props.context} item={this.state.edItm} onClose={this.closeForm} />}
                         {this.state.process == "Annual Audit Plan" && <AnnualAuditPlan description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''} />}
                         {this.state.process == "Annual Audit Report" && <AnnualAuditReport description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''} />}
-
+                        {this.state.process == "Non Conformity" && <NonConformity description={''} context={this.props.context} currentUserID={this.props.userid} userDisplayName={currentusertitle} />}
                     </div>
                 ) : (
                     <section style={{ display: 'grid' }}>
@@ -479,6 +521,26 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
         });
 
+  const nonconfirmity = await spfi(this._sp).web.lists.getByTitle('NonConformityList').items.select('Id, DocumentCode ,Author/Title , Status , Created').expand('Author').orderBy("Modified", false)();
+        console.log(nonconfirmity ,"nonconfirmity")
+        for (const item of nonconfirmity) {
+            console.log(item.DocumentCode , "item.DocumentCode")
+                allItems.push({
+                    RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " ":item.DocumentCode,
+                    Title: item.DocumentCode == "" || item.DocumentCode == null?" ":item.DocumentCode,
+                    ProcessName: "Non Conformity",
+                    ReqName: item.Author?.Title || '',
+                    ReqDt: item.Created ? moment(item.Created).format("DD-MMM-YYYY") : '',
+                    Status: item.Status,
+                    MainListId: item.Id,
+                    Id: item.Id
+                });
+            
+        } 
+
         _self.setState({ items: allItems, totalItems: allItems.length });
+        console.log(allItems, "all items");
+        console.log(allItems.length, "all items length");
+        console.log(this.state.items, "this.state.items");
     }
 }
