@@ -22,7 +22,7 @@ import "@pnp/sp/presets/all";
 import { Checkbox } from '@fluentui/react';
 import Swal from 'sweetalert2';
 import moment from 'moment';
-
+let Approvallistitemid = 0;
 const datePickerErrorStyles: Partial<IDatePickerStyles> = {
   root: {
     border: "1px solid #ffcccb", // Apply red border
@@ -457,8 +457,13 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     }
     else if (this.state.edType === "approve") {
       const approvalItemId= parts[3];
+      // console.log("approvalItemId",approvalItemId)
+      // alert("approvalItemId"+ approvalItemId)
+      // alert("approvalItemId"+ typeof(approvalItemId))
       if(approvalItemId){
+        Approvallistitemid = Number(approvalItemId);
         this.setState({approvalItemId:approvalItemId})
+        // alert('here is my state ' + this.state.approvalItemId)
       }
       this.setState({ isDisabled: true });
       this.setState({ deptSectionDisable: true });
@@ -1103,12 +1108,23 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode);
         if (_editsubmitStatus == "submit") {
           if (currentUserRole == "AnalyzedBy" || currentUserRole == "DelegateTo") {
-            sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
-              Status: "Approved",
-              ActionTakenById: currentUserID,
-              ActionTakenOn: new Date(),
-              Remark: editProblemDescription,
-            });
+            alert("Approval Item ID" + approvalItemId)
+            if(approvalItemId == null || approvalItemId == undefined || approvalItemId == "") { 
+              sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
+                Status: "Approved",
+                ActionTakenById: currentUserID,
+                ActionTakenOn: new Date(),
+                Remark: editProblemDescription,
+              });
+            }else{
+              sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
+                Status: "Approved",
+                ActionTakenById: currentUserID,
+                ActionTakenOn: new Date(),
+                Remark: editProblemDescription,
+              });
+            }
+          
           }
           else {
             if (this.state.fileDeleteId.length > 0) {
@@ -1401,19 +1417,41 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         if (editLastInitiatorSubmitStatus != "Yes") {
           await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode);
         }
-        sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
-          Status: "Approved",
-          ActionTakenById: currentUserID,
-          ActionTakenOn: new Date(),
-          Remark: remarks,
-        });
-        Swal.fire({
-          title: "Approved Successfully.",
-          icon: "success"
-        }).then(() => {
-          // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
-          window.location.reload();
-        });
+        // alert("Approved" + approvalItemId + typeof(approvalItemId));
+        // alert("Approved" + Approvallistitemid + typeof(Approvallistitemid));
+
+        if(approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
+// sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
+  sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
+    Status: "Approved",
+    ActionTakenById: currentUserID,
+    ActionTakenOn: new Date(),
+    Remark: remarks,
+  });
+  Swal.fire({
+    title: "Approved Successfully.",
+    icon: "success"
+  }).then(() => {
+    // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+    window.location.reload();
+  });
+        }else{
+ sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
+
+    Status: "Approved",
+    ActionTakenById: currentUserID,
+    ActionTakenOn: new Date(),
+    Remark: remarks,
+  });
+  Swal.fire({
+    title: "Approved Successfully.",
+    icon: "success"
+  }).then(() => {
+    // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+    window.location.reload();
+  });
+        }
+       
       }
     });
 
@@ -1430,19 +1468,38 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       cancelButtonText: 'No'
     }).then(function (val) {
       if (val.isConfirmed) {
-        sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
-          Status: "Rejected",
-          ActionTakenById: currentUserID,
-          ActionTakenOn: new Date(),
-          Remark: remarks,
-        });
-        Swal.fire({
-          title: "Rejected Successfully.",
-          icon: "success"
-        }).then(() => {
-          // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
-          window.location.reload();
-        });
+        if(approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
+          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
+            Status: "Rejected",
+            ActionTakenById: currentUserID,
+            ActionTakenOn: new Date(),
+            Remark: remarks,
+          });
+          Swal.fire({
+            title: "Rejected Successfully.",
+            icon: "success"
+          }).then(() => {
+            // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+            window.location.reload();
+          });
+        }else{
+          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
+            Status: "Rejected",
+            ActionTakenById: currentUserID,
+            ActionTakenOn: new Date(),
+            Remark: remarks,
+          });
+          Swal.fire({
+            title: "Rejected Successfully.",
+            icon: "success"
+          }).then(() => {
+            // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+            window.location.reload();
+          });
+  
+  
+        }
+
       }
     });
 
@@ -1549,13 +1606,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     }).then(async function (val) {
       if (val.isConfirmed) {
         await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode);
-        sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
-          Status: "Rework",
-          ActionTakenById: currentUserID,
-          ActionTakenOn: new Date(),
-          Remark: remarks,
-          IsRework: "Yes"
-        });
+        if(approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
+          
+          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
+            Status: "Rework",
+            ActionTakenById: currentUserID,
+            ActionTakenOn: new Date(),
+            Remark: remarks,
+            IsRework: "Yes"
+          });
+          
         Swal.fire({
           title: "Sent for Rework.",
           icon: "success"
@@ -1563,6 +1623,26 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
           window.location.reload();
         });
+        }else{
+ 
+          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
+            Status: "Rework",
+            ActionTakenById: currentUserID,
+            ActionTakenOn: new Date(),
+            Remark: remarks,
+            IsRework: "Yes"
+          });
+  
+          Swal.fire({
+            title: "Sent for Rework.",
+            icon: "success"
+          }).then(() => {
+            // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+            window.location.reload();
+          });
+        }
+        
+
       }
     });
   }

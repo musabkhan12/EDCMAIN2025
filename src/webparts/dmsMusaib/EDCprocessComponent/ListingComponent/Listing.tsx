@@ -69,9 +69,9 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
         console.log("Editing item:", item);
 
         if (item.ProcessName === 'Non Conformity') {
-            alert("Non Conformity");
+            alert(item.SubmitStatus + "submit status");
 
-            const actionType = item.Status === "Save as draft" ? "edit" : "view";
+            const actionType = item.SubmitStatus === "No" ? "edit" : "view";
             const newPath = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId || ""}`;
 
             // Set URL before state update
@@ -179,13 +179,14 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             }
             else if ((item.ProcessName == "Non Conformity") && item.Status == "Pending") {
 
-                if (item.ProcessItemId) {
-                    let actionType = "approve";
-                    path = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId}`;
-                } else if (item.Status == "Pending") {
+                // if (item.ProcessItemId) {
+                //     let actionType = "approve";
+                //     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId}`;
+                // } else 
+                if (item.SubmitStatus == "Yes") {
                     let actionType = "view";
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
-                } else if (item.Status == "Save as draft") {
+                } else if (item.SubmitStatus == "No") {
                     let actionType = "edit";
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
                 }
@@ -209,7 +210,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     <td title={moment(item.ReqDt).format("DD-MMM-YYYY")} style={{ minWidth: '85px', maxWidth: '85px' }}>{moment(item.ReqDt).format("DD-MMM-YYYY")}</td>
                     <td title={item.Status} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.Status}</td>
                     <td style={{ minWidth: '75px', maxWidth: '75px' }}>
-                        <a href={path} onClick={() => this.editItem(item)}>
+                       <a href={path} onClick={() => this.editItem(item)}>
+                        {/* <a  onClick={() => this.editItem(item)}> */}
                             <img src={require("../../assets/edit.png")} className="fas fa-trash" alt="delete" />
                         </a>
                     </td>
@@ -320,7 +322,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 ReqDt: new Date(itm.Created),
                 Status: itm.Status,
                 MainListId: itm.Id,
-                Id: itm.Id
+                Id: itm.Id,
+                SubmitStatus: ''
             });
         });
 
@@ -341,7 +344,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                             Status: itm.Status,
                             MainListId: itm.Id,
                             Id: itm.Id,
-                            ProcessItemId: itom.Id
+                            ProcessItemId: itom.Id,
+                            SubmitStatus: ''
                         });
 
                     }
@@ -358,7 +362,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         // ? moment(itm.Created).format("DD-MMM-YYYY") : ''
                         Status: itm.Status,
                         MainListId: itm.Id,
-                        Id: itm.Id
+                        Id: itm.Id,
+                        SubmitStatus: ''
                     });
 
                 }
@@ -373,7 +378,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     ReqDt: new Date(itm.Created),
                     Status: itm.Status,
                     MainListId: itm.Id,
-                    Id: itm.Id
+                    Id: itm.Id,
+                    SubmitStatus: ''
                 });
 
             }
@@ -395,7 +401,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                             Status: item.Status,
                             MainListId: item.Id,
                             Id: item.Id,
-                            ProcessItemId: itm.Id
+                            ProcessItemId: itm.Id,
+                            SubmitStatus: ''
                         });
                     }
                 } else {
@@ -407,7 +414,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         ReqDt: new Date(item.RequestDate),
                         Status: item.Status,
                         MainListId: item.Id,
-                        Id: item.Id
+                        Id: item.Id,
+                        SubmitStatus: ''
                     });
                 }
             } else {
@@ -419,7 +427,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     ReqDt: new Date(item.RequestDate),
                     Status: item.Status,
                     MainListId: item.Id,
-                    Id: item.Id
+                    Id: item.Id,
+                    SubmitStatus: ''
                 });
             }
         }
@@ -439,7 +448,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                             Status: item.Status,
                             MainListId: item.Id,
                             Id: item.Id,
-                            ProcessItemId: itm.Id
+                            ProcessItemId: itm.Id,
+                            SubmitStatus: ''
                         });
                     }
                 } else {
@@ -451,7 +461,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         ReqDt: new Date(item.RequestDate),
                         Status: item.Status,
                         MainListId: item.Id,
-                        Id: item.Id
+                        Id: item.Id,
+                        SubmitStatus: ''
                     });
                 }
             } else {
@@ -464,7 +475,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     // ? moment(item.RequestDate).format("DD-MMM-YYYY") : ''
                     Status: item.Status,
                     MainListId: item.Id,
-                    Id: item.Id
+                    Id: item.Id,
+                    SubmitStatus: ''
                 });
             }
         }
@@ -486,7 +498,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                             Status: itm.Status,
                             MainListId: itm.Id,
                             Id: itm.Id,
-                            ProcessItemId: itom.Id
+                            ProcessItemId: itom.Id,
+                            SubmitStatus: ''
                         });
 
                     }
@@ -502,7 +515,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         ReqDt: new Date(itm.Created),
                         Status: itm.Status,
                         MainListId: itm.Id,
-                        Id: itm.Id
+                        Id: itm.Id,
+                        SubmitStatus: ''
                     });
 
                 }
@@ -517,30 +531,41 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     ReqDt: new Date(itm.Created),
                     Status: itm.Status,
                     MainListId: itm.Id,
-                    Id: itm.Id
+                    Id: itm.Id,
+                    SubmitStatus: ''
                 });
 
             }
 
         });
 
-        const nonconfirmity = await spfi(this._sp).web.lists.getByTitle('NonConformityList').items.select('Id, DocumentCode ,Author/Title , Status , Created').expand('Author').orderBy("Modified", false)();
-        console.log(nonconfirmity, "nonconfirmity")
+  const nonconfirmity = await spfi(this._sp).web.lists.getByTitle('NonConformityList').items.select('Id, DocumentCode ,Author/Title , Status , Created' , 'SubmitStatus').expand('Author').orderBy("Modified", false)();
+        console.log(nonconfirmity ,"nonconfirmity")
         for (const item of nonconfirmity) {
-            console.log(item.DocumentCode, "item.DocumentCode")
-            allItems.push({
-                RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
-                Title: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
-                ProcessName: "Non Conformity",
-                ReqName: item.Author?.Title || '',
-                ReqDt: new Date(item.Created) ,
-                //? moment(item.Created).format("DD-MMM-YYYY") : ''
-                Status: item.Status,
-                MainListId: item.Id,
-                Id: item.Id
-            });
-
-        }
+            // alert (item.DocumentCode + "item.DocumentCode" )
+            console.log(item.DocumentCode , "item.DocumentCode")
+             let Doccode = ''
+            if(item.DocumentCode == "" || item.DocumentCode == null){
+                Doccode = ""
+            }else{
+                Doccode = item.DocumentCode
+            }
+                allItems.push({
+                    // RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " ":item.DocumentCode,
+                    RequestId: Doccode,
+                    // Title: item.DocumentCode == "" || item.DocumentCode == null?" ":item.DocumentCode,
+                    Title: Doccode,
+                    ProcessName: "Non Conformity",
+                    ReqName: item.Author?.Title || '',
+                    // ReqDt: item.Created ? moment(item.Created).format("DD-MMM-YYYY") : '',
+                    ReqDt: new Date(item.Created),
+                    Status: item.Status,
+                    MainListId: item.Id,
+                    Id: item.Id,
+                    SubmitStatus: item.SubmitStatus
+                });
+            
+        } 
 
         _self.setState({ items: allItems, totalItems: allItems.length });
         console.log(allItems, "all items");
