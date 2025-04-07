@@ -19,10 +19,10 @@ import AnnualAuditPlan from '../../AnnualAuditPlanComponent/AnnualAuditPlan';
 import AnnualAuditReport from '../../AnnualAuditReportComponent/AnnualAuditReport';
 import NonConformity from '../../NonConformityComponent/EditForm';
 let currentuserid: any;
-let currentusertitle : any
+let currentusertitle: any
 export class Listing extends React.Component<IListingProps, IListingState, IFormProps> {
     private _sp: SPFI;
-    
+
     constructor(props: IListingProps, state: IListingState) {
         super(props);
         this._sp = getSP();
@@ -57,8 +57,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
     async componentDidMount() {
         const userdata = await this._sp.web.currentUser();
 
-        console.log(userdata , "user data edc")
-        console.log(userdata.Id , "user data edc")
+        console.log(userdata, "user data edc")
+        console.log(userdata.Id, "user data edc")
         currentuserid = userdata.Id;
         currentusertitle = userdata.Title
         // alert(currentusertitle + "currentusertitle")
@@ -67,13 +67,13 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
     private editItem(item: any) {
         console.log("Editing item:", item);
-    
+
         if (item.ProcessName === 'Non Conformity') {
             alert("Non Conformity");
-    
+
             const actionType = item.Status === "Save as draft" ? "edit" : "view";
             const newPath = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId || ""}`;
-    
+
             // Set URL before state update
             window.location.hash = newPath;
             alert(newPath + "new path");
@@ -83,12 +83,12 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             alert("else Non Conformity");
             this.setState({ showform: true, process: item.ProcessName });
         }
-        
+
     }
-//  private editItem(item: any) {
-//         console.log("Editing item:", item);
-//         this.setState({ showform: !0, process: item.ProcessName });
-//     }
+    //  private editItem(item: any) {
+    //         console.log("Editing item:", item);
+    //         this.setState({ showform: !0, process: item.ProcessName });
+    //     }
 
     private handlePageChange(pageNumber: number) {
         this.setState({ currentPage: pageNumber });
@@ -101,7 +101,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
     private handleSort(column: string) {
         const { sortColumn, sortDirection } = this.state;
         let newSortDirection = 'asc';
-
+        debugger
         if (column === sortColumn) {
             newSortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
         }
@@ -128,9 +128,10 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 return columnValue?.includes(searchValue);
             });
         });
-
+        let filitems = filteredItems.sort((a, b) => b.ReqDt - a.ReqDt)
         // Sort items based on the selected column and direction
-        const sortedItems = filteredItems.sort((a, b) => {
+        const sortedItems = filitems.sort((a, b) => {
+            debugger
             if (sortColumn) {
                 const aValue = a[sortColumn];
                 const bValue = b[sortColumn];
@@ -176,15 +177,15 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
                 }
             }
-               else if ((item.ProcessName == "Non Conformity") && item.Status == "Pending") {
-                
+            else if ((item.ProcessName == "Non Conformity") && item.Status == "Pending") {
+
                 if (item.ProcessItemId) {
                     let actionType = "approve";
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId}`;
-                } else if(item.Status == "Pending"){
+                } else if (item.Status == "Pending") {
                     let actionType = "view";
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
-                } else if(item.Status == "Save as draft"){
+                } else if (item.Status == "Save as draft") {
                     let actionType = "edit";
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
                 }
@@ -199,8 +200,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     <td style={{ minWidth: '40px', maxWidth: '40px' }}>
                         <div style={{ marginLeft: '5px' }} className='indexdesign'>{i + 1}</div>
                     </td>
-                    <td style={{ minWidth: '85px', maxWidth: '85px' }}>{item?.RequestId}</td>
-                    <td  style={{ minWidth: '85px', maxWidth: '85px' }}>{item.Title}</td>
+                    <td title={item?.RequestId}  style={{ minWidth: '85px', maxWidth: '85px' }}>{item?.RequestId}</td>
+                    <td title={item.Title}  style={{ minWidth: '85px', maxWidth: '85px' }}>{item.Title}</td>
                     <td title={item?.ProcessName === "Annual Audit Plan" ? "Audit Plan" : item?.ProcessName} style={{ minWidth: '85px', maxWidth: '85px' }}>
                         {item?.ProcessName === "Annual Audit Plan" ? "Audit Plan" : item?.ProcessName}
                     </td>
@@ -243,12 +244,12 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                 <tr>
                                     <th style={{ minWidth: '40px', maxWidth: '40px' }}>
                                         S.No
-                                        <span style={{width:'100%', height:'45px',clear:'both', float:'left'}} className='pb-3'></span>
+                                        <span style={{ width: '100%', height: '45px', clear: 'both', float: 'left' }} className='pb-3'></span>
                                     </th>
                                     {['RequestId', 'Title', 'ProcessName', 'ReqName', 'ReqDt', 'Status'].map(column => (
                                         <th key={column} style={{ minWidth: '85px', maxWidth: '85px' }}>
                                             <div>
-                                                <div onClick={() => this.handleSort(column)} style={{ cursor: 'pointer', display:'flex' }}>
+                                                <div onClick={() => this.handleSort(column)} style={{ cursor: 'pointer', display: 'flex' }}>
                                                     {column}
                                                     {sortColumn === column && (
                                                         <span>
@@ -266,8 +267,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                             </div>
                                         </th>
                                     ))}
-                                    <th style={{ minWidth: '75px', maxWidth: '75px' }}>Action 
-                                    <span style={{width:'100%', height:'45px',clear:'both', float:'left'}} className='pb-3'></span>
+                                    <th style={{ minWidth: '75px', maxWidth: '75px' }}>Action
+                                        <span style={{ width: '100%', height: '45px', clear: 'both', float: 'left' }} className='pb-3'></span>
 
                                     </th>
                                 </tr>
@@ -286,8 +287,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                     {number}
                                 </button>
                             ))}
-                           
-                            <select style={{height:'38px', marginTop:'19px'}} value={itemsPerPage} onChange={this.handleItemsPerPageChange}>
+
+                            <select style={{ height: '38px', marginTop: '19px' }} value={itemsPerPage} onChange={this.handleItemsPerPageChange}>
                                 <option value={5}>5</option>
                                 <option value={10}>10</option>
                                 <option value={20}>20</option>
@@ -316,7 +317,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 Title: itm.Title,
                 ProcessName: "Annual Audit Program",
                 ReqName: itm.Author ? itm.Author.Title : '',
-                ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
+                ReqDt: new Date(itm.Created),
                 Status: itm.Status,
                 MainListId: itm.Id,
                 Id: itm.Id
@@ -332,11 +333,11 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     for (const itom of processItems1) {
 
                         allItems.push({
-                            RequestId: itm.MemoNumber?itm.MemoNumber:"",
-                            Title: itm.ReferenceNumber?itm.ReferenceNumber:"",
+                            RequestId: itm.MemoNumber ? itm.MemoNumber : "",
+                            Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
                             ProcessName: "Annual Audit Plan",
                             ReqName: itm.Author ? itm.Author.Title : '',
-                            ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
+                            ReqDt: new Date(itm.Created),
                             Status: itm.Status,
                             MainListId: itm.Id,
                             Id: itm.Id,
@@ -346,36 +347,37 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     }
 
                 }
-                else{
+                else {
 
                     allItems.push({
-                        RequestId: itm.MemoNumber?itm.MemoNumber:"",
-                        Title: itm.ReferenceNumber?itm.ReferenceNumber:"",
+                        RequestId: itm.MemoNumber ? itm.MemoNumber : "",
+                        Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
                         ProcessName: "Annual Audit Plan",
                         ReqName: itm.Author ? itm.Author.Title : '',
-                        ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
+                        ReqDt: new Date(itm.Created),
+                        // ? moment(itm.Created).format("DD-MMM-YYYY") : ''
                         Status: itm.Status,
                         MainListId: itm.Id,
                         Id: itm.Id
                     });
-   
+
                 }
             }
-            else{
+            else {
 
                 allItems.push({
-                    RequestId: itm.MemoNumber?itm.MemoNumber:"",
-                    Title: itm.ReferenceNumber?itm.ReferenceNumber:"",
+                    RequestId: itm.MemoNumber ? itm.MemoNumber : "",
+                    Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
                     ProcessName: "Annual Audit Plan",
                     ReqName: itm.Author ? itm.Author.Title : '',
-                    ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
+                    ReqDt: new Date(itm.Created),
                     Status: itm.Status,
                     MainListId: itm.Id,
                     Id: itm.Id
                 });
 
             }
-           
+
         });
 
         const ChangeRequestDocumentCancellationListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,ReferenceNumber').expand('Author', 'RequesterName').orderBy("Modified", false)();
@@ -389,7 +391,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                             Title: item.ReferenceNumber,
                             ProcessName: "Document Cancellation",
                             ReqName: item.RequesterName?.Title || '',
-                            ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
+                            ReqDt: new Date(item.RequestDate),
                             Status: item.Status,
                             MainListId: item.Id,
                             Id: item.Id,
@@ -402,7 +404,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         Title: item.ReferenceNumber,
                         ProcessName: "Document Cancellation",
                         ReqName: item.RequesterName?.Title || '',
-                        ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
+                        ReqDt: new Date(item.RequestDate),
                         Status: item.Status,
                         MainListId: item.Id,
                         Id: item.Id
@@ -414,7 +416,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     Title: item.ReferenceNumber,
                     ProcessName: "Document Cancellation",
                     ReqName: item.RequesterName?.Title || '',
-                    ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
+                    ReqDt: new Date(item.RequestDate),
                     Status: item.Status,
                     MainListId: item.Id,
                     Id: item.Id
@@ -429,11 +431,11 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 if (processItems.length > 0) {
                     for (const itm of processItems) {
                         allItems.push({
-                            RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " ":item.DocumentCode,
-                            Title: item.ReferenceNumber == "" || item.ReferenceNumber == null?" ":item.ReferenceNumber,
+                            RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
+                            Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
                             ProcessName: "Change Request",
                             ReqName: item.RequesterName?.Title || '',
-                            ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
+                            ReqDt: new Date(item.RequestDate),
                             Status: item.Status,
                             MainListId: item.Id,
                             Id: item.Id,
@@ -442,11 +444,11 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     }
                 } else {
                     allItems.push({
-                        RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " ":item.DocumentCode,
-                        Title: item.ReferenceNumber == "" || item.ReferenceNumber == null?" ":item.ReferenceNumber,
+                        RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
+                        Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
                         ProcessName: "Change Request",
                         ReqName: item.RequesterName?.Title || '',
-                        ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
+                        ReqDt: new Date(item.RequestDate),
                         Status: item.Status,
                         MainListId: item.Id,
                         Id: item.Id
@@ -454,11 +456,12 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 }
             } else {
                 allItems.push({
-                    RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " ":item.DocumentCode,
-                    Title: item.ReferenceNumber == "" || item.ReferenceNumber == null?" ":item.ReferenceNumber,
+                    RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
+                    Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
                     ProcessName: "Change Request",
                     ReqName: item.RequesterName?.Title || '',
-                    ReqDt: item.RequestDate ? moment(item.RequestDate).format("DD-MMM-YYYY") : '',
+                    ReqDt: new Date(item.RequestDate),
+                    // ? moment(item.RequestDate).format("DD-MMM-YYYY") : ''
                     Status: item.Status,
                     MainListId: item.Id,
                     Id: item.Id
@@ -479,7 +482,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                             Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
                             ProcessName: "Annual Audit Report",
                             ReqName: itm.Author ? itm.Author.Title : '',
-                            ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
+                            ReqDt: new Date(itm.Created),
                             Status: itm.Status,
                             MainListId: itm.Id,
                             Id: itm.Id,
@@ -496,7 +499,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
                         ProcessName: "Annual Audit Report",
                         ReqName: itm.Author ? itm.Author.Title : '',
-                        ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
+                        ReqDt: new Date(itm.Created),
                         Status: itm.Status,
                         MainListId: itm.Id,
                         Id: itm.Id
@@ -511,7 +514,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
                     ProcessName: "Annual Audit Report",
                     ReqName: itm.Author ? itm.Author.Title : '',
-                    ReqDt: itm.Created ? moment(itm.Created).format("DD-MMM-YYYY") : '',
+                    ReqDt: new Date(itm.Created),
                     Status: itm.Status,
                     MainListId: itm.Id,
                     Id: itm.Id
@@ -521,22 +524,23 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
         });
 
-  const nonconfirmity = await spfi(this._sp).web.lists.getByTitle('NonConformityList').items.select('Id, DocumentCode ,Author/Title , Status , Created').expand('Author').orderBy("Modified", false)();
-        console.log(nonconfirmity ,"nonconfirmity")
+        const nonconfirmity = await spfi(this._sp).web.lists.getByTitle('NonConformityList').items.select('Id, DocumentCode ,Author/Title , Status , Created').expand('Author').orderBy("Modified", false)();
+        console.log(nonconfirmity, "nonconfirmity")
         for (const item of nonconfirmity) {
-            console.log(item.DocumentCode , "item.DocumentCode")
-                allItems.push({
-                    RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " ":item.DocumentCode,
-                    Title: item.DocumentCode == "" || item.DocumentCode == null?" ":item.DocumentCode,
-                    ProcessName: "Non Conformity",
-                    ReqName: item.Author?.Title || '',
-                    ReqDt: item.Created ? moment(item.Created).format("DD-MMM-YYYY") : '',
-                    Status: item.Status,
-                    MainListId: item.Id,
-                    Id: item.Id
-                });
-            
-        } 
+            console.log(item.DocumentCode, "item.DocumentCode")
+            allItems.push({
+                RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
+                Title: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
+                ProcessName: "Non Conformity",
+                ReqName: item.Author?.Title || '',
+                ReqDt: new Date(item.Created) ,
+                //? moment(item.Created).format("DD-MMM-YYYY") : ''
+                Status: item.Status,
+                MainListId: item.Id,
+                Id: item.Id
+            });
+
+        }
 
         _self.setState({ items: allItems, totalItems: allItems.length });
         console.log(allItems, "all items");

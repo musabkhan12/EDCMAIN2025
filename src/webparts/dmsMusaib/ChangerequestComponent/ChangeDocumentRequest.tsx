@@ -131,6 +131,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [attachmenterr, setattachmenterr] = React.useState(false);
   const [changedescriptionerr, setchangedescriptionerr] = React.useState(false);
   const [changereasonerr, setchangereasonerr] = React.useState(false);
+  const [changerequesttypeerr, setchangerequesttypeerr] = React.useState(false);
   const [Loading, setLoading] = React.useState(false);
   const [FormItemId, setFormItemId] = React.useState(null);
   const [editID, setEditID] = React.useState(null);
@@ -225,6 +226,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [fileType, setFileType] = React.useState("");
   const [selectedUsers, setSelectedUsers] = React.useState<any[]>([]);
   const [remark, setRemark] = React.useState("");
+  const [showview, setshowview] = React.useState(false);
   const [showButton, setShowButton] = React.useState(false);
   // Function to handle People Picker selection
   const onPeoplePickerChange = (items: any[]) => {
@@ -238,16 +240,20 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     if (path1.includes("/view/") || path1.includes("/approve/")) {
       setLoading(true);
       setInputDisabled(true);
+      setshowview(true);
     }
     else {
       setInputDisabled(false);
     }
     if (path1.includes("/edit/")) {
       setLoading(true); ////
+      setshowview(true);
     }
+
     console.log("inpt diasba", InputDisabled, path1, path1.includes("/view/"))
     //setLoading(true);
     var ReqTypeArr = await getAllRequestType(sp);
+    ReqTypeArr.sort((a, b) => a.RequestType.localeCompare(b.RequestType));
     const optionsreq = ReqTypeArr.map((item: any) => ({
       value: item.ID,
       label: item.RequestType,
@@ -255,15 +261,17 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     }));
     setReqType(optionsreq);
     var DepartmentArr = await getAllDepartment(sp);
+    DepartmentArr.sort((a, b) => a.Department.localeCompare(b.Department));
     const optionsDepartment = DepartmentArr.map((item: any) => ({
       value: item.ID,
       label: item.Department,
       itemId: item.ID,
       department: item.Department,
-      departmentcode:item.DepartmentCode
+      departmentcode: item.DepartmentCode
     }));
     setDepartment(optionsDepartment);
     var AmendmentTypeArr = await getAllAmendmentType(sp);
+    AmendmentTypeArr.sort((a, b) => a.AmendmentType.localeCompare(b.AmendmentType));
     const optionsamendment = AmendmentTypeArr.map((item: any) => ({
       value: item.ID,
       label: item.AmendmentType,
@@ -271,6 +279,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     }));
     setAmendtype(optionsamendment);
     var ClassificationArr = await getAllClassificationMaster(sp);
+    ClassificationArr.sort((a, b) => a.Classification.localeCompare(b.Classification));
     const optionsclassification = ClassificationArr.map((item: any) => ({
       value: item.ID,
       label: item.Classification,
@@ -316,7 +325,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       RequesterDesignation: userProfile?.Title || "",
       RequesterName: userProfile?.DisplayName || "",
       RequestDate: new Date().toLocaleDateString("en-CA"),
-     // Department: UserDept
+      // Department: UserDept
       //RequestedDate: new Date().toISOString().split("T")[0] // Format as YYYY-MM-DD
 
     }));
@@ -584,8 +593,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           description: item.ChangeDescription,
           reason: item.ReasonforChange,
         }));
-        setcancellReason(initialRows.length > 0?initialRows :[{ id: 0, description: "", reason: "" }]);
-        setcancellReasonEdit(initialRows.length > 0?initialRows :[{ id: 0, description: "", reason: "" }]);
+        setcancellReason(initialRows.length > 0 ? initialRows : [{ id: 0, description: "", reason: "" }]);
+        setcancellReasonEdit(initialRows.length > 0 ? initialRows : [{ id: 0, description: "", reason: "" }]);
 
 
       }
@@ -780,7 +789,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         .select("ID", "Location", "LocationCode") // Select required fields
         .top(5000) // Limit number of records
         (); // Call get() to fetch data
-
+      items.sort((a, b) => a.Location.localeCompare(b.Location));
       // Use map on the result to create the desired array structure
       const locations: Location[] = items.map((item: any) => ({
         locationId: item.ID, // Store the ID for lookup
@@ -807,7 +816,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         .select("ID", "Custodian", "CustodianCode")
         .top(5000) // Limit number of records
         ();
-
+      items.sort((a, b) => a.Custodian.localeCompare(b.Custodian));
       const custodians: Custodian[] = items.map((item: any) => ({
         custodianId: item.ID, // Store the Custodian ID for lookup
         custodianName: item.Custodian,
@@ -829,7 +838,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         .getByTitle("DocumentTypeMaster")
         .items.select("ID", "DocumentType", "DocumentTypeCode")
         .top(5000)();
-
+      items.sort((a, b) => a.DocumentType.localeCompare(b.DocumentType));
       const documentTypes: DocumentType[] = items.map((item: any) => ({
         documentTypeId: item.ID, // Store the Document Type ID for lookup
         documentTypeName: item.DocumentType,
@@ -1011,6 +1020,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     setattachmenterr(false);
     setchangedescriptionerr(false);
     setchangereasonerr(false);
+    setchangerequesttypeerr(false);
     setValidDraft(true);
     setValidSubmit(true);
     setValidCancelReason(true);
@@ -1096,10 +1106,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         setchangereasonerr(true);
         valid1 = false;
       }
+      if (selectedCheckboxIds.length == 0) {
+        setchangerequesttypeerr(true);
+        valid = false;
+      }
       if (Attachmentarr.length == 0 && DocumentLink == null) {
         setattachmenterr(true);
         valid = false;
       }
+
       // return true;
 
       setValidSubmit(valid);
@@ -1332,12 +1347,17 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
             // if (boolval == true) {
             setLoading(false);
-            Swal.fire('Submitted successfully.', '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
-            setTimeout(() => {
-              //window.location.reload();
-              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
-            }, 1000);
+            Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
+              if (result.isConfirmed) {
+                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+              }
+            });
+            //sessionStorage.removeItem("ChangeRequestId")
+            // setTimeout(() => {
+            //   //window.location.reload();
+            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            // }, 1000);
             // }
           }
 
@@ -1446,12 +1466,18 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
             // if (boolval == true) {
             setLoading(false);
-            Swal.fire('Submitted successfully.', '', 'success');
-            // sessionStorage.removeItem("bannerId")
-            setTimeout(() => {
-              //window.location.reload();
-              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
-            }, 1000);
+            sessionStorage.removeItem("ChangeRequestId")
+            Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
+              if (result.isConfirmed) {
+                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+              }
+            });
+            // Swal.fire('Submitted successfully.', '', 'success');
+            // // sessionStorage.removeItem("bannerId")
+            // setTimeout(() => {
+            //   //window.location.reload();
+            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            // }, 1000);
             // }
 
           }
@@ -1640,12 +1666,18 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
             // if (boolval == true) {
             setLoading(false);
-            Swal.fire('Saved successfully.', '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
-            setTimeout(() => {
-              //window.location.reload();
-              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
-            }, 2000);
+            Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
+              if (result.isConfirmed) {
+                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+              }
+            });
+            // Swal.fire('Saved successfully.', '', 'success');
+            // sessionStorage.removeItem("ChangeRequestId")
+            // setTimeout(() => {
+            //   //window.location.reload();
+            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            // }, 2000);
             // }
           }
 
@@ -1755,12 +1787,18 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
 
             setLoading(false);
-            Swal.fire('Saved successfully.', '', 'success');
-            // sessionStorage.removeItem("bannerId")
-            setTimeout(() => {
-              //window.location.reload();
-              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
-            }, 1000);
+            sessionStorage.removeItem("ChangeRequestId")
+            Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
+              if (result.isConfirmed) {
+                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+              }
+            });
+            // Swal.fire('Saved successfully.', '', 'success');
+            // // sessionStorage.removeItem("bannerId")
+            // setTimeout(() => {
+            //   //window.location.reload();
+            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            // }, 1000);
           }
         })
 
@@ -2390,7 +2428,28 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           });
           return;
         }
-
+        var arr = {};
+        arr = {
+          files: files,
+          libraryName: libraryName,
+          docLib: docLib,
+          name: files[0].name,
+          fileName: files[0].name,
+          FileName: files[0].name,
+          fileSize: files[0].size,
+          date: new Date().toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+          }).replace(/ /g, "/"),
+          //FileRef: previewUrl,
+          FileLeafRef: files[0].name,
+          //fileUrl: previewUrl,
+          //fileType: fileType,
+          //previewUrl: previewUrl
+        };
+        uloadBannerImageFiles.push(arr);
+        setAttachmentarr(uloadBannerImageFiles);
         const fileType = file.type.split("/")[0]; // Extract file type (image, pdf, etc.)
         const folder = sp.web.getFolderByServerRelativePath('Socialfeedimages');
         const uploadResult = await folder.files.addChunked(file.name, file);
@@ -2520,7 +2579,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         <div key={checkbox.id} className="form-check mb-3">
           <input
             type="checkbox"
-            className="form-check-input"
+            // className="form-check-input"
+            className={`form-check-input ${(!ValidSubmit && changerequesttypeerr) ? "border-on-error" : ""}`}
             id={`checkbox-${checkbox.id}`}
             // disabled={this.state.isReadonly} // Make the checkbox readonly if the condition is true
             // Use indexOf instead of includes
@@ -2535,45 +2595,29 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       </div>
     ));
   };
-
+  // const handleDelete = (index: number) => {
+  //   setFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
+  // };
   const deleteLocalFileAttachment = async (index: number, ImagepostArr: any[]) => {
     try {
       // Extract the file information from the array
-      const fileToDelete = ImagepostArr[index];
+      // const fileToDelete = ImagepostArr[index];
 
-      if (!fileToDelete || (!fileToDelete.fileUrl && !fileToDelete.FileRef)) {
-        throw new Error("File URL not found");
-      }
-
-      // Delete the file from SharePoint document library
-      const fileUrl = !fileToDelete.fileUrl ? fileToDelete.FileRef : fileToDelete.fileUrl;
-      console.log(fileUrl, "fileUrl", editID)
-      debugger
-      const removeimage = await sp.web.getFileByServerRelativePath(fileUrl).recycle(); // Sends the file to the recycle bin
-      console.log(removeimage, "removeimage")
-      debugger
-      // Remove the file from the MediaGalleryJSON column
-      // if (editID > 0) {
-      //   const list = sp.web.lists.getByTitle("ChangeRequestList");
-      //   const item = await list.items.getById(editID).select("AttachmentJson")();
-      //   debugger
-      //   console.log("items of MediaGalleryJSON", item)
-      //   const AttachmentJSON = item.AttachmentJson ? JSON.parse(item.AttachmentJson) : [];
-
-      //   // Filter out the deleted file from the JSON array
-      //   const updatedGalleryJSON = AttachmentJSON.filter((image: any) => image.ID !== fileToDelete.ID);
-      //   console.log(updatedGalleryJSON, "updatedGalleryJSON")
-      //   debugger
-      //   // Update the item in SharePoint
-      //   // await list.items.getById(editID).update({
-      //   //   MediaGalleryJSON: JSON.stringify(updatedGalleryJSON),
-      //   // });
+      // if (!fileToDelete || (!fileToDelete.fileUrl && !fileToDelete.FileRef)) {
+      //   throw new Error("File URL not found");
       // }
-      // Remove the file from the local array and update the state
+
+      // // Delete the file from SharePoint document library
+      // const fileUrl = !fileToDelete.fileUrl ? fileToDelete.FileRef : fileToDelete.fileUrl;
+      // console.log(fileUrl, "fileUrl", editID)
+      // debugger
+      // const removeimage = await sp.web.getFileByServerRelativePath(fileUrl).recycle(); // Sends the file to the recycle bin
+      // console.log(removeimage, "removeimage")
+      debugger
       const updatedArray = [...ImagepostArr];
       updatedArray.splice(index, 1);
-      setAttachmentarr(updatedArray);
-
+      //setAttachmentarr(updatedArray);
+      setAttachmentarr([]);
       Swal.fire("Deleted successfully", "", "success");
     } catch (error) {
       console.error("Error deleting file:", error);
@@ -2950,7 +2994,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                           <div className="card-body">
                             <div className='row'>
                               <div className='col-sm-12'>
-                                <h3 className="text-dark font-16 mb-1">Change Request Type</h3>
+                                <h3 className="text-dark font-16 mb-1">Change Request Type<span className="text-danger1">*</span></h3>
                                 {/* <label className="form-label text-muted font-16">Change Request Type</label> */}
                                 <div className="row"> {renderCheckboxes()}</div>
                               </div>
@@ -3252,9 +3296,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                               Submit</button>}
                             {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</button>}
                             {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</button>}
-                            {((modeValue === "" || modeValue === "edit" || modeValue === "view") || 
+                            {((modeValue === "" || modeValue === "edit" || modeValue === "view") ||
                               (InputDisabled && editID != null && modeValue === "approve" && editID.Status === "Approved") ||
-                            (editID !== null && editID.IsInitiator == "Yes")) &&
+                              (editID !== null && editID.IsInitiator == "Yes")) &&
                               <button style={{ width: '145px' }} type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                 className='me-1' alt="x" /> Cancel</button>
                             }
@@ -3335,7 +3379,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   <tr>
                                     <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
                                     <th>File Name</th>
-                                    <th > File Link </th>
+                                    {showButton &&
+                                      <th > File Link </th>
+                                    }
                                     <th className='text-center'>Upload date</th>
                                     {(modeValue == "edit" || modeValue == null || modeValue == ""
                                       || (modeValue == "approve" && formData?.Status == "Rework")) &&
@@ -3345,21 +3391,25 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 </thead>
                                 <tbody>
                                   {console.log("Attachmentarrnmnm attach only", Attachmentarr)}
-                                  <tr >
-                                    <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
-                                    <td>{Attachmentarr && Attachmentarr[0]?.FileName}</td>
-                                    <td style={{ textAlign: 'center' }}>
-                                      <span onClick={() => OpenFile(Attachmentarr && Attachmentarr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                        <FontAwesomeIcon icon={faEye} /></span>
-                                    </td>
-                                    <td>{Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD/MMM/YYYY")}</td>
-                                     {(modeValue == "edit" || modeValue == null || modeValue == ""
-                                      || (modeValue == "approve" && formData?.Status == "Rework")) &&
-                                      <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
-                                        <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFileAttachment(0, Attachmentarr)}></img>
-                                      </td>
-                                    }
-                                  </tr>
+                                  {Attachmentarr.length > 0 &&
+                                    <tr >
+                                      <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
+                                      <td>{Attachmentarr && Attachmentarr[0]?.FileName}</td>
+                                      {showButton &&
+                                        <td style={{ textAlign: 'center' }}>
+                                          <span onClick={() => OpenFile(Attachmentarr && Attachmentarr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                            <FontAwesomeIcon icon={faEye} /></span>
+                                        </td>
+                                      }
+                                      <td>{Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD/MMM/YYYY")}</td>
+                                      {(modeValue == "edit" || modeValue == null || modeValue == ""
+                                        || (modeValue == "approve" && formData?.Status == "Rework")) &&
+                                        <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
+                                          <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFileAttachment(0, Attachmentarr)}></img>
+                                        </td>
+                                      }
+                                    </tr>
+                                  }
                                 </tbody>
                               </table>
                             </>

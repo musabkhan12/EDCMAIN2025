@@ -207,6 +207,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const ApiCallFunc = async () => {
         setAuditPlanType(await getAllAuditType(sp));
         var DepartmentArr = await getAllDepartment(sp);
+        DepartmentArr.sort((a, b) => a.Department.localeCompare(b.Department));
         const optionsDepartment = DepartmentArr.map((item: any) => ({
             value: item.ID,
             label: item.Department,
@@ -1928,9 +1929,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                         <form className="form-horizontal">
                                                             <div className="row">
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="DocumentCode" className="form-label">Approved Audit Plan:<span className="text-danger1">*</span>
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="DocumentCode" className="col-form-label">Approved Audit Plan:<span className="text-danger1">*</span>
                                                                         </label>
                                                                         <Select
                                                                             options={rows}
@@ -1945,10 +1946,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         />
                                                                     </div>
                                                                 </div>
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="Department" className="col-4 col-xl-3 col-form-label">Department<span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">   <Select
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="Department" className="col-form-label">Department<span className="text-danger1"> *</span></label>
+                                                                        <div >   <Select
                                                                             options={AllDept}
                                                                             isDisabled={InputDisabled}
                                                                             value={selectUserDept}
@@ -1963,10 +1964,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div className="col-lg-6">
+                                                                <div className="col-lg-4">
                                                                     <div className="row mb-3">
-                                                                        <label htmlFor="date" className="col-4 col-xl-3 col-form-label">Date<span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
+                                                                        <label htmlFor="date" className="col-form-label">Date<span className="text-danger1"> *</span></label>
+                                                                        <div >
                                                                             <input
                                                                                 type="date"
                                                                                 className={`form-control ${(!ValidSubmit && dateerr) ? "border-on-error" : ""}${(!ValidDraft && dateerr) ? "border-on-error" : ""}`}
@@ -1981,10 +1982,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 </div>
 
                                                                 {console.log("doccodedoccodedoccode", doccode)}
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="memoNo" className="col-4 col-xl-3 col-form-label">Memo Code<span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="memoNo" className="col-form-label">Memo Code<span className="text-danger1"> *</span></label>
+                                                                        <div >
                                                                             <input
                                                                                 disabled
                                                                                 type="text"
@@ -1998,10 +1999,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="issueNo" className="col-4 col-xl-3 col-form-label">Issue No<span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="issueNo" className="col-form-label">Issue No<span className="text-danger1"> *</span></label>
+                                                                        <div >
                                                                             <input
 
                                                                                 type="text"
@@ -2016,10 +2017,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="revisionNo" className="col-4 col-xl-3 col-form-label">Revision No<span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="revisionNo" className="col-form-label">Revision No<span className="text-danger1"> *</span></label>
+                                                                        <div>
                                                                             <input
                                                                                 disabled
                                                                                 type="text"
@@ -2032,10 +2033,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="revisionNo" className="col-4 col-xl-3 col-form-label">Reference No<span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="revisionNo" className="col-form-label">Reference No<span className="text-danger1"> *</span></label>
+                                                                        <div >
                                                                             <input
                                                                                 disabled
                                                                                 type="text"
@@ -2049,8 +2050,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
                                                                 {console.log("documentlinkkkkkkk", DocumentLink)}
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
                                                                         <label htmlFor="DocumentCode" className="form-label">Previous Document:</label>
                                                                         {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
 
@@ -2068,10 +2069,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="attachment" className="col-4 col-xl-3 col-form-label">Attachment<span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="attachment" className="col-form-label">Attachment<span className="text-danger1"> *</span></label>
+                                                                        <div>
 
                                                                             <div>
                                                                                 <input
@@ -2117,16 +2118,16 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                             </div>
                                                         </div>
 
-
+                                                         <div style={{display:'grid',overflow:'auto'}}>
                                                         <table id="tabRec" className='mtbalenew overhi'>
                                                             <thead>
                                                                 <tr><th>ISO reference<span className="text-danger1"> *</span></th>
-                                                                    <th>IMS procedure<span className="text-danger1"> *</span></th>
+                                                                    <th style={{minWidth:'160px', maxWidth:'160px'}}>IMS procedure<span className="text-danger1"> *</span></th>
                                                                     <th colSpan={2}>Inquiries<span className="text-danger1"> *</span></th>
-                                                                    <th>Auditor’s
+                                                                    <th style={{minWidth:'160px', maxWidth:'160px'}}>Auditor’s
                                                                         Comments<span className="text-danger1"> *</span></th>
                                                                     <th>Time<span className="text-danger1"> *</span></th>
-                                                                    <th>Share with<span className="text-danger1"> *</span></th>
+                                                                    <th style={{minWidth:'160px', maxWidth:'160px'}}>Share with<span className="text-danger1"> *</span></th>
 
                                                                     {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th>Action</th>}
                                                                 </tr>
@@ -2156,7 +2157,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 disabled={InputDisabled}
                                                                             />
                                                                         </td> */}
-                                                                        <td>
+                                                                        <td style={{minWidth:'160px', maxWidth:'160px'}}>
                                                                             <input
                                                                                 type="text"
                                                                                 className={`form-control ${RowErrors[index]?.imsprocedure ? "border-on-error" : ""}`}
@@ -2165,7 +2166,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 disabled={InputDisabled}
                                                                             />
                                                                         </td>
-                                                                        <td>
+                                                                        <td style={{minWidth:'160px', maxWidth:'160px'}}>
                                                                             <input
                                                                                 type="text"
                                                                                 className={`form-control ${(RowErrors[index]?.inquiries) ? "border-on-error" : ""}`}
@@ -2175,7 +2176,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 disabled={InputDisabled}
                                                                             />
                                                                         </td>
-                                                                        <td>
+                                                                        <td style={{minWidth:'160px', maxWidth:'160px'}}>
                                                                             {/* <input
                                                                                 type="text"
                                                                                 className={`form-control ${( RowErrors[index]?.auditorcomments) ? "border-on-error" : ""}`}
@@ -2193,7 +2194,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 disabled={InputDisabled}
                                                                             />
                                                                         </td>
-                                                                        <td>
+                                                                        <td style={{minWidth:'160px', maxWidth:'160px'}}>
                                                                             <input
                                                                                 type="time"
                                                                                 className={`form-control ${( RowErrors[index]?.time) ? "border-on-error" : ""}`}
@@ -2203,7 +2204,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 disabled={InputDisabled}
                                                                             />
                                                                         </td>
-                                                                        <td>
+                                                                        <td style={{minWidth:'160px', maxWidth:'160px'}}>
                                                                             <Select
                                                                                 options={rows1}
                                                                                 // isMulti
@@ -2224,6 +2225,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                             </tbody>
 
                                                         </table>
+                                                        </div>
                                                     </fieldset>
                                                 </section>
 
