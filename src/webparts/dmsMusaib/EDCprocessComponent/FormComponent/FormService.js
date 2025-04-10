@@ -9,7 +9,7 @@ export const getDataRoles = async (_sp) => {
       .then((res) => {
         console.log(res, ' let arrs=[]');
        
-  
+ 
         //  arr.push(res)
         arr = res;
       })
@@ -26,12 +26,12 @@ export const getDataRoles = async (_sp) => {
     let arrs = []
     let bannerimg = []
     const currentUser = await _sp.web.currentUser();
-    await _sp.web.lists.getByTitle("AnnualAuditPlanList").items.getById(id)
-    .select("*,Author/ID,Author/Title,AuditPlanType/AuditPlanType,AuditPlanType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Department,ToDepartments/DepartmentCode").expand("ToDepartments,CCDepartments,Author,AuditPlanType,To,Cc,From")()
+    await _sp.web.lists.getByTitle("AnnualAuditProgram").items.getById(id)
+    .select("*,Author/ID,Author/Title,AuditType/Title,AuditType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Department,ToDepartments/DepartmentCode,AuditProgramType/Title,AuditProgramType/ID").expand("AuditProgramType,ToDepartments,CCDepartments,Author,AuditType,To,Cc,From")()
       .then((res) => {
-        
+       
         console.log(res, ' let arrs=[]');      
-  
+ 
          arr.push(res)
         // arr = res;
       })
@@ -72,7 +72,7 @@ export const getDataRoles = async (_sp) => {
    
       console.log('Item added successfully:', newItem);
       // Swal.fire('Item added successfully', '', 'success');
-  
+ 
       resultArr = newItem
       // Perform any necessary actions after successful addition
     } catch (error) {
@@ -83,12 +83,12 @@ export const getDataRoles = async (_sp) => {
     }
     return resultArr;
   };
-  
+ 
   export const UpdateAllProcessItem = async (itemData, _sp,id) => {
    
     let resultArr = []
     try {
-  
+ 
       const newItem = await _sp.web.lists.getByTitle('AllProcessApprovalLevelList').items.getById(id).update(itemData);
       // console.log('Item  successfully:', newItem);
       resultArr = newItem
@@ -139,9 +139,35 @@ export const getDataRoles = async (_sp) => {
          
       }));
        
-  
+ 
         //  arr.push(res)
         // arr = res;
+      })
+      .catch((error) => {
+        console.log("Error fetching data: ", error);
+      });
+    // console.log(arr, 'arr');
+    return arr;
+  }
+
+
+  export const getAuditTypes= async (_sp) =>{
+    let arr = []
+    // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
+    // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
+    await _sp.web.lists.getByTitle("AuditProgramTypeMaster").items.filter("IsActive eq 1")()
+      .then((res) => {
+        // console.log(res, ' let arrs=[]');
+    //     arr = res.map((item) => ({
+    //         value: item.Id,
+    //         label: item.Title,
+
+         
+    //   }));
+       
+ 
+        //  arr.push(res)
+        arr = res;
       })
       .catch((error) => {
         console.log("Error fetching data: ", error);
@@ -154,11 +180,11 @@ export const getDataRoles = async (_sp) => {
    
     let resultArr = []
     try {
-      const newItem = await _sp.web.lists.getByTitle('AnnualAuditPlanList').items.add(itemData);
+      const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgram').items.add(itemData);
    
       // console.log('Item added successfully:', newItem);
       // Swal.fire('Item added successfully', '', 'success');
-  
+ 
       resultArr = newItem
       // Perform any necessary actions after successful addition
     } catch (error) {
@@ -173,7 +199,7 @@ export const getDataRoles = async (_sp) => {
   export const updateItem = async (itemData, _sp, id) => {
     let resultArr = []
     try {
-      const newItem = await _sp.web.lists.getByTitle('AnnualAuditPlanList').items.getById(id).update(itemData);
+      const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgram').items.getById(id).update(itemData);
       console.log('Item added successfully:', newItem);
       resultArr = newItem
       // Perform any necessary actions after successful addition
@@ -188,7 +214,7 @@ export const getDataRoles = async (_sp) => {
   export const updateItem2 = async (itemData, _sp, id) => {
     let resultArr = []
     try {
-      const newItem = await _sp.web.lists.getByTitle('AnnualAuditPlanRecommendationList').items.getById(id).update(itemData);
+      const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgramRecommendationList').items.getById(id).update(itemData);
       console.log('Item added successfully:', newItem);
       resultArr = newItem
       // Perform any necessary actions after successful addition
@@ -205,8 +231,8 @@ export const getDataRoles = async (_sp) => {
     let arr = []
     let arrs = []
     let bannerimg = []
-    await _sp.web.lists.getByTitle("AuditPlanTypeMaster").items
-    .select("*").filter("IsActive eq 'Yes'")()
+    await _sp.web.lists.getByTitle("AuditTypeMaster").items
+    .select("*").filter("IsActive eq 1")()
       .then((res) => {
         // console.log(res, ' let arrs=[]');
       //   arr = res.map((item) => ({
@@ -216,8 +242,8 @@ export const getDataRoles = async (_sp) => {
          
       // }));
        
-  
-         arr.push(res)
+ 
+        //  arr.push(res)
         arr = res;
       })
       .catch((error) => {
@@ -231,11 +257,11 @@ export const getDataRoles = async (_sp) => {
    
     let resultArr = []
     try {
-      const newItem = await _sp.web.lists.getByTitle('AnnualAuditPlanRecommendationList').items.add(itemData);
+      const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgramRecommendationList').items.add(itemData);
    
       console.log('Item added successfully:', newItem);
       // Swal.fire('Item added successfully', '', 'success');
-  
+ 
       resultArr = newItem
       // Perform any necessary actions after successful addition
     } catch (error) {
@@ -254,7 +280,7 @@ export const getDataRoles = async (_sp) => {
       .then((res) => {
         console.log(res, ' let arrs=[]');
        
-  
+ 
         //  arr =(res[0].Id)
         // arr = res;
         reqId=res[0].Id
@@ -274,7 +300,7 @@ export const getDataRoles = async (_sp) => {
       .then((res) => {
         console.log(res, ' let arrs=[]');
        
-  
+ 
         //  arr =(res[0].Id)
         // arr = res;
         reqId=res[0].Id
@@ -300,7 +326,7 @@ export const getDataRoles = async (_sp) => {
           arr = res;
         }
         // .filter(`AssignedTo/Id eq ${currentUser.Id} and ProcessName eq ${processName}`)
-  
+ 
         //  arr.push(res)
      
       })
@@ -328,7 +354,7 @@ export const getDataRoles = async (_sp) => {
           arr = true;
         }
         // .filter(`AssignedTo/Id eq ${currentUser.Id} and ProcessName eq ${processName}`)
-  
+ 
         //  arr.push(res)
      
       })
@@ -344,7 +370,7 @@ export const getDataRoles = async (_sp) => {
     debugger
     let arr = []
     let sampleDataArray = []
-    arr = await sp.web.lists.getByTitle("AnnualAuditPlanRecommendationList").items.select("*,AnnualAuditPlanID/ID,Auditor/ID,Auditor/Title").expand("AnnualAuditPlanID,Auditor").filter(`AnnualAuditPlanID/ID eq ${AuditID}`).getAll();
+    arr = await sp.web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.select("*,AnnualAuditProgram/ID,Auditor/ID,Auditor/Title").expand("AnnualAuditProgram,Auditor").filter(`AnnualAuditProgram/ID eq ${AuditID}`).getAll();
     // .then((res) => {
     //   arr = res
     //   console.log(arr, 'arr');
@@ -404,7 +430,7 @@ export const uploadAllFiles = async (files, sp, docLib) => {
 export const uploadFileToLibrary = async (file, sp, docLib) => {
   let arrFIleData = [];
   let fileSize = 0;
-  const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditPlanDocs');
+  const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
   try {
     // await sp.web.lists.getByTitle(docLib).rootFolder
     const result = folder.files.addChunked(file.name, file, (progress, data) => {
@@ -434,7 +460,7 @@ export const uploadFileToLibrary = async (file, sp, docLib) => {
 export const getDocumentLinkByID = async (_sp, AttachmentIds) => {
   let results = [];
   for (let itemId of AttachmentIds) {
-    await _sp.web.lists.getByTitle("AnnualAuditPlanDocs").items.getById(itemId)
+    await _sp.web.lists.getByTitle("AnnualAuditProgramDocs").items.getById(itemId)
       .select("*,FileRef, FileLeafRef")()
       .then((res) => {
         console.log(res, ' let arrs=[]');

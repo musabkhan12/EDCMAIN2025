@@ -21,8 +21,10 @@ import "@pnp/sp/folders";
 import "@pnp/sp/presets/all";
 import { Checkbox } from '@fluentui/react';
 import Swal from 'sweetalert2';
-import moment from 'moment';
 
+import moment from 'moment';
+import CustomBreadcrumb from '../ChangerequestComponent/CustomBreadcrumb/CustomBreadcrumb';
+let Approvallistitemid = 0;
 const datePickerErrorStyles: Partial<IDatePickerStyles> = {
   root: {
     border: "1px solid #ffcccb", // Apply red border
@@ -236,69 +238,69 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     this.handleFileChange = this.handleFileChange.bind(this);
     this.updateData = this.updateData.bind(this);
   }
-//   async componentDidMount(){
-  
+  //   async componentDidMount(){
 
-//     // Extracting the part after `#/`
-//     const url=window.location.href;
-    
-//     const parts = url.split("#/")[1].split("/");
 
-//     const programName = decodeURIComponent(parts[0]); // "Non Confirmity"
-//     const editType = parts[1]; // "edit"
-//     const id = parts[2]; // "165"
+  //     // Extracting the part after `#/`
+  //     const url=window.location.href;
 
-//     console.log("Program Name:", programName);
-//     console.log("Edit Type:", editType);
-//     console.log("ID:", id);
-//     // alert(`${programName},${editType},${id}`);
+  //     const parts = url.split("#/")[1].split("/");
 
-//     // Set state
-//     // this.setState((prevState) => ({
-//     //   edItm: id ? id : prevState.edItm, // Update only if `id` exists
-//     //   edType: editType ? editType : prevState.edType // Update only if `editType` exists
-//     // }));
-//     if(id){
-//       this.setState({mainItemId:id})
-//     }
-//     if(editType){
-//       this.setState({edType:editType})
-//     }
-    
-//     // alert(`after setting edtype and edItem ${this.state.edItm},${this.state.edType}`);
-//     if(this.state.edType=="approve"){
-//     //  alert("approve");
-//     const approvalItemId= parts[3];
-//     if(approvalItemId){
-//       this.setState({approvalItemId:approvalItemId})
-//     }
-    
- 
-//       this.setState({isDisabled:true})
-//       this.setState({showApprove:true});
-//       this.setState({showSubmit: false});
-     
-//     }
-//     else if(this.state.edType =="edit"){
-// //alert("edit");
+  //     const programName = decodeURIComponent(parts[0]); // "Non Confirmity"
+  //     const editType = parts[1]; // "edit"
+  //     const id = parts[2]; // "165"
 
-// this.setState({isDisabled:false})
-// this.setState({showApprove:false});
-// this.setState({showSubmit: true});
+  //     console.log("Program Name:", programName);
+  //     console.log("Edit Type:", editType);
+  //     console.log("ID:", id);
+  //     // alert(`${programName},${editType},${id}`);
 
-//     }
-//     else if(this.state.edType=="view"){
-   
-//       this.setState({isDisabled:true})
-// this.setState({showApprove:false});
-// this.setState({showSubmit: false});
+  //     // Set state
+  //     // this.setState((prevState) => ({
+  //     //   edItm: id ? id : prevState.edItm, // Update only if `id` exists
+  //     //   edType: editType ? editType : prevState.edType // Update only if `editType` exists
+  //     // }));
+  //     if(id){
+  //       this.setState({mainItemId:id})
+  //     }
+  //     if(editType){
+  //       this.setState({edType:editType})
+  //     }
 
-//     }
-//     else{
-// //alert("new");
+  //     // alert(`after setting edtype and edItem ${this.state.edItm},${this.state.edType}`);
+  //     if(this.state.edType=="approve"){
+  //     //  alert("approve");
+  //     const approvalItemId= parts[3];
+  //     if(approvalItemId){
+  //       this.setState({approvalItemId:approvalItemId})
+  //     }
 
-//     }
-//   }
+
+  //       this.setState({isDisabled:true})
+  //       this.setState({showApprove:true});
+  //       this.setState({showSubmit: false});
+
+  //     }
+  //     else if(this.state.edType =="edit"){
+  // //alert("edit");
+
+  // this.setState({isDisabled:false})
+  // this.setState({showApprove:false});
+  // this.setState({showSubmit: true});
+
+  //     }
+  //     else if(this.state.edType=="view"){
+
+  //       this.setState({isDisabled:true})
+  // this.setState({showApprove:false});
+  // this.setState({showSubmit: false});
+
+  //     }
+  //     else{
+  // //alert("new");
+
+  //     }
+  //   }
   private handleFileChange(e: React.ChangeEvent<HTMLInputElement>, _self: any) {
     if (e.target.files) {
       _self.setState({ fileCount: e.target.files.length });
@@ -310,6 +312,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       _self.setState({ copyFil: allfiles });
     }
   };
+  private Breadcrumb = [
+    {
+      MainComponent: "My Request",
+      MainComponentURl: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/EDCMAIN.aspx`,
+    },
+    {
+      ChildComponent: "Non Conformity",
+      ChildComponentURl: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/EDCMAIN.aspx#/NonConformity`,
+    },
+  ];
   private _OpenModal() {
     this.setState({
       showDialog: true
@@ -391,7 +403,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
   public async componentDidMount() {
     // Extracting the part after `#/`
-    const url=window.location.href;
+    const url = window.location.href;
     // alert(
     //   url + "url"
     // )
@@ -410,13 +422,13 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
     if (id) {
       this.setState({ mainItemId: id }, () => {
-          // This will run AFTER the state update is completed
-          // alert("Updated mainItemId: " + this.state.mainItemId);
-          this.getListData(); // Fetch list data after updating state
+        // This will run AFTER the state update is completed
+        // alert("Updated mainItemId: " + this.state.mainItemId);
+        this.getListData(); // Fetch list data after updating state
       });
-  }
-    if(editType){
-      this.setState({edType:editType})
+    }
+    if (editType) {
+      this.setState({ edType: editType })
     }
     // await this.getListData();
     await this.getDepartment();
@@ -456,9 +468,14 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       this.setState({ showReject: false });
     }
     else if (this.state.edType === "approve") {
-      const approvalItemId= parts[3];
-      if(approvalItemId){
-        this.setState({approvalItemId:approvalItemId})
+      const approvalItemId = parts[3];
+      // console.log("approvalItemId",approvalItemId)
+      // alert("approvalItemId"+ approvalItemId)
+      // alert("approvalItemId"+ typeof(approvalItemId))
+      if (approvalItemId) {
+        Approvallistitemid = Number(approvalItemId);
+        this.setState({ approvalItemId: approvalItemId })
+        // alert('here is my state ' + this.state.approvalItemId)
       }
       this.setState({ isDisabled: true });
       this.setState({ deptSectionDisable: true });
@@ -1103,12 +1120,23 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode);
         if (_editsubmitStatus == "submit") {
           if (currentUserRole == "AnalyzedBy" || currentUserRole == "DelegateTo") {
-            sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
-              Status: "Approved",
-              ActionTakenById: currentUserID,
-              ActionTakenOn: new Date(),
-              Remark: editProblemDescription,
-            });
+            // alert("Approval Item ID" + approvalItemId)
+            if (approvalItemId == null || approvalItemId == undefined || approvalItemId == "") {
+              sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
+                Status: "Approved",
+                ActionTakenById: currentUserID,
+                ActionTakenOn: new Date(),
+                Remark: editProblemDescription,
+              });
+            } else {
+              sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
+                Status: "Approved",
+                ActionTakenById: currentUserID,
+                ActionTakenOn: new Date(),
+                Remark: editProblemDescription,
+              });
+            }
+
           }
           else {
             if (this.state.fileDeleteId.length > 0) {
@@ -1401,19 +1429,41 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         if (editLastInitiatorSubmitStatus != "Yes") {
           await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode);
         }
-        sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
-          Status: "Approved",
-          ActionTakenById: currentUserID,
-          ActionTakenOn: new Date(),
-          Remark: remarks,
-        });
-        Swal.fire({
-          title: "Approved Successfully.",
-          icon: "success"
-        }).then(() => {
-          // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
-          window.location.reload();
-        });
+        // alert("Approved" + approvalItemId + typeof(approvalItemId));
+        // alert("Approved" + Approvallistitemid + typeof(Approvallistitemid));
+
+        if (approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
+          // sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
+          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
+            Status: "Approved",
+            ActionTakenById: currentUserID,
+            ActionTakenOn: new Date(),
+            Remark: remarks,
+          });
+          Swal.fire({
+            title: "Approved Successfully.",
+            icon: "success"
+          }).then(() => {
+            // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+            window.location.reload();
+          });
+        } else {
+          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
+
+            Status: "Approved",
+            ActionTakenById: currentUserID,
+            ActionTakenOn: new Date(),
+            Remark: remarks,
+          });
+          Swal.fire({
+            title: "Approved Successfully.",
+            icon: "success"
+          }).then(() => {
+            // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+            window.location.reload();
+          });
+        }
+
       }
     });
 
@@ -1430,19 +1480,38 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       cancelButtonText: 'No'
     }).then(function (val) {
       if (val.isConfirmed) {
-        sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
-          Status: "Rejected",
-          ActionTakenById: currentUserID,
-          ActionTakenOn: new Date(),
-          Remark: remarks,
-        });
-        Swal.fire({
-          title: "Rejected Successfully.",
-          icon: "success"
-        }).then(() => {
-          // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
-          window.location.reload();
-        });
+        if (approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
+          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
+            Status: "Rejected",
+            ActionTakenById: currentUserID,
+            ActionTakenOn: new Date(),
+            Remark: remarks,
+          });
+          Swal.fire({
+            title: "Rejected Successfully.",
+            icon: "success"
+          }).then(() => {
+            // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+            window.location.reload();
+          });
+        } else {
+          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
+            Status: "Rejected",
+            ActionTakenById: currentUserID,
+            ActionTakenOn: new Date(),
+            Remark: remarks,
+          });
+          Swal.fire({
+            title: "Rejected Successfully.",
+            icon: "success"
+          }).then(() => {
+            // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+            window.location.reload();
+          });
+
+
+        }
+
       }
     });
 
@@ -1549,20 +1618,43 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     }).then(async function (val) {
       if (val.isConfirmed) {
         await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode);
-        sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
-          Status: "Rework",
-          ActionTakenById: currentUserID,
-          ActionTakenOn: new Date(),
-          Remark: remarks,
-          IsRework: "Yes"
-        });
-        Swal.fire({
-          title: "Sent for Rework.",
-          icon: "success"
-        }).then(() => {
-          // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
-          window.location.reload();
-        });
+        if (approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
+
+          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
+            Status: "Rework",
+            ActionTakenById: currentUserID,
+            ActionTakenOn: new Date(),
+            Remark: remarks,
+            IsRework: "Yes"
+          });
+
+          Swal.fire({
+            title: "Sent for Rework.",
+            icon: "success"
+          }).then(() => {
+            // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+            window.location.reload();
+          });
+        } else {
+
+          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
+            Status: "Rework",
+            ActionTakenById: currentUserID,
+            ActionTakenOn: new Date(),
+            Remark: remarks,
+            IsRework: "Yes"
+          });
+
+          Swal.fire({
+            title: "Sent for Rework.",
+            icon: "success"
+          }).then(() => {
+            // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
+            window.location.reload();
+          });
+        }
+
+
       }
     });
   }
@@ -1628,7 +1720,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     })
     var fileData = this.state.copyFil.map((item: any, i: number) => {
       return (
-        <tr>
+        <tr style={{ display: 'table', width: '100%' }}>
           <td>
             {item.name}
           </td>
@@ -1642,7 +1734,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     });
     var upFiles = this.state.exFiles.map((item: any, i: number) => {
       return (
-        <tr>
+        <tr style={{ display: 'table', width: '100%' }}>
           <td>
             {item.Name}
           </td>
@@ -1661,31 +1753,31 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     var auditHistory = this.state.apprItems.map((item: any, i: number) => {
       return (
         <tr>
-          <td>
+          <td style={{ minWidth: '70px', maxWidth: '70px', textAlign: 'center' }}>
             {i + 1}
           </td>
-          <td>
+          <td style={{ minWidth: '70px', maxWidth: '70px', textAlign: 'center' }}>
             {item.Level}
           </td>
-          <td>
+          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.AssignedTo}
           </td>
-          <td>
+          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.RequesterName}
           </td>
-          <td>
+          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.RequestedDate ? moment(new Date(item.RequestedDate)).format("DD/MMM/YYYY HH:mm:ss") : ""}
           </td>
-          <td>
+          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.ActionTakenBy}
           </td>
-          <td>
+          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.ActionTakenOn ? moment(item.ActionTakenOn).format("DD/MMM/YYYY HH:mm:ss") : ""}
           </td>
-          <td>
+          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.Remarks}
           </td>
-          <td>
+          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
             {item.Status}
           </td>
         </tr>
@@ -1693,16 +1785,22 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
     });
     return (
-      <section className={`${styles.auditPlan} `}>
+      <section style={{ padding: '10px 0px' }}>
         <div className={styles.welcome}>
-          <section className={styles.sec} >
+          <div className="row">
+            <div className="col-lg-4">
+              <CustomBreadcrumb Breadcrumb={this.Breadcrumb} />
+            </div>
+
+          </div>
+          <section className='card card-body' >
             <fieldset>
               <form>
                 {/* Start save as draft */}
-                <div className="row">
-                  <div className="form-group col-md-12"><h3>Problem Details</h3></div>
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row">
+                  <div className="form-group col-md-12"><h3 className='text-dark text-left font-16 fw-bold mb-3'>Problem Details</h3></div>
                 </div>
-                <div className="row">
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                   <div className="form-group col-md-4">
                     <Dropdown
                       required
@@ -1738,7 +1836,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                     />
                   </div>
                 </div>
-                <div className="row">
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                   <div className="form-group col-md-4" id="categoryCheckbox">
                     <label>Category: <span className={styles.textdanger}>*</span></label>
                     {this.state.editCategoryCheckOption.map((item: any) => {
@@ -1774,7 +1872,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                     )}
                   </div>
                 </div>
-                <div className="row">
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                   <div className="form-group col-md-4">
                     <PeoplePicker
                       context={peoplePickerContext}
@@ -1809,25 +1907,28 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       styles={this.state.editErrors.editDueDate ? datePickerErrorStyles : {}}
                     />
                   </div>
-                  <div className="col-lg-4">
+                  <div style={{ position: 'relative' }} className="col-lg-4 mt-1">
                     <label htmlFor="Attchments" style={{ marginRight: "10px" }}>Attachments <span className={styles.textdanger}>*</span></label>
-                    <button type="button" onClick={this._OpenModal}>{this.state.fileCount}</button>
+
                     <input disabled={this.state.isDisabled} className="form-control" type="file" name="myFile" onChange={(e) => this.handleFileChange(e, this)} id="newfile" multiple
                       style={{
                         backgroundColor: this.state.editErrors.Attchments ? "#ffcccb" : "white",
                       }} />
+                    <span onClick={this._OpenModal} className='newpo'>    {this.state.fileCount}</span>
                     {this.state.showDialog && <div id="myModal" className={styles.modal}>
                       <div className={styles.modalcontent}>
                         <span><b>Attachment Details</b></span>
                         <br />
                         <span>Below are the attachment details for the Initiative</span>
                         <span className={styles.close} onClick={e => this._CloseModal()}>&times;</span>
-                        <table>
+                        <table className='mtbalenew'>
                           <thead>
-                            <th>File Name</th>
-                            <th>File Link</th>
-                            <th>Upload Date</th>
-                            <th>Delete</th>
+                            <tr style={{ display: 'table', width: '100%' }}>
+                              <th>File Name</th>
+                              <th>File Link</th>
+                              <th>Upload Date</th>
+                              <th>Delete</th>
+                            </tr>
                           </thead>
                           {upFiles}{fileData}
                         </table>
@@ -1835,13 +1936,13 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                     </div>}
                   </div>
                 </div>
-                <div className='row'>
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row mb-3'>
                   <div className="form-group col-md-12">
                     <TextField label="Problem Description:"
                       required
                       name='editProblemDescription'
                       value={this.state.editProblemDescription}
-                      multiline rows={3}
+                      multiline rows={5}
                       onChange={this.handleChange}
                       disabled={this.state.isDisabled}
                       styles={{
@@ -1857,14 +1958,14 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             </fieldset>
           </section>
           {this.state.editSubmitStatus == "Yes" ? //this.state.editFirstInitiatorSubmitStatus == "Yes" || this.state.editFirstAssignedToSubmitStatus == "Yes" ?
-            <section className={styles.sec} >
+            <section className='card card-body mt-2' >
               <fieldset>
                 <form>
                   {/* Section 2 */}
                   <div className="row">
-                    <div className="form-group col-md-12"><h3>To be filled by Department Head</h3></div>
+                    <div className="form-group col-md-12"><h3 style={{ textAlign: 'left' }} className='text-dark text-left font-16 fw-bold mb-3'>To be filled by Department Head</h3></div>
                   </div>
-                  <div className="row">
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                     <div className="form-group col-md-4">
                       <PeoplePicker
                         context={peoplePickerContext}
@@ -1911,7 +2012,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       />
                     </div>
                   </div>
-                  <div className="row">
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                     <div className="form-group col-md-6">
                       <TextField label="Correction(Immediate Steps to stop the problem):" required name='editCorrection'
                         value={this.state.editCorrection}
@@ -1938,7 +2039,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       />
                     </div>
                   </div>
-                  <div className="row">
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                     <div className="form-group col-md-12">
                       <TextField label="Corrective Action (Action to eliminate the root cause):"
                         required
@@ -1954,7 +2055,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       />
                     </div>
                   </div>
-                  <div className="row">
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                     <div className="form-group col-md-4">
                       <PeoplePicker
                         disabled={this.state.showDelegate}
@@ -2008,10 +2109,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       />
                     </div>
                   </div>
-                  <div className="row">
-                    <div className="form-group col-md-12"><h3>Problem Close Out Details</h3></div>
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
+                    <div className="form-group col-md-12"><h3 style={{ textAlign: 'left' }} className='text-dark text-left font-16 fw-bold mb-0'>Problem Close Out Details</h3></div>
                   </div>
-                  <div className="row">
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                     <div className="form-group col-md-12">
                       <TextField label="Corrective Action Implemented On:"
                         required
@@ -2035,13 +2136,13 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           {(this.state.editReviewedBySubmitStatus == "Yes" && this.state.editDelegateToId == null) || (this.state.editLastAssignedToSubmitStatus == "Yes" && this.state.editDelegateToId != null) ? (<section className={styles.sec}>
             <fieldset disabled={this.state.forwarDisable}>
               <form>
-                <div className='row'>
-                  <div className="form-group col-md-12"><h3>Forward Detail</h3></div>
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row'>
+                  <div className="form-group col-md-12"><h3 style={{ textAlign: 'left' }} className='text-dark text-left font-16 fw-bold mb-3'>Forward Detail</h3></div>
                 </div>
-                <div className="row">
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row">
                   <div className="container mt-4">
                     <button type="button" onClick={this.addApprover}>Add</button>
-                    <table id="tblAppr">
+                    <table id="tblAppr" className='mtbalenew'>
                       <tbody>
                         <tr><td>SI No.</td>
                           <td>Role</td>
@@ -2059,24 +2160,24 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             </fieldset>
           </section>) : null}
           {this.state.editSubmitStatus == "Yes" ?
-            <section className={styles.sec} >
+            <section className='card card-body mt-2'>
               <form>
-                <div className='row'>
-                  <div className="form-group col-md-12"><h3>Audit Report</h3></div>
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row'>
+                  <div className="form-group col-md-12"><h3 style={{ textAlign: 'left' }} className='text-dark text-left font-16 fw-bold mb-3'>Audit Report</h3></div>
                 </div>
-                <div className='row'>
-                  <table>
+                <div style={{ display: 'grid' }} className='row'>
+                  <table className='mtbalenew'>
                     <thead>
                       <tr>
-                        <th>S No.</th>
-                        <th>Level</th>
-                        <th>Assigned To</th>
-                        <th>Requestor Name</th>
-                        <th>Requested Date</th>
-                        <th>Action Taken By</th>
-                        <th>Action Taken On</th>
-                        <th>Remarks</th>
-                        <th>Status</th>
+                        <th style={{ minWidth: '70px', maxWidth: '70px' }}>S No.</th>
+                        <th style={{ minWidth: '70px', maxWidth: '70px' }}>Level</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Assigned To</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Requestor Name</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Requested Date</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Action Taken By</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Action Taken On</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Remarks</th>
+                        <th style={{ minWidth: '70px', maxWidth: '70px' }}>Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2087,7 +2188,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               </form>
             </section> : null}
           {this.state.showApprove === true || this.state.showReject === true ?
-            <section id="approvalSection">
+            <section style={{ justifyContent: 'left', textAlign: 'left', display: 'grid' }} id="approvalSection" className='card card-body'>
               <TextField label="Remarks" required name="remarks" value={this.state.remarks} multiline rows={3} onChange={this.handleChange}
                 styles={{
                   fieldGroup: {
@@ -2097,61 +2198,62 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             </section> : null
           }
           {this.state.showSubmit &&
-            <div className="row" style={{ margin: '10px' }}>
-              <div className="form-group col-md-2">
-                <PrimaryButton text="Submit" onClick={() => this.handleSubmit("submit")} />
-              </div>
+            <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
+
+              <PrimaryButton text="Submit" onClick={() => this.handleSubmit("submit")} />
+
               {this.state.showDraft &&
-                <div className="form-group col-md-2">
-                  <PrimaryButton text="Save as Draft" onClick={() => this.handleDraft("draft")} />
-                </div>
+
+                <PrimaryButton text="Save as Draft" onClick={() => this.handleDraft("draft")} />
+
               }
-              <div className="form-group col-md-2">
-                <DefaultButton text="Cancel" onClick={() => this.cancelRequest()} />
-              </div>
+
+              <DefaultButton text="Cancel" onClick={() => this.cancelRequest()} />
+
             </div>
           }
           {this.state.showApprove &&
-            <div className="row" style={{ margin: '10px' }}>
-              <div className="form-group col-md-2">
-                <PrimaryButton text="Approve" onClick={() => this._approveRequest("Approve")} />
-              </div>
-              <div className="form-group col-md-2">
-                <PrimaryButton text="Rework" onClick={() => this._reworkRequest("Rework")} />
-              </div>
-              <div className="form-group col-md-2">
-                <DefaultButton text="Cancel" onClick={() => this.cancelRequest()} />
-              </div>
+            <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
+
+              <PrimaryButton text="Approve" onClick={() => this._approveRequest("Approve")} />
+
+
+              <PrimaryButton text="Rework" onClick={() => this._reworkRequest("Rework")} />
+
+
+              <DefaultButton text="Cancel" onClick={() => this.cancelRequest()} />
+
             </div>
           }
           {this.state.showForward &&
-            <div className="row" style={{ margin: '10px' }}>
-              <div className="form-group col-md-2">
-                <PrimaryButton text="Forward" onClick={() => this.handleForward("Forward")} />
-              </div>
-              <div className="form-group col-md-2">
-                <a href='#/form'> <PrimaryButton onClick={this.cancelRequest}>Cancel</PrimaryButton></a>
-              </div>
+            <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
+
+              <PrimaryButton text="Forward" onClick={() => this.handleForward("Forward")} />
+
+
+              <a href='#/form'> <PrimaryButton onClick={this.cancelRequest}>Cancel</PrimaryButton></a>
+
             </div>
           }
           {this.state.showReject &&
-            <div className="row" style={{ margin: '10px' }}>
-              <div className="form-group col-md-2">
-                <PrimaryButton text="Approve" onClick={() => this._approveRequest("Approve")} />
-              </div>
-              <div className="form-group col-md-2">
-                <PrimaryButton text="Reject" onClick={() => this._rejectRequest("Reject")} />
-              </div>
-              <div className="form-group col-md-2">
-                <DefaultButton text="Cancel" onClick={() => this.cancelRequest()} />
-              </div>
+
+            <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
+
+              <PrimaryButton text="Approve" onClick={() => this._approveRequest("Approve")} />
+
+
+              <PrimaryButton text="Reject" onClick={() => this._rejectRequest("Reject")} />
+
+
+              <DefaultButton text="Cancel" onClick={() => this.cancelRequest()} />
+
             </div>
           }
           {this.state.edType === "view" &&
-            <div className="row" style={{ margin: '10px' }}>              
-              <div className="form-group col-md-2">
-                <DefaultButton text="Cancel" onClick={() => this.cancelRequest()} />
-              </div>
+            <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
+
+              <DefaultButton text="Cancel" onClick={() => this.cancelRequest()} />
+
             </div>
           }
         </div>

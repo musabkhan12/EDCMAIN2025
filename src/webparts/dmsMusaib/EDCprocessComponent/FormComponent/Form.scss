@@ -98,6 +98,15 @@
   display: block !important;
 }
 .footer{display: none !important;}
+.ms-Checkbox-text {
+  
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+}
+.root-137{
+  font-family: "Fluent MDL2 Hybrid Icons" !important;
+}
+
 .newbutoom{display: flex; gap: 10px;}
 .newbutoom button+button{background: #dc3545 !important; border-color: #dc3545 !important;}
 .newbutoom button+button+button{background: #ffc107 !important; border-color: #ffc107 !important;}

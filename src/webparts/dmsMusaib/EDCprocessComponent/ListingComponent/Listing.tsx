@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { IListingProps } from './IListingProps';
 import { IListingState } from './IListingState';
-import { FormComponent } from '../FormComponent/Form';
+import FormComponent from '../FormComponent/Form';
 import { Profiles } from "@pnp/sp/profiles";
 import { getSP } from "../../loc/pnpjsConfig";
 import "@pnp/sp/webs";
@@ -69,18 +69,18 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
         console.log("Editing item:", item);
 
         if (item.ProcessName === 'Non Conformity') {
-            alert("Non Conformity");
+            // alert(item.SubmitStatus + "submit status");
 
-            const actionType = item.Status === "Save as draft" ? "edit" : "view";
+            const actionType = item.SubmitStatus === "No" ? "edit" : "view";
             const newPath = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId || ""}`;
 
             // Set URL before state update
             window.location.hash = newPath;
-            alert(newPath + "new path");
+            // alert(newPath + "new path");
             // Update state and ensure UI updates before navigation
             this.setState({ process: item.ProcessName, showform: true });
         } else {
-            alert("else Non Conformity");
+            // alert("else Non Conformity");
             this.setState({ showform: true, process: item.ProcessName });
         }
 
@@ -179,13 +179,14 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             }
             else if ((item.ProcessName == "Non Conformity") && item.Status == "Pending") {
 
-                if (item.ProcessItemId) {
-                    let actionType = "approve";
-                    path = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId}`;
-                } else if (item.Status == "Pending") {
+                // if (item.ProcessItemId) {
+                //     let actionType = "approve";
+                //     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId}`;
+                // } else 
+                if (item.SubmitStatus == "Yes") {
                     let actionType = "view";
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
-                } else if (item.Status == "Save as draft") {
+                } else if (item.SubmitStatus == "No") {
                     let actionType = "edit";
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
                 }
@@ -200,8 +201,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     <td style={{ minWidth: '40px', maxWidth: '40px' }}>
                         <div style={{ marginLeft: '5px' }} className='indexdesign'>{i + 1}</div>
                     </td>
-                    <td title={item?.RequestId}  style={{ minWidth: '85px', maxWidth: '85px' }}>{item?.RequestId}</td>
-                    <td title={item.Title}  style={{ minWidth: '85px', maxWidth: '85px' }}>{item.Title}</td>
+                    <td title={item?.RequestId} style={{ minWidth: '85px', maxWidth: '85px' }}>{item?.RequestId}</td>
+                    <td title={item.Title} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.Title}</td>
                     <td title={item?.ProcessName === "Annual Audit Plan" ? "Audit Plan" : item?.ProcessName} style={{ minWidth: '85px', maxWidth: '85px' }}>
                         {item?.ProcessName === "Annual Audit Plan" ? "Audit Plan" : item?.ProcessName}
                     </td>
@@ -210,6 +211,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     <td title={item.Status} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.Status}</td>
                     <td style={{ minWidth: '75px', maxWidth: '75px' }}>
                         <a href={path} onClick={() => this.editItem(item)}>
+                            {/* <a  onClick={() => this.editItem(item)}> */}
                             <img src={require("../../assets/edit.png")} className="fas fa-trash" alt="delete" />
                         </a>
                     </td>
@@ -250,7 +252,16 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                         <th key={column} style={{ minWidth: '85px', maxWidth: '85px' }}>
                                             <div>
                                                 <div onClick={() => this.handleSort(column)} style={{ cursor: 'pointer', display: 'flex' }}>
-                                                    {column}
+                                                    {/* {column} */}
+                                                    {column === 'ProcessName'
+                                                        ? 'Process Name'
+                                                        : column === 'RequestId'
+                                                            ? 'Request ID'
+                                                            : column === 'ReqName'
+                                                                ? 'Request Name'
+                                                                : column === 'ReqDt'
+                                                                    ? 'Request Date'
+                                                                    : column} {/* Dynamically update column names */}
                                                     {sortColumn === column && (
                                                         <span>
                                                             {sortDirection === 'asc' ? ' ▲' : ' ▼'}
@@ -310,21 +321,22 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
         const _self = this;
         console.log(this.props.userid, "this.props.userid");
         let allItems: any[] = [];
-        const auditItems = await spfi(this._sp).web.lists.getByTitle("AnnualAuditProgram").items.select('Id,MemoNumber,Title,Author/Title,Created,Status').expand('Author')();
+        const auditItems = await spfi(this._sp).web.lists.getByTitle("AnnualAuditProgram").items.select('Id,MemoNumber,Title,Author/Title,Created,Status,Subject').expand('Author')();
         auditItems.forEach(itm => {
             allItems.push({
-                RequestId: itm.MemoNumber,
-                Title: itm.Title,
+                RequestId: itm.MemoNumber || "",
+                Title: itm.Subject || "",
                 ProcessName: "Annual Audit Program",
                 ReqName: itm.Author ? itm.Author.Title : '',
                 ReqDt: new Date(itm.Created),
                 Status: itm.Status,
                 MainListId: itm.Id,
-                Id: itm.Id
+                Id: itm.Id,
+                SubmitStatus: ''
             });
         });
 
-        const AnnualAuditPlanList = await spfi(this._sp).web.lists.getByTitle("AnnualAuditPlanList").items.select('Id,MemoNumber,Title,Author/Title,Created,Status,ReferenceNumber').expand('Author')();
+        const AnnualAuditPlanList = await spfi(this._sp).web.lists.getByTitle("AnnualAuditPlanList").items.select('Id,MemoNumber,Title,Author/Title,Created,Status,ReferenceNumber,Subject').expand('Author')();
         AnnualAuditPlanList.forEach(async itm => {
 
             if (itm.Status === "Pending") {
@@ -334,14 +346,15 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
                         allItems.push({
                             RequestId: itm.MemoNumber ? itm.MemoNumber : "",
-                            Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
+                            Title: itm.Subject ? itm.Subject : "",
                             ProcessName: "Annual Audit Plan",
                             ReqName: itm.Author ? itm.Author.Title : '',
                             ReqDt: new Date(itm.Created),
                             Status: itm.Status,
                             MainListId: itm.Id,
                             Id: itm.Id,
-                            ProcessItemId: itom.Id
+                            ProcessItemId: itom.Id,
+                            SubmitStatus: ''
                         });
 
                     }
@@ -351,14 +364,15 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
                     allItems.push({
                         RequestId: itm.MemoNumber ? itm.MemoNumber : "",
-                        Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
+                        Title: itm.Subject ? itm.Subject : "",
                         ProcessName: "Annual Audit Plan",
                         ReqName: itm.Author ? itm.Author.Title : '',
                         ReqDt: new Date(itm.Created),
                         // ? moment(itm.Created).format("DD-MMM-YYYY") : ''
                         Status: itm.Status,
                         MainListId: itm.Id,
-                        Id: itm.Id
+                        Id: itm.Id,
+                        SubmitStatus: ''
                     });
 
                 }
@@ -367,20 +381,21 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
                 allItems.push({
                     RequestId: itm.MemoNumber ? itm.MemoNumber : "",
-                    Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
+                    Title: itm.Subject ? itm.Subject : "",
                     ProcessName: "Annual Audit Plan",
                     ReqName: itm.Author ? itm.Author.Title : '',
                     ReqDt: new Date(itm.Created),
                     Status: itm.Status,
                     MainListId: itm.Id,
-                    Id: itm.Id
+                    Id: itm.Id,
+                    SubmitStatus: ''
                 });
 
             }
 
         });
 
-        const ChangeRequestDocumentCancellationListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,ReferenceNumber').expand('Author', 'RequesterName').orderBy("Modified", false)();
+        const ChangeRequestDocumentCancellationListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,ReferenceNumber,Created').expand('Author', 'RequesterName').orderBy("Modified", false)();
         for (const item of ChangeRequestDocumentCancellationListItems) {
             if (item.Status === "Rework") {
                 const processItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and (Status eq 'Pending' or Status eq 'Save as draft') and ProcessName eq 'Document Cancellation' and ListItemId eq ${item.Id}`)();
@@ -391,11 +406,12 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                             Title: item.ReferenceNumber,
                             ProcessName: "Document Cancellation",
                             ReqName: item.RequesterName?.Title || '',
-                            ReqDt: new Date(item.RequestDate),
+                            ReqDt: new Date(item.Created),
                             Status: item.Status,
                             MainListId: item.Id,
                             Id: item.Id,
-                            ProcessItemId: itm.Id
+                            ProcessItemId: itm.Id,
+                            SubmitStatus: ''
                         });
                     }
                 } else {
@@ -404,10 +420,11 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         Title: item.ReferenceNumber,
                         ProcessName: "Document Cancellation",
                         ReqName: item.RequesterName?.Title || '',
-                        ReqDt: new Date(item.RequestDate),
+                        ReqDt: new Date(item.Created),
                         Status: item.Status,
                         MainListId: item.Id,
-                        Id: item.Id
+                        Id: item.Id,
+                        SubmitStatus: ''
                     });
                 }
             } else {
@@ -416,10 +433,11 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     Title: item.ReferenceNumber,
                     ProcessName: "Document Cancellation",
                     ReqName: item.RequesterName?.Title || '',
-                    ReqDt: new Date(item.RequestDate),
+                    ReqDt: new Date(item.Created),
                     Status: item.Status,
                     MainListId: item.Id,
-                    Id: item.Id
+                    Id: item.Id,
+                    SubmitStatus: ''
                 });
             }
         }
@@ -439,7 +457,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                             Status: item.Status,
                             MainListId: item.Id,
                             Id: item.Id,
-                            ProcessItemId: itm.Id
+                            ProcessItemId: itm.Id,
+                            SubmitStatus: ''
                         });
                     }
                 } else {
@@ -451,7 +470,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         ReqDt: new Date(item.RequestDate),
                         Status: item.Status,
                         MainListId: item.Id,
-                        Id: item.Id
+                        Id: item.Id,
+                        SubmitStatus: ''
                     });
                 }
             } else {
@@ -464,7 +484,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     // ? moment(item.RequestDate).format("DD-MMM-YYYY") : ''
                     Status: item.Status,
                     MainListId: item.Id,
-                    Id: item.Id
+                    Id: item.Id,
+                    SubmitStatus: ''
                 });
             }
         }
@@ -486,7 +507,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                             Status: itm.Status,
                             MainListId: itm.Id,
                             Id: itm.Id,
-                            ProcessItemId: itom.Id
+                            ProcessItemId: itom.Id,
+                            SubmitStatus: ''
                         });
 
                     }
@@ -502,7 +524,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         ReqDt: new Date(itm.Created),
                         Status: itm.Status,
                         MainListId: itm.Id,
-                        Id: itm.Id
+                        Id: itm.Id,
+                        SubmitStatus: ''
                     });
 
                 }
@@ -517,34 +540,46 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     ReqDt: new Date(itm.Created),
                     Status: itm.Status,
                     MainListId: itm.Id,
-                    Id: itm.Id
+                    Id: itm.Id,
+                    SubmitStatus: ''
                 });
 
             }
 
         });
 
-        const nonconfirmity = await spfi(this._sp).web.lists.getByTitle('NonConformityList').items.select('Id, DocumentCode ,Author/Title , Status , Created').expand('Author').orderBy("Modified", false)();
+        const nonconfirmity = await spfi(this._sp).web.lists.getByTitle('NonConformityList').items.select('Id, DocumentCode ,Author/Title , Status , Created', 'SubmitStatus').expand('Author').orderBy("Modified", false)();
         console.log(nonconfirmity, "nonconfirmity")
         for (const item of nonconfirmity) {
+            // alert (item.DocumentCode + "item.DocumentCode" )
             console.log(item.DocumentCode, "item.DocumentCode")
+            let Doccode = ''
+            if (item.DocumentCode == "" || item.DocumentCode == null) {
+                Doccode = ""
+            } else {
+                Doccode = item.DocumentCode
+            }
             allItems.push({
-                RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
-                Title: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
+                // RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " ":item.DocumentCode,
+                RequestId: Doccode,
+                // Title: item.DocumentCode == "" || item.DocumentCode == null?" ":item.DocumentCode,
+                Title: Doccode,
                 ProcessName: "Non Conformity",
                 ReqName: item.Author?.Title || '',
-                ReqDt: new Date(item.Created) ,
-                //? moment(item.Created).format("DD-MMM-YYYY") : ''
+                // ReqDt: item.Created ? moment(item.Created).format("DD-MMM-YYYY") : '',
+                ReqDt: new Date(item.Created),
                 Status: item.Status,
                 MainListId: item.Id,
-                Id: item.Id
+                Id: item.Id,
+                SubmitStatus: item.SubmitStatus
             });
 
         }
-
-        _self.setState({ items: allItems, totalItems: allItems.length });
-        console.log(allItems, "all items");
-        console.log(allItems.length, "all items length");
-        console.log(this.state.items, "this.state.items");
+        const sortedAllItems = allItems.sort((a, b) => moment(b.ReqDt, "DD-MMM-YYYY").toDate().getTime() - moment(a.ReqDt, "DD-MMM-YYYY").toDate().getTime());
+        _self.setState({ items: sortedAllItems, totalItems: sortedAllItems.length });
+        // _self.setState({ items: allItems, totalItems: allItems.length });
+        // console.log(allItems, "all items");
+        // console.log(allItems.length, "all items length");
+        // console.log(this.state.items, "this.state.items");
     }
 }

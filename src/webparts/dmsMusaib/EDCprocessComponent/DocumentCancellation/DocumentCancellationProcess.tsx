@@ -2349,6 +2349,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                             <div className='row'>
                                                                 <div className='col-sm-8'>
                                                                     <h4 className="header-title text-dark font-16 mb-3 ">Forward Approval To</h4>
+                                                                    <label>Define the approval hierarchy to ensure requests are routed to the appropriate approvers.
+                                                                    </label>
 
                                                                 </div>
                                                                 <div className='col-sm-4'>

@@ -1132,18 +1132,23 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                         // if (boolval == true) {
                         setLoading(false);
-                        Swal.fire('Submitted successfully.', '', 'success');
-                        sessionStorage.removeItem("DocumentCancelId")
-                        setTimeout(() => {
 
-                            window.history.back();
-                            // window.location.reload();
-                            setTimeout(() => {
-                                location.reload();
-                            }, 100);
-                            // let url = window.location.href;
-                            // let baseUrl = url.split("#")[0];
-                        }, 500);
+                        sessionStorage.removeItem("DocumentCancelId");
+                        Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                            }
+                        });
+                        // setTimeout(() => {
+
+                        //     window.history.back();
+                        //     // window.location.reload();
+                        //     setTimeout(() => {
+                        //         location.reload();
+                        //     }, 100);
+                        //     // let url = window.location.href;
+                        //     // let baseUrl = url.split("#")[0];
+                        // }, 500);
                         // }
                     }
 
@@ -1339,12 +1344,17 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                         // if (boolval == true) {
                         setLoading(false);
-                        Swal.fire('Submitted successfully.', '', 'success');
+                        Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                            }
+                        });
+                        //Swal.fire('Submitted successfully.', '', 'success');
                         // sessionStorage.removeItem("bannerId")
-                        setTimeout(() => {
-                            window.location.reload();
-                            // window.history.back();
-                        }, 500);
+                        // setTimeout(() => {
+                        //     window.location.reload();
+                        //     // window.history.back();
+                        // }, 500);
                         // }
 
                     }
@@ -1594,16 +1604,21 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                         // if (boolval == true) {
                         setLoading(false);
-                        Swal.fire('Saved Successfully.', '', 'success');
                         sessionStorage.removeItem("DocumentCancelId")
-                        setTimeout(() => {
+                        Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                            }
+                        });
 
-                            window.history.back();
-                            // window.location.reload();
-                            setTimeout(() => {
-                                location.reload();
-                            }, 100);
-                        }, 1000);
+                        // setTimeout(() => {
+
+                        //     window.history.back();
+                        //     // window.location.reload();
+                        //     setTimeout(() => {
+                        //         location.reload();
+                        //     }, 100);
+                        // }, 1000);
                         // }
                     }
 
@@ -1800,12 +1815,16 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
 
                         setLoading(false);
-                        Swal.fire('Saved Successfully.', '', 'success');
+                        Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                            }
+                        });
                         // sessionStorage.removeItem("bannerId")
-                        setTimeout(() => {
-                            window.location.reload();
-                            // window.history.back();
-                        }, 1000);
+                        // setTimeout(() => {
+                        //     window.location.reload();
+                        //     // window.history.back();
+                        // }, 1000);
                     }
                 })
 
@@ -2118,36 +2137,36 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                             </div>
                                                         </div>
 
-                                                         <div style={{display:'grid',overflow:'auto'}}>
-                                                        <table id="tabRec" className='mtbalenew overhi'>
-                                                            <thead>
-                                                                <tr><th>ISO reference<span className="text-danger1"> *</span></th>
-                                                                    <th style={{minWidth:'160px', maxWidth:'160px'}}>IMS procedure<span className="text-danger1"> *</span></th>
-                                                                    <th colSpan={2}>Inquiries<span className="text-danger1"> *</span></th>
-                                                                    <th style={{minWidth:'160px', maxWidth:'160px'}}>Auditor’s
-                                                                        Comments<span className="text-danger1"> *</span></th>
-                                                                    <th>Time<span className="text-danger1"> *</span></th>
-                                                                    <th style={{minWidth:'160px', maxWidth:'160px'}}>Share with<span className="text-danger1"> *</span></th>
+                                                        <div style={{ display: 'grid', overflow: 'auto' }}>
+                                                            <table id="tabRec" className='mtbalenew overhi'>
+                                                                <thead>
+                                                                    <tr><th>ISO reference<span className="text-danger1"> *</span></th>
+                                                                        <th >IMS procedure<span className="text-danger1"> *</span></th>
+                                                                        <th colSpan={2}>Inquiries<span className="text-danger1"> *</span></th>
+                                                                        <th >Auditor’s
+                                                                            Comments<span className="text-danger1"> *</span></th>
+                                                                        <th>Time<span className="text-danger1"> *</span></th>
+                                                                        <th>Share with<span className="text-danger1"> *</span></th>
 
-                                                                    {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th>Action</th>}
-                                                                </tr>
-                                                            </thead>
+                                                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th>Action</th>}
+                                                                    </tr>
+                                                                </thead>
 
-                                                            <tbody>
-                                                                {console.log("ValidDRecommValidDRecomm", ValidDRecomm)}
-                                                                {recommendationRows.map((row, index) => (
-                                                                    <tr key={index}>
-                                                                        <td>
-                                                                            <input
-                                                                                type="text"
-                                                                                className={`form-control ${(RowErrors[index]?.isoreference) ? "border-on-error" : ""}`}
-                                                                                // className="form-control"
-                                                                                value={row.isoreference}
-                                                                                onChange={(e) => handleRecommendationChange(index, 'isoreference', e.target.value)}
-                                                                                disabled={InputDisabled}
-                                                                            />
-                                                                        </td>
-                                                                        {/* <td>
+                                                                <tbody>
+                                                                    {console.log("ValidDRecommValidDRecomm", ValidDRecomm)}
+                                                                    {recommendationRows.map((row, index) => (
+                                                                        <tr key={index}>
+                                                                            <td>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    className={`form-control ${(RowErrors[index]?.isoreference) ? "border-on-error" : ""}`}
+                                                                                    // className="form-control"
+                                                                                    value={row.isoreference}
+                                                                                    onChange={(e) => handleRecommendationChange(index, 'isoreference', e.target.value)}
+                                                                                    disabled={InputDisabled}
+                                                                                />
+                                                                            </td>
+                                                                            {/* <td>
                                                                             <input
                                                                                 type="text"
                                                                                 className={`form-control ${(!ValidDRecomm && imsprocedureerr) ? "border-on-error" : ""}`}
@@ -2157,27 +2176,27 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 disabled={InputDisabled}
                                                                             />
                                                                         </td> */}
-                                                                        <td style={{minWidth:'160px', maxWidth:'160px'}}>
-                                                                            <input
-                                                                                type="text"
-                                                                                className={`form-control ${RowErrors[index]?.imsprocedure ? "border-on-error" : ""}`}
-                                                                                value={row.imsprocedure}
-                                                                                onChange={(e) => handleRecommendationChange(index, 'imsprocedure', e.target.value)}
-                                                                                disabled={InputDisabled}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{minWidth:'160px', maxWidth:'160px'}}>
-                                                                            <input
-                                                                                type="text"
-                                                                                className={`form-control ${(RowErrors[index]?.inquiries) ? "border-on-error" : ""}`}
-                                                                                // className="form-control"
-                                                                                value={row.inquiries}
-                                                                                onChange={(e) => handleRecommendationChange(index, 'inquiries', e.target.value)}
-                                                                                disabled={InputDisabled}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{minWidth:'160px', maxWidth:'160px'}}>
-                                                                            {/* <input
+                                                                            <td>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    className={`form-control ${RowErrors[index]?.imsprocedure ? "border-on-error" : ""}`}
+                                                                                    value={row.imsprocedure}
+                                                                                    onChange={(e) => handleRecommendationChange(index, 'imsprocedure', e.target.value)}
+                                                                                    disabled={InputDisabled}
+                                                                                />
+                                                                            </td>
+                                                                            <td>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    className={`form-control ${(RowErrors[index]?.inquiries) ? "border-on-error" : ""}`}
+                                                                                    // className="form-control"
+                                                                                    value={row.inquiries}
+                                                                                    onChange={(e) => handleRecommendationChange(index, 'inquiries', e.target.value)}
+                                                                                    disabled={InputDisabled}
+                                                                                />
+                                                                            </td>
+                                                                            <td>
+                                                                                {/* <input
                                                                                 type="text"
                                                                                 className={`form-control ${( RowErrors[index]?.auditorcomments) ? "border-on-error" : ""}`}
                                                                                 // className="form-control"
@@ -2185,46 +2204,46 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 onChange={(e) => handleRecommendationChange(index, 'auditorcomments', e.target.value)}
                                                                                 disabled={InputDisabled}
                                                                             /> */}
-                                                                            <textarea
-                                                                                id="simpleinput"
-                                                                                className={`form-control ${(RowErrors[index]?.auditorcomments) ? "border-on-error" : ""}`}
-                                                                                // className="form-control"
-                                                                                value={row.auditorcomments}
-                                                                                onChange={(e) => handleRecommendationChange(index, 'auditorcomments', e.target.value)}
-                                                                                disabled={InputDisabled}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{minWidth:'160px', maxWidth:'160px'}}>
-                                                                            <input
-                                                                                type="time"
-                                                                                className={`form-control ${( RowErrors[index]?.time) ? "border-on-error" : ""}`}
-                                                                                // className="form-control"
-                                                                                value={row.time}
-                                                                                onChange={(e) => handleRecommendationChange(index, 'time', e.target.value)}
-                                                                                disabled={InputDisabled}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{minWidth:'160px', maxWidth:'160px'}}>
-                                                                            <Select
-                                                                                options={rows1}
-                                                                                // isMulti
-                                                                                className={`${( RowErrors[index]?.sharewith) ? "border-on-error" : ""}`}
-                                                                                value={row.sharewith}
-                                                                                onChange={(selectedOptions: any) => handleRecommendationChange(index, 'sharewith', selectedOptions)}
-                                                                                placeholder="Select"
-                                                                                isDisabled={InputDisabled}
-                                                                            />
-                                                                        </td>
-                                                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td>
-                                                                            <img src={require("../assets/del.png")} onClick={() => handleDeleteRecommendationRow(index)} />
+                                                                                <textarea
+                                                                                    id="simpleinput"
+                                                                                    className={`form-control ${(RowErrors[index]?.auditorcomments) ? "border-on-error" : ""}`}
+                                                                                    // className="form-control"
+                                                                                    value={row.auditorcomments}
+                                                                                    onChange={(e) => handleRecommendationChange(index, 'auditorcomments', e.target.value)}
+                                                                                    disabled={InputDisabled}
+                                                                                />
+                                                                            </td>
+                                                                            <td>
+                                                                                <input
+                                                                                    type="time"
+                                                                                    className={`form-control ${(RowErrors[index]?.time) ? "border-on-error" : ""}`}
+                                                                                    // className="form-control"
+                                                                                    value={row.time}
+                                                                                    onChange={(e) => handleRecommendationChange(index, 'time', e.target.value)}
+                                                                                    disabled={InputDisabled}
+                                                                                />
+                                                                            </td>
+                                                                            <td>
+                                                                                <Select
+                                                                                    options={rows1}
+                                                                                    // isMulti
+                                                                                    className={`${(RowErrors[index]?.sharewith) ? "border-on-error" : ""}`}
+                                                                                    value={row.sharewith}
+                                                                                    onChange={(selectedOptions: any) => handleRecommendationChange(index, 'sharewith', selectedOptions)}
+                                                                                    placeholder="Select"
+                                                                                    isDisabled={InputDisabled}
+                                                                                />
+                                                                            </td>
+                                                                            {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td>
+                                                                                <img src={require("../assets/del.png")} onClick={() => handleDeleteRecommendationRow(index)} />
 
-                                                                        </td>
-                                                                        }
-                                                                    </tr>
-                                                                ))}
-                                                            </tbody>
+                                                                            </td>
+                                                                            }
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
 
-                                                        </table>
+                                                            </table>
                                                         </div>
                                                     </fieldset>
                                                 </section>
@@ -2427,7 +2446,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                 <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
                                                     <Modal.Header closeButton>
-                                                        <Modal.Title > <h4 className='font-16 text-dark fw-bold'>Attachment Details</h4>  <br></br>
+                                                        <Modal.Title > <h4 className='font-16 text-dark fw-bold mb-0'>Attachment Details</h4>  
                                                             <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for Annual Audit Report
                                                             </p>
 
@@ -2477,8 +2496,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 year: "numeric"
                                                                             }).replace(/ /g, "/")}</td>
 
-                                                                            {!InputDisabled && <td> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>}
-                                                                            {InputDisabled &&
+                                                                            {!InputDisabled && <td style={{textAlign:'center'}}> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>}
+                                                                            {(InputDisabled || !InputDisabled) &&
                                                                                 <td style={{ textAlign: 'center' }}>
                                                                                     <span onClick={() => OpenFile(FilesArr && FilesArr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                                                                         <FontAwesomeIcon icon={faEye} /></span>
@@ -2501,7 +2520,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                 </Modal>
                                                 <Modal show={ShowModalpre} onHide={() => setShowModalpre(false)} size='lg' className='filemodal'>
                                                     <Modal.Header closeButton>
-                                                        <Modal.Title > <h4 className='font-16 text-dark fw-bold'>Attachment Details</h4>  <br></br>
+                                                        <Modal.Title > <h4 className='font-16 text-dark fw-bold mb-0'>Attachment Details</h4>
                                                             <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for Annual Audit Report
                                                             </p>
 
@@ -2551,8 +2570,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 year: "numeric"
                                                                             }).replace(/ /g, "/")}</td>
 
-                                                                            {!InputDisabled && <td> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>}
-                                                                            {InputDisabled &&
+                                                                            {!InputDisabled && <td style={{textAlign:'center'}}> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>}
+                                                                            {(InputDisabled || !InputDisabled) &&
                                                                                 <td style={{ textAlign: 'center' }}>
                                                                                     <span onClick={() => OpenFile(FilesArrDoclink && FilesArrDoclink[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                                                                         <FontAwesomeIcon icon={faEye} /></span>

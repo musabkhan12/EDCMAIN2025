@@ -428,6 +428,9 @@ border-color: transparent;
 
 color: #6c757d !important;
 }
+textarea:focus{
+  border-color: #6c757d !important;
+}
 
 .cardcss {
 // border-bottom-left-radius: 1rem !important;
@@ -515,7 +518,7 @@ height: 103px !important;
 .small-image img{height: 100% !important; border-radius: 10px; object-fit: cover;}
 textarea{border: none;}
 textarea:focus{
-outline: none !important;  box-shadow: none !important;border: none !important; border-color: #fff !important;
+outline: none !important;  box-shadow: none !important;border: none !important; border:1px solid #6c757d !important;
 }
 .padd30px{padding-right: 54px;}
 .add-comment textarea{height: 42px; border: 1px solid #f37421  !important; border-radius: 3px;}

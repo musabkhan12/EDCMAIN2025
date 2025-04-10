@@ -168,6 +168,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [ValidCancelReason, setValidCancelReason] = React.useState(true);
   const [showdate, setshowdate] = React.useState(false);
   const [editForm, setEditForm] = React.useState(false);
+  const [showpreviousattachment, setshowpreviousattachment] = React.useState(false);
   const [disabledforwardarr, setdisabledforwardarr] = React.useState(false);
   const [modeValue, setmode] = React.useState("");
   const [referencedocCode, setreferencedocCode] = React.useState("");
@@ -611,6 +612,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   };
   const onSelectDocCode = async (selectedList: any) => {
     debugger
+    setshowpreviousattachment(true);
     console.log(selectedList, "selectedList");
     if (selectedList != null) {
       setLoading(true);
@@ -646,8 +648,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       }));
       // setcancellReason(initialRows);
       // setcancellReasonEdit(initialRows);
-      setcancellReason([{ id: 0, description: "", reason: "" }]);
-      setcancellReasonEdit([{ id: 0, description: "", reason: "" }]);
+      //setcancellReason([{ id: 0, description: "", reason: "" }]);
+      //setcancellReasonEdit([{ id: 0, description: "", reason: "" }]);
       const selectedLocation = LocationOpt.filter((loc: { locationId: any; }) => loc.locationId === selectedList.LocationId)[0] || null;
       const selectedCustodian = Custodianopt.filter((cust: { custodianId: any; }) => cust.custodianId === selectedList.CustodianId)[0] || null;
       const selectedDocumentType = DocumentTypeOpt.filter((docType: { documentTypeId: any; }) => docType.documentTypeId === selectedList.DocumentTypeId)[0] || null;
@@ -662,7 +664,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       setselectedOptionCusto(selectedCustodian);
       setselectedOptionLoc(selectedLocation);
       //setselectedCheckboxIds(selectedList.ChangeRequestTypeId);
-      setselectedCheckboxIds([])
+      //setselectedCheckboxIds([])
       if (selectedList.AttachmentId.length > 0) {
         let arrn = await getDocumentLinkByIDarr(sp, selectedList.AttachmentId[0]);
         //let arraynew: any[];
@@ -696,17 +698,21 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       DocumentCode: "",
       ReferenceNumber: "",
     }));
-    setselectedCheckboxIds([]);
-    setselectedOptionDoctype(null);
-    setSelectedOptionClassification(null);
-    setSelectedOptionAmend(null);
+    //setselectedCheckboxIds([]);
+    if(selectedList?.label != "Change Request for New Addition"){
+      setselectedOptionDoctype(null);
+      setselectedOptionCusto(null);
+      setselectedOptionLoc(null);
+    }
+
+    //setSelectedOptionClassification(null);
+    //setSelectedOptionAmend(null);
     //setSelectedOptionDepart(null);
-    setselectedOptionCusto(null);
-    setselectedOptionLoc(null);
-    setSelectedOptionReq(null);
+  
+    //setSelectedOptionReq(null);
     setSelectedOption(null);
-    setAttachmentarr([]);
-    setcancellReason([{ id: 0, description: "", reason: "" }]);
+    //setAttachmentarr([]);
+    //setcancellReason([{ id: 0, description: "", reason: "" }]);
     console.log(selectedList, "selectedListreq");
     setFormData(prevData => ({
       ...prevData,
@@ -2450,46 +2456,46 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         };
         uloadBannerImageFiles.push(arr);
         setAttachmentarr(uloadBannerImageFiles);
-        const fileType = file.type.split("/")[0]; // Extract file type (image, pdf, etc.)
-        const folder = sp.web.getFolderByServerRelativePath('Socialfeedimages');
-        const uploadResult = await folder.files.addChunked(file.name, file);
-        console.log("File uploaded successfully", uploadResult);
-        let previewUrl: any;
-        // Generate the preview URL dynamically
-        if (uploadResult) {
-          previewUrl = uploadResult.data.ServerRelativeUrl;
-        }
+        // const fileType = file.type.split("/")[0]; // Extract file type (image, pdf, etc.)
+        // const folder = sp.web.getFolderByServerRelativePath('Socialfeedimages');
+        // const uploadResult = await folder.files.addChunked(file.name, file);
+        // console.log("File uploaded successfully", uploadResult);
+        // let previewUrl: any;
+        // // Generate the preview URL dynamically
+        // if (uploadResult) {
+        //   previewUrl = uploadResult.data.ServerRelativeUrl;
+        // }
 
-        //await generatePreviewUrl(uploadResult.data.ServerRelativeUrl);
+        // //await generatePreviewUrl(uploadResult.data.ServerRelativeUrl);
 
-        //previewFile(previewUrl);
-        const preview = URL.createObjectURL(file);
+        // //previewFile(previewUrl);
+        // const preview = URL.createObjectURL(file);
 
-        newfilepreview = preview
-        setPreviewUrl(preview);
-        setFileType(fileType);
-        var arr = {};
-        arr = {
-          files: files,
-          libraryName: libraryName,
-          docLib: docLib,
-          name: files[0].name,
-          fileName: files[0].name,
-          FileName: files[0].name,
-          fileSize: files[0].size,
-          date: new Date().toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric"
-          }).replace(/ /g, "/"),
-          FileRef: previewUrl,
-          FileLeafRef: files[0].name,
-          fileUrl: previewUrl,
-          fileType: fileType,
-          previewUrl: previewUrl
-        };
-        uloadBannerImageFiles.push(arr);
-        setAttachmentarr(uloadBannerImageFiles);
+        // newfilepreview = preview
+        // setPreviewUrl(preview);
+        // setFileType(fileType);
+        // var arr = {};
+        // arr = {
+        //   files: files,
+        //   libraryName: libraryName,
+        //   docLib: docLib,
+        //   name: files[0].name,
+        //   fileName: files[0].name,
+        //   FileName: files[0].name,
+        //   fileSize: files[0].size,
+        //   date: new Date().toLocaleDateString("en-GB", {
+        //     day: "2-digit",
+        //     month: "short",
+        //     year: "numeric"
+        //   }).replace(/ /g, "/"),
+        //   FileRef: previewUrl,
+        //   FileLeafRef: files[0].name,
+        //   fileUrl: previewUrl,
+        //   fileType: fileType,
+        //   previewUrl: previewUrl
+        // };
+        // uloadBannerImageFiles.push(arr);
+        // setAttachmentarr(uloadBannerImageFiles);
       } else {
         Swal.fire("upload a document")
       }
@@ -2966,9 +2972,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   </div>
                                 </div>
                               }
-                              {((modeValue == "view" || modeValue == "approve" ||
+                              {console.log("ghghghghghghgh",showpreviousattachment,"jjjj",(showpreviousattachment ||(((modeValue == "view" || modeValue == "approve" ||
                                 (selectedOptionReq?.label != "Change Request for New Addition" && selectedOption)) ||
-                                (modeValue == "edit" && formData?.Status == "Save as draft")) && DocumentLink && Attachmentarr.length == 0 &&
+                                (modeValue == "edit" && formData?.Status == "Save as draft")) && DocumentLink && Attachmentarr.length == 0)))}
+                              {(showpreviousattachment && selectedOptionReq?.label != "Change Request for New Addition" || (((modeValue == "view" || modeValue == "approve" ||
+                                (selectedOptionReq?.label != "Change Request for New Addition" && selectedOption)) ||
+                                (modeValue == "edit" && formData?.Status == "Save as draft")) && DocumentLink && Attachmentarr.length == 0)) &&
 
                                 <div className="col-lg-4">
                                   <div className="mb-3">
@@ -3126,7 +3135,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                               <div className='row'>
                                 <div className='col-sm-8'>
                                   <h3 className="header-title text-dark font-16 mb-3 ">Forward Approval To</h3>
-
+                                  <label>Define the approval hierarchy to ensure requests are routed to the appropriate approvers.
+                                  </label>
                                 </div>
 
                                 <div className='col-sm-4'>
@@ -3349,8 +3359,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
                                     <td>{DocumentLink != null && `${DocumentLink?.FileLeafRef}`}</td>
                                     <td style={{ textAlign: 'center' }}>
+                                      {/* <span onClick={() => OpenFile(DocumentLink != null && DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                        <FontAwesomeIcon icon={faEye} /></span> */}
                                       <span onClick={() => OpenFile(DocumentLink != null && DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                         <FontAwesomeIcon icon={faEye} /></span>
+                                      <span onClick={() => OpenFile(DocumentLink != null && DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                        <FontAwesomeIcon icon={faDownload} /></span>
                                     </td>
                                     <td>{DocumentLink && moment(DocumentLink?.Created).format("DD/MMM/YYYY")}</td>
                                     {/* <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
@@ -3385,7 +3399,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     <th className='text-center'>Upload date</th>
                                     {(modeValue == "edit" || modeValue == null || modeValue == ""
                                       || (modeValue == "approve" && formData?.Status == "Rework")) &&
-                                      <th > Action </th>
+                                      <th style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}> Action </th>
                                     }
                                   </tr>
                                 </thead>
@@ -3397,8 +3411,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       <td>{Attachmentarr && Attachmentarr[0]?.FileName}</td>
                                       {showButton &&
                                         <td style={{ textAlign: 'center' }}>
+                                          {/* <span onClick={() => OpenFile(Attachmentarr && Attachmentarr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                            <FontAwesomeIcon icon={faEye} /></span> */}
                                           <span onClick={() => OpenFile(Attachmentarr && Attachmentarr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                             <FontAwesomeIcon icon={faEye} /></span>
+                                          <span onClick={() => OpenFile(Attachmentarr && Attachmentarr[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                            <FontAwesomeIcon icon={faDownload} /></span>
                                         </td>
                                       }
                                       <td>{Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD/MMM/YYYY")}</td>

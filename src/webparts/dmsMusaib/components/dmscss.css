@@ -20,11 +20,11 @@
     padding: 7px;
     max-height: 325px;
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto;
     
 }
 #folderContainer2::-webkit-scrollbar {
-  width: 6px;
+  width: 6px; height: 6px;
 }
 
 /* Track */
@@ -490,7 +490,13 @@ a:hover
 #showfolderpermission .modal-dialog h6, #workflowdiv .modal-dialog h6{
   text-align: center;
 }
- #folderContainer2 ul li{font-weight:300; font-size: 12px;}
+ #folderContainer2 ul li{font-weight:300; font-size: 12px;
+  /* display:flex;
+      justify-content: left;
+      flex-direction: row-reverse;
+      text-align: left; */
+      width: 325px;
+}
 /* Popup body: Spacing for the select and textarea */
 .share-popup-body {
   margin-bottom: 20px;

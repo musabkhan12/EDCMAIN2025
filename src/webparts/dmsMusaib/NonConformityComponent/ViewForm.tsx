@@ -18,6 +18,7 @@ import "@pnp/sp/folders";
 import "@pnp/sp/presets/all";
 import { Checkbox } from '@fluentui/react';
 import Swal from 'sweetalert2';
+import CustomBreadcrumb from '../ChangerequestComponent/CustomBreadcrumb/CustomBreadcrumb';
 
 export class IViewState {
   mainItemId?: any | null;
@@ -83,7 +84,7 @@ export class IViewState {
   formNameId: number;
   reqRolId: number;
   ncItemId: number | null;
-  remarks: string;  
+  remarks: string;
   forwardBtn: string;
   showDialog: boolean;
   copyFil: any[];
@@ -167,7 +168,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
       formNameId: 0,
       reqRolId: 0,
       ncItemId: null,
-      remarks: "",      
+      remarks: "",
       forwardBtn: "",
       showDialog: false,
       copyFil: [],
@@ -202,6 +203,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
       _self.setState({ copyFil: allfiles });
     }
   };
+  private Breadcrumb = [
+    {
+      MainComponent: "My Request",
+      MainComponentURl: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/EDCMAIN.aspx`,
+    },
+    {
+      ChildComponent: "Non Conformity",
+      ChildComponentURl: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/EDCMAIN.aspx#/NonConformity`,
+    },
+  ];
   private _OpenModal() {
     this.setState({
       showDialog: true
@@ -512,7 +523,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
     } catch (e) {
       console.error(e);
     }
-  }   
+  }
   private onRoleChange(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption, i: number) {
     this.state.approvers[i].Role = item.key;
     this.setState({ approvers: this.state.approvers });
@@ -645,7 +656,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
             <TextField value={(i + 1).toString()} disabled={true} className={styles.width} ></TextField>
           </td>
           <td>
-            <Dropdown disabled={this.state.disable} placeholder="Select options" selectedKey={this.state.approvers[i].Role} options={this.state.optionsRole} onChange={(e, itm: IDropdownOption) => this.onRoleChange(e, itm, i)}/>
+            <Dropdown disabled={this.state.disable} placeholder="Select options" selectedKey={this.state.approvers[i].Role} options={this.state.optionsRole} onChange={(e, itm: IDropdownOption) => this.onRoleChange(e, itm, i)} />
           </td>
           <td>
             <TextField value={(i + 1).toString()} disabled={true}></TextField>
@@ -673,7 +684,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
     })
     var fileData = this.state.copyFil.map((item: any, i: number) => {
       return (
-        <tr>
+        <tr style={{ display: 'table', width: '100%' }}>
           <td>
             {item.name}
           </td>
@@ -685,7 +696,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
     });
     var upFiles = this.state.exFiles.map((item: any, i: number) => {
       return (
-        <tr>
+        <tr style={{ display: 'table', width: '100%' }}>
           <td>
             {item.Name}
           </td>
@@ -698,31 +709,31 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
     var auditHistory = this.state.apprItems.map((item: any, i: number) => {
       return (
         <tr>
-          <td>
+          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
             {i + 1}
           </td>
-          <td>
+          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
             {item.Level}
           </td>
-          <td>
+          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.AssignedTo}
           </td>
-          <td>
+          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.RequesterName}
           </td>
-          <td>
+          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
             {new Date(item.RequestedDate).getDate() + "/" + new Date(item.RequestedDate).getMonth() + "/" + new Date(item.RequestedDate).getFullYear()}
           </td>
-          <td>
+          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.ActionTakenBy}
           </td>
-          <td>
+          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
             {new Date(item.ActionTakenOn).getDate() + "/" + new Date(item.ActionTakenOn).getMonth() + "/" + new Date(item.ActionTakenOn).getFullYear()}
           </td>
-          <td>
+          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.Remarks}
           </td>
-          <td>
+          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
             {item.Status}
           </td>
         </tr>
@@ -730,16 +741,22 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
 
     });
     return (
-      <section className={`${styles.auditPlan} `}>
+      <section style={{ padding: '10px 0px' }}>
         <div className={styles.welcome}>
-          <section className={styles.sec} >
+          <div className="row">
+            <div className="col-lg-4">
+              <CustomBreadcrumb Breadcrumb={this.Breadcrumb} />
+            </div>
+
+          </div>
+          <section className="card card-body">
             <fieldset>
               <form>
                 {/* Start save as draft */}
-                <div className="row">
-                  <div className="form-group col-md-12"><h3>Problem Details</h3></div>
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row">
+                  <div className="form-group col-md-12"><h3 style={{ textAlign: 'left' }} className='text-dark text-left font-16 fw-bold mb-3'>Problem Details</h3></div>
                 </div>
-                <div className="row">
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                   <div className="form-group col-md-4">
                     <Dropdown
                       required
@@ -748,7 +765,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                       options={this.state.viewDepartmentOption}
                       defaultSelectedKey={this.state.viewDepartment}
                       selectedKey={this.state.viewDepartment}
-                      onChange={this.changeDepartment}                      
+                      onChange={this.changeDepartment}
                     />
                   </div>
                   <div className="form-group col-md-4">
@@ -760,7 +777,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                     />
                   </div>
                 </div>
-                <div className="row">
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                   <div className="form-group col-md-4">
                     <label>Category:</label>
                     {this.state.viewCategoryCheckOption.map((item: any) => {
@@ -796,7 +813,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                     )}
                   </div>
                 </div>
-                <div className="row">
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                   <div className="form-group col-md-4">
                     <PeoplePicker
                       context={peoplePickerContext}
@@ -810,7 +827,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                       defaultSelectedUsers={this.state.viewAssignTo ? [this.state.viewAssignTo] : []}
                       onChange={this._handlePeoplePickerChange("viewAssignTo", "viewAssignToId")}
                       principalTypes={[PrincipalType.User]}
-                      resolveDelay={1000}                      
+                      resolveDelay={1000}
                     />
                   </div>
                   <div className="form-group col-md-4">
@@ -823,10 +840,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                       onSelectDate={(date: Date) => this.setState({ viewDueDate: date })}
                     />
                   </div>
-                  <div className="col-lg-4">
+                  <div style={{ position: 'relative' }} className="col-lg-4">
                     <label htmlFor="Attchments">Attchments <span className="text-danger">*</span></label>
                     <input disabled={this.state.disable} className="form-control" type="file" name="myFile" onChange={(e) => this.handleFileChange(e, this)} id="newfile" multiple />
-                    <button type="button" onClick={this._OpenModal}>{this.state.fileCount}</button>
+                    <span onClick={this._OpenModal} className='newpo'>{this.state.fileCount}</span>
                     <table>
                       <tbody>
                         {fileData}
@@ -835,29 +852,31 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                     {this.state.showDialog && <div id="myModal" className={styles.modal}>
                       <div className={styles.modalcontent}>
                         <span className={styles.close} onClick={e => this._CloseModal()}>&times;</span>
-                        <table>
+                        <table className='mtbalenew'>
                           <tbody>
-                            <tr><td>File Name</td></tr>
+                            <tr style={{ display: 'table', width: '100%' }}>
+                              <td>File Name</td></tr>
                             {fileData}
                           </tbody>
                         </table>
                         <table>
-                          <tr><td>Uploaded Files</td></tr>
+                          <tr style={{ display: 'table', width: '100%' }}>
+                            <td>Uploaded Files</td></tr>
                           {upFiles}
                         </table>
                       </div>
                     </div>}
                   </div>
                 </div>
-                <div className='row'>
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row mb-3'>
                   <div className="form-group col-md-12">
                     <TextField label="Problem Description:"
                       required
                       name='editProblemDescription'
                       value={this.state.viewProblemDescription}
-                      multiline rows={3}
+                      multiline rows={5}
                       onChange={this.handleChange}
-                      disabled={this.state.disable}                     
+                      disabled={this.state.disable}
                       styles={{
                         fieldGroup: {
                           backgroundColor: this.state.viewErrors.editProblemDescription ? "#ffcccb" : "white", // Red tint for errors
@@ -866,19 +885,19 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                     />
                   </div>
                 </div>
-                {/* End svae as draft */}                
+                {/* End svae as draft */}
               </form>
             </fieldset>
           </section>
           {this.state.viewFirstInitiatorSubmitStatus == "Yes" || this.state.viewFirstAssignedToSubmitStatus == "Yes" ?
-            <section className={styles.sec} >
+            <section className='card card-body mt-2' >
               <fieldset>
                 <form>
                   {/* Section 2 */}
-                  <div className="row">
-                    <div className="form-group col-md-12"><h3>To be filled by Department Head</h3></div>
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row">
+                    <div className="form-group col-md-12"><h3 style={{ textAlign: 'left' }} className='text-dark font-16 text-left fw-bold mb-3'>To be filled by Department Head</h3></div>
                   </div>
-                  <div className="row">
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row">
                     <div className="form-group col-md-4">
                       <PeoplePicker
                         context={peoplePickerContext}
@@ -890,7 +909,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                         defaultSelectedUsers={[this.state.viewPersonAssigned]}
                         principalTypes={[PrincipalType.User]}
                         resolveDelay={1000}
-                        ensureUser={true}                        
+                        ensureUser={true}
                       />
                     </div>
                     <div className="form-group col-md-4">
@@ -901,7 +920,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                         placeholder="Select a Date"
                         isMonthPickerVisible={false}
                         value={this.state.viewDate}
-                        onSelectDate={(date: Date) => this.setState({ viewDate: date })}                        
+                        onSelectDate={(date: Date) => this.setState({ viewDate: date })}
                       />
                     </div>
                     <div className="form-group col-md-4">
@@ -912,39 +931,39 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                         placeholder="Select a Deadline"
                         isMonthPickerVisible={false}
                         value={this.state.viewDeadlineCompletion}
-                        onSelectDate={(date: Date) => this.setState({ viewDeadlineCompletion: date })}                       
+                        onSelectDate={(date: Date) => this.setState({ viewDeadlineCompletion: date })}
                       />
                     </div>
                   </div>
-                  <div className="row">
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row">
                     <div className="form-group col-md-6">
                       <TextField label="Correction(Immediate Steps to stop the problem):" required name='editCorrection'
                         value={this.state.viewCorrection}
                         multiline rows={3}
                         disabled={this.state.disable}
-                        onChange={this.handleChange}                        
+                        onChange={this.handleChange}
                       />
                     </div>
                     <div className="form-group col-md-6">
                       <TextField label="Root Cause:" required name='editRootCause'
                         value={this.state.viewRootCause} multiline rows={3}
                         onChange={this.handleChange}
-                        disabled={this.state.disable}                        
+                        disabled={this.state.disable}
                       />
                     </div>
                   </div>
-                  <div className="row">
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row">
                     <div className="form-group col-md-12">
                       <TextField label="Corrective Action (Action to eliminate the root cause):"
                         required
                         name='editCorrectiveAction'
                         value={this.state.viewCorrectiveAction} multiline rows={3}
                         onChange={this.handleChange}
-                        disabled={this.state.disable}                        
+                        disabled={this.state.disable}
                       />
                     </div>
                   </div>
-                  <div className="row">
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row">
                     <div className="form-group col-md-4">
                       <PeoplePicker
                         disabled={true}
@@ -970,7 +989,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                         defaultSelectedUsers={[this.state.viewAnalyzedBy]}
                         principalTypes={[PrincipalType.User]}
                         resolveDelay={1000}
-                        ensureUser={true}                        
+                        ensureUser={true}
                       />
                     </div>
                     <div className="form-group col-md-4">
@@ -984,26 +1003,26 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                         defaultSelectedUsers={[this.state.viewReviewedBy]}
                         principalTypes={[PrincipalType.User]}
                         resolveDelay={1000}
-                        ensureUser={true}                        
+                        ensureUser={true}
                       />
                     </div>
                   </div>
                   {/* Section 3 */}
-                  <div className="row">
-                    <div className="form-group col-md-12"><h3>Problem Close Out Details</h3></div>
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row">
+                    <div className="form-group col-md-12"><h3 style={{ textAlign: 'left' }} className='text-dark font-16 text-left fw-bold mb-0'>Problem Close Out Details</h3></div>
                   </div>
-                  <div className="row">
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row">
                     <div className="form-group col-md-12">
                       <TextField label="Corrective Action Implemented On:"
                         required
                         name='editCorrectiveActionImplementedOn'
                         value={this.state.viewCorrectiveActionImplementedOn}
                         disabled={this.state.disable}
-                        multiline rows={3} onChange={this.handleChange}                        
+                        multiline rows={3} onChange={this.handleChange}
                       />
                     </div>
                   </div>
-                  {/* Approve/Rework */}                                   
+                  {/* Approve/Rework */}
                 </form>
               </fieldset>
             </section> : null}
@@ -1011,13 +1030,13 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
           {(this.state.viewReviewedBySubmitStatus == "Yes" && this.state.viewDelegateToId == null) || (this.state.viewLastAssignedToSubmitStatus == "Yes" && this.state.viewDelegateToId != null) ? (<section className={styles.sec}>
             <fieldset disabled={this.state.disable}>
               <form>
-                <div className='row'>
-                  <div className="form-group col-md-12"><h3>Forward Detail</h3></div>
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row'>
+                  <div className="form-group col-md-12"><h3 style={{ textAlign: 'left' }} className='text-dark font-16 text-left fw-bold mb-0'>Forward Detail</h3></div>
                 </div>
-                <div className="row">
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row">
                   <div className="container mt-4">
                     <button type="button" onClick={this.addApprover}>Add</button>
-                    <table id="tblAppr">
+                    <table id="tblAppr" className='mtbalenew'>
                       <tbody>
                         <tr><td>Sl.</td>
                           <td>Role</td>
@@ -1029,35 +1048,35 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                         {approval}
                       </tbody>
                     </table>
-                  </div>                  
+                  </div>
                 </div>
               </form>
             </fieldset>
           </section>) : null}
-          <div className='row'>
+          <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row'>
             {this.state.viewLastInitiatorSubmitStatus == "Yes" ? (<section id="approvalSection">
-              <TextField label="Remarks" name="remarks" value={this.state.remarks} multiline rows={3} onChange={this.handleChange} />              
+              <TextField label="Remarks" name="remarks" value={this.state.remarks} multiline rows={3} onChange={this.handleChange} />
             </section>) : null}
           </div>
           {this.state.viewSubmitStatus == "Yes" ?
-            <section className={styles.sec} >
+            <section className='card card-body mt-2' >
               <form>
-                <div className='row'>
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row'>
                   <div className="form-group col-md-12"><h3>Audit Report</h3></div>
                 </div>
-                <div className='row'>
-                  <table>
+                <div style={{ justifyContent: 'left', textAlign: 'left', display: 'grid' }} className='row'>
+                  <table className='mtbalenew'>
                     <thead>
                       <tr>
-                        <th>Sl No</th>
-                        <th>Level</th>
-                        <th>Assigned To</th>
-                        <th>Requestor Name</th>
-                        <th>Requested Date</th>
-                        <th>Action Taken By</th>
-                        <th>Action Taken On</th>
-                        <th>Remarks</th>
-                        <th>Status</th>
+                        <th style={{ minWidth: '70px', maxWidth: '70px' }}>S No.</th>
+                        <th style={{ minWidth: '70px', maxWidth: '70px' }}>Level</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Assigned To</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Requestor Name</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Requested Date</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Action Taken By</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Action Taken On</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Remarks</th>
+                        <th style={{ minWidth: '70px', maxWidth: '70px' }}>Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1067,7 +1086,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                 </div>
               </form>
             </section> : null}
-            <a href='#/form'> <PrimaryButton onClick={() => this.cancelRequest()}>Cancel</PrimaryButton></a>
+
+          <a href='#/form'> <PrimaryButton onClick={() => this.cancelRequest()}>Cancel</PrimaryButton></a>
         </div>
       </section >
     )

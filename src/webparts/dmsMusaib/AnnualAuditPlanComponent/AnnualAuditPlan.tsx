@@ -362,8 +362,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             setFormData({
                 ...formData,
                 memoSerialNo: memo,
-                deptId: setAllDept1.filter(user => user.label === UserDept)[0].value,
-                memoNo: `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+                deptId: setAllDept1.filter(user => user.label === UserDept)[0]?.value || 0,
+                // memoNo: `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+                memoNo: setAllDept1.filter(user => user.label === UserDept)[0]
+                ? `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+                : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
             });
 
         }
@@ -555,19 +558,24 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 }
 
                 const rowData: any[] = await getItemByID2(sp, Number(setBannerById[0].ID)) //baseUrl
-                const initialRows = rowData.map((item: any) => ({
-                    id: item.Id,
-                    // AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
-                    section: item.Section,
-                    date: new Date(item.Date).toLocaleDateString("en-CA"),
-                    startTime: item.Time,
-                    auditorIds: item.AuditorId,
-                    endTime: "",
-                    auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
-                }));
-                setRecommendationRows(initialRows);
-                setRecommendationRowsEdit(initialRows);
 
+                if (ApprowData.length > 0) {
+                    const initialRows = rowData.map((item: any) => ({
+                        id: item.Id,
+                        // AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
+                        section: item.Section,
+                        date: new Date(item.Date).toLocaleDateString("en-CA"),
+                        startTime: item.Time,
+                        auditorIds: item.AuditorId,
+                        endTime: "",
+                        auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
+                    }));
+                    setRecommendationRows(initialRows);
+                    setRecommendationRowsEdit(initialRows);
+   
+
+                }
+               
 
             }
 
@@ -1091,7 +1099,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                 let arr2 = {
                                     Title: currentUser.Title,
-                                    // ContentTitle: selectedOption.ReferenceNumber,
+                                    ContentTitle: formData.subject,
 
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role,
@@ -1359,7 +1367,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                 let arr2 = {
                                     Title: currentUser.Title,
-                                    // ContentTitle: selectedOption.ReferenceNumber,
+                                    ContentTitle: formData.subject,
 
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role,
@@ -1582,7 +1590,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                             let arr2 = {
                                 Title: currentUser.Title,
-                                // ContentTitle: selectedOption.ReferenceNumber,
+                                ContentTitle: formData.subject,
 
                                 MainListNameId: ListNameId,
                                 ApproverRoleId: item.role || 0,
@@ -1846,7 +1854,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                 let arr2 = {
                                     Title: currentUser.Title,
-                                    // ContentTitle: selectedOption.ReferenceNumber,
+                                    ContentTitle: formData.subject,
 
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role ? item.role : 0,
@@ -2251,12 +2259,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                         <form className="form-horizontal">
                                                             <div className="row">
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="Department" className="col-4 col-xl-3 col-form-label">Department<span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="Department" className="col-form-label">Department<span className="text-danger1"> *</span></label>
+                                                                        <div className="">
                                                                             <Select
-                                                                                options={AllDept}
+                                                                                // options={AllDept}
+                                                                                options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
                                                                                 isDisabled={InputDisabled}
                                                                                 value={selectUserDept}
                                                                                 name="deptId"
@@ -2271,10 +2280,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="memoNo" className="col-4 col-xl-3 col-form-label">Memo No<span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="memoNo" className=" col-form-label">Memo No<span className="text-danger1"> *</span></label>
+                                                                        <div className="">
                                                                             <input
                                                                                 disabled
                                                                                 type="text"
@@ -2290,10 +2299,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 </div>
 
 
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="fromEmail" className="col-4 col-xl-3 col-form-label">From<span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="fromEmail" className="col-form-label">From<span className="text-danger1"> *</span></label>
+                                                                        <div className="">
                                                                             <input
                                                                                 type="text"
                                                                                 className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -2308,9 +2317,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="to" className="col-4 col-xl-3 col-form-label">To
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label style={{display:'flex'}} htmlFor="to" className="col-form-label">To
 
                                                                             <Icon
                                                                                 iconName="Info"
@@ -2335,9 +2344,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 }}
                                                                             />
                                                                             <span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
+                                                                        <div className="">
                                                                             <Select
-                                                                                options={AllDept}
+                                                                                // options={AllDept}
+                                                                                options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+
                                                                                 isDisabled={InputDisabled}
                                                                                 value={selectUserDeptTo}
                                                                                 isMulti
@@ -2367,9 +2378,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="recommendation" className="col-4 col-xl-3 col-form-label">CC
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label style={{display:'flex'}} htmlFor="recommendation" className="col-form-label">CC
                                                                             <Icon
                                                                                 iconName="Info"
                                                                                 className="ms-1"
@@ -2395,9 +2406,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 }}
                                                                             />
                                                                             <span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
+                                                                        <div className="">
                                                                             <Select
-                                                                                options={AllDept}
+                                                                                // options={AllDept}
+                                                                                options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+
                                                                                 isDisabled={InputDisabled}
                                                                                 isMulti
                                                                                 value={selectUserDeptCC}
@@ -2429,10 +2442,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="issueNo" className="col-4 col-xl-3 col-form-label">Issue No<span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="issueNo" className="col-form-label">Issue No<span className="text-danger1"> *</span></label>
+                                                                        <div className="">
                                                                             <input
 
                                                                                 type="text"
@@ -2447,10 +2460,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="revisionNo" className="col-4 col-xl-3 col-form-label">Revision No<span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="revisionNo" className=" col-form-label">Revision No<span className="text-danger1"> *</span></label>
+                                                                        <div className="">
                                                                             <input
                                                                                 disabled
                                                                                 type="text"
@@ -2464,10 +2477,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="subject" className="col-4 col-xl-3 col-form-label">Subject<span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="subject" className="col-form-label">Subject<span className="text-danger1"> *</span></label>
+                                                                        <div className="">
                                                                             <input
                                                                                 type="text"
                                                                                 className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -2485,10 +2498,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="attachment" className="col-4 col-xl-3 col-form-label">Attachment</label>
-                                                                        <div className="col-8 col-xl-9">
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="attachment" className="col-form-label">Attachment</label>
+                                                                        <div className="">
 
                                                                             <div>
                                                                                 <input
@@ -2521,10 +2534,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="date" className="col-4 col-xl-3 col-form-label">Date<span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="date" className="col-form-label">Date<span className="text-danger1"> *</span></label>
+                                                                        <div className="">
 
                                                                             <input
                                                                                 type="date"
@@ -2544,11 +2557,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="col-lg-6 mb-3">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="background" className="col-4 col-xl-3 col-form-label">Background<span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
-                                                                            <textarea
+                                                                <div className="col-lg-8">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="background" className="col-form-label">Background<span className="text-danger1"> *</span></label>
+                                                                        <div className="">
+                                                                            <textarea style={{height:'80px'}}
                                                                                 className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                                                                 id="background"
                                                                                 value={formData.background}
@@ -2564,11 +2577,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="col-lg-6">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="issues" className="col-4 col-xl-3 col-form-label">Description<span className="text-danger1"> *</span></label>
-                                                                        <div className="col-8 col-xl-9">
-                                                                            <textarea
+                                                                <div className="col-lg-12">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="issues" className="col-form-label">Description<span className="text-danger1"> *</span></label>
+                                                                        <div className="">
+                                                                            <textarea style={{height:'80px'}}
                                                                                 className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                                                                 // className="form-control"
                                                                                 id="issues"
@@ -2605,11 +2618,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                         <table id="tabRec" className='mtbalenew overhi'>
                                                             <thead>
-                                                                <tr><th>Section<span className="text-danger1"> *</span></th>
+                                                                <tr><th style={{minWidth:'190px', maxWidth:'190px'}}>Section<span className="text-danger1"> *</span></th>
                                                                     <th>Date<span className="text-danger1"> *</span></th>
                                                                     <th colSpan={2}>Time<span className="text-danger1"> *</span></th>
                                                                     <th>Auditor<span className="text-danger1"> *</span></th>
-                                                                    {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th>Action</th>}
+                                                                    {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{minWidth:'70px', maxWidth:'70px'}}>Action</th>}
                                                                 </tr>
                                                             </thead>
 
@@ -2617,7 +2630,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                 {recommendationRows.map((row, index) => (
                                                                     <tr key={index}>
-                                                                        <td>
+                                                                        <td style={{minWidth:'190px', maxWidth:'190px'}}>
                                                                             <input
                                                                                 type="text"
                                                                                 className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
@@ -2660,7 +2673,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 isDisabled={InputDisabled}
                                                                             />
                                                                         </td>
-                                                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td>
+                                                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{minWidth:'70px', maxWidth:'70px'}}>
                                                                             <img src={require("../assets/del.png")} onClick={() => handleDeleteRecommendationRow(index)} />
 
                                                                         </td>
@@ -2686,10 +2699,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                         <div className="row">
 
 
-                                                            <div className="col-lg-4">
+                                                            <div className="col-lg-6">
                                                                 <div className="mb-3">
                                                                     <label htmlFor="exclusions" className="form-label">Exclusions<span className="text-danger1"> *</span></label>
-                                                                    <textarea
+                                                                    <textarea 
 
                                                                         className={`form-control ${(!ValidAudit) ? "border-on-error" : ""}`}
                                                                         id="exclusions"
@@ -2706,7 +2719,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 </div>
                                                             </div>
 
-                                                            <div className="col-lg-4">
+                                                            <div className="col-lg-6">
                                                                 <div className="mb-3">
                                                                     <label htmlFor="boundary" className="form-label">Boundary<span className="text-danger1"> *</span></label>
                                                                     <textarea
@@ -2725,7 +2738,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 </div>
                                                             </div>
 
-                                                            <div className="col-lg-4">
+                                                            <div className="col-lg-6">
                                                                 <div className="mb-3">
                                                                     <label htmlFor="objective" className="form-label">Aim / Objective<span className="text-danger1"> *</span></label>
                                                                     <textarea
@@ -2744,7 +2757,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 </div>
                                                             </div>
 
-                                                            <div className="col-lg-4">
+                                                            <div className="col-lg-6">
                                                                 <div className="mb-3">
                                                                     <label htmlFor="criteria" className="form-label">Criteria<span className="text-danger1"> *</span></label>
                                                                     <textarea
@@ -2762,7 +2775,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     ></textarea>
                                                                 </div>
                                                             </div>
-                                                            <div className="col-lg-4">
+                                                            <div className="col-lg-12">
                                                                 <div className="mb-3">
                                                                     <label htmlFor="scope" className="form-label">Scope<span className="text-danger1"> *</span></label>
                                                                     <textarea
@@ -2797,7 +2810,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                         <div className='row'>
                                                             <div className='col-sm-8'>
                                                                 <h4 className="text-dark font-16 fw-bold mb-3 ">Approval Hierarchy</h4>
-                                                                <label>Define approval hierarchy for the documents submitted by Team members in this folder.
+                                                                <label>Define the approval hierarchy to ensure requests are routed to the appropriate approvers.
                                                                 </label>
                                                             </div>
                                                             <div className='col-sm-4'>

@@ -1810,6 +1810,17 @@ color: #fff !important;
   width: 28px !important;
 }
 .mtable th{position: relative;}
+.newpo{
+  position: absolute;
+  right: 9px;
+  top: 0;
+  color: blue;
+  cursor: pointer; 
+}
+.root-137{
+  font-family: "Fluent MDL2 Hybrid Icons" !important;
+}
+
 .tabcss:hover{ background: #fff !important; color: #000 !important;}
 .cursor-none{cursor: none !important;}
 .swal2-confirm{background: #f37421 !important; border-color: #f37421 !important;box-shadow: none !important;}

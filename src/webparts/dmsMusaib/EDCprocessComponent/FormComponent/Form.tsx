@@ -1,2320 +1,3240 @@
 import * as React from 'react';
-import styles from '../AuditApp.module.scss';
 import type { IFormProps } from './IFormProps';
-import {Checkbox,  PrimaryButton ,TextField} from '@fluentui/react';
-import { Field, Textarea } from "@fluentui/react-components";
+import { escape } from '@microsoft/sp-lodash-subset';
+import styles from '../AuditApp.module.scss';
+import Provider from '../../../../GlobalContext/provider';
 
-import CustomBreadcrumb from '../../ChangerequestComponent/CustomBreadcrumb/CustomBreadcrumb';
-import { IState } from '../IState';
-import  Swal from 'sweetalert2';
-import "@pnp/sp/site-users/web";
-import { Caching } from "@pnp/queryable";
-// import { getSP } from "../PNPJsConfig";
-// import { SPFI, spfi } from "@pnp/sp";
-import { Dropdown,  IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
-import "@pnp/sp/webs";
-import "@pnp/sp/lists";
-import "@pnp/sp/items";
-import "@pnp/sp/files";
-import "@pnp/sp/folders";
-import { DateTimePicker, DateConvention } from '@pnp/spfx-controls-react/lib/DateTimePicker'; 
-import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
-import { getSP } from "../../loc/pnpjsConfig";
-import { SPFI , spfi} from "@pnp/sp";
+import VerticalSideBar from '../../../verticalSideBar/components/VerticalSideBar';
 
+import HorizontalNavbar from '../../../horizontalNavBar/components/HorizontalNavBar';
 
-//import {  useHistory } from 'react-router-dom'
-//const _dropdown = 
-const dropdownStyles: Partial<IDropdownStyles> = {
-  dropdown: { width: 300 },
-};
-//const navigate:any= useHistory();
-const dropdownStylesNew: Partial<IDropdownStyles> = {
-  dropdown: { width: 80 },
-};
-const optionsYear: IDropdownOption[] = [
-  
-  { key: 2024, text: '2024' },
-  { key: 2025, text: '2025' },
-  { key: 2026, text: '2026' }
-
- 
-];
-const optionsApp: IDropdownOption[] = [
-  
-  { key: 'All', text: 'All' },
-  { key: 'One', text: 'One' }
-
-]
-const optionsHours: IDropdownOption[] = [
-  
-  { key: '1', text: '1' },
-  { key: '2', text: '2' },
-  { key: '3', text: '3' },
-  { key: '4', text: '4' },
-  { key: '5', text: '5' },
-  { key: '6', text: '6' },
-  { key: '7', text: '7' },
-  { key: '8', text: '8' },
-  { key: '9', text: '9' },
-  { key: '10', text: '10' },
-  { key: '11', text: '11' },
-  { key: '12', text: '12' },
-  { key: '13', text: '13' },
-  { key: '14', text: '14' },
-  { key: '15', text: '15' },
-  { key: '16', text: '16' },
-  { key: '17', text: '17' },
-  { key: '18', text: '18' },
-  { key: '19', text: '19' },
-  { key: '20', text: '20' },
-  { key: '21', text: '21' },
-  { key: '22', text: '22' },
-  { key: '23', text: '23' },
-  { key: '24', text: '24' }
-];
-const optionsMinutes: IDropdownOption[] = [
-  { key: '1', text: '1' },
-  { key: '2', text: '2' },
-  { key: '3', text: '3' },
-  { key: '4', text: '4' },
-  { key: '5', text: '5' },
-  { key: '6', text: '6' },
-  { key: '7', text: '7' },
-  { key: '8', text: '8' },
-  { key: '9', text: '9' },
-  { key: '10', text: '10' },
-  { key: '11', text: '11' },
-  { key: '12', text: '12' },
-  { key: '13', text: '13' },
-  { key: '14', text: '14' },
-  { key: '15', text: '15' },
-  { key: '16', text: '16' },
-  { key: '17', text: '17' },
-  { key: '18', text: '18' },
-  { key: '19', text: '19' },
-  { key: '20', text: '20' },
-  { key: '21', text: '21' },
-  { key: '22', text: '22' },
-  { key: '23', text: '23' },
-  { key: '24', text: '24' },
-  { key: '25', text: '25' },
-  { key: '26', text: '26' },
-  { key: '27', text: '27' },
-  { key: '28', text: '28' },
-  { key: '29', text: '29' },
-  { key: '30', text: '30' },
-  { key: '31', text: '31' },
-  { key: '32', text: '32' },
-  { key: '33', text: '33' },
-  { key: '34', text: '34' },
-  { key: '35', text: '35' },
-  { key: '36', text: '36' },
-  { key: '37', text: '37' },
-  { key: '38', text: '38' },
-  { key: '39', text: '39' },
-  { key: '40', text: '40' },
-  { key: '41', text: '41' },
-  { key: '42', text: '42' },
-  { key: '43', text: '43' },
-  { key: '44', text: '44' },
-  { key: '45', text: '45' },
-  { key: '46', text: '46' },
-  { key: '47', text: '47' },
-  { key: '48', text: '48' },
-  { key: '49', text: '49' },
-  { key: '50', text: '50' },
-  { key: '51', text: '51' },
-  { key: '52', text: '52' },
-  { key: '53', text: '53' },
-  { key: '54', text: '54' },
-  { key: '55', text: '55' },
-  { key: '56', text: '56' },
-  { key: '57', text: '57' },
-  { key: '58', text: '58' },
-  { key: '59', text: '59' },
-  { key: '60', text: '60' }
-];
-const optionMonths: IDropdownOption[] = [
-  
-  { key: 'January', text: 'January' },
-  { key: 'February', text: 'February' },
-  { key: 'March', text: 'March' },
-  { key: 'April', text: 'April' },
-  { key: 'May', text: 'May' },
-  { key: 'June', text: 'June' },
-  { key: 'July', text: 'July' },
-  { key: 'August', text: 'August' },
-  { key: 'September', text: 'September' },
-  { key: 'October', text: 'October' },
-  { key: 'November', text: 'November' },
-  { key: 'December', text: 'December' },
-];
-//const [rows, setRows] = React.useState([{ name: '', age: '' }]);
-//const [file, setFile] = React.useState<File>();
-export class FormComponent extends React.Component<IFormProps, IState> {
-  private _sp: SPFI;
-
- // parseInt(((((it[0].OPE* it[0].GrossConveyorSpeed)/100)*parseFloat(it[0].Shiftwiseshopwiseworkinghours))-(currItmTot[0].Volume)));
-					
- 
-  //private dept: IDropdownOption;
- 
-  constructor (props : any, state:  IState){
-    super(props);
-    this._sp = getSP();
-   
-   //this.dept= this.getDataDepartment() ;
-    this.createDraft = this.createDraft.bind(this);
-    this.submitDraft = this.submitDraft.bind(this);
-    this.state={
-      From:"",
-      Breadcrumb: [],
-      status:"Ready",
-      items:[],
-      rows:[{Section:"",Date:"",Auditor:""}],
-      approvers:[{Role:"",Level:"",Name:"",Type:"One",Index:0, appEx:"", itemId:"",errLevel:"",errType:""}],
-      isChecked:false,
-      requestSign:false,
-      forApproval:false,
-      memoNumber: "",
-       issueNumber: 200,
-       revisionNumber:100,
-       departmentVal:"",
-  referenceNumber: "",
-  subject:"",  
-  background:"",
-  issues: "",
-  recommendations: [{section:"",date:null,approver:"",approverDef:"",hours:"",minutes:"" ,itemId:"",index:0,errSec:'',errHr:'',errMin:'',errTo:''}],
-  recommendedApproval: "",
-  optionsDepartment:[],
-  optionsRole:[],
-  options:[],
-  errSub:"",
-  errDep:true,
-  errTo:"",
-  errCC:"",
-  errRecoApp:"",
-  errback:"",
-  errIss:"",
-  department:0,
-  currUserId:0,
-  toArr:[],
-  ccArr:[],
-  dueDate:new Date(),
-  filePickerResult:[],
-  ind:0,
-  showMonth:false,
-  indApp:0,
-  isInfo:true,
-  type:0,
-  year:0,
-  month:"",
-  itemId:0,
-  showDialog:false,
-//files:[],
-  files: {} as FileList,
-  copyFil:[],
-      fileCount:0,
-      toUsers:[],
-      ccUsers:[],
-      exFiles:[],
-      recomDeleteId:[],
-      fileDeleteId:[],
-      apprDelId:[],
-      mainListId:0,
-      formNameId:0,
-      apprItems:[],
-      remarks:"",
-      edItm:'',
-      edType:'',
-      showApprove:false,
-      allDepartments:[],
-      showSubmit:true,
-      approvalItemId:'',
-      isDisabled:false,
-      memoSerialNo:0,
-      reqRolId:0,
-      isSubmit:false,
-      isSave:false,
-      isRework:false
-    };
-    this.subOnChange=this.subOnChange.bind(this);
-    this.onChangeBack=this.onChangeBack.bind(this);
-    this.onChangeIss=this.onChangeIss.bind(this);
-    this.onChangeRecomApproval=this.onChangeRecomApproval.bind(this);
-    this.onInfoChange=this.onInfoChange.bind(this);
-    this.onSignChange=this.onSignChange.bind(this);
-    this.onAppChange=this.onAppChange.bind(this);
-    this.getDataDepartment=this.getDataDepartment.bind(this);
-    this.onDepartmentChange = this.onDepartmentChange.bind(this);
-    this.addRow= this.addRow.bind(this);
-    this.addApprover = this.addApprover.bind(this);
-    this._getPeoplePickerItemsTo = this._getPeoplePickerItemsTo.bind(this);
-    this._getPeoplePickerItems = this._getPeoplePickerItems.bind(this);
-    this._getPeoplePickerItemsAud=this._getPeoplePickerItemsAud.bind(this);
-    this.onSectionChange= this.onSectionChange.bind(this);
-    this.onHoursChange = this.onHoursChange.bind(this);
-    this.onMinutesChange = this.onMinutesChange.bind(this);
-    this.onDateChange= this.onDateChange.bind(this);
-    this.deleteItem = this.deleteItem.bind(this);
-    this.deleteItemApp= this.deleteItemApp.bind(this);
-    this.onYearSelect = this.onYearSelect.bind(this);
-    this.onRoleChange = this.onRoleChange.bind(this);
-    this.onTypeChange = this.onTypeChange.bind(this);
-    this.handleFileChange= this.handleFileChange.bind(this);
-    this.getAuditTypes= this.getAuditTypes.bind(this);
-    this.onYearChange= this.onYearChange.bind(this);
-    this.onMonthChange = this.onMonthChange.bind(this);
-    this.saveAsDraft = this.saveAsDraft.bind(this);
-   this.getData = this.getData.bind(this);
- //  this.onIdChange = this.onIdChange.bind(this);
-   this._OpenModal = this._OpenModal.bind(this);
-   this._CloseModal = this._CloseModal.bind(this);
-   this.updateDraft= this.updateDraft.bind(this);
-   this.setDueDate = this.setDueDate.bind(this);
-   this.removeFiles =this.removeFiles.bind(this);
-   this.toBeDeleted = this.toBeDeleted.bind(this);
-   this.updateRecommendations=  this.updateRecommendations.bind(this);
-   this.getMainListName= this.getMainListName.bind(this);
-   this.getFormName = this.getFormName.bind(this);
-   this.getMemoNumber = this.getMemoNumber.bind(this);
-   this.getRequestorRole = this.getRequestorRole.bind(this);
-   this._getPeoplePickerItemsApp = this._getPeoplePickerItemsApp.bind(this);
-   this.approveRequest = this.approveRequest.bind(this);
-   this.rejectRequest= this.rejectRequest.bind(this);
-   this.reworkRequest= this.reworkRequest.bind(this);
-   this.cancelRequest = this.cancelRequest.bind(this);
-   this.onRemarksChange = this.onRemarksChange.bind(this);
-   this.cancelDraft= this.cancelDraft.bind(this);
-   this.subOnClick= this.subOnClick.bind(this);
-   this.onDepClick= this.onDepClick.bind(this);
-   this.bacOnClick = this.bacOnClick.bind(this);
-   this.issOnClick= this.issOnClick.bind(this);
-   this.onRecClick=  this.onRecClick.bind(this);
-  }
- 
+import { getSP } from '../../../dmsMusaib/loc/pnpjsConfig';
+import { SPFI } from '@pnp/sp';
+import UserContext from "../../../../GlobalContext/context";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "../../../../CustomCss/mainCustom.scss";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
+import "../../../verticalSideBar/components/VerticalSidebar.scss";
+// import "./annualaudit.scss";
+import { allowstringonly, getCurrentUser } from '../../../../APISearvice/CustomService';
+import Select from "react-select";
+import Swal from 'sweetalert2';
+import { FormSubmissionMode } from '../../../../Shared/Interfaces';
+import { decryptId } from '../../../../APISearvice/CryptoService';
+import { WorkflowAction } from '../../../../CustomJSComponents/WorkflowAction/WorkflowAction';
+import { WorkflowAuditHistory } from '../../../../CustomJSComponents/WorkflowAuditHistory/WorkflowAuditHistory';
+import { CONTENTTYPE_AuditProgram, LIST_TITLE_AuditProgram, SITE_URL, Tenant_URL } from '../../../../Shared/Constants';
+import { PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
+import { Modal } from 'react-bootstrap';
+import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
+import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
+import { addAllProcessItem, addItem, addItem2, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getAuditTypes, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles } from './FormService';
+import { TextField } from '@fluentui/react';
+import { Icon } from '@fluentui/react/lib/Icon';
+import { Tooltip } from 'react-tooltip';
+import 'react-tooltip/dist/react-tooltip.css';
 
 
-  async componentDidMount(){
-    await this.getDataDepartment();
-    await this.getDataRoles();
-    await this.getAuditTypes();
-    await this.getMainListName();
-    await this.getFormName();
-    await this.getMemoNumber();
-    await this.getRequestorRole();
+// let myloader = '../../'
+let newfileupload: any
+let newfilepreview: any;
+let filechanged: boolean = false;
+interface ForwardTo {
+  id: number;
+  role: number;
+  level: number;
+  approvers: any[]; // Or a more specific type like `string[]` or `SPUser[]`
+  approvalType: string;
+}
 
-    // Extracting the part after `#/`
-    const url=window.location.href;
-    
-    this.setState({
-      Breadcrumb: [
-        {
-          MainComponent: "Home",
-          MainComponentURl: `${url}`,
-        },
-        {
-          ChildComponent: "Annual Audit Program",
-          ChildComponentURl: `${url}`,
-        }
-      ],
-    });
-    
-    const parts = url.split("#/")[1].split("/");
+const FormContext = ({ props }: any) => {
+  const sp: SPFI = getSP();
+  const elementRef = React.useRef<HTMLDivElement>(null);
+  const siteUrl = props.siteUrl;
+  const { useHide }: any = React.useContext(UserContext);
+  const [InputDisabled, setInputDisabled] = React.useState(false);
+  const selectedTextDiv = document.getElementById('selectedText');
 
-    const programName = decodeURIComponent(parts[0]); // "Annual Audit Program"
-    const editType = parts[1]; // "edit"
-    const id = parts[2]; // "165"
+  selectedTextDiv.style.display = 'none';
 
-    console.log("Program Name:", programName);
-    console.log("Edit Type:", editType);
-    console.log("ID:", id);
-    // alert(`${programName},${editType},${id}`);
 
-    // Set state
-    // this.setState((prevState) => ({
-    //   edItm: id ? id : prevState.edItm, // Update only if `id` exists
-    //   edType: editType ? editType : prevState.edType // Update only if `editType` exists
-    // }));
-    if(id){
-      this.setState({edItm:id})
-    }
-    if(editType){
-      this.setState({edType:editType})
-    }
-    
-    // alert(`after setting edtype and edItem ${this.state.edItm},${this.state.edType}`);
-    if(this.state.edType=="approve"){
-    //  alert("approve");
-    const approvalItemId= parts[3];
-    if(approvalItemId){
-      this.setState({approvalItemId:approvalItemId})
-    }
-    
-      this.getData();
-      this.setState({isDisabled:true})
-      this.setState({showApprove:true});
-      this.setState({showSubmit: false});
-     
-    }
-    else if(this.state.edType =="edit"){
-//alert("edit");
-this.getData();
-this.setState({isDisabled:false})
-this.setState({showApprove:false});
-this.setState({showSubmit: true});
+  const [FilesArr, setFilesArr] = React.useState<any>([]);
+  const [FilesArr1, setFilesArr1] = React.useState<any>([]);
+  const [Loading, setLoading] = React.useState(false);
+  const [FormLoading, setFormLoading] = React.useState(false);
+  const [showForwardapproval, setshowForwardapproval] = React.useState(true);
+  const [FormItemId, setFormItemId] = React.useState(null);
+  const [editID, setEditID] = React.useState(null);
+  const [editItemID, setEditItemID] = React.useState(null);
+  const [MainEditItem, setMainEditItem] = React.useState(null);
+  const [rows, setRows] = React.useState<any>([]);
+  const [UserRoles, setUserRoles] = React.useState<any>([]);
+  const [rows1, setRows1] = React.useState<any>([]);
+  const [currentUser, setCurrentUser] = React.useState(null);
+  const [auditTypes, setauditTypes] = React.useState([]);
+  const [selectedPeople, setSelectedPeople] = React.useState(null);
+  const [selectedRole, setSelectedRole] = React.useState(null);
+  const [ValidDRecomm, setValidDRecomm] = React.useState(true);
+  const [ValidDraft, setValidDraft] = React.useState(true);
+  const [ValidAudit, setValidAudit] = React.useState(true);
+  const [ValidSubmit, setValidSubmit] = React.useState(true);
+  const [ValidCancelReason, setValidCancelReason] = React.useState(true);
+  const [ValidForwardTo, setValidForwardTo] = React.useState(true);
+  const [RequesterRoleId, setRequesterRoleId] = React.useState(null);
+  const [RequestTypeId, setRequestTypeId] = React.useState(null);
+  const [FormNameId, setFormNameId] = React.useState(null);
+  const [AuditProgramType, setAuditProgramType] = React.useState([]);
+  const [editForm, setEditForm] = React.useState(false);
+  const [modeValue, setmode] = React.useState("");
+  const [currentUserDept, setcurrentUserDept] = React.useState("");
+  const [selectUserDept, setselectUserDept] = React.useState([]);
+  const [selectUserDeptTo, setselectUserDeptTo] = React.useState([]);
+  const [selectUserDeptCC, setselectUserDeptCC] = React.useState(null);
+  const [AllDept, setAllDept] = React.useState([]);
+  const [DocumentLink, setDocumentLink] = React.useState(null);
+  const [DraftApprovalItem, setDraftApprovalItem] = React.useState(null);
+  // const [cancellReason, setcancellReason] = React.useState([{ id: 0, description: "", reason: "" }]);
+  // const [RecommendRows, setRecommendRows] = React.useState([]);
+  const [tooltipText, settooltipText] = React.useState("");
+  const [tooltipText1, settooltipText1] = React.useState("");
+  const [showModal, setShowModal] = React.useState(false);
+  const [auditTypeOption, setAuditTypeOption] = React.useState(null);
+  const [formData, setFormData] = React.useState({
+    // infoCheck: false,
+    // signCheck: false,
+    // approvalCheck: false,
+    memoNo: "",
+    memoSerialNo: 0,
+    deptId: 0,
+    issueNo: "",
+    revisionNo: "",
+    from: 0,
+    fromEmail: "",
+    to: [],
+    subject: "",
+    attachment: null,
+    date: "",
+    background: "",
+    issues: "",
+    recommendationforApproval: "",
+    approval: "",
+    CC: [],
+    auditProgramTypeId: [],
+    auditTypesId: 0,
+    exclusions: "",
+    boundary: "",
+    objective: "",
+    criteria: "",
+    scope: "",
+    assignedTo: "",
+    ToDepartments: [],
+    CCDepartments: [],
+    attachmentIds: null,
+    attachmentJson: null,
+    MonthName: "",
+    Year: 0
 
-    }
-    else if(this.state.edType=="view"){
-      this.getData();
-      this.setState({isDisabled:true})
-this.setState({showApprove:false});
-this.setState({showSubmit: false});
-
-    }
-    else{
-//alert("new");
-
-    }
-  }
-
-  componentWillReceiveProps() {  
-
-   }
-
-   
-  public render(): React.ReactElement<IFormProps> {   
-    const peoplePickerContext: IPeoplePickerContext = {
-      absoluteUrl: this.props.context.pageContext.web.absoluteUrl,
-      msGraphClientFactory: this.props.context.msGraphClientFactory,
-      spHttpClient: this.props.context.spHttpClient
-  }; 
-
- 
- 
-  var items=  this.state.recommendations.map((item: any,i:number) => {  
-    var idtxt="txtRec_"+i;
-    var idHr="txtHr_"+i;
-    var idMin="txtMin_"+i
-   // var idAss="ppAss_"+i;
- return(
-    <tr className='tblCls'>
-     <td>
-     <TextField id={idtxt} className={this.state.recommendations[i].errSec} value={this.state.recommendations[i].section} onChange={(e) => this.onSectionChange(e,i)} disabled={this.state.isDisabled} ></TextField>
-     </td>
-     <td>
-     <DateTimePicker  dateConvention={DateConvention.Date}  value={this.state.recommendations[i].date} disabled={this.state.isDisabled}
-        showLabels={false}    formatDate={(date: Date) => date.toLocaleDateString()}
-        onChange={(date: Date) =>this.setDueDate(date,i)}/>
-          </td>
-     <td>
-     <Dropdown id={idHr} className={this.state.recommendations[i].errHr}  placeholder="Select" selectedKey={this.state.recommendations[i].hours}  options={optionsHours} styles={dropdownStylesNew} onChange={(e,itm:IDropdownOption) => this.onHoursChange(e,itm,i)} disabled={this.state.isDisabled}/>
-    </td>
-    <td>
-     <Dropdown id={idMin} className={this.state.recommendations[i].errMin}  placeholder="Select" selectedKey={this.state.recommendations[i].minutes}  options={optionsMinutes} styles={dropdownStylesNew} onChange={(e,itm:IDropdownOption) => this.onMinutesChange(e,itm,i)} disabled={this.state.isDisabled}/>
-       
-  
-     </td>
-     <td>
-     <PeoplePicker peoplePickerWPclassName={this.state.recommendations[i].errTo} ensureUser={true}  disabled={this.state.isDisabled}  context={peoplePickerContext} personSelectionLimit={1} groupName={""} showtooltip={true}  searchTextLimit={5} onChange={(e) =>this._getPeoplePickerItemsAud(e,i)} 
-         defaultSelectedUsers={this.state.recommendations[i].approverDef ? this.state.recommendations[i].approverDef : []}   principalTypes={[PrincipalType.User]} resolveDelay={1000} />
-     </td>
-    
-     <td>
-      
-     <img style={{width:'30px', cursor:'pointer'}} className='mt-0' src={require("../../assets/del.png")} onClick={(e) =>this.deleteItem(i)} ></img>
-      
-      {/* <button   onClick={(e) =>this.deleteItem(i)}>Delete</button> */}
-      </td>
-     </tr>
-    
-  ) 
-   }) ;
-   var fileData = this.state.copyFil.map((item: any,i:number) => {
-    return(
-      <tr>
-        <td>
-        {item.name }  
-        </td>
-        <td>
-        <img style={{width:'30px', cursor:'pointer'}} className='mt-0' src={require("../../assets/del.png")} onClick={(e) =>this.removeFiles(i)} ></img>
-          {/* <button onClick={(e) =>this.removeFiles(i)}>Delete</button> */}
-        </td>
-      </tr> 
-       )    
-     
   });
+  const [selectCCUsers, setSelectCCUsers] = React.useState([]);
+  const [ListNameId, setListNameId] = React.useState(null);
 
-  var upFiles = this.state.exFiles.map((item: any,i:number) => {
-    return(
-      <tr>
-        <td>
-        {item.Name }  
-        </td>
-        <td>
-      {<a href={item.Path} target="_blank">Link</a>}
-        </td>
-        <td>
-      {item.Uploaded}
-        </td>
-        <td>
-          <button onClick={(e) =>this.toBeDeleted(i)} disabled={this.state.isDisabled}>Delete</button>
-        </td>
-      </tr> 
-       )    
-     
-  });
-   var approval = this.state.approvers.map((item: any,i:number) => {  
-    return(
-       <tr className='tblCls'>
-        <td style={{minWidth:'60px', textAlign:'center', maxWidth:"60px"}}>
-        <TextField value={(i+1).toString()} disabled={true} className={styles.width} ></TextField>
-        </td>
-        <td>
-        <Dropdown className={this.state.approvers[i].errLevel} placeholder="Select" disabled={this.state.isDisabled} selectedKey={this.state.approvers[i].Role} options={this.state.optionsRole} styles={dropdownStyles} onChange={(e,itm:IDropdownOption) => this.onRoleChange(e,itm,i)}/>
-        </td>
-        <td>
-        <TextField value={(i+1).toString()} disabled={true}></TextField>
-        </td>
-        <td>
-        <PeoplePicker peoplePickerWPclassName={this.state.approvers[i].errType} ensureUser={true}  context={peoplePickerContext} personSelectionLimit={5} groupName={""} showtooltip={true}  disabled={this.state.isDisabled} searchTextLimit={5} onChange={(e) =>this._getPeoplePickerItemsApp(e,i)}
-           defaultSelectedUsers={this.state.approvers[i].appEx ? this.state.approvers[i].appEx : []}  principalTypes={[PrincipalType.User]} resolveDelay={1000} />
-        </td>
-        <td>
-        <Dropdown disabled={this.state.isDisabled} placeholder="Select" selectedKey={this.state.approvers[i].Type} options={optionsApp} styles={dropdownStylesNew} onChange={(e,itm:IDropdownOption) => this.onTypeChange(e,itm,i)}/>
-     </td>
-        <td style={{minWidth:'60px', textAlign:'center', maxWidth:"60px"}}>
-        <img style={{width:'30px', cursor:'pointer'}} className='mt-0' src={require("../../assets/del.png")} onClick={(e) =>this.deleteItemApp(i)}></img>
+  const handleCCChange = (selectedOptions: any, fieldName: string) => {
+    setSelectCCUsers(selectedOptions);
+    const valuesOnly = selectedOptions.map((option: any) => option.value);
 
-          {/* <button   onClick={(e) =>this.deleteItemApp(i)}>Delete</button> */}
-          
-          
-          </td>
-        </tr>
-       
-     ) 
-      }) 
-  
-      var auditHistory = this.state.apprItems.map((item: any,i:number) => {
-        return(
-          <tr>
-            <td style={{minWidth:'60px', maxWidth:'60px'}}>
-            {i+1}
-            </td>
-            <td style={{minWidth:'60px', maxWidth:'60px'}}>
-                {item.Level}                  
-            </td>
-            <td style={{minWidth:'85px', maxWidth:'85px'}}>
-                {item.AssignedTo}
-            </td>
-            <td style={{minWidth:'85px', maxWidth:'85px'}}>
-                {item.RequesterName}
-            </td>
-            <td style={{minWidth:'85px', maxWidth:'85px'}}>
-            {new Date(item.RequestedDate).getDate()+"/" +new Date(item.RequestedDate).getMonth()+"/"+ new Date(item.RequestedDate).getFullYear()}
-            </td>
-            <td style={{minWidth:'85px', maxWidth:'85px'}}>
-            {item.ActionTakenBy}
-            </td>
-            <td style={{minWidth:'85px', maxWidth:'85px'}}>
-            {item.ActionTakenOn==''?'': new Date(item.ActionTakenOn).getDate()+"/" +new Date(item.ActionTakenOn).getMonth()+"/"+ new Date(item.ActionTakenOn).getFullYear()}                    
-            </td>
-            <td>
-              {item.Remarks}
-            </td>
-            <td style={{minWidth:'65px', maxWidth:'65px'}}>
-            {item.Status}
-            </td>
-          </tr> 
-           )    
-         
-      }); 
+    setFormData({ ...formData, [fieldName]: valuesOnly });
 
-    return (
-    
-      <section>
-        <CustomBreadcrumb Breadcrumb={this.state.Breadcrumb} />
-          <section className='card card-body mt-2'>
-            <fieldset disabled={this.state.isDisabled}>
-            <h3 className='text-dark font-16 fw-bold mb-3'>Memo Details</h3>
-          <div className={styles['cl-12']}>
-           <label>For Information *</label>
-           <div className="row">
-            <div className='col-sm-3 mb-3'>
-            <Checkbox className={this.state.isInfo ? "":styles.errCls} checked={this.state.isChecked} label="For Information"  onChange={this.onInfoChange}  disabled={this.state.isDisabled}/>
-            </div>
-            <div className='col-sm-3 mb-3'>
-            <Checkbox id="reqSign" checked={this.state.requestSign}   label="Request for Signing" onChange={this.onSignChange} disabled={this.state.isDisabled}/>
-              </div>
-              <div className='col-sm-3 mb-3'>
-              <Checkbox    checked={this.state.forApproval} label="For Approval" onChange={this.onAppChange} disabled={this.state.isDisabled}/>
-              </div>
-           </div>
-          
-            
+    // setFormData({ ...formData, [fieldName]: selectedOptions });
 
-          </div>
-          <div className='row'>
-            <div className='col-sm-4 mb-3'>
-            <Dropdown  id="dept" placeholder="Select" label="Department" required={true} options={this.state.optionsDepartment} styles={dropdownStyles}  selectedKey={(this.state.department)}  onFocus={this.onDepClick} onChange={this.onDepartmentChange} disabled={this.state.isDisabled}/>
-            </div>
-            <div className='col-sm-4 mb-3'>
-            <TextField label="Memo Number" className={this.state.errDep ? "":styles.errCls}  required={ true } value={(this.state.memoNumber)} name='memoNumber' disabled={true}/>
-            </div>
-            <div className='col-sm-4 mb-3'>
-            <TextField label="From" required={ true } 
-            // defaultValue={(this.props.userDisplayName)} 
-            defaultValue={(this.state.From)} 
-            value={(this.state.From)}
-            name='lastname' disabled={true}/>
-            </div>
-            <div className='col-sm-4 mb-3'>
-            <PeoplePicker  errorMessage={this.state.errTo} ensureUser={true}  context={peoplePickerContext}  titleText="To"  personSelectionLimit={3}   groupName={""}   showtooltip={true}  required={true} disabled={this.state.isDisabled}  searchTextLimit={5}
-             onChange={this._getPeoplePickerItemsTo} defaultSelectedUsers={this.state.toUsers ? this.state.toUsers : []}  principalTypes={[PrincipalType.User]} resolveDelay={1000} />
-              </div>
+  };
 
+  const [selectToUsers, setSelectToUsers] = React.useState([]);
 
-              <div className='col-sm-4 mb-3'>
-              <PeoplePicker  errorMessage={this.state.errCC} ensureUser={true}  context={peoplePickerContext} titleText="CC"  personSelectionLimit={3} validateOnFocusOut={true} groupName={""} showtooltip={true} required={true} disabled={this.state.isDisabled} searchTextLimit={5} onChange={this._getPeoplePickerItems}
-              principalTypes={[PrincipalType.User]} defaultSelectedUsers={this.state.ccUsers ? this.state.ccUsers : []} resolveDelay={1000} />
-              </div>
+  const handleToChange = (selectedOptions: any, fieldName: string) => {
+    setSelectToUsers(selectedOptions);
+    const valuesOnly = selectedOptions.map((option: any) => option.value);
+    setFormData({ ...formData, [fieldName]: valuesOnly });
 
+    // setFormData({ ...formData, [fieldName]: selectedOptions.value });
+  };
 
-              <div className='col-sm-4 mb-3'>
-              <TextField label="Subject" id="sub" errorMessage={this.state.errSub} required={ true }  onNotifyValidationResult={this.subOnClick}  validateOnFocusOut={true} value={this.state.subject} onClick={this.subOnClick}   onChange ={this.subOnChange} name='lastname' disabled={this.state.isDisabled}/>
-              </div>
-
-              <div className='col-sm-4 mb-3'>
-              <DateTimePicker label="Date" showLabels={false} dateConvention={DateConvention.Date}  value={this.state.dueDate}
-               formatDate={(date: Date) => date.toLocaleDateString()}
-        onChange={(date: Date) => this.setState({ dueDate: date })} disabled={this.state.isDisabled}/>
-              </div>
-
-              <div className='col-sm-4 mb-3'>
-              <TextField id="bac" errorMessage={this.state.errback} multiline autoAdjustHeight value={this.state.background}  onNotifyValidationResult={this.bacOnClick}  validateOnFocusOut={true} onChange={this.onChangeBack} required={ true } label="Background"  disabled={this.state.isDisabled}/>
-              </div>
-
-<div className='col-sm-4 mb-3'>
-<TextField id="iss" errorMessage={this.state.errIss} multiline autoAdjustHeight value={this.state.issues}  onNotifyValidationResult={this.issOnClick}  validateOnFocusOut={true} onChange={this.onChangeIss} required={ true } label="Issues" disabled={this.state.isDisabled} />
-</div>
-
-          </div>
-         
-         
-          
-          
-         
-         
-          </fieldset>
-          </section>
-         
-         <section className='card card-body mt-2'>
-         <fieldset>
-          <div className='row'>
-            <div className='col-sm-6'>
-            <h3 className='text-dark font-16 fw-bold mb-3'>Recommendation</h3>
-            </div>
-            <div style={{textAlign:'right'}} className='col-sm-6'>
-            <img style={{width:'30px', cursor:'pointer'}} className='mt-0' src={require("../../assets/plus.png")} onClick={this.addRow} ></img>
-           
-            </div>
-          </div>
-          
-              
-    <table id="tabRec" className='mtbalenew'>
-      <thead>
-      <tr><th>Section</th>
-            <th>Date</th>
-            <th colSpan={2}>Time</th>
-            <th>Auditor</th>
-            <th>Delete</th>
-            </tr>  
-      </thead>
-         
-          <tbody>  
-              
-        { items }
-        </tbody>
-         
-        </table>
-
-         
-         
-           <TextField  id="rec" errorMessage={this.state.errRecoApp} multiline autoAdjustHeight value={this.state.recommendedApproval} onNotifyValidationResult={this.onRecClick}  validateOnFocusOut={true}   onChange={this.onChangeRecomApproval} required={ true }  label="Recommendation for Approval" disabled={this.state.isDisabled}/>   
-          
-       
-            </fieldset>
-            </section>
-         
-         <section className='card card-body mt-2'>
-          <fieldset >
-          <h3 className='text-dark font-16 fw-bold'> Audit Programme Detail</h3>
-
-          <div className='row'>
-            <div className='col-sm-4 mb-3'>
-            <Dropdown id="drpType" placeholder="Select" label="Type *" onChange={this.onYearSelect} options={this.state.options}  selectedKey={(this.state.type)} styles={dropdownStyles} disabled={this.state.isDisabled}/>
-            </div>
-
-            <div className='col-sm-4 mb-3'>
-            <Dropdown id="drpYear"
-placeholder="Select"
-label="Year *" selectedKey={(this.state.year)} 
-options={optionsYear}
-styles={dropdownStyles} onChange={this.onYearChange} disabled={this.state.isDisabled}
-/>
-            </div>
-
-            <div className='col-sm-4 mb-3'>
-            <Dropdown id="drpMonths"
-placeholder="Select" selectedKey={(this.state.month)} 
-label="Months *" disabled={this.state.showMonth || this.state.isDisabled}
-options={optionMonths}
-styles={dropdownStyles} onChange={this.onMonthChange} 
-/>
-            </div>
-            <div className='col-sm-4 mb-3'>
-            <input className="form-control" type="file" disabled={this.state.isDisabled} name="myFile" onChange={(e)=>this.handleFileChange(e,this)}  id="newfile" multiple/>
-            <label>FIles Selected:</label>  <span  className='font-12' onClick={this._OpenModal}>{this.state.fileCount}</span>
-            </div>
-          </div>
-
-
-
-
-
-      
-         <table className='mtbalenew'>
-          <tbody>
-            {fileData}
-          </tbody>
-         </table>
-          </fieldset>
-         
-         </section>
-         <section className='card card-body mt-2'>
-         <fieldset disabled={this.state.isDisabled}>
-          <div className='row'>
-            <div className='col-sm-6'>
-            <h3 className='text-dark font-16 fw-bold'> Approval Detail</h3>
-            </div>
-            <div style={{textAlign:'right'}} className='col-sm-6'>
-            <img style={{width:'30px', cursor:'pointer'}} className='mt-0 mb-2' src={require("../../assets/plus.png")} onClick={this.addApprover} ></img>
-
-            {/* <button  onClick={this.addApprover}>Add
-            </button> */}
-            </div>
-          </div>
-         
-            
-         <table id="tblAppr" className='mtbalenew'>
-
-          <thead>
-          <tr><th style={{minWidth:'60px', maxWidth:"60px"}}>Sl.</th>
-          <th>Role</th>
-          <th>Approver Level</th>
-          <th>Approver Name</th>
-          <th>Approval Type</th>
-          <th style={{minWidth:'60px', maxWidth:"60px"}}>Delete</th>
-          </tr>
-          </thead>
-         
-         <tbody>       
-          
-       { approval }
-       </tbody>
-        
-       </table>
-        </fieldset>
-         </section>
-         
-
-   {this.state.showSubmit &&  <section style={{display:'flex', gap:'10px', justifyContent:'center'}} id="editDetails ">
-      <PrimaryButton className={(styles as any)['mar-10 btn-primary']} onClick={this.createDraft}>Save As Draft</PrimaryButton>
-      <PrimaryButton className={(styles as any)['mar-10 btn-primary']} onClick={this.submitDraft}>Submit</PrimaryButton> 
-      <PrimaryButton className={(styles as any)['mar-10 cancel-btn']} onClick={this.cancelDraft}>Cancel</PrimaryButton> 
-      </section>}
-      {this.state.showApprove &&
-      <section id="approvalSection">
-           <Field label="Remarks">
-            <Textarea id="comm" value={this.state.remarks} onChange={this.onRemarksChange} />
-          </Field>
-                     <PrimaryButton className={(styles as any)['mar-10']} onClick={this.approveRequest}>Approve</PrimaryButton>
-                      <PrimaryButton  className={(styles as any)['mar-10']} onClick={this.rejectRequest}>Reject</PrimaryButton>
-                       <PrimaryButton className={(styles as any)['mar-10']} onClick={this.reworkRequest}>Rework</PrimaryButton>
-                       <a href='#/listing'> <PrimaryButton onClick={this.cancelRequest}>Cancel</PrimaryButton></a>
-        
-      </section>}
-      <section id='audit' className='card card-body mt-2'>
-        
-        <h3 style={{margin:'inherit'}} className='fw-bold font-16 text- mb-2'>Audit Trial</h3>
-        <div style={{display:'grid'}}>
-                  <table className='mtbalenew'>
-          <thead>
-            <tr>
-            <th style={{minWidth:'60px', maxWidth:'60px'}}>Sl No</th>
-            <th style={{minWidth:'60px', maxWidth:'60px'}}>Level</th>
-              <th style={{minWidth:'85px', maxWidth:'85px'}}>Assigned To</th>
-              <th style={{minWidth:'85px', maxWidth:'85px'}}>Requestor Name</th>
-              <th style={{minWidth:'85px', maxWidth:'85px'}}>Requested Date</th>
-              <th style={{minWidth:'85px', maxWidth:'85px'}}>Action Taken By</th>
-              <th style={{minWidth:'85px', maxWidth:'85px'}}>Action Taken On</th>
-              <th>Remarks</th>
-              <th style={{minWidth:'65px', maxWidth:'65px'}}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-                {auditHistory}
-          </tbody>
-        </table>
-        </div>
-      </section>
-          {this.state.showDialog && <div id="myModal" className={styles.modal}>
-           
-      <div className={styles.modalcontent}>
-      <span><b>Attachment Details</b></span>
-            <br/>
-            <span>Below are the attachment details for the Initiative</span>
-          <span className={styles.close} onClick={e => this._CloseModal()}>&times;</span>
-          <table>
-            <thead>
-            <th>File Name</th>
-              <th>File Link</th>
-              <th>Upload Date</th>
-              <th>Delete</th>
-            </thead>
-         
-            {upFiles}
-          </table>
-         
-      </div>
-   </div>}
-      </section>
-    );
-
-    
-  }
- /* private async getDepartment(): IDropdownOption{
-    const spCache = spfi(this._sp).using(Caching({store:"session"}));
-
-    const items = await spCache.web.lists.getByTitle("DepartmentMasterList").items;
-    return items;
-  }*/
-
-    //save as draft
-    private async createDraft(){ 
-      this.clearAllValidations();
-      this.setState({errDep:true});
-      this.setState({isSubmit:false});
-      this.setState({isSave:true}); 
-      var _self= this;
-      var isValid= true;
-          if(_self.state.department ==0){
-            document.getElementById('dept-option')?.classList.add(styles.errCls);
-            isValid = false;
-          }
-          if(_self.state.isChecked ==false && _self.state.requestSign ==false && _self.state.forApproval){
-            document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.add(styles.errCh);
-            document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.add(styles.errCh);
-            document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.add(styles.errCh);
-            isValid = false;    
-          }
-          //if(_self.state.requestSign ==false){
-         //   document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.add(styles.errCh);
-         //   isValid = false;
-
-       //   }
-           
-          if(isValid){
-            Swal.fire({ title: 'Do you want to save this request?',  
-              showCancelButton: true,  
-              confirmButtonText: 'Yes',
-              cancelButtonText:'No'
-              }).then(function(val){
-               if(val.isConfirmed){
-                _self.saveAsDraft= _self.saveAsDraft.bind(_self);
-            if(_self.state.itemId ==0){
-          _self.saveAsDraft();
-            }
-            else{
-              _self.updateDraft();
-            }
-                }          
-              });           
-          }
-          else{
-            Swal.fire({title:"Please fill the mandatory fields."});
-          }
-     
-     
-      } 
-
-      private updateRecommendations(id:number, it:any){
-        const spCache = spfi(this._sp).using(Caching({store:"session"}));
-       console.log(spCache);
-      }
-
-  //update draft item
-private async updateDraft(){
-  var itemIdAudit = this.state.itemId;
-  var _self= this;
-  //const spCache = spfi(_self._sp).using(Caching({store:"session"}));
-    const item = await spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgram").items.getById(this.state.itemId).update({
-      Title: "Title",
-      Info: this.state.isChecked,
-      Sign:this.state.requestSign,
-      Approval: this.state.forApproval,
-      MemoNumber:this.state.memoNumber,
-     DepartmentId:this.state.department,
-     FromId:this.state.currUserId,
-     ToId: this.state.toArr,
-     CcId: this.state.ccArr,
-      Date:this.state.dueDate,
-      Subject:this.state.subject,
-      Background: this.state.background,
-      Issues:this.state.issues,
-      RecommendedforApproval: this.state.recommendedApproval,
-     AuditProgramTypeId: this.state.type,
-      Year: this.state.year,
-      MonthName: this.state.month,
-        SubmitStatus:"No",
-          Status:"Pending"
+  const handleDepartmentChange = (selectedOption: any) => {
+    setselectUserDept(selectedOption);
+    const formattedMemoSerialNo = formData.memoSerialNo < 10
+      ? `00${formData.memoSerialNo}`
+      : formData.memoSerialNo < 100
+        ? `0${formData.memoSerialNo}`
+        : formData.memoSerialNo;
+    setFormData({
+      ...formData,
+      deptId: selectedOption.value,
+      memoNo: `${selectedOption.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
     });
-    if(_self.state.recommendations.length>0){
-      _self.state.recommendations.forEach(function(it){  
-        var app;
-        if(it.approver =='' || it.approver == null){
-          app= null;
-        } 
-        else{
-app= it.approver;
-        }
-        if(it.itemId ==""){
-          spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.add({
-            Title: "Title",
-            Section:it.section,
-            AnnualAuditProgramId:itemIdAudit,
-            Date:it.date,
-            Time:it.hours+":"+it.minutes,
-            AuditorId:app
-          });
-        } 
-        else{
-          spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.getById(it.itemId).update({
-            Title: "Title",
-            Section:it.section,
-            AnnualAuditProgramId:itemIdAudit,
-            Date:it.date,
-            Time:it.hours+":"+it.minutes,
-            AuditorId:app
-          }).catch(function(ex){
-            console.log(ex.errorMessage);
-          });
-        
-        }      
-      
-        });
 
-    }
-   
-    if(_self.state.approvers.length>0){
-      var maxLength = _self.state.approvers.length;
-      _self.state.approvers.forEach(function(it,val){
-        if(it.itemId ==0)    {
-          spfi(_self._sp).web.lists.getByTitle("AllProcessApprovalLevelList").items.add({
-            Title: "Title",
-            MainListNameId:_self.state.mainListId,
-            ApproverRoleId:it.Role,
-            Level:val+1,
-            LevelType:it.Type,
-            SubmitStatus:"No",
-            Maxlevel:maxLength,
-            ContentTitle:_self.state.subject,
-            RequestId: _self.state.memoNumber,
-            RequesterNameId:_self.state.currUserId,
-            RequestedDate:new Date(),
-            ProcessName:"Annual Audit Program",
-           FormNameId: _self.state.formNameId,
-           MainListID:_self.state.itemId,
-           RequesterRoleId: _self.state.reqRolId,
-           ApproversId: it.Name
-          }).catch(function(ex){
-            console.log(ex.errorMessage);
-          })
-        } 
-        else{
-          spfi(_self._sp).web.lists.getByTitle("AllProcessApprovalLevelList").items.getById(it.itemId).update({
-            Title: "Title",
-            MainListNameId:_self.state.mainListId,
-            ApproverRoleId:it.Role,
-            Level:val+1,
-            LevelType:it.Type,
-            SubmitStatus:"No",
-            Maxlevel:maxLength,
-            ContentTitle:_self.state.subject,
-            RequestId: _self.state.memoNumber,
-            RequesterNameId:_self.state.currUserId,
-            RequestedDate:new Date(),
-            ProcessName:"Annual Audit Program",
-           FormNameId: _self.state.formNameId,
-           MainListID:_self.state.itemId,
-           RequesterRoleId: _self.state.reqRolId,
-           ApproversId: it.Name
-          }).catch(function(ex){
-            console.log(ex.errorMessage);
-          })
-        }     
-        
-        });
-    }
-
-    if(_self.state.recomDeleteId.length>0){
-      _self.state.recomDeleteId.forEach(function(ids){
-        spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.getById(ids).delete();
-      });
-     
-    }
-    if(_self.state.apprDelId.length>0){
-      _self.state.apprDelId.forEach(function(ids){
-        spfi(_self._sp).web.lists.getByTitle("AllProcessApprovalLevelList").items.getById(ids).delete();
-      });
-     
-    }
-    
-    if(_self.state.fileDeleteId.length>0){
-      _self.state.fileDeleteId.forEach(function(ids){
-        spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramDocs").items.getById(ids).delete();
-      });
-     
-    }
-
-    if(_self.state.copyFil.length>0){
-      _self.state.copyFil.forEach(function(file){
-        var fileNamePath = encodeURI(file.name);
-        spfi(_self._sp).web.getFolderByServerRelativePath("AnnualAuditProgramDocs").files.addUsingPath(fileNamePath, file, { Overwrite: true }).then(function(response){
-         response.file.getItem().then(function(fileItem){
-          fileItem.update({
-            AnnualAuditId: itemIdAudit
-          });
-         });
-        });
-        
-      })
-     
-    }
-   Swal.fire({title:"Saved Successfully.", icon:"success"});
-   window.location.href="#"+'/listing';
-   console.log(item);
-}
-
-//create draft Item
-private async saveAsDraft(){
-var _self= this;
-    //const spCache = spfi(_self._sp).using(Caching({store:"session"}));
-      const item = await spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgram").items.add({
-        Title: "Title",
-        Info: this.state.isChecked,
-        Sign:this.state.requestSign,
-        Approval: this.state.forApproval,
-        MemoNumber:this.state.memoNumber,
-       DepartmentId:this.state.department,
-       FromId:this.state.currUserId,
-       ToId: this.state.toArr,
-       CcId: this.state.ccArr,
-         Date:this.state.dueDate,
-        Subject:this.state.subject,
-        Background: this.state.background,
-        Issues:this.state.issues,
-        RecommendedforApproval: this.state.recommendedApproval,
-       AuditProgramTypeId: this.state.type,
-        Year: this.state.year,
-        MonthName: this.state.month,
-        SubmitStatus:"No",
-          Status:"Pending"
-      });
-      if(_self.state.recommendations.length>0){
-        _self.state.recommendations.forEach(function(it){ 
-          var app;  
-          if(it.approver == "" || it.approver == null){
-            app=null;
-          }   
-          else app= it.approver;    
-          spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.add({
-              Title: "Title",
-              Section:it.section,
-              AnnualAuditProgramId:item.data.Id,
-              Date:it.date,
-              Time:it.hours+":"+it.minutes,
-              AuditorId:app
-            });
-          });
-
-      }
-      if(_self.state.approvers.length>0){
-        var maxLength = _self.state.approvers.length;
-        _self.state.approvers.forEach(function(it,val){          
-          spfi(_self._sp).web.lists.getByTitle("AllProcessApprovalLevelList").items.add({
-              Title: "Title",
-              MainListNameId:_self.state.mainListId,
-              ApproverRoleId:it.Role,
-              Level:val+1,
-              LevelType:it.Type,
-              SubmitStatus:"No",
-              Maxlevel:maxLength,
-              ContentTitle:_self.state.subject,
-             // RequestId: _self.state.memoNumber,
-              RequesterNameId:_self.state.currUserId,
-              MainListID:item.data.Id,
-              ApprovalType:"Approval",
-              RequestedDate:new Date(),
-              ProcessName:"Annual Audit Program",
-             FormNameId: _self.state.formNameId,
-             ApproversId: it.Name,
-             RequesterRoleId: _self.state.reqRolId
-            }).catch(function(ex){
-              console.log(ex.errorMessage);
-            })
-          });
-      }
-      if(_self.state.copyFil.length>0){
-        _self.state.copyFil.forEach(function(file){
-          var fileNamePath = encodeURI(file.name);
-          spfi(_self._sp).web.getFolderByServerRelativePath("AnnualAuditProgramDocs").files.addUsingPath(fileNamePath, file, { Overwrite: true }).then(function(response){
-           response.file.getItem().then(function(fileItem){
-            fileItem.update({
-              AnnualAuditId: item.data.Id
-            });
-           });
-          });
-          
-        })
-       
-      }
-     
-     Swal.fire({title:"Saved Successfully.", icon:"success"});
-     window.location.href="#"+'/listing';
-     console.log(item);
- 
-}
-private clearAllValidations(){
-  document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.remove(styles.errCh);
-      document.getElementById('dept-option')?.classList.remove(styles.errCls);
-      document.getElementsByClassName('ms-BasePicker-text')[0]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-BasePicker-text')[1]?.classList.remove(styles.errCh);
-      document.getElementById('sub')?.classList.remove(styles.errCls);
-      document.getElementById('bac')?.classList.remove(styles.errCls);
-      document.getElementById('iss')?.classList.remove(styles.errCls);
-      document.getElementById('rec')?.classList.remove(styles.errCls);
-      document.getElementById('drpType-option')?.classList.remove(styles.errCls);
-      document.getElementById('drpYear-option')?.classList.remove(styles.errCls);
-      document.getElementById('drpMonths-option')?.classList.remove(styles.errCls);
-      this.state.approvers.forEach(function(itm){
-        itm.errName ='';
-        itm.errType='';
-        itm.errLevel ='';
-      });
-
-      this.state.recommendations.forEach(function(itm){
-        itm.errSec ='';
-        itm.errHr ='';
-        itm.errMin ='';
-        itm.errTo ='';
-      });
-}
-
-  private async submitAllDraft (){
-         // var _self= this; 
-         var _self= this;
-         const userdata = await spfi(_self._sp).web.currentUser();
-         const userid = userdata.Id
-         this.setState({currUserId:userid});
-         alert(this.state.currUserId + 'state user id')
-         alert( userid + 'user id is ')
-     // const spCache = spfi(this._sp).using(Caching({store:"session"}));
-
-  var depCode:any = this.state.allDepartments.filter(function(it){
-    return it['Id'] == _self.state.department;
-  })
-//   const getUserId = async (loginName:any) => {
-//     try {
-//         const user = await spfi(this._sp).web.ensureUser(loginName);
-//         alert(user.data.Id)
-//         return user.data.Id;
-//     } catch (error) {
-//         console.error("Error getting user ID for:", loginName, error);
-//         return null;
-//     }
-// };
-
-// // Convert all `ToId` and `CcId` users to their respective IDs
-// const convertUsersToIds = async (userArray:any) => {
-//     const userIds = await Promise.all(userArray.map(getUserId));
-//     return userIds.filter(id => id !== null); // Remove any null values in case of errors
-// };
-
-      if(this.state.itemId !=0){
-
-        const item = await spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgram").items.getById(this.state.itemId).update({
-          Title: "Title",
-          Info: this.state.isChecked,
-          Sign:this.state.requestSign,
-          Approval: this.state.forApproval,
-          MemoNumber: depCode[0].DepartmentCode+"/"+(new Date().getMonth()+1)+"/" +this.state.memoSerialNo,
-         DepartmentId:this.state.department,
-         FromId:this.state.currUserId,
-         ToId: this.state.toArr,
-         CcId: this.state.ccArr,
-           Date:this.state.dueDate,
-          Subject:this.state.subject,
-          Background: this.state.background,
-          Issues:this.state.issues,
-          RecommendedforApproval: this.state.recommendedApproval,
-         AuditProgramTypeId: this.state.type,
-          Year: this.state.year,
-          MonthName: this.state.month,
-          MemoSerialNumber: this.state.memoSerialNo,
-          SubmitStatus:"Yes",
-          Status:"Pending",
-          SubmiitedDate: new Date()
-
-        });
-        // const user = await spfi(_self._sp).web.ensureUser(_self.props.userid);
-        if(this.state.recommendations.length>0){
-          this.state.recommendations.forEach(function(it){   
-            if(it.itemId ==""){
-              spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.add({
-                Title: "Title",
-                Section:it.section,
-                AnnualAuditProgramId:_self.state.itemId,
-                Date:it.date,
-                Time:it.hours+":"+it.minutes,
-                AuditorId:it.approver
-              });
-            } 
-            else{
-              spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.getById(it.itemId).update({
-                Title: "Title",
-                Section:it.section,
-                AnnualAuditProgramId:_self.state.itemId,
-                Date:it.date,
-                Time:it.hours+":"+it.minutes,
-                AuditorId:it.approver
-              });
-            }      
-          
-            });
-    
-        }
-        if(_self.state.approvers.length>0){
-          var maxLength = _self.state.approvers.length;
-          _self.state.approvers.forEach(function(it,val){
-            if(it.itemId ==0)    {
-              spfi(_self._sp).web.lists.getByTitle("AllProcessApprovalLevelList").items.add({
-                Title: "Title",
-                MainListNameId:_self.state.mainListId,
-                ApproverRoleId:it.Role,
-                Level:val+1,
-                LevelType:it.Type,
-                SubmitStatus:"Yes",
-                MainListID:_self.state.itemId,
-                ApprovalType:"Approval",
-                Maxlevel:maxLength,
-                ContentTitle:_self.state.subject,
-                RequestId: depCode[0].DepartmentCode+"/"+(new Date().getMonth()+1)+"/" +_self.state.memoSerialNo,
-                RequesterNameId:_self.state.currUserId,
-                RequestedDate:new Date(),
-                ProcessName:"Annual Audit Program",
-               FormNameId: _self.state.formNameId,
-               RequesterRoleId: _self.state.reqRolId,
-               
-               ApproversId: it.Name
-              }).catch(function(ex){
-                console.log(ex.errorMessage);
-              })
-            } 
-            else{
-              spfi(_self._sp).web.lists.getByTitle("AllProcessApprovalLevelList").items.getById(it.itemId).update({
-                Title: "Title",
-                MainListNameId:_self.state.mainListId,
-                ApproverRoleId:it.Role,
-                Level:val+1,
-                LevelType:it.Type,
-                SubmitStatus:"Yes",
-                MainListID:_self.state.itemId,
-                ApprovalType:"Approval",
-                Maxlevel:maxLength,
-                ContentTitle:_self.state.subject,
-                RequestId: depCode[0].DepartmentCode+"/"+(new Date().getMonth()+1)+"/" +_self.state.memoSerialNo,
-                RequesterNameId:_self.state.currUserId,
-                RequestedDate:new Date(),
-                ProcessName:"Annual Audit Program",
-               FormNameId: _self.state.formNameId,
-               RequesterRoleId: _self.state.reqRolId,
-               ApproversId: it.Name
-              }).catch(function(ex){
-                console.log(ex.errorMessage);
-              })
-            } 
-          })
-        }
-        if(_self.state.isRework){
-          const userdata = await spfi(_self._sp).web.currentUser();
-          console.log(userdata.Id , "userdata in rework");
-          console.log(_self.state.approvalItemId, "approval item id");
-          console.log(typeof(_self.state.approvalItemId), "typem of approval item id");
-          spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.getById(_self.state.approvalItemId).update({
-            Status: "Approved",
-            ActionTakenById:userdata.Id,
-                  
-            ActionTakenOn:new Date()
-          });
-          debugger;
-          console.log(_self.state.approvalItemId, "approval item id 2");
-          console.log(typeof(_self.state.approvalItemId), "typem of approval item id 2");
-           const mydata  = await spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.getById(parseInt(_self.state.approvalItemId))
-           console.log(mydata, "mydata");
-        }
-        if(_self.state.recomDeleteId.length>0){
-          _self.state.recomDeleteId.forEach(function(ids){
-            spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.getById(ids).delete();
-          });
-         
-        }
-
-        if(_self.state.apprDelId.length>0){
-          _self.state.apprDelId.forEach(function(ids){
-            spfi(_self._sp).web.lists.getByTitle("AllProcessApprovalLevelList").items.getById(ids).delete();
-          });
-         
-        }
-        if(_self.state.fileDeleteId.length>0){
-          _self.state.fileDeleteId.forEach(function(ids){
-            spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramDocs").items.getById(ids).delete();
-          });
-         
-        }
-        if(_self.state.copyFil.length>0){
-          _self.state.copyFil.forEach(function(file){
-            var fileNamePath = encodeURI(file.name);
-            spfi(_self._sp).web.getFolderByServerRelativePath("AnnualAuditProgramDocs").files.addUsingPath(fileNamePath, file, { Overwrite: true }).then(function(response){
-             response.file.getItem().then(function(fileItem){
-              fileItem.update({
-                AnnualAuditId: _self.state.itemId
-              });
-             });
-            });
-            
-          })
-         
-        }
-       Swal.fire({title:"Submitted Successfully.", icon:"success"});
-       window.location.href="#"+'/listing';
-       var tab= document.getElementsByClassName("tblCls");
-       console.log(tab);
-        //swal({title:"Request created successfully.",icon:"success"});
-       console.log(item);
-      }
-      else{
-        // const toUserIds = await convertUsersToIds(_self.state.toArr);
-        // const ccUserIds = await convertUsersToIds(_self.state.ccArr);
-        // const approvaluser=await convertUsersToIds()
-        const item = await spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgram").items.add({
-          Title: "Title",
-        Info: _self.state.isChecked,
-        Sign:_self.state.requestSign,
-        Approval: _self.state.forApproval,
-      // MemoNumber:_self.state.memoNumber,
-       DepartmentId:_self.state.department,
-       FromId:this.props.userid,
-       ToId: _self.state.toArr,
-       CcId: _self.state.ccArr,
-         Date:_self.state.dueDate,
-        Subject:_self.state.subject,
-        Background: _self.state.background,
-        Issues:_self.state.issues,
-        RecommendedforApproval: _self.state.recommendedApproval,
-       AuditProgramTypeId: _self.state.type,
-        Year: _self.state.year,
-        MonthName: _self.state.month,
-        MemoNumber: depCode[0].DepartmentCode+"/"+(new Date().getMonth()+1)+"/" +this.state.memoSerialNo,
-        MemoSerialNumber:this.state.memoSerialNo,
-        SubmitStatus:"Yes",
-          Status:"Pending",
-          SubmiitedDate: new Date()
-        });
-      
-      var itemId=item.data.Id;
-        if(_self.state.recommendations.length>0){
-          _self.state.recommendations.forEach(async function(it){   
-            if(it.itemId ==""){
-              spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.add({
-                Title: "Title",
-                Section:it.section,
-                AnnualAuditProgramId:itemId,
-                Date:it.date,
-                Time:it.hours+":"+it.minutes,
-                AuditorId:it.approver
-              });
-            } 
-            else{
-              spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.getById(it.itemId).update({
-                Title: "Title",
-                Section:it.section,
-                AnnualAuditProgramId:itemId,
-                Date:it.date,
-                Time:it.hours+":"+it.minutes,
-                AuditorId:it.approver
-              });
-            }      
-          
-            });
-    
-        }
-
-        if(_self.state.approvers.length>0){
-          var maxLength = _self.state.approvers.length;
-          _self.state.approvers.forEach(async function(it,val){          
-            spfi(_self._sp).web.lists.getByTitle("AllProcessApprovalLevelList").items.add({
-                Title: "Title",
-                MainListNameId:_self.state.mainListId,
-                ApproverRoleId:it.Role,
-                Level:val+1,
-                LevelType:it.Type,
-                SubmitStatus:"Yes",
-                MainListID:itemId,
-                ApprovalType:"Approval",
-                Maxlevel:maxLength,
-                ContentTitle:_self.state.subject,
-                RequestId: _self.state.departmentVal+"/"+(new Date().getMonth()+1)+"/" +_self.state.memoSerialNo,
-                RequesterNameId:_self.state.currUserId,
-                RequestedDate:new Date(),
-                ProcessName:"Annual Audit Program",
-               FormNameId: _self.state.formNameId,
-               RequesterRoleId: _self.state.reqRolId,
-               ApproversId: it.Name
-              }).catch(function(ex){
-                console.log(ex.errorMessage);
-              })
-            });
-        }
-        if(this.state.copyFil.length>0){
-          this.state.copyFil.forEach(function(file){
-            var fileNamePath = encodeURI(file.name);
-            spfi(_self._sp).web.getFolderByServerRelativePath("AnnualAuditProgramDocs").files.addUsingPath(fileNamePath, file, { Overwrite: true }).then(function(response){
-             response.file.getItem().then(function(fileItem){
-              fileItem.update({
-                AnnualAuditId: itemId
-              });
-             });
-            });
-            
-          })
-         
-        }
-  
-       Swal.fire({title:"Submitted Successfully.", icon:"success"});
-       var tab= document.getElementsByClassName("tblCls");
-       window.location.href="#"+'/listing';
-       console.log(tab);
-        //swal({title:"Request created successfully.",icon:"success"});
-       console.log(item);
-      }
-    
-      
-     
-  }
-
-private cancelDraft(){
-  window.location.href="#";
-}
-  
-  private async submitDraft() {
-    var _self= this;
-    let  isValid = true;
-    _self.clearAllValidations();
-    _self.setState({isSubmit:true});
-    _self.setState({isSave:false});
-    if(_self.state.isChecked ==false && _self.state.requestSign ==false && _self.state.forApproval == false){
-      document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.add(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.add(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.add(styles.errCh);
-      isValid = false;    
-    }
-    if(_self.state.department ==0){
-      document.getElementById('dept-option')?.classList.add(styles.errCls);
-      isValid = false;
-    }
-    if(_self.state.toArr.length ==0){
-      document.getElementsByClassName('ms-BasePicker-text')[0]?.classList.add(styles.errCh);
-      isValid = false;
-    }
-    if(_self.state.ccArr.length ==0){
-      document.getElementsByClassName('ms-BasePicker-text')[1]?.classList.add(styles.errCh);
-      isValid = false;
-    }
-    if(_self.state.subject=='' || _self.state.subject== null){
-      document.getElementById('sub')?.classList.add(styles.errCls);
-      isValid = false;
-    }
-    if(_self.state.background =='' || _self.state.background== null)
-      {
-        document.getElementById('bac')?.classList.add(styles.errCls);
-        isValid = false;            
-      }
-    if(_self.state.issues =='' || _self.state.issues== null)
-      {
-        document.getElementById('iss')?.classList.add(styles.errCls);
-        isValid = false; 
-      }
-      if(_self.state.type ==0 || _self.state.type== null){
-        document.getElementById('drpType-option')?.classList.add(styles.errCls);
-        isValid = false;
-      }
-      if(_self.state.year ==0 || _self.state.year== null){
-        document.getElementById('drpYear-option')?.classList.add(styles.errCls);
-        isValid = false;
-      }
-    if(_self.state.recommendedApproval =='' || _self.state.recommendedApproval== null)
-      {
-        document.getElementById('rec')?.classList.add(styles.errCls);
-        isValid = false;
-      }
-      if(_self.state.showMonth == false && ( _self.state.month =='' || _self.state.month ==null)){
-        document.getElementById('drpMonths-option')?.classList.add(styles.errCls);
-        isValid = false;
-      }
-      _self.state.recommendations.forEach(function(itm){
-        if(itm.section =="" || itm.date =="" || itm.hours =="" || itm.minutes =="" || itm.approver =='')
-        {
-          if(itm.section ==""){
-            itm.errSec =styles.errCls;
-          }
-          if(itm.hours ==""){
-            itm.errHr =styles.errCls;
-          }
-          if(itm.minutes ==""){
-            itm.errMin =styles.errCls;
-          }
-          if(itm.approver ==""){
-            itm.errTo =styles.errCls;
-          }
-        isValid = false;
-        }   
-        else{
-          itm.errSec ='';
-          itm.errHr ='';
-          itm.errMin ='';
-          itm.errTo ='';
-        }     
-      })
-      _self.state.approvers.forEach(function(itm){
-        
-        if(itm.Role =="" || itm.Name =="" || itm.Type=="")
-        {
-        if(itm.Role ==""){
-          itm.errLevel =styles.errCls;
-        }
-        if(itm.Name =='')
-        {
-          itm.errType= styles.errCls;
-        }
-        isValid = false;
-        }
-        else{
-          itm.errLevel ='';
-          itm.errName='';
-          itm.errType ='';
-        }        
-      });
-      if(_self.state.copyFil.length==0 && this.state.exFiles.length==0){
-        isValid = false;
-      }
-      _self.setState({approvers:_self.state.approvers})
-      if(isValid){
-            var isRecMiss=false;
-            var isAppMiss= false;
-            if(_self.state.recommendations.length==1 )
-              {
-                if(_self.state.recommendations[0].section =="" ||_self.state.recommendations[0].approver =="" ){
-                isRecMiss = true ;
-                Swal.fire({title:"Please fill the mandatory fields."});
-              }
-             
-            }
-            if(_self.state.approvers.length ==1 && isRecMiss == false){
-              if(_self.state.approvers[0].Role =="" ||_self.state.recommendations[0].Name =="" ){
-                Swal.fire({title:"Please fill the mandatory fields."});
-                isAppMiss = true;
-              }
-             
-             
-            }
-            if(isRecMiss ==false && isAppMiss == false ){
-              Swal.fire({ title: 'Do you want to submit this request?',  
-                showCancelButton: true,  
-                  confirmButtonText: 'Yes',
-                  cancelButtonText:'No'  }).then(function(val){
-                 if(val.isConfirmed){
-                  _self.submitAllDraft=_self.submitAllDraft.bind(_self);
-           _self.submitAllDraft();
-                     
-                 }
-                });
-          
-            }
-            }
-            else{
-              Swal.fire({title:"Please fill the mandatory fields."});
-            }
-
- 
-
-
-   
-
-
-    
-   /* if(this.state.errTo.length ==0){
-      this.setState({errTo:"This field is required"})
-      isValid = false;
-    }
-    else{
-      this.setState({errTo:""})
-    }
-    if(this.state.errCC.length ==0){
-      this.setState({errCC:"This field is required"})
-      
-      isValid = false;
-    }
-    else{
-      this.setState({errCC:""})
-    }*/
-   
-  }  
-  private _getPeoplePickerItemsTo(items: any[]) {
-     var arr:any[];
-     arr=[];
-    items.forEach(function(it){
-      arr.push(it.id);
-    })
-      this.setState({toArr:arr});
-  }
-  private _getPeoplePickerItemsAud(items:any[], i: number){
-    this.state.recommendations.filter(function(it){
-      if(it.index ==i){
-        it.approver =items[0].id;
-        it.errTo='';
-      }
-    });
-    this.setState({recommendations: this.state.recommendations});
-  }
-  private _getPeoplePickerItemsApp(items:any[], i: number){
-    var arr:any[];
-     arr=[];
-    items.forEach(function(it){
-      arr.push(it.id);
-    })
-    this.state.approvers.filter(function(it){
-      if(it.Index ==i){
-        it.Name =arr;
-        it.errType='';
-      }
-    });
-    this.setState({approvers: this.state.approvers});
-  }
-
-  
-  private onDateChange(e:any, i:number){
-    this.state.recommendations.filter(function(it){
-      if(it.index ==i){
-        it.date =e.target.value
-      }
-    });
-    this.setState({recommendations: this.state.recommendations});
-  }
-  private _getPeoplePickerItems(items: any[]) {
-    var arr:any[];
-    arr=[];
-   items.forEach(function(it){
-     arr.push(it.id);
-   })
-    this.setState({ccArr:arr});
-  }
-  private subOnChange(event:any)
-  {
-    this.setState({subject:event.target.value});
-    
-  }
-  private subOnClick(){
-    if(this.state.isSubmit == true && this.state.subject ==''){
-      document.getElementById('sub')?.classList.add(styles.errCls);
-    }
-  }
-  private bacOnClick(){
-    if(this.state.isSubmit == true && this.state.background ==''){
-      document.getElementById('bac')?.classList.add(styles.errCls);
-    }
-  }
-  private issOnClick(){
-    if(this.state.isSubmit == true && this.state.issues ==''){
-      document.getElementById('iss')?.classList.add(styles.errCls);
-    }
-  }
-  private onRecClick(){
-    if(this.state.isSubmit == true && this.state.recommendedApproval ==''){
-      document.getElementById('rec')?.classList.add(styles.errCls);
-    }
-  }
-  private onDepClick(){
-   // alert('Hi');
-  }
-  private onSectionChange(event:any, i:number){
-    this.state.recommendations.filter(function(it){
-      if(it.index ==i){
-        it.section = event.target.value;
-        it.errSec='';
-      }
-    });
-    this.setState({recommendations: this.state.recommendations});
-  }
-  private onHoursChange(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption, i:number){
-    this.state.recommendations.filter(function(it){
-      if(it.index ==i){
-        it.hours = item.text;
-        it.errHr='';
-      }
-    });
-    this.setState({recommendations: this.state.recommendations});
-  }
-  private onMinutesChange(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption, i:number){
-    this.state.recommendations.filter(function(it){
-      if(it.index ==i){
-        it.minutes =item.text;
-        it.errMin='';
-      }
-    });
-    this.setState({recommendations: this.state.recommendations});
-  }
-  
-
-  
-  private onRoleChange(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption, i:number){
-   /* this.state.approvers.filter(function(it){
-      if(it.Index ==i){
-        it.Role = item.text
-      }
-    });*/
-    var isExists:Boolean=false;
-    this.state.approvers.forEach(function(it){
-      if(it.Role == item.key)
-      {
-        Swal.fire("","Role already selected!");
-        isExists= true;
-      }
-    })
-    if(!isExists){
-      this.state.approvers[i].Role = item.key;
-      this.state.approvers[i].errLevel = '';
-      this.setState({approvers: this.state.approvers});
-    }
-   
-  }
-  private onTypeChange(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption, i:number){
-    /* this.state.approvers.filter(function(it){
-       if(it.Index ==i){
-         it.Role = item.text
-       }
-     });*/
-     this.state.approvers[i].Type = item.text;
-    
-     this.setState({approvers: this.state.approvers});
-   }
-  
-
-  private handleFileChange(e: React.ChangeEvent<HTMLInputElement>,_self:any){
-    if (e.target.files) {
-     // const files =e.target.files;
-     _self.setState({fileCount:e.target.files.length});
-     _self.setState({files:e.target.files});
-      //console.log(_self.state.files.length);
-      var allfiles:any[]= [];
-    //  var onlyName:any[]=_self.state.copyFil;
-      [].forEach.call(e.target.files,function(file:File){
-       //onlyName.push({"Name":file.name,"type":"new","Id":""});
-        
-        allfiles.push(file);
-      })
-      _self.setState({copyFil: allfiles});
-    //  _self.setState({exFiles:allfiles});
+    if (selectedOption) {
+      document.getElementById("DeptID")?.classList.remove("border-on-error");
     }
   };
-  private onChangeBack(event:any)
-  {
-    this.setState({background:event.target.value});    
-  }
-  private onChangeIss(event:any)
-  {
-    this.setState({issues:event.target.value});    
-  }  
-  private onChangeRecomApproval(event:any)
-  {
-    this.setState({recommendedApproval:event.target.value});    
-  }
-  private onInfoChange(event:any)
-  {
-    this.setState({isChecked:event.target.checked});    
-    if(event.target.checked== true){
-      document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.remove(styles.errCh);
+
+
+  const handleDepartmentChangeTo = (selectedOption: any) => {
+    setselectUserDeptTo(selectedOption);
+    const valuesOnly = selectedOption.map((option: any) => option.value);
+    const consolidatedToUsers = Array.from(new Set(selectedOption
+      .flatMap((option: any) => option.ToUsers || []))); // Flatten, handle undefined ToUsers, and remove duplicates
+
+    setFormData({
+      ...formData,
+      // deptId: selectedOption.value,
+      ToDepartments: valuesOnly, // Assuming it's an array of IDs
+      to: consolidatedToUsers  // Assuming it's an array of IDs
+    });
+    if (selectedOption) {
+      document.getElementById("ToDept")?.classList.remove("border-on-error");
     }
- /*   else if(this.state.isSubmit == true && this.state.requestSign == false && this.state.forApproval == false){
-      document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.add(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.add(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.add(styles.errCh);
-    }*/
+    createTooltipContentTo(selectedOption);
   }
-  private onSignChange(event:any)
-  {
-    this.setState({requestSign:event.target.checked}); 
-    if(event.target.checked== true){
-      document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.remove(styles.errCh);
+
+  const handleDepartmentChangeCC = (selectedOption: any) => {
+    setselectUserDeptCC(selectedOption);
+    const valuesOnly = selectedOption.map((option: any) => option.value);
+    const consolidatedCCUsers = Array.from(new Set(selectedOption
+      .flatMap((option: any) => option.CCUsers || []))); // Flatten and handle undefined CCUsers
+
+    setFormData({
+      ...formData,
+      // deptId: selectedOption.value,
+      // ToDepartments: [selectedOption.value], // Assuming it's an array of IDs
+      CCDepartments: valuesOnly,
+      CC: consolidatedCCUsers  // Assuming it's an array of IDs
+    });
+    if (selectedOption) {
+      document.getElementById("CCDept")?.classList.remove("border-on-error");
     }
-   /* else if(this.state.isSubmit == true && this.state.isChecked == false && this.state.forApproval == false){
-      document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.add(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.add(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.add(styles.errCh);
-    }  */ 
+    createTooltipContent(selectedOption);
   }
-  private onAppChange(event:any)
-  {
-    this.setState({forApproval:event.target.checked});
-    if(event.target.checked== true){
-      document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.remove(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.remove(styles.errCh);
-    }  
-  /*  else if(this.state.isSubmit == true && this.state.isChecked == false && this.state.requestSign == false){
-      document.getElementsByClassName('ms-Checkbox-checkbox')[0]?.classList.add(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[1]?.classList.add(styles.errCh);
-      document.getElementsByClassName('ms-Checkbox-checkbox')[2]?.classList.add(styles.errCh);
-    }    */
-  }
-  private onDepartmentChange =(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption) =>{
-    var _self= this;
-    this.setState({department:item.key as number});
-    //this.setState({departmentVal:item.text});
-   
-   this.state.allDepartments.filter(function(itm){
-    if(itm["ID"] == item.key)
+
+
+  // ////// Recommendation
+  const [recommendationRows, setRecommendationRows] = React.useState([
+    { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null }
+  ]);
+
+  const [recommendationRowsEdit, setRecommendationRowsEdit] = React.useState([]);
+
+  const handleAddRecommendationRow = () => {
+    setRecommendationRows([...recommendationRows, { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null }]);
+  };
+
+  const handleRecommendationChange = (index: number, field: string, value: any) => {
+    let updatedRows;
+    if (field == "auditor") {
+      // const valuesOnly = value.map((option: any) => option.value);
+      updatedRows = recommendationRows.map((row, i) =>
+        i === index ? { ...row, [field]: value, auditorIds: value.value } : row
+      );
+
+    } else {
+      updatedRows = recommendationRows.map((row, i) =>
+        i === index ? { ...row, [field]: value } : row
+      );
+
+    }
+
+
+    setRecommendationRows(updatedRows);
+  };
+
+  const handleDeleteRecommendationRow = (index: number) => {
+    const updatedRows = recommendationRows.filter((_, i) => i !== index);
+    setRecommendationRows(updatedRows);
+  };
+  // //////
+
+
+  // Handle change event
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>, lvl: number) => {
+    const updatedArr = forwardToArr.map(row =>
+      row.level === lvl ? { ...row, approvalType: event.target.value } : row
+    );
+    //   setApprovalType(event.target.value);
+    setForwardToArr(updatedArr);
+  };
+
+
+  const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
+    { id: 0, role: 0, level: 1, approvers: [], approvalType: "One" } // Default row
+  ]);
+
+  const Breadcrumb = [
     {
-      _self.setState({departmentVal: itm["DepartmentCode"]})
+      MainComponent: "My Request",
+      MainComponentURl: `${SITE_URL}/SitePages/EDCMAIN.aspx`,
+    },
+    {
+      ChildComponent: "Annual Audit Program",
+      ChildComponentURl: `${SITE_URL}/SitePages/EDCMAIN.aspx#/AnnualAuditProgram`,
+    },
+  ];
+  const [forwardToArrEdit, setForwardToArrEdit] = React.useState<ForwardTo[]>([]);
+  const [selectedUsers, setSelectedUsers] = React.useState<any[]>([]);
+  // const [remark, setRemark] = React.useState("");
+
+  // Function to handle People Picker selection
+  const onPeoplePickerChange = (items: any[]) => {
+    setSelectedUsers(items);
+  };
+
+  const ApiCallFunc = async () => {
+    setAuditProgramType(await getAllAuditType(sp));
+
+    setAllDept(await getAllDepartment(sp));
+    var setAllDept1 = await getAllDepartment(sp);
+
+
+    const path1 = window.location.href;
+    const path = window.location.href;
+    const segments = path.split('/').filter(Boolean); // Remove empty elements
+    let formMode = "";
+    // Check if "edit" or "view" exists in the URL
+    const paramIndex = segments.findIndex(seg => seg === "edit" || seg === "view" || seg === "approve");
+    if (paramIndex !== -1) {
+      setmode(segments[paramIndex])
+      formMode = segments[paramIndex]; // Will be "edit" or "view"
     }
-   })
+    else {
 
-  }
-private  deleteItem(i:number){
-  if(this.state.recommendations[i].itemId !=""){
-    var delIDs=[];
-    delIDs.push(this.state.recommendations[i].itemId )
-    this.setState({recomDeleteId:delIDs});    
-  }
-  var items= this.state.recommendations.filter(function(it,val){
-    return val != i
-  });
-  this.setState({rows: items});
-  this.setState({recommendations: items});
-}
-private removeFiles(i:number){
-var items= this.state.copyFil.filter(function(it,val){
-  if(val != i){
-    return it;
-  }
-})
-this.setState({copyFil:items});
-}
-
-
-/*private async getVersionHistory(){
-  const spCache = spfi(this._sp).using(Caching({store:"session"}));
-//   const user = await spCache.web.ensureUser(this.props.userid);
-const listItems = await spCache.web.lists.getByTitle("ProcessApprovalList").items.select('Id,RequestId,Title,ProcessName,ActionTakenBy/Title,ActionTakenOn,Status,RequestedDate,ListItemId').expand('ActionTakenBy').filter("ListItemId eq '"+this.state.listItemId+"' and Status ne 'Pending'")();
-//const user = await spCache.web.ensureUser(listItems.RequesterNameId);
-this.setState({items:listItems});
-if(listItems.length==0){
-  document.getElementById('audit')?.classList.add(styles.none);
-}
-}*/
-private async approveRequest(){
-  // const spCache = spfi(this._sp).using(Caching({store:"session"}));
-  // const user = await spCache.web.ensureUser(this.props.userid);
-  var _self= this;
-  const userdata = await spfi(_self._sp).web.currentUser();
-
-  Swal.fire({ title: 'Do you want to approve this request?',  
-    showCancelButton: true,  
-      confirmButtonText: 'Yes',
-      cancelButtonText:'No'  }).then(function(val){
-     if(val.isConfirmed){  
-      // alert(`_self.state.approvalItemId ${_self.state.approvalItemId}`)  
-      spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.getById(parseInt(_self.state.approvalItemId)).update({
-          Status: "Approved",
-          ActionTakenById:userdata.Id,
-          ActionTakenOn:new Date(),
-          Remark:_self.state.remarks,
-        });
-        Swal.fire({title:"Approved Successfully.",icon:"success"});
-       window.location.href="#"+'/listing';
-     }
-});
-  
-}
-private async rejectRequest(){
-  var _self= this;
-    // const spCache = spfi(this._sp).using(Caching({store:"session"}));
-    // const user = await spCache.web.ensureUser(this.props.userid);
-    const userdata = await spfi(_self._sp).web.currentUser();
-    Swal.fire({ title: 'Do you want to reject this request?',  
-      showCancelButton: true,  
-        confirmButtonText: 'Yes',
-        cancelButtonText:'No'  }).then(function(val){
-       if(val.isConfirmed){   
-        spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.getById(parseInt(_self.state.approvalItemId)).update({
-          Status: "Rejected",
-            ActionTakenById:userdata.Id,
-            ActionTakenOn:new Date(),
-            Remark:_self.state.remarks,
-          });
-           Swal.fire({title:"Rejected Successfully.",icon:"success"});
-           window.location.href="#"+'/listing';
-           //navigate('/listing');
-       }
-        });
-  
-}
-private async reworkRequest(){
-  var _self= this;
-  // const spCache = spfi(_self._sp).using(Caching({store:"session"}));
-  // const user = await spCache.web.ensureUser(_self.props.userid);
-  const userdata = await spfi(_self._sp).web.currentUser();
-  Swal.fire({ title: 'Do you want to rework this request?',  
-    showCancelButton: true,  
-      confirmButtonText: 'Yes',
-      cancelButtonText:'No'  }).then(function(val){
-     if(val.isConfirmed){   
-      spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.getById(parseInt(_self.state.approvalItemId)).update({
-        Status: "Rework",
-          ActionTakenById:userdata.Id,
-          ActionTakenOn:new Date(),
-          Remark:_self.state.remarks,
-          IsRework:"Yes"
-        });
-        spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgram").items.getById(parseInt(_self.state.edItm)).update({
-          Status: "Rework",
-            IsRework:"Yes"
-          });
-         Swal.fire({title:"Sent for rework.",icon:"success"});
-         window.location.href="#"+'/listing';
-        // navigate('/listing');
-     }
-    });
- 
-}
-private onRemarksChange(event:any){
-  this.setState({remarks:event.target.value});
-}
-private cancelRequest(){
-//  history.go(1);
-
-}
-private toBeDeleted( i:number){
-  var itemId =this.state.exFiles.filter(function(it,val){
-    return val == i
-  })
-
-var remFiles= this.state.exFiles.filter(function(it,val){
-  return val != i
-})
-  //var exFiles:any[]= 
-  this.state.fileDeleteId.push(itemId[0].Id)
-  this.setState({fileDeleteId:this.state.fileDeleteId});
-  this.setState({exFiles:remFiles});
-}
-private deleteItemApp(i:number){
-  var items= this.state.approvers.filter(function(it,val){
-    return val != i
-  });
-  
-  this.setState({approvers: items});
-
-  if(this.state.approvers[i].itemId !=""){
-    var delIDs=[];
-    delIDs.push(this.state.approvers[i].itemId )
-    this.setState({apprDelId:delIDs});    
-  }
-  var items= this.state.approvers.filter(function(it,val){
-    return val != i
-  });
-  this.setState({approvers: items});
-
-}
-
-  private addRow(){
-var num = this.state.recommendations.length;
-this.state.recommendations.push({section:"",date:null,approver:"",approverDef:"",hours:"",minutes:"" ,itemId:"",index:num,errSec:'',errHr:'',errMin:'',errTo:''});
-this.setState({recommendations: this.state.recommendations});       
-  }
-  
-private addApprover(){
-  var itm=this.state.indApp+1;
-  this.setState({indApp:itm});
-  this.state.approvers.push({Role:"",Level:"",Name:"", Index:itm,itemId:"",Type:"One",errLevel:'',errType:''});
-  this.setState({approvers:this.state.approvers});
- 
-
-  }
-private onYearSelect=(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption) =>{
-  this.setState({type:item.key as number});
-  if(item.text =="Annual"){
-    this.setState({showMonth:false});
-    
-  }
-  else{
-    this.setState({showMonth:true});
-  }
-}
-
-private async getData()
-{
-  var _self= this;
-  this.setState({itemId:parseInt(this.state.edItm)});
- // const spCache = spfi(this._sp).using(Caching({store:"session"}));
- console.log(this.state.itemId , typeof(this.state.itemId) , "items id");
-  const listItems = await  spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgram").items.getById(this.state.itemId).select("*", "From/Title", "To/Name","Cc/Name,Department/DepartmentCode").expand("From","To","Department","Cc")();
-   
-  // add this code musaib becuase action taken by and on was not updating
-  alert(this.state.approvalItemId);
-  console.log(this.state.approvalItemId , "this.state.approvalItemId in getdata");
-  console.log(typeof(this.state.approvalItemId) , "this.state.approvalItemId in getdata");
-  if (this.state.approvalItemId === "" || this.state.approvalItemId === null || this.state.approvalItemId== undefined) {
-  //   it was giving error so i made this and remove parseint
-    const myid = this.state.itemId;
-    // const myid = parseInt(this.state.itemId);
-    console.log(myid, "myid");
-    const level:Number = 0; 
-    console.log(myid, "myid");
-    console.log(typeof(myid), "type of myid");
-
-    const filterQuery = `ListItemId eq ${myid} and ProcessName eq 'Annual Audit Program' and ActionTakenBy eq null and Level eq ${level}`;
-    const getreworkdata = await spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.select("*").filter(filterQuery)()
-    console.log(getreworkdata, "getreworkdata");
-    this.setState({approvalItemId:getreworkdata[0].Id});
-    alert(this.state.approvalItemId);
-  }
- 
-
-
-  console.log(listItems, "listItems");
-    this.setState({department:listItems.DepartmentId});
-    if(listItems.DepartmentId !="")
-    this.setState({departmentVal:listItems.Department.DepartmentCode});
-    this.setState({memoNumber:listItems.MemoNumber});
-    this.setState({subject:listItems.Subject});
-    this.setState({From:listItems.From.Title});
-
-    //this.setState({dueDate:listItems.Date});
-    this.setState({background:listItems.Background});
-    this.setState({issues:listItems.Issues});
-    this.setState({recommendedApproval:listItems.RecommendedforApproval});
-    this.setState({type:listItems.AuditProgramTypeId}); 
-    this.setState({year:listItems.Year});
-    this.setState({month:listItems.MonthName});
-    this.setState({isChecked: listItems.Info});
-    this.setState({requestSign:listItems.Sign});
-    this.setState({forApproval:listItems.Approval});
-    if(listItems.Status=="Rework"){
-      this.setState({isRework:true});
+      setmode("");
+      formMode = "";
     }
-    if(listItems.SubmitStatus =="Yes" && listItems.Status=="Pending"){
-      this.setState({isDisabled:true})
-    
-//this.setState({showApprove:true});
-this.setState({showSubmit: false});
+
+
+    if (path1.includes("/view/") || path1.includes("/approve/")) {
+      setFormLoading(true); ////
+      setInputDisabled(true);
+      setshowForwardapproval(false)
     }
-else if(listItems.SubmitStatus =="Yes" && listItems.Status=="Rework"){
-  this.setState({isDisabled:false})
-this.setState({showApprove:false});
-this.setState({showSubmit: true});
+    else {
+      setInputDisabled(false);
+      setshowForwardapproval(true)
+    }
+    if (path1.includes("/edit/")) {
+      setFormLoading(true); ////
+      setshowForwardapproval(true)
+    }
+    let memo: number = 0;
+    let filteredDeptArrayTo: any[] = [];
+    let filteredDeptArrayCC: any[] = [];
 
-}
-else if(listItems.SubmitStatus =="Yes" && (listItems.Status=="Approved" || listItems.Status=="Rejected")){
-  this.setState({isDisabled:true})
-this.setState({showApprove:false});
-this.setState({showSubmit: false});
+    const Currusers: any = await getCurrentUser(sp, siteUrl);
+    setCurrentUser(await getCurrentUser(sp, siteUrl));
+    const userProfile = await sp.profiles.myProperties();
+    setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
+    const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
+    setselectUserDept(setAllDept1.filter((user:any) => user.label === UserDept));
+    var allAuditTypes = await getAuditTypes(sp);
+    setauditTypes(allAuditTypes);
 
-}
-    let usernamearr: string[] = [];
-   // let usernameToIds : any[]=[];
-    if(listItems.ToId !=null){
-    listItems.To.forEach(function(user:any){
-     // usernameToIds.push(user.Id);
-        usernamearr.push(user.Name.split('|membership|')[1].toString());
-    });
-    this.setState({toUsers:usernamearr});
-    this.setState({toArr:listItems.ToId});
-  }
-    let userNameCc: string[] = [];
-    //let userNameCcIds: any[] =[];
-    if(listItems.CcId != null){
-    listItems.Cc.forEach(function(user:any){
-    //  userNameCcIds.push(user.Id);
-      userNameCc.push(user.Name.split('|membership|')[1].toString());
-    });
-    this.setState({ccArr:listItems.CcId});
-    this.setState({ccUsers:userNameCc});
-  }
-    this.setState({dueDate:new Date(listItems.Date)});
-    const recItems = await  spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.select("*","Auditor/Name").expand("Auditor").filter("AnnualAuditProgramId eq '"+this.state.itemId+"'")();
-     var cnt:any=0;
-     var recoItms:any[]=[];
-     if(recItems.length>0){
-    recItems.forEach(function(itm:any){
-      var objToAdd:any={};
-      let approve: string[] = [];
-      if(itm.AuditorId !=null)
-      approve.push(itm.Auditor.Name.split('|membership|')[1].toString());
-      objToAdd["section"] =itm.Section;
-      objToAdd["date"] =new Date(itm.Date);
-      objToAdd["approverDef"] =approve;
-      objToAdd["approver"]= itm.AuditorId;
-      objToAdd["hours"] =itm.Time.split(":")[0];
-      objToAdd["minutes"] =itm.Time.split(":")[1];
-      objToAdd["itemId"] =itm.Id;
-      objToAdd["index"] =cnt;
-      objToAdd["errSec"] ='';
-      objToAdd["errHr"] ='';
-      objToAdd["errMin"] ='';
-      objToAdd["errTo"] ='';
-  
-      recoItms.push(objToAdd);
-        cnt= cnt+1;
+    if (formMode == "") {
+
+      const listItems = await sp.web.lists.getByTitle("AnnualAuditProgram").items.orderBy("MemoSerialNumber", false).top(1)();
+      if (listItems.length > 0) {
+        memo = listItems[0].MemoSerialNumber ? listItems[0].MemoSerialNumber + 1 : 1;
+        // if (memo < 999) {
+        //     memo = ("0000" + memo).slice(-3);
+        // }
+        // setFormData((prevData) => ({ ...prevData, memoSerialNo: memo }));
+
+
+        // setFormData({
+        //     ...formData,
+        //     memoSerialNo:memo
+        // });
+      } else {
+        memo = 1;
+        // setFormData((prevData) => ({ ...prevData, memoSerialNo: memo }));
+        // setFormData({
+        //     ...formData,
+        //     memoSerialNo: memo
+        // });
+      }
+      const formattedMemoSerialNo = memo < 10
+        ? `00${memo}`
+        : memo < 100
+          ? `0${memo}`
+          : memo;
+
+      setFormData({
+        ...formData,
+        memoSerialNo: memo,
+        deptId: setAllDept1.filter((user:any) => user.label === UserDept)[0]?.value || 0,
+        memoNo: setAllDept1.filter((user:any) => user.label === UserDept)[0]
+          ? `${setAllDept1.filter((user:any) => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+          : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
       });
-      this.setState({recommendations:recoItms});
+
     }
-    const apprItems = await  spfi(_self._sp).web.lists.getByTitle("ProcessApprovalList").items.select("*","AssignedTo/Title,RequesterName/Title,ActionTakenBy/Title,ListName/Title").expand("AssignedTo,RequesterName,ActionTakenBy,ListName").filter("ListItemId eq '"+this.state.itemId+"' and ProcessName eq 'Annual Audit Program'").orderBy("Id", false)();
-    var cnt:any=0;
-    var appItems:any[]=[];
-   // var allApprovalItems:any[]=[];
-    if(apprItems.length>0){
-      apprItems.forEach(async function(itm:any){
-     var objToAdd:any={};    
-     objToAdd["Level"] =itm.Level;
-     objToAdd["AssignedTo"] =itm.AssignedTo.Title;
-     objToAdd["RequesterName"] =itm.RequesterName.Title;
-     if(itm.RequestedDate  =='' || itm.RequestedDate ==null ){
-      objToAdd["RequestedDate"] ='' ;
-     }
-     else{
-      objToAdd["RequestedDate"] =itm.RequestedDate ;
-     }
-    
-     if(itm.ActionTakenById != null){
-      objToAdd["ActionTakenBy"]= itm.ActionTakenBy.Title;
-     }
-     else{
-      objToAdd["ActionTakenBy"]= "";
-     }
-    if(itm.ActionTakenOn =='' || itm.ActionTakenOn == null){
-      objToAdd["ActionTakenOn"]= '';
+
+    const AllUserRoles = await getDataRoles(sp);
+    const setRolesValue = AllUserRoles.map((item: any) => ({
+      value: item.Id,
+      label: item.Role,
+
+    }));
+
+    setUserRoles(setRolesValue)
+
+    const users = await sp.web.siteUsers();
+    const people = users.filter(user => user.PrincipalType === PrincipalType.User);
+
+    const Selectedoptions = people.map(item => ({
+      value: item.Id,
+      label: item.Title,
+      UserName: item.Title,
+      UserEmail: item.Email
+    }));
+
+    setRows1(Selectedoptions);
+
+    setFormData(prevData => ({
+      ...prevData,
+      from: Currusers?.Id || 0,
+      fromEmail: Currusers?.Email,
+
+    }));
+
+
+
+    let formitemid;
+    //#region getdataByID
+    if (sessionStorage.getItem("AuditPlanId") != undefined) {
+      const iD = sessionStorage.getItem("AuditPlanId")
+      let iDs = decryptId(iD)
+      formitemid = Number(iDs);
+      setFormItemId(Number(iDs))
     }
-    else{
-      objToAdd["ActionTakenOn"]= itm.ActionTakenOn;
-    }
-    
-     objToAdd["Remarks"]= itm.Remark;
-     objToAdd["Status"]= itm.Status;
-     objToAdd["Index"] =itm.Level;
-    
-    
-     appItems.push(objToAdd);
-       cnt= cnt+1;
-       //const user = await spCache.web.ensureUser(listItems.RequesterNameId);
-       _self.setState({apprItems:appItems});
-      
-     });
-  
-   }
-   const approvalItems = await  spfi(_self._sp).web.lists.getByTitle("AllProcessApprovalLevelList").items.select("*","Approvers/Name").expand("Approvers").filter("MainListID eq '"+this.state.itemId+"' and ProcessName eq 'Annual Audit Program'")();
-   var allApp:any[]=[];
-   var cnt:any=0;
-   if(approvalItems.length>0){
-    approvalItems.forEach(async function(itm:any){
-var objToAdd:any={};
-let approve: string[] = [];
-itm.Approvers.forEach(function(it:any){
-  approve.push(it.Name.split('|membership|')[1].toString());
- // ids.push(it.Id);
- }) 
-objToAdd["Role"] =itm.ApproverRoleId;
-objToAdd["Type"] =itm.LevelType;
-objToAdd["Name"] =itm.ApproversId ;
-objToAdd["itemId"]= itm.Id;
-objToAdd["Index"] =itm.Level;
-objToAdd["appEx"] =approve;
-objToAdd["errLevel"]='';
-objToAdd["errType"]='';
+    else {
+      // const path = window.location.href;
+      // const segments = path.split('/').filter(Boolean); // Remove empty elements
+
+      // // Check if "edit" or "view" exists in the URL
+      // const paramIndex = segments.findIndex(seg => seg === "edit" || seg === "view" || seg === "approve");
 
 
-allApp.push(objToAdd);
-  cnt= cnt+1;
-    });
-    _self.setState({approvers:allApp});
-   } 
-  
- 
-      const upFiles= await  spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgramDocs").items.select("*","File/Name,FileLeafRef,FileRef,EncodedAbsUrl").expand("File").filter("AnnualAuditId eq '"+_self.state.itemId+"'")();
-      if(upFiles.length>0){
-        var obJFiles:any[]=[];
-        upFiles.forEach(function(item:any){
-            obJFiles.push({"Name":item.File.Name,"type":"old","Id":item.Id,"Uploaded":new Date(item.Modified).getDate()+"/"+new Date(item.Modified).getMonth()+"/"+new Date(item.Modified).getFullYear(),"Path":item.EncodedAbsUrl})
-        })
-       // this.setState({fileCount:obJFiles.length});
-        this.setState({exFiles:obJFiles});
-       // console.log(this.state.exFiles);
-      }
+      if (paramIndex !== -1 && segments[paramIndex + 1]) {
+        setmode(segments[paramIndex])
+        // mode = segments[paramIndex]; // Will be "edit" or "view"
+        formitemid = segments[paramIndex + 1]; // Get the ID
+        if (segments[paramIndex + 2] !== undefined) {
+          // var ProcessListItem={
+          //     Status:"",
+          //     Level:0,
+          //     CurrentUserRole:"",
 
-    } 
-private onYearChange=(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption) =>{
-  this.setState({year:item.key as number});
-}
+          // }
 
-private onMonthChange=(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption) =>{
-  this.setState({month:item.text});
-}
-private async getMainListName(){
-  var _self=this;
-  const spCache = spfi(_self._sp).using(Caching({store:"session"}));
-  const listItems = await spCache.web.lists.getByTitle("ListNameMaster").items.filter("ListName eq 'AnnualAuditProgram'")();
-  this.setState({mainListId: listItems[0].Id})
-
-}
-
-
-
-private async getFormName(){
-  var  _self=this;
-  const spCache = spfi(_self._sp).using(Caching({store:"session"}));
-  const listItems = await spCache.web.lists.getByTitle("FormNameMaster").items.filter("FormName eq 'Annual Audit Programme'")();
-  this.setState({formNameId: listItems[0].Id})
-
-}
-
-private async getMemoNumber(){
-  var  _self=this;
-  const listItems = await  spfi(_self._sp).web.lists.getByTitle("AnnualAuditProgram").items.orderBy("MemoSerialNumber",false).top(1)();
- if(listItems.length>0){
-  var memo=listItems[0].MemoSerialNumber+1;
-  if(memo<999)
-  memo=("0000"+memo).slice(-3); 
-  this.setState({memoSerialNo: memo})
- }
- else{
-  var mem:any= "000";
-  this.setState({memoSerialNo: mem})
- }
- 
-}
-private async getRequestorRole(){
-  var _self=this;
-  const listItems = await  spfi(_self._sp).web.lists.getByTitle("RequesterRoleMaster").items.filter("Role eq 'Initiator'")();
-
-  this.setState({reqRolId: listItems[0].Id})
-}
-
- private async getDataDepartment(){
-  var _self=this;
-    // const spCache = spfi(this._sp).using(Caching({store:"session"}));
-    // const user = await spCache.web.ensureUser(this.props.userid);
-    //console.log(userId);
-    const userdata = await spfi(_self._sp).web.currentUser();
-    const userid = userdata.Id
-    this.setState({currUserId:userid});
-  try {
-
-    const listItems = await spfi(_self._sp).web.lists.getByTitle("DepartmentMasterList").items.filter("Active eq 'Yes'")();
-    
-    let dropdownItems: IDropdownOption[] =[];
-    let allItems:any=[];
-    listItems.map(item =>{
-             dropdownItems.push({
-                key: item.Id,
-                text: item.Title
-             })
-             allItems.push(item);
-     });
-     this.setState({allDepartments:allItems});
-     
-    this.setState({optionsDepartment: dropdownItems});
-  } catch (error) {
-    console.log("Error getting deoartment data",error)
-  }
-    
-    }
-   
-    private setDueDate(date:Date,i:number){
-      this.state.recommendations.filter(function(it){
-        if(it.index ==i){
-          it.date =date
+          //  ProcessListItem =await getApprovalByID(sp, Number(segments[paramIndex + 2]),CONTENTTYPE_DocumentCancel);
+          // setInputDisabled((ProcessListItem.Status == "Pending" || ProcessListItem?.Status === "Save as draft") && ProcessListItem.Level === 0 && ProcessListItem.CurrentUserRole !=="OES")
+          setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditProgram));
+          // var ProcessItemId: any = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditPlan);
+          setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditProgram));
         }
-      });
-      this.setState({recommendations: this.state.recommendations});
-    }
+        // else {
 
-    private async getDataRoles(){
-      var _self=this;
-      const spCache = spfi(_self._sp).using(Caching({store:"session"}));
-      const listItems = await spCache.web.lists.getByTitle("ApproverRoleMaster").items();
-      
-      let dropdownItems: IDropdownOption[] =[];
-      listItems.map(item =>{
-               dropdownItems.push({
-                  key: item.Id,
-                  text: item.Role
-               })
-       });
-      this.setState({optionsRole: dropdownItems});
+        //     setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditPlan))
+
+        // }
       }
-      private async getAuditTypes(){
-        var  _self=this;
-        const spCache = spfi(_self._sp).using(Caching({store:"session"}));
-        const listItems = await spCache.web.lists.getByTitle("AuditProgramTypeMaster").items();
-        
-        let dropdownItems: IDropdownOption[] =[];
-        listItems.map(item =>{
-                 dropdownItems.push({
-                    key: item.Id,
-                    text: item.Title
-                 })
-         });
-        this.setState({options: dropdownItems});
+
+      setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditProgram))
+
+    }
+    // formitemid =20;
+    if (formitemid) {
+
+      setEditItemID(Number(formitemid));
+
+      const setBannerById = await getItemByID(sp, Number(formitemid))
+
+      if (setBannerById.length > 0) {
+        debugger
+        setEditForm(true);
+        setMainEditItem(setBannerById[0]);
+
+
+        // const valuesOnly = selectedOptions.map((option: any) => option.value);
+        // setFormData({ ...formData, [fieldName]: valuesOnly });
+
+        setFormData(prevData => ({
+          ...prevData,
+          memoNo: setBannerById[0].MemoNumber,
+          memoSerialNo: setBannerById[0].MemoSerialNumber,
+          deptId: setBannerById[0].DepartmentId,
+          // issueNo: "",
+          // revisionNo: "",
+          from: setBannerById[0].FromId,
+          fromEmail: setBannerById[0].From?.EMail,
+          to: setBannerById[0].ToId || [],
+          subject: setBannerById[0].Subject,
+          // attachment: null,
+          date: new Date(setBannerById[0].Date).toLocaleDateString("en-CA"),
+          background: setBannerById[0].Background,
+          issues: setBannerById[0].Issues,
+          recommendationforApproval: setBannerById[0].RecommendedforApproval,
+          // approval: setBannerById[0].,
+          CC: setBannerById[0].CcId || [],
+          auditProgramTypeId: setBannerById[0].AuditTypeId || [],
+          auditTypesId: setBannerById[0].AuditProgramTypeId || 0,
+          Year: setBannerById[0].Year || "",
+          MonthName: setBannerById[0].MonthName || "",
+          // exclusions: setBannerById[0].Exclusions,
+          // boundary: setBannerById[0].Boundary,
+          // objective: setBannerById[0].AimObjective,
+          // criteria: setBannerById[0].Criteria,
+          // scope: setBannerById[0].Scope,
+          // assignedTo: "",
+          ToDepartments: setBannerById[0].ToDepartmentsId || [],
+          CCDepartments: setBannerById[0].CCDepartmentsId || [],
+          attachmentIds: setBannerById[0].AttachmentId || null,
+          // attachmentJson: setBannerById[0].AttachmentJson || null
+        }));
+
+        if(setBannerById[0].AuditProgramTypeId){
+          const selectedAuditType = allAuditTypes.find((type:any) => type.Id === setBannerById[0].AuditProgramTypeId);
+          const auditTypeTitle = selectedAuditType ? selectedAuditType.Title : '';
+          setAuditTypeOption(selectedAuditType ? selectedAuditType.Title : '');
         }
-      
-        private _OpenModal() {
-          this.setState({
-             showDialog: true
-          });
-          
-      }
-      
-      private _CloseModal() {
-          this.setState({
-             showDialog: false
-          });
+
        
+
+        setselectUserDept(setAllDept1.filter((user:any) => user.value === setBannerById[0].DepartmentId));
+
+        setselectUserDeptCC(setBannerById[0].CCDepartments?.map((obj: any) => {
+          const filteredDept = setAllDept1.find((dept: any) => dept.value === obj.ID);
+          if (filteredDept) {
+            filteredDeptArrayCC.push(filteredDept);
+          }
+          return {
+            value: obj.ID,
+            label: obj.Department,
+            Department: obj.Department,
+            DepartmentCode: obj.DepartmentCode,
+            ToUsers: filteredDept?.ToUsers || [],
+            CCUsers: filteredDept?.CCUsers || [],
+            ToUsersTitle: filteredDept?.ToUsersTitle || [],
+            CCUsersTitle: filteredDept?.CCUsersTitle || [],
+
+          };
+
+        }) || []);
+
+        setselectUserDeptTo(setBannerById[0].ToDepartments?.map((obj: any) => {
+          const filteredDept = setAllDept1.find((dept: any) => dept.value === obj.ID);
+          if (filteredDept) {
+            filteredDeptArrayTo.push(filteredDept);
+          }
+          return {
+            value: obj.ID,
+            label: obj.Department,
+            Department: obj.Department,
+            DepartmentCode: obj.DepartmentCode,
+            ToUsers: filteredDept?.ToUsers || [],
+            CCUsers: filteredDept?.CCUsers || [],
+            ToUsersTitle: filteredDept?.ToUsersTitle || [],
+            CCUsersTitle: filteredDept?.CCUsersTitle || [],
+          };
+        }) || []);
+        if (setBannerById[0].AttachmentId) {
+          // setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId[0]));
+          let arrn = await getDocumentLinkByID(sp, setBannerById[0].AttachmentId);
+          setFilesArr([...FilesArr, ...arrn]);
+          setFilesArr1([...FilesArr1, ...arrn]);
+
+        }
+
+        const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_AuditProgram, setBannerById[0].ReferenceNumber)
+
+        if (ApprowData.length > 0) {
+
+          const EditApprowData = ApprowData.map((item: any) => ({
+            id: item.ID,
+            role: item.ApproverRole?.Id || 0, // Assuming role comes from ApproverRole
+            level: item.Level || 1, // Default to 1 if missing
+            approvalType: item.LevelType,
+            approvers: item.Approvers?.map((approver: any) => ({
+              value: approver.Id,
+              label: approver.Title,
+            })) || []
+
+          }));
+          setForwardToArr(EditApprowData);
+          setForwardToArrEdit(EditApprowData);
+
+        }
+
+        const rowData: any[] = await getItemByID2(sp, Number(setBannerById[0].ID)) //baseUrl
+        if (rowData.length > 0) {
+          const initialRows = rowData.map((item: any) => ({
+            id: item.Id,
+            // AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
+            section: item.Section,
+            date: new Date(item.Date).toLocaleDateString("en-CA"),
+            startTime: item.Time,
+            auditorIds: item.AuditorId,
+            endTime: "",
+            auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
+          }));
+          setRecommendationRows(initialRows);
+          setRecommendationRowsEdit(initialRows);
+
+        }
+        // else{
+        //   setRecommendationRows([...recommendationRows, { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null }]);
+
+        // }
+      }
+    }
+    setFormLoading(false);
+
+    // setRequesterRoleId(await getRequesterID(sp))
+   
+    setFormNameId(await getFormNameID(sp, CONTENTTYPE_AuditProgram))
+    setListNameId(await getListNameID(sp, LIST_TITLE_AuditProgram))
+    createTooltipContent(filteredDeptArrayCC);
+    createTooltipContentTo(filteredDeptArrayTo)
+
+    //}
+    //#endregion
+
+
+  };
+
+
+  const handleAuditTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedAuditType = auditTypes.find(type => type.Id === Number(e.target.value));
+    const auditTypeTitle = selectedAuditType ? selectedAuditType.Title : '';
+
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      auditTypesId: Number(e.target.value),
+      Year: auditTypeTitle === 'Monthly' ? 0 : prevFormData.Year,  // Clear Year if Monthly is selected
+      MonthName: auditTypeTitle === 'Annual' ? '' : prevFormData.MonthName  // Clear MonthName if Annual is selected
+    }));
+    setAuditTypeOption(selectedAuditType ? selectedAuditType.Title : '');
+  };
+
+
+  const onSelectApprovers = (selectedOptions: any, lvl: number) => {
+    setForwardToArr((prev) =>
+      prev.map((row) =>
+        row.level === lvl ? { ...row, approvers: selectedOptions || [] } : row
+      )
+    );
+  };
+
+
+
+  const onSelectRole = (event: React.ChangeEvent<HTMLSelectElement>, lvl: number) => {
+    const updatedArr = forwardToArr.map(row =>
+      row.level === lvl ? { ...row, role: Number(event.target.value) } : row
+    );
+    setForwardToArr(updatedArr);
+    setSelectedRole(forwardToArr.map(r => r.role).filter(role => role))
+  };
+
+
+  const handleAddRow = () => {
+    setForwardToArr((prev) => [
+      ...prev,
+      { id: 0, role: 0, level: prev.length + 1, approvers: [], approvalType: "One" }
+    ]);
+  };
+
+  const handleDeleteRow = (index: number) => {
+    const updatedRows = forwardToArr
+      .filter((_, i) => i !== index) // Remove selected row
+      .map((row, newIndex) => ({ ...row, level: newIndex + 1 })); // Reassign levels
+
+    setForwardToArr([...updatedRows]); // Ensure a new array reference
+  };
+
+
+
+  React.useEffect(() => {
+
+    ApiCallFunc();
+    // getMemoNumber();
+
+  }, [useHide]);
+
+  const handleCancel = () => {
+    // window.location.reload();
+    window.history.back();
+    // window.location.reload();
+    setTimeout(() => {
+      location.reload();
+    }, 100);
+
+  }
+
+
+
+  const OpenFile = (obj: any, sts: string) => {
+
+    const fileUrl = `${Tenant_URL}${obj.FileRef}`;
+
+    if (sts == "Open") {
+      if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
+
+        window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=default`, "_blank");
+      } else {
+        window.open(fileUrl, "_blank"); // Open PDF and other files normally
       }
 
+    } else if (sts == "Download") {
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.setAttribute("download", obj.FileLeafRef?.split('_')[2]); // Suggests a filename for download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+    }
+
+
+
+  }
+
+
+  const validateForm = async (fmode: FormSubmissionMode) => {
+    Array.from(document.getElementsByClassName("border-on-error")).forEach((element: Element) => {
+      element.classList.remove("border-on-error");
+    });
+    const {
+      memoNo,
+      deptId,
+      issueNo,
+      revisionNo,
+      from,
+      fromEmail,
+      to,
+      subject,
+      attachment,
+      date,
+      background,
+      issues,
+      recommendationforApproval,
+      approval,
+      CC,
+      auditProgramTypeId,
+      exclusions,
+      boundary,
+      objective,
+      criteria,
+      scope,
+      ToDepartments,
+      CCDepartments,
+      MonthName,
+      Year,
+      auditTypesId,
+      assignedTo, } = formData;
+    // Find the selected audit type
+    const selectedAuditType = auditTypes.find(type => type.Id === auditTypesId);
+    const auditTypeTitle = selectedAuditType ? selectedAuditType.Title : '';
+
+    let valid = true;
+    let validraft = true;
+    let valid1 = true;
+    let validRec = true;
+    let validAudit = true;
+
+    setValidSubmit(true);
+    setValidCancelReason(true);
+    setValidForwardTo(true);
+    setValidAudit(true);
+    setValidDraft(true);
+    setValidDRecomm(true);
+    let errormsg = "";
+
+    if (fmode == FormSubmissionMode.SUBMIT) {
+      if (!deptId) {
+        document.getElementById("DeptID")?.classList.add("border-on-error");
+        valid = false;
+      }
+      if (!from) {
+        document.getElementById("fromEmail")?.classList.add("border-on-error");
+        valid = false;
+      }
+      if (!ToDepartments.length) {
+        document.getElementById("ToDept")?.classList.add("border-on-error");
+        valid = false;
+      }
+      if (!CCDepartments.length) {
+        document.getElementById("CCDept")?.classList.add("border-on-error");
+        valid = false;
+      }
+      //  if (!FilesArr.length) {
+      //     //Swal.fire('Error', 'Category is required!', 'error');
+      //     valid = false;
+      // }
+      if (!subject) {
+        document.getElementById("subject")?.classList.add("border-on-error");
+        valid = false;
+      }
+      if (!date) {
+        document.getElementById("date")?.classList.add("border-on-error");
+        valid = false;
+      }
+      if (date == "Invalid Date") {
+        document.getElementById("date")?.classList.add("border-on-error");
+        valid = false;
+      }
+      if (!background) {
+        document.getElementById("background")?.classList.add("border-on-error");
+        valid = false;
+      }
+      if (!issues) {
+        document.getElementById("issues")?.classList.add("border-on-error");
+        valid = false;
+      }
+      if (!auditProgramTypeId.length) {
+        // document.getElementById("date")?.classList.add("border-on-error");
+        Array.from(document.getElementsByClassName("auditProgType")).forEach((element: Element) => {
+          element.classList.add("border-on-error");
+        });
+        valid = false;
+      }
+
+      if (!recommendationRows.length) {
+        // document.getElementById("date")?.classList.add("border-on-error");
+        validRec = false;
+      }
+
+      if (recommendationRows.length > 0 && recommendationRows.every((row: any) => row.section.trim() !== "" && row.date.trim() !== "" && row.startTime.trim() !== "" && row.auditor != null && row.auditor.length != 0) == false) {
+        // document.getElementById("date")?.classList.add("border-on-error");
+        validRec = false;
+
+        Array.from(document.getElementsByClassName("recommendClsErr")).forEach((element: Element) => {
+          if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "")) {
+            element.classList.add("border-on-error");
+          }
+          else if (element.tagName === "INPUT" && (element as HTMLInputElement).value.trim() === "") {
+            element.classList.add("border-on-error");
+          }
+
+
+        });
+      }
+      if (!recommendationforApproval) {
+        document.getElementById("recApp")?.classList.add("border-on-error");
+        validRec = false;
+      }
+      if (!forwardToArr) {
+        valid1 = false;
+      }
+      if (forwardToArr.length > 0 && forwardToArr.every((row: any) => row.role !== 0 && row.approvalType.trim() !== "" && row.approvers.length != 0) == false) {
+
+
+        Array.from(document.getElementsByClassName("HierarchyClsErr")).forEach((element: Element) => {
+          if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "Enter Approver Name" || element.textContent?.trim() === "")) {
+            element.classList.add("border-on-error");
+          }
+          else if (element.tagName === "SELECT" && (element as HTMLSelectElement).value.trim() === "") {
+            element.classList.add("border-on-error");
+          }
+          else if (element.tagName === "SELECT" && (element as HTMLInputElement).value.trim() === "") {
+            element.classList.add("border-on-error");
+          }
+
+        });
+        valid1 = false;
+      }
+      // if (!exclusions) {
+      //   document.getElementById("exclusions")?.classList.add("border-on-error");
+      //   validAudit = false;
+      // }
+      // if (!boundary) {
+      //   document.getElementById("boundary")?.classList.add("border-on-error");
+      //   validAudit = false;
+      // }
+      // if (!objective) {
+      //   document.getElementById("objective")?.classList.add("border-on-error");
+      //   validAudit = false;
+      // }
+      // if (!criteria) {
+      //   document.getElementById("criteria")?.classList.add("border-on-error");
+      //   validAudit = false;
+      // }
+      // if (!scope) {
+      //   document.getElementById("scope")?.classList.add("border-on-error");
+      //   validAudit = false;
+      // }
+      // if (!MonthName) {
+      //   document.getElementById("drpMonths")?.classList.add("border-on-error");
+      //   validAudit = false;
+      // }
+      // if (!Year) {
+      //   document.getElementById("drpYear")?.classList.add("border-on-error");
+      //   validAudit = false;
+      // }
+      if (!auditTypesId) {
+        document.getElementById("drpType")?.classList.add("border-on-error");
+        if (!MonthName) {
+          document.getElementById("drpMonths")?.classList.add("border-on-error");
+         
+        }
+        if (!Year) {
+          document.getElementById("drpYear")?.classList.add("border-on-error");
+         
+        }
+        validAudit = false;
+      }
+      if (auditTypeTitle == 'Monthly' && !MonthName) {
+        document.getElementById("drpMonths")?.classList.add("border-on-error");
+        if(!Year){
+          document.getElementById("drpYear")?.classList.add("border-on-error");
+        }
+        validAudit = false;
+      }
+      if (auditTypeTitle == 'Annual' && !Year) {
+        document.getElementById("drpYear")?.classList.add("border-on-error");
+        validAudit = false;
+      }
+      
+
+
+      // setValidSubmit(valid);
+      // setValidDRecomm(validRec);
+      // setValidAudit(validAudit);
+      // setValidForwardTo(valid1);
+
+    }
+    else {
+      if (!date) {
+        document.getElementById("date")?.classList.add("border-on-error");
+        validraft = false;
+      }
+      if (date == "Invalid Date") {
+        document.getElementById("date")?.classList.add("border-on-error");
+        validraft = false;
+      }
+      if (!deptId) {
+        document.getElementById("DeptID")?.classList.add("border-on-error");
+        validraft = false;
+      }
+
+      // setValidDraft(validraft);
+      // setValidCancelReason(valid1);
+
+    }
+
+    if (valid == false || valid1 == false || validRec == false || validAudit == false || validraft == false) {
+      Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
+
+      return false
+    }
+    else {
+      return true
+    }
+    // return valid;
+  };
+
+  const getNewFileName = async (originalFileName: string): Promise<string> => {
+    const userId = currentUser.Id; // Or however you get the current user ID
+    const date = new Date();
+    const fileExtension = originalFileName.split('.').pop();
+
+    const components = [
+      date.getFullYear(),
+      (date.getMonth() + 1).toString().padStart(2, '0'),
+      date.getDate().toString().padStart(2, '0'),
+      date.getHours().toString().padStart(2, '0'),
+      date.getMinutes().toString().padStart(2, '0'),
+      date.getSeconds().toString().padStart(2, '0'),
+      date.getMilliseconds().toString().padStart(3, '0')
+    ];
+
+    return `${userId}_${components.join('')}_${originalFileName}`;
+  };
+  // #region  Submit Form
+  const handleFormSubmit = async () => {
+    if (await validateForm(FormSubmissionMode.SUBMIT)) {
+      if (editForm) {
+        Swal.fire({
+          title: 'Do you want to submit this request?',
+          showConfirmButton: true,
+          showCancelButton: true,
+          confirmButtonText: "Yes",
+          cancelButtonText: "No",
+          icon: 'warning'
+        }
+        ).then(async (result) => {
+          console.log(result)
+          if (result.isConfirmed) {
+            setLoading(true);
+
+
+            let galleryArray: any[] = [];
+            let bannerImageArray: any = {};
+            let DocumentName: string = "";
+            let attachmentIds = [];
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
+
+
+
+            if (FilesArr.length > 0) {
+              for (const file of FilesArr) {
+                if (!file.ID) {
+                  //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                  // DocumentName = file.name;
+                  const newFileName = await getNewFileName(file.name);
+                  DocumentName = newFileName;
+                  const fileAddResult = await folder.files.addChunked(newFileName, file);
+                  const fileNew = fileAddResult.file;
+                  const documentName = fileAddResult.data.Name;
+                  bannerImageArray = fileAddResult;
+                  galleryArray.push(bannerImageArray);
+                  // Get the item ID for the uploaded file
+                  const currentItemId = await fileNew.getItem<{ Id: number }>();
+                  const itemId = currentItemId.Id;
+                  // await currentItemId.update({
+                  //     FileName: documentName, // Assuming FileName is the internal name of the column
+                  // });
+                  console.log("JSON.stringify(fileAddResult)", JSON.stringify(fileAddResult))
+                  // Save the document ID for the attachment field in ChangeRequestList
+                  attachmentIds.push(itemId);
+
+
+                }
+                else {
+                  // const itemId = file.ID;
+                  attachmentIds.push(file.ID);
+                }
+
+
+
+              }
+            }
+
+            // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
+            let arr = {
+              Title: formData.subject,
+              MemoNumber: formData.memoNo,
+              // MemoSerialNumber:formData.memoSerialNo,
+              // IssueNumber:,
+              // RevisionNumber:,
+              AuditTypeId: formData.auditProgramTypeId,
+              AuditProgramTypeId: formData.auditTypesId,
+              FromId: formData.from,
+              ToId: formData.to,
+              CcId: formData.CC,
+              Subject: formData.subject,
+              Date: formData.date,
+              Background: formData.background,
+              Issues: formData.issues,
+              RecommendedforApproval: formData.recommendationforApproval,
+              DepartmentId: formData.deptId,
+              // Exclusions: formData.exclusions,
+              // Boundary: formData.boundary,
+              // AimObjective: formData.objective,
+              // Criteria: formData.criteria,
+              // Scope: formData.scope,
+              Year: formData.Year || 0,
+              MonthName: formData.MonthName,
+              ToDepartmentsId: formData.ToDepartments || [],
+              CCDepartmentsId: formData.CCDepartments || [],
+              SubmiitedDate: new Date().toLocaleDateString("en-CA"),
+              SubmitStatus: "Yes",
+              Status: "Pending",
+              // DocumentName:"",
+              IsRework: "No",
+              // DigitalSignStatus                
+
+
+              AttachmentId: attachmentIds || [],
+              // AttachmentJson: JSON.stringify(bannerImageArray) || ""
+
+
+            }
+            const postResult = await updateItem(arr, sp, editItemID);
+            const postId = postResult?.data?.ID;
+
+            for (const row of recommendationRows) {
+
+              const postPayload2 = {
+                AnnualAuditProgramId: editItemID, // Assuming "Title" column exists
+                Section: row.section,
+                Date: row.date,
+                Time: row.startTime,
+                AuditorId: row.auditorIds
+              }
+
+              if (row.id) {
+
+                const postResult2 = await updateItem2(postPayload2, sp, row.id);
+                const postId2 = postResult2?.data?.ID;
+
+              }
+              else {
+                const postResult2 = await addItem2(postPayload2, sp);
+                const postId2 = postResult2?.data?.ID;
+
+              }
+
+              // debugger
+              // if (!postId2) {
+              //     console.error("Post creation failed.");
+              //     return;
+              // }
+            }
+
+            let isValid = true;
+
+            if (forwardToArr.length) {
+              isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
+                row.approvalType.trim() !== "");
+
+              // if (!isValid) {
+              //     // alert("Each row must have a role selected and at least one approver.");
+              //     valid = false;
+              // }
+
+
+
+              // if (!valid) {
+              //     Swal.fire('Please fill all the mandatory fields.');
+              //     // setValidSubmit(false);
+              //     setValidForwardTo(false);
+              //     return;
+              // }
+
+            }
+
+            if (isValid) {
+              for (const item of forwardToArr) {
+
+                const approversIds: any[] = [];
+                item.approvers.forEach((user: any) => {
+                  if (user?.value) {
+                    approversIds.push(user.value);
+                  }
+                });
+
+                let arr2 = {
+                  Title: currentUser.Title,
+                  ContentTitle: formData.subject,
+
+                  MainListNameId: ListNameId,
+                  ApproverRoleId: item.role,
+                  Level: Number(item.level),
+                  ApproversId: approversIds,
+                  // LevelType: "One",
+                  LevelType: item.approvalType,
+                  SubmitStatus: "Yes",
+                  Maxlevel: forwardToArr?.length,
+
+                  // MainListID: String(editItemID),
+                  MainListID: String(editItemID),
+                  RequestId: formData.memoNo,
+                  // RequestId:String(editID.Id),
+                  RequesterNameId: currentUser.Id,
+                  RequestedDate: new Date().toLocaleDateString("en-CA"),
+                  RequesterRoleId: RequesterRoleId,
+                  ProcessName: "Annual Audit Program",
+                  FormNameId: FormNameId,
+                  ApprovalType: "Approval",
+                  // IsApprovalGenerated: "No"
+                  RedirectionLink:"Annual Audit Program/approve/"+editItemID,
+
+
+
+                }
+                if (item.id) {
+                  const postResult2 = await UpdateAllProcessItem(arr2, sp, item.id);
+                  const postId2 = postResult2?.data?.ID;
+
+                }
+                else {
+                  const postResult2 = await addAllProcessItem(arr2, sp);
+                  const postId2 = postResult2?.data?.ID;
+                }
+
+              }
+
+            }
+            // *******************************???????????
+
+
+
+
+            // /////////*************************** */
+
+            const toDelete = forwardToArrEdit.filter(
+              (itemEdit) => !forwardToArr.some(item => item.id === itemEdit.id) // Assuming ID is the unique key
+            );
+
+            // Delete each item from SharePoint
+            for (const item of toDelete) {
+              try {
+                await sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.getById(item.id).delete();
+                // console.log(`Deleted item with ID: ${item.ID}`);
+              } catch (error) {
+                console.error(`Error deleting item with ID: ${item.id}`, error);
+              }
+            }
+
+            const toDelete1 = recommendationRowsEdit.filter(
+              (itemEdit) => !recommendationRows.some(item => item.id === itemEdit.id) // Assuming ID is the unique key
+            );
+
+            // Delete each item from SharePoint
+            for (const item of toDelete1) {
+              try {
+                await sp.web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.getById(item.id).delete();
+                // console.log(`Deleted item with ID: ${item.ID}`);
+              } catch (error) {
+                console.error(`Error deleting item with ID: ${item.id}`, error);
+              }
+            }
+
+
+            if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
+
+              let arr2 = {
+                ActionTakenById: currentUser.Id,
+                ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                // ActionTakenRoleId: formData.RequesterDesignation,
+                Status: "Approved",
+                // Remark: remark,
+
+              }
+              const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
+              const postId = postResult?.data?.ID;
+
+            }
+
+
+            let boolval = false;
+
+            // if (boolval == true) {
+            setLoading(false);
+            Swal.fire('Submitted successfully.', '', 'success');
+            sessionStorage.removeItem("DocumentCancelId")
+            setTimeout(() => {
+
+              window.history.back();
+              // window.location.reload();
+              setTimeout(() => {
+                location.reload();
+              }, 100);
+              // let url = window.location.href;
+              // let baseUrl = url.split("#")[0];
+            }, 500);
+            // }
+          }
+
+        })
+      }
+      else {
+        Swal.fire({
+          title: 'Do you want to submit this request?',
+          showConfirmButton: true,
+          showCancelButton: true,
+          confirmButtonText: "Yes",
+          cancelButtonText: "No",
+          icon: 'warning'
+        }
+        ).then(async (result) => {
+          //console.log("Form Submitted:", formValues, bannerImages, galleryImages, documents);
+          if (result.isConfirmed) {
+            setLoading(true);
+
+
+            let galleryArray: any[] = [];
+            let bannerImageArray: any = {};
+            let DocumentName: string = "";
+            let attachmentIds = [];
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
+
+
+            if (FilesArr.length > 0) {
+
+              for (const file of FilesArr) {
+                if (!file.ID) {
+                  //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                  // DocumentName = file.name;
+                  const newFileName = await getNewFileName(file.name);
+                  DocumentName = newFileName;
+                  const fileAddResult = await folder.files.addChunked(newFileName, file);
+                  const fileNew = fileAddResult.file;
+                  const documentName = fileAddResult.data.Name;
+                  bannerImageArray = fileAddResult;
+                  galleryArray.push(bannerImageArray);
+                  // Get the item ID for the uploaded file
+                  const currentItemId = await fileNew.getItem<{ Id: number }>();
+                  const itemId = currentItemId.Id;
+                  // await currentItemId.update({
+                  //     FileName: documentName, // Assuming FileName is the internal name of the column
+                  // });
+                  console.log("JSON.stringify(fileAddResult)", JSON.stringify(fileAddResult))
+                  // Save the document ID for the attachment field in ChangeRequestList
+                  attachmentIds.push(itemId);
+
+
+                }
+                else {
+                  // const itemId = file.ID;
+                  attachmentIds.push(file.ID);
+                }
+
+
+
+              }
+            }
+
+            let arr = {
+              Title:formData.subject,
+              MemoNumber: formData.memoNo,
+              MemoSerialNumber: formData.memoSerialNo,
+              // IssueNumber:,
+              // RevisionNumber:,
+              AuditTypeId: formData.auditProgramTypeId,
+              AuditProgramTypeId: formData.auditTypesId,
+              FromId: formData.from,
+              ToId: formData.to,
+              CcId: formData.CC,
+              Subject: formData.subject,
+              Date: formData.date,
+              Background: formData.background,
+              Issues: formData.issues,
+              RecommendedforApproval: formData.recommendationforApproval,
+              DepartmentId: formData.deptId,
+              // Exclusions: formData.exclusions,
+              // Boundary: formData.boundary,
+              // AimObjective: formData.objective,
+              // Criteria: formData.criteria,
+              // Scope: formData.scope,
+              Year: formData.Year || 0,
+              MonthName: formData.MonthName,
+              ToDepartmentsId: formData.ToDepartments || [],
+              CCDepartmentsId: formData.CCDepartments || [],
+              SubmiitedDate: new Date().toLocaleDateString("en-CA"),
+              SubmitStatus: "Yes",
+              Status: "Pending",
+              // DocumentName:"",
+              IsRework: "No",
+              // DigitalSignStatus                
+
+
+              AttachmentId: attachmentIds || [],
+              // AttachmentJson: JSON.stringify(bannerImageArray) || ""
+
+
+            }
+
+            // console.log(postPayload);
+
+            const postResult = await addItem(arr, sp);
+            const postId = postResult?.data?.ID;
+            // debugger
+            if (!postId) {
+              console.error("Post creation failed.");
+              return;
+            }
+
+            for (const row of recommendationRows) {
+
+              const postPayload2 = {
+                AnnualAuditProgramId: postId, // Assuming "Title" column exists
+                Section: row.section,
+                Date: row.date,
+                Time: row.startTime,
+                AuditorId: row.auditorIds
+              }
+
+              const postResult2 = await addItem2(postPayload2, sp);
+              const postId2 = postResult2?.data?.ID;
+              // debugger
+              if (!postId2) {
+                console.error("Post creation failed.");
+                return;
+              }
+            }
+
+            let isValid = true;
+
+            if (forwardToArr.length) {
+              isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
+                row.approvalType.trim() !== "");
+
+              // if (!isValid) {
+              //     // alert("Each row must have a role selected and at least one approver.");
+              //     valid = false;
+              // }
+
+
+
+              // if (!valid) {
+              //     Swal.fire('Please fill all the mandatory fields.');
+              //     // setValidSubmit(false);
+              //     setValidForwardTo(false);
+              //     return;
+              // }
+
+            }
+
+            if (isValid) {
+              for (const item of forwardToArr) {
+
+                const approversIds: any[] = [];
+                item.approvers.forEach((user: any) => {
+                  if (user?.value) {
+                    approversIds.push(user.value);
+                  }
+                });
+
+                let arr2 = {
+                  Title: currentUser.Title,
+                  ContentTitle: formData.subject,
+
+                  MainListNameId: ListNameId,
+                  ApproverRoleId: item.role,
+                  Level: Number(item.level),
+                  ApproversId: approversIds,
+                  // LevelType: "One",
+                  LevelType: item.approvalType,
+                  SubmitStatus: "Yes",
+                  Maxlevel: forwardToArr?.length,
+
+                  // MainListID: String(editItemID),
+                  MainListID: String(postId),
+                  RequestId: formData.memoNo,
+                  // RequestId:String(editID.Id),
+                  RequesterNameId: currentUser.Id,
+                  RequestedDate: new Date().toLocaleDateString("en-CA"),
+                  RequesterRoleId: RequesterRoleId,
+                  ProcessName: "Annual Audit Program",
+                  FormNameId: FormNameId,
+                  ApprovalType: "Approval",
+                  IsApprovalGenerated: "No",
+                  RedirectionLink:"Annual Audit Program/approve/"+postId,
+
+
+
+                }
+                if (item.id) {
+                  const postResult2 = await UpdateAllProcessItem(arr2, sp, item.id);
+                  const postId2 = postResult2?.data?.ID;
+
+                }
+                else {
+                  const postResult2 = await addAllProcessItem(arr2, sp);
+                  const postId2 = postResult2?.data?.ID;
+                }
+
+              }
+
+            }
+
+
+
+
+            let boolval;
+
+            // if (boolval == true) {
+            setLoading(false);
+            Swal.fire('Submitted successfully.', '', 'success');
+            // sessionStorage.removeItem("bannerId")
+            setTimeout(() => {
+              window.location.reload();
+              // window.history.back();
+            }, 500);
+            // }
+
+          }
+        })
+
+      }
+    }
+
+  }
+
+  const handleSaveAsDraft = async () => {
+    if (await validateForm(FormSubmissionMode.DRAFT)) {
+      if (editForm) {
+        Swal.fire({
+          title: 'Do you want to save this request?',
+          showConfirmButton: true,
+          showCancelButton: true,
+          confirmButtonText: "Yes",
+          cancelButtonText: "No",
+          icon: 'warning'
+        }
+        ).then(async (result) => {
+          console.log(result)
+          if (result.isConfirmed) {
+            setLoading(true);
+            let galleryArray: any[] = [];
+            let bannerImageArray: any = {};
+            let DocumentName: string = "";
+            let attachmentIds = [];
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
+
+
+            if (FilesArr.length > 0) {
+
+              for (const file of FilesArr) {
+                if (!file.ID) {
+                  //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                  // DocumentName = file.name;
+                  const newFileName = await getNewFileName(file.name);
+                  DocumentName = newFileName;
+                  const fileAddResult = await folder.files.addChunked(newFileName, file);
+                  const fileNew = fileAddResult.file;
+                  const documentName = fileAddResult.data.Name;
+                  bannerImageArray = fileAddResult;
+                  galleryArray.push(bannerImageArray);
+                  // Get the item ID for the uploaded file
+                  const currentItemId = await fileNew.getItem<{ Id: number }>();
+                  const itemId = currentItemId.Id;
+                  // await currentItemId.update({
+                  //     FileName: documentName, // Assuming FileName is the internal name of the column
+                  // });
+                  console.log("JSON.stringify(fileAddResult)", JSON.stringify(fileAddResult))
+                  // Save the document ID for the attachment field in ChangeRequestList
+                  attachmentIds.push(itemId);
+
+
+                }
+                else {
+                  // const itemId = file.ID;
+                  attachmentIds.push(file.ID);
+                }
+
+
+
+              }
+            }
+
+            // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
+            let arr = {
+              Title: formData.subject,
+              MemoNumber: formData.memoNo,
+              // MemoSerialNumber:formData.memoSerialNo,
+              // IssueNumber:,
+              // RevisionNumber:,
+              AuditTypeId: formData.auditProgramTypeId,
+              AuditProgramTypeId: formData.auditTypesId,
+              FromId: formData.from,
+              ToId: formData.to,
+              CcId: formData.CC,
+              Subject: formData.subject,
+              Date: formData.date,
+              Background: formData.background,
+              Issues: formData.issues,
+              RecommendedforApproval: formData.recommendationforApproval,
+              DepartmentId: formData.deptId,
+              // Exclusions: formData.exclusions,
+              // Boundary: formData.boundary,
+              // AimObjective: formData.objective,
+              // Criteria: formData.criteria,
+              // Scope: formData.scope,
+              Year: formData.Year || 0,
+              MonthName: formData.MonthName,
+              ToDepartmentsId: formData.ToDepartments || [],
+              CCDepartmentsId: formData.CCDepartments || [],
+              SubmiitedDate: new Date().toLocaleDateString("en-CA"),
+              SubmitStatus: "No",
+              Status: "Save as draft",
+              // DocumentName:"",
+              IsRework: "No",
+              // DigitalSignStatus                
+
+
+              AttachmentId: attachmentIds || [],
+              // AttachmentJson: JSON.stringify(bannerImageArray) || ""
+
+
+            }
+            const postResult = await updateItem(arr, sp, editItemID);
+            const postId = postResult?.data?.ID;
+            //  ////////////////////////////
+
+            for (const row of recommendationRows) {
+
+              const postPayload2 = {
+                AnnualAuditProgramId: editItemID, // Assuming "Title" column exists
+                Section: row.section || "",
+                Date: row.date ? row.date : null,
+                Time: row.startTime || "",
+                AuditorId: row.auditorIds ? row.auditorIds : 0
+              }
+
+              if (row.id) {
+
+                const postResult2 = await updateItem2(postPayload2, sp, row.id);
+                const postId2 = postResult2?.data?.ID;
+
+              }
+              else {
+
+                if ((row.section.trim() == "" && row.date.trim() == "" && row.startTime.trim() == "" && (row.auditor == null || row.auditor.length == 0)) == false) {
+
+
+                  const postResult2 = await addItem2(postPayload2, sp);
+                  const postId2 = postResult2?.data?.ID;
+                  if (!postId2) {
+                    console.error("Post creation failed.");
+                    return;
+                  }
+
+                }
+
+
+
+              }
+              // }
+
+
+              // debugger
+
+            }
+
+            let isValid = true;
+
+            // if (forwardToArr.length) {
+            //     isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
+            //         row.approvalType.trim() !== "");
+
+
+            // }
+
+            // if (isValid) {
+            for (const item of forwardToArr) {
+
+              const approversIds: any[] = [];
+              item.approvers.forEach((user: any) => {
+                if (user?.value) {
+                  approversIds.push(user.value);
+                }
+              });
+
+              let arr2 = {
+                Title: currentUser.Title,
+                ContentTitle: formData.subject,
+
+                MainListNameId: ListNameId,
+                ApproverRoleId: item.role || 0,
+                Level: Number(item.level),
+                ApproversId: approversIds || [],
+                // LevelType: "One",
+                LevelType: item.approvalType,
+                SubmitStatus: "No",
+                Maxlevel: forwardToArr?.length,
+
+                // MainListID: String(editItemID),
+                MainListID: String(editItemID),
+                RequestId: formData.memoNo,
+                // RequestId:String(editID.Id),
+                RequesterNameId: currentUser.Id,
+                RequestedDate: new Date().toLocaleDateString("en-CA"),
+                RequesterRoleId: RequesterRoleId,
+                ProcessName: "Annual Audit Program",
+                FormNameId: FormNameId,
+                ApprovalType: "Approval",
+                // IsApprovalGenerated: "No"
+                RedirectionLink:"Annual Audit Program/approve/"+editItemID,
+
+
+
+              }
+              if (item.id) {
+                const postResult2 = await UpdateAllProcessItem(arr2, sp, item.id);
+                const postId2 = postResult2?.data?.ID;
+
+              }
+              else {
+                if (forwardToArr.every(row => row.role == 0 && row.approvers.length == 0 &&
+                  row.approvalType.trim() == "") == false) {
+                  const postResult2 = await addAllProcessItem(arr2, sp);
+                  const postId2 = postResult2?.data?.ID;
+                }
+
+              }
+
+            }
+
+            // }
+
+
+
+            // /#############//////////////////
+
+            const toDelete = forwardToArrEdit.filter(
+              (itemEdit) => !forwardToArr.some(item => item.id === itemEdit.id) // Assuming ID is the unique key
+            );
+
+            // Delete each item from SharePoint
+            for (const item of toDelete) {
+              try {
+                await sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.getById(item.id).delete();
+                // console.log(`Deleted item with ID: ${item.ID}`);
+              } catch (error) {
+                console.error(`Error deleting item with ID: ${item.id}`, error);
+              }
+            }
+
+            const toDelete1 = recommendationRowsEdit.filter(
+              (itemEdit) => !recommendationRows.some(item => item.id === itemEdit.id) // Assuming ID is the unique key
+            );
+
+            // Delete each item from SharePoint
+            for (const item of toDelete1) {
+              try {
+                await sp.web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.getById(item.id).delete();
+                // console.log(`Deleted item with ID: ${item.ID}`);
+              } catch (error) {
+                console.error(`Error deleting item with ID: ${item.id}`, error);
+              }
+            }
+
+            if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
+
+              let arr2 = {
+                ActionTakenById: currentUser.Id,
+                ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                // ActionTakenRoleId: formData.RequesterDesignation,
+                Status: "Save as draft",
+                // Remark: remark,
+
+              }
+              const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
+              const postId = postResult?.data?.ID;
+
+            }
+
+
+            let boolval = false;
+
+            // if (boolval == true) {
+            setLoading(false);
+            Swal.fire('Saved successfully.', '', 'success');
+            sessionStorage.removeItem("DocumentCancelId")
+            setTimeout(() => {
+
+              window.history.back();
+              // window.location.reload();
+              setTimeout(() => {
+                location.reload();
+              }, 100);
+            }, 1000);
+            // }
+          }
+
+        })
+      }
+      else {
+        Swal.fire({
+          title: 'Do you want to save this request?',
+          showConfirmButton: true,
+          showCancelButton: true,
+          confirmButtonText: "Yes",
+          cancelButtonText: "No",
+          icon: 'warning'
+        }
+        ).then(async (result) => {
+          //console.log("Form Submitted:", formValues, bannerImages, galleryImages, documents);
+          if (result.isConfirmed) {
+            setLoading(true);
+
+
+            // let galleryIds: any[] = [];
+
+            let galleryArray: any[] = [];
+            let bannerImageArray: any = {};
+            let DocumentName: string = "";
+            let attachmentIds = [];
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
+
+
+            if (FilesArr.length > 0) {
+
+              for (const file of FilesArr) {
+                if (!file.ID) {
+                  //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                  // DocumentName = file.name;
+                  const newFileName = await getNewFileName(file.name);
+                  DocumentName = newFileName;
+                  const fileAddResult = await folder.files.addChunked(newFileName, file);
+                  const fileNew = fileAddResult.file;
+                  const documentName = fileAddResult.data.Name;
+                  bannerImageArray = fileAddResult;
+                  galleryArray.push(bannerImageArray);
+                  // Get the item ID for the uploaded file
+                  const currentItemId = await fileNew.getItem<{ Id: number }>();
+                  const itemId = currentItemId.Id;
+                  // await currentItemId.update({
+                  //     FileName: documentName, // Assuming FileName is the internal name of the column
+                  // });
+                  console.log("JSON.stringify(fileAddResult)", JSON.stringify(fileAddResult))
+                  // Save the document ID for the attachment field in ChangeRequestList
+                  attachmentIds.push(itemId);
+
+
+                }
+                else {
+                  // const itemId = file.ID;
+                  attachmentIds.push(file.ID);
+                }
+
+
+
+              }
+            }
+
+            let arr = {
+              Title: formData.subject,
+              MemoNumber: formData.memoNo,
+              MemoSerialNumber: formData.memoSerialNo,
+              // IssueNumber:,
+              // RevisionNumber:,
+              AuditTypeId: formData.auditProgramTypeId,
+              AuditProgramTypeId: formData.auditTypesId,
+              FromId: formData.from,
+              ToId: formData.to,
+              CcId: formData.CC,
+              Subject: formData.subject,
+              Date: formData.date,
+              Background: formData.background,
+              Issues: formData.issues,
+              RecommendedforApproval: formData.recommendationforApproval,
+              DepartmentId: formData.deptId,
+              // Exclusions: formData.exclusions,
+              // Boundary: formData.boundary,
+              // AimObjective: formData.objective,
+              // Criteria: formData.criteria,
+              // Scope: formData.scope,            
+
+              Year: formData.Year || 0,
+              MonthName: formData.MonthName,
+              ToDepartmentsId: formData.ToDepartments || [],
+              CCDepartmentsId: formData.CCDepartments || [],
+              SubmiitedDate: new Date().toLocaleDateString("en-CA"),
+              SubmitStatus: "No",
+              Status: "Save as draft",
+              // DocumentName:"",
+              IsRework: "No",
+              // DigitalSignStatus                
+
+
+              AttachmentId: attachmentIds || [],
+              // AttachmentJson: JSON.stringify(bannerImageArray) || ""
+
+
+            }
+            // console.log(postPayload);
+
+            const postResult = await addItem(arr, sp);
+            const postId = postResult?.data?.ID;
+            // // debugger
+            if (!postId) {
+              console.error("Post creation failed.");
+              return;
+            }
+
+            for (const row of recommendationRows) {
+
+              if ((row.section.trim() == "" && row.date.trim() == "" && row.startTime.trim() == "" && (row.auditor == null || row.auditor.length == 0)) == false) {
+
+                const postPayload2 = {
+                  AnnualAuditProgramId: postId, // Assuming "Title" column exists
+                  Section: row.section || "",
+                  Date: row.date ? row.date : null,
+                  Time: row.startTime || "",
+                  AuditorId: row.auditorIds ? row.auditorIds : 0
+                }
+
+                const postResult2 = await addItem2(postPayload2, sp);
+                const postId2 = postResult2?.data?.ID;
+                // debugger
+                if (!postId2) {
+                  console.error("Post creation failed.");
+                  return;
+                }
+              }
+
+
+            }
+
+            let isValid = true;
+
+            if (forwardToArr.length) {
+              isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
+                row.approvalType.trim() !== "");
+            }
+
+            // if (isValid) {
+            for (const item of forwardToArr) {
+              if ((item.role == 0 && item.approvers.length == 0 &&
+                item.approvalType.trim() == "") == false) {
+
+
+
+                const approversIds: any[] = [];
+                item.approvers.forEach((user: any) => {
+                  if (user?.value) {
+                    approversIds.push(user.value);
+                  }
+                });
+
+                let arr2 = {
+                  Title: currentUser.Title,
+                  ContentTitle: formData.subject,
+
+                  MainListNameId: ListNameId,
+                  ApproverRoleId: item.role ? item.role : 0,
+                  Level: Number(item.level),
+                  ApproversId: approversIds || [],
+                  // LevelType: "One",
+                  LevelType: item.approvalType,
+                  SubmitStatus: "No",
+                  Maxlevel: forwardToArr?.length,
+
+                  // MainListID: String(editItemID),
+                  MainListID: String(postId),
+                  RequestId: formData.memoNo,
+                  // RequestId:String(editID.Id),
+                  RequesterNameId: currentUser.Id,
+                  RequestedDate: new Date().toLocaleDateString("en-CA"),
+                  RequesterRoleId: RequesterRoleId,
+                  ProcessName: "Annual Audit Program",
+                  FormNameId: FormNameId,
+                  ApprovalType: "Approval",
+                  IsApprovalGenerated: "No",
+                  RedirectionLink:"Annual Audit Program/approve/"+postId,
+
+
+
+                }
+                if (item.id) {
+                  const postResult2 = await UpdateAllProcessItem(arr2, sp, item.id);
+                  const postId2 = postResult2?.data?.ID;
+
+                }
+                else {
+                  const postResult2 = await addAllProcessItem(arr2, sp);
+                  const postId2 = postResult2?.data?.ID;
+                }
+
+              }
+
+            }
+
+            // }
+
+
+
+
+            setLoading(false);
+            Swal.fire('Saved successfully.', '', 'success');
+            // sessionStorage.removeItem("bannerId")
+            setTimeout(() => {
+              window.location.reload();
+              // window.history.back();
+            }, 1000);
+          }
+        })
+
+      }
+    }
+
+  }
+
+
+
+  const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>, libraryName: string, docLib: string) => {
+    event.preventDefault();
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/bmp",
+      "image/svg+xml",
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-powerpoint",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    ];
+
+    filechanged = true;
+    newfileupload = true;
+    let uloadBannerImageFiles: any[] = [];
+    let uloadImageFiles: any[] = [];
+    let uloadImageFiles1: any[] = [];
+
+
+    if (event.target.files && event.target.files.length > 0) {
+      const files = Array.from(event.target.files);
+      (event.target as HTMLInputElement).value = '';
+
+      if (files.length > 0) {
+
+        for (const fn of files) {
+          // const file = files[0];
+          if (!allowedTypes.includes(fn.type)) {
+            Swal.fire({
+              icon: "error",
+              title: "Invalid File Type",
+              text: "Only images and document files are allowed.",
+            });
+            return;
+          }
+
+          const fileType = fn.type.split("/")[0]; // Extract file type (image, pdf, etc.)
+          // const folder = sp.web.getFolderByServerRelativePath('Socialfeedimages');
+          // const uploadResult = await folder.files.addChunked(file.name, file);
+          // console.log("File uploaded successfully", uploadResult);
+
+          // Generate the preview URL dynamically
+          // const previewUrl = await generatePreviewUrl(uploadResult.data.ServerRelativeUrl);
+
+          //previewFile(previewUrl);
+          const preview = URL.createObjectURL(fn);
+
+          // newfilepreview = preview
+          // // setPreviewUrl(preview);
+          // // setFileType(fileType);
+
+          // var arr = {};
+          // arr = {
+          //     // files: files,
+          //     libraryName: libraryName,
+          //     docLib: docLib,
+          //     name: fn.name,
+          //     fileName: fn.name,
+          //     fileSize: fn.size,
+          //     date: new Date().toLocaleDateString("en-GB", {
+          //         day: "2-digit",
+          //         month: "short",
+          //         year: "numeric"
+          //     }).replace(/ /g, "/"),
+          //     fileUrl: preview,
+          //     fileType: fileType,
+          //     //   previewUrl: previewUrl
+          // };
+          // uloadBannerImageFiles.push(arr);
+          // setFilesArr1(uloadBannerImageFiles);
+        }
+
+
+
+
+        // uloadBannerImageFiles.push(arr);
+        setFilesArr([...FilesArr, ...files]);
+
+
+
+
+      } else {
+        Swal.fire("upload a document")
+      }
+    }
+  };
+
+  //   const generatePreviewUrl = async (serverRelativeUrl: string) => {
+  //     // Encode the file name and construct the preview URL
+  //     const encodedFilePath = encodeURIComponent(serverRelativeUrl);
+
+  //     // Example:
+  //     // serverRelativeUrl = "/sites/AlRostmani/test/DocumentLibraryInsideTest/Book.xlsx"
+  //     const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
+  //     const siteUrl = window.location.origin;
+
+  //     // const previewUrl = `${siteUrl}/sites/AlRostmani/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+  //     const previewUrl = `${siteUrl}${locationPath}/ChangeRequestDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+  //     // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+  //     console.log("Generated Preview URL:", previewUrl);
+  //     if (previewUrl) {
+  //       console.log("enter herr")
+  //       const deletebut = document.getElementById('closeCommand') as HTMLElement
+  //       if (deletebut) {
+  //         console.log(" here ", deletebut)
+  //       }
+  //     }
+  //     return previewUrl;
+  //   };
+
+  const handleDelete = (index: number) => {
+    setFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
+  };
+
+
+
+
+  const createTooltipContent = (deptArr: any) => {
+    // return "This is your tooltip content";
+
+    const tableHeader = `
+    <thead>
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="border: 1px solid #ddd; padding: 8px;">S.No</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Department</th>
+                       
+                        <th style="border: 1px solid #ddd; padding: 8px;">Users</th>
+                    </tr>
+    </thead>`;
+
+    // Generate table rows from AllDept data
+    const tableRows = deptArr.map((item: any, index: number) => {
+      // Extract and format data
+      const department = item.Department || '';
+
+      const ccUsers = item.CCUsersTitle?.map((user: any) => user.Title).join(", ") || '';
+
+      // Return formatted row
+      return `
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${index + 1}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">${department}</td>
+       
+        <td style="border: 1px solid #ddd; padding: 8px;">${ccUsers}</td>
+      </tr>`;
+    }).join('');
+
+    // Combine header and rows into complete table
+    const tooltipTable = `
+    <table style="border-collapse: collapse; width: 100%;">
+      ${tableHeader}
+      <tbody>
+        ${tableRows}
+                </tbody>
+    </table>
+  `;
+
+    // Set tooltip text
+    settooltipText(tooltipTable);
+  };
+
+  const createTooltipContentTo = (deptArr: any) => {
+    // return "This is your tooltip content";
+
+    const tableHeader = `
+    <thead>
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="border: 1px solid #ddd; padding: 8px;">S.No</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Department</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Users</th>
+                       
+                    </tr>
+    </thead>`;
+
+    // Generate table rows from AllDept data
+    const tableRows = deptArr.map((item: any, index: number) => {
+      // Extract and format data
+      const department = item.Department || '';
+      const toUsers = item.ToUsersTitle?.map((user: any) => user.Title).join(", ") || '';
+      // const ccUsers = item.CCUsersTitle?.map((user: any) => user.Title).join(", ") || '';
+
+      // Return formatted row
+      return `
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${index + 1}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">${department}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">${toUsers}</td>
+       
+      </tr>`;
+    }).join('');
+
+    // Combine header and rows into complete table
+    const tooltipTable = `
+    <table style="border-collapse: collapse; width: 100%;">
+      ${tableHeader}
+      <tbody>
+        ${tableRows}
+                </tbody>
+    </table>
+  `;
+
+
+    settooltipText1(tooltipTable);
+  };
+
+
+  return (
+    <div id="wrapper" ref={elementRef}>
+      {/* <div
+                className="app-menu"
+                id="myHeader">
+                <VerticalSideBar _context={sp} />
+            </div> */}
+      <div className="content-page">
+        {/* <HorizontalNavbar _context={sp} siteUrl={siteUrl} /> */}
+        {/* <div className="content" style={{ marginLeft: `${!useHide ? '0px' : '80px'}`, marginTop: '2.3rem' }}> */}
+        <div>
+          <div className="">
+            <div className="row">
+              <div className="col-lg-4">
+                <CustomBreadcrumb Breadcrumb={Breadcrumb} />
+              </div>
+
+            </div>
+            <div className="row mt-0">
+
+              {/* <!-- Right Sidebar --> */}
+              <div className="col-12">
+                <div >
+                  <div>
+                    {/* <!-- Left sidebar --> */}
+
+
+                    {Loading ?
+
+                      <div className="loadernewadd mt-10">
+                        <div>
+                          <img
+                            src={require("../../assets/edc-gif.gif")}
+                            className="alignrightl"
+                            alt="Loading..."
+                          />
+                        </div>
+                        <span>Loading </span>{" "}
+                        <span>
+                          <img
+                            src={require("../../assets/edcnew.gif")}
+                            className="alignrightl"
+                            alt="Loading..."
+                          />
+                        </span>
+                      </div>
+                      :
+
+
+
+
+                      <div style={{ width: '100%' }} className="inbox-rightbar">
+
+                        <div className="card">
+                          <div className="card-body">
+                            <h4 className="text-dark font-16 fw-bold mb-3">Memorandum</h4>
+                            {/* <p className="sub-header">
+                                                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Numquam, autem.
+                                                        </p> */}
+
+                            <div className="row mb-3">
+                              {AuditProgramType.map((row, index) => (<div className="col-lg-3">
+                                <div className="mb-2">
+                                  <div className="form-check">
+                                    <input type="checkbox" className={`form-check-input auditProgType ${(!ValidSubmit) ? "border-on-error" : ""}`} id={`auditPlanType_${row.Id}`} disabled={InputDisabled} checked={formData.auditProgramTypeId.includes(row.Id)}
+                                      onChange={(e) => {
+                                        setFormData((prevState) => {
+                                          const isChecked = e.target.checked;
+                                          const updatedAuditPlanTypeId = isChecked
+                                            ? [...prevState.auditProgramTypeId, row.Id] // Add ID if checked
+                                            : prevState.auditProgramTypeId.filter(id => id !== row.Id); // Remove ID if unchecked
+
+                                          if (isChecked) {
+                                            Array.from(document.getElementsByClassName("auditProgType")).forEach((element: Element) => {
+                                              element.classList.remove("border-on-error");
+                                            });
+                                          }
+
+                                          return {
+                                            ...prevState,
+                                            auditProgramTypeId: updatedAuditPlanTypeId
+                                          };
+                                        });
+                                      }}
+                                    />
+                                    <label className="form-check-label" htmlFor="infoCheck">{row.Title}</label>
+                                  </div>
+                                </div>
+                              </div>
+                              ))}
+
+
+                              {/* onChange={(e) => {
+                                                                setFormData((prevState) => {
+                                                                    const isChecked = e.target.checked;
+                                                                    return {
+                                                                        ...prevState,
+                                                                        auditPlanTypeId: isChecked
+                                                                            ? [...prevState.auditPlanTypeId, row.Id] // Add ID if checked
+                                                                            : prevState.auditPlanTypeId.filter(id => id !== row.Id) // Remove ID if unchecked
+                                                                    };
+                                                                });
+                                                            }} */}
+
+                              {/* <div className="col-lg-3">
+                                                                <div className="mb-2">
+                                                                    <div className="form-check">
+                                                                        <input type="checkbox" className="form-check-input" id="signCheck" checked={formData.signCheck} onChange={(e) => setFormData(prevState => ({
+                                                                            ...prevState,
+                                                                            signCheck: e.target.checked
+                                                                        }))} />
+                                                                        <label className="form-check-label" htmlFor="signCheck">Request for Signing</label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="col-lg-3">
+                                                                <div className="mb-2">
+                                                                    <div className="form-check">
+                                                                        <input type="checkbox" className="form-check-input" id="approvalCheck" checked={formData.approvalCheck} onChange={(e) => setFormData(prevState => ({
+                                                                            ...prevState,
+                                                                            approvalCheck: e.target.checked
+                                                                        }))} />
+                                                                        <label className="form-check-label" htmlFor="approvalCheck">For Approval</label>
+                                                                    </div>
+                                                                </div>
+                                                            </div> */}
+                            </div>
+
+                            <div style={{ clear: "both" }}></div>
+
+                            <form className="form-horizontal">
+                              <div className="row">
+                                <div className="col-lg-4">
+                                  <div className="mb-3">
+                                    <label htmlFor="Department" className="col-form-label">Department<span className="text-danger1"> *</span></label>
+                                    <div>
+                                      <Select
+                                        // options={AllDept}
+                                        options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+
+                                        isDisabled={InputDisabled}
+                                        value={selectUserDept}
+                                        name="deptId"
+                                        id="DeptID"
+                                        className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""} ${(!ValidDraft) ? "border-on-error" : ""}`}
+                                        // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
+                                        // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
+                                        // onChange={handleDepartmentChange}
+                                        onChange={(selectedOptions: any) => handleDepartmentChange(selectedOptions)}
+                                        placeholder="Select Department"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="col-lg-4">
+                                  <div className="mb-3">
+                                    <label htmlFor="memoNo" className="col-form-label">Memo No<span className="text-danger1"> *</span></label>
+                                    <div className="">
+                                      <input
+                                        disabled
+                                        type="text"
+                                        className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+
+                                        // className="form-control"
+                                        id="memoNo"
+                                        value={formData.memoNo}
+                                        onChange={(e) => setFormData({ ...formData, memoNo: e.target.value })}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+
+                                <div className="col-lg-4">
+                                  <div className="mb-3">
+                                    <label htmlFor="fromEmail" className="col-form-label">From<span className="text-danger1"> *</span></label>
+                                    <div >
+                                      <input
+                                        type="text"
+                                        className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+
+                                        // className="form-control"
+                                        id="fromEmail"
+                                        value={formData.fromEmail}
+                                        disabled={true}
+                                      // onChange={(e) => setFormData({ ...formData, from: e.target.value })}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="col-lg-4">
+                                  <div className="row mb-3">
+                                    <label style={{display:'flex'}} htmlFor="to" className="col-form-label">To
+
+                                      <Icon
+                                        iconName="Info"
+                                        className="ms-1"
+                                        // title={tooltipText}
+                                        // data-html={true}
+                                        // data-tip={tooltipText}
+                                        data-tooltip-id="my-tooltip"
+                                        style={{ fontSize: '14px', cursor: 'pointer' }}
+                                      />
+                                      <Tooltip
+                                        id="my-tooltip"
+                                        content={tooltipText1}
+                                        className="custom-tooltip"
+                                        render={({ content }) => (
+                                          <div dangerouslySetInnerHTML={{ __html: content }} />
+                                        )}
+                                        style={{
+                                          backgroundColor: 'white',
+                                          color: 'black',
+                                          zIndex: 999
+                                        }}
+                                      />
+                                      <span className="text-danger1"> *</span></label>
+                                    <div >
+                                      <Select
+                                        // options={AllDept}
+                                        options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+
+                                        isDisabled={InputDisabled}
+                                        value={selectUserDeptTo}
+                                        isMulti
+                                        name="to"
+                                        id="ToDept"
+                                        className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                        // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
+                                        // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
+                                        // onChange={handleDepartmentChange}
+                                        onChange={(selectedOptions: any) => handleDepartmentChangeTo(selectedOptions)}
+                                        placeholder="Select"
+                                      />
+                                      {/* <Select
+                                                                                options={rows1}
+                                                                                isMulti
+                                                                                // value={formData.to}
+                                                                                value={selectToUsers}
+                                                                                name="CC"
+
+                                                                                className={`newse ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                // onChange={(selectedOptions:any) => handleToChange(selectedOptions, 'CC')}
+                                                                                onChange={(selectedOptions: any) => handleToChange(selectedOptions, 'to')}
+                                                                                placeholder="Select"
+                                                                                isDisabled={InputDisabled}
+                                                                            /> */}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="col-lg-4">
+                                  <div className="mb-3">
+                                    <label style={{display:'flex'}} htmlFor="recommendation" className="col-form-label">CC
+                                      <Icon
+                                        iconName="Info"
+                                        className="ms-1"
+                                        // title={tooltipText}
+                                        // data-html={true}
+                                        // data-tip={tooltipText}
+                                        data-tooltip-id="my-tooltip2"
+                                        style={{ fontSize: '14px', cursor: 'pointer' }}
+                                      />
+
+                                      <Tooltip
+                                        id="my-tooltip2"
+                                        content={tooltipText}
+                                        className="custom-tooltip"
+
+                                        render={({ content }) => (
+                                          <div dangerouslySetInnerHTML={{ __html: content }} />
+                                        )}
+                                        style={{
+                                          backgroundColor: 'white',
+                                          color: 'black',
+                                          zIndex: 999
+                                        }}
+                                      />
+                                      <span className="text-danger1"> *</span></label>
+                                    <div >
+                                      <Select
+                                        // options={AllDept}
+                                        options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+
+                                        isDisabled={InputDisabled}
+                                        isMulti
+                                        value={selectUserDeptCC}
+                                        name="CC"
+                                        id="CCDept"
+                                        className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                        // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
+                                        // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
+                                        // onChange={handleDepartmentChange}
+                                        onChange={(selectedOptions: any) => handleDepartmentChangeCC(selectedOptions)}
+                                        // onChange={(selectedOptions: any) => setFormData({ ...formData, CC: selectedOptions })}
+                                        placeholder="Select"
+
+                                      />
+                                      {/* <Select
+                                                                            options={rows1}
+                                                                            isMulti
+                                                                            // value={formData.CC}
+                                                                            value={selectCCUsers}
+                                                                            name="CC"
+                                                                            className={`newse ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                            onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
+                                                                            // onChange={handleCCChange}
+                                                                            // onChange={(selectedOptions) => setFormData({ ...formData, CC: selectedOptions })}
+                                                                            placeholder="Select"
+                                                                            isDisabled={InputDisabled}
+                                                                        /> */}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* <div className="col-lg-6">
+                                                                    <div className="row mb-3">
+                                                                        <label htmlFor="issueNo" className="col-4 col-xl-3 col-form-label">Issue No<span className="text-danger1"> *</span></label>
+                                                                        <div className="col-8 col-xl-9">
+                                                                            <input
+
+                                                                                type="text"
+                                                                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                // className="form-control"
+                                                                                id="issueNo"
+                                                                                value={formData.issueNo}
+                                                                                onChange={(e) => setFormData({ ...formData, issueNo: e.target.value })}
+                                                                                disabled={true}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </div> */}
+
+                                {/* <div className="col-lg-6">
+                                                                    <div className="row mb-3">
+                                                                        <label htmlFor="revisionNo" className="col-4 col-xl-3 col-form-label">Revision No<span className="text-danger1"> *</span></label>
+                                                                        <div className="col-8 col-xl-9">
+                                                                            <input
+                                                                                disabled
+                                                                                type="text"
+                                                                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                // className="form-control"
+                                                                                id="revisionNo"
+                                                                                value={formData.revisionNo}
+                                                                                onChange={(e) => setFormData({ ...formData, revisionNo: e.target.value })}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </div> */}
+
+                                <div className="col-lg-4">
+                                  <div className="mb-3">
+                                    <label htmlFor="subject" className="col-form-label">Subject<span className="text-danger1"> *</span></label>
+                                    <div className="">
+                                      <input
+                                        type="text"
+                                        className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                        id="subject"
+                                        value={formData.subject}
+                                        onChange={(e) => {
+                                          setFormData({ ...formData, subject: e.target.value });
+                                          if (e.target.value) {
+                                            document.getElementById("subject")?.classList.remove("border-on-error");
+                                          }
+                                        }}
+                                        disabled={InputDisabled}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+
+                                <div className="col-lg-4">
+                                  <div className="mb-3">
+                                    <label htmlFor="date" className=" col-form-label">Date<span className="text-danger1"> *</span></label>
+                                    <div className="">
+
+                                      <input
+                                        type="date"
+                                        className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}${(!ValidDraft) ? "border-on-error" : ""}`}
+                                        // className="form-control"
+                                        id="date"
+                                        value={formData.date}
+                                        onChange={(e) => {
+                                          setFormData({ ...formData, date: new Date(e.target.value).toLocaleDateString("en-CA") });
+                                          if (e.target.value) {
+                                            document.getElementById("date")?.classList.remove("border-on-error");
+                                          }
+                                        }}
+                                        disabled={InputDisabled}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="col-lg-8 mb-3">
+                                  <div className="mb-0">
+                                    <label htmlFor="background" className="col-form-label">Background<span className="text-danger1"> *</span></label>
+                                    <div>
+                                      <textarea style={{height:'80px'}}
+                                        className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                        id="background"
+                                        value={formData.background}
+                                        onChange={(e) => {
+                                          setFormData({ ...formData, background: e.target.value });
+                                          if (e.target.value) {
+                                            document.getElementById("background")?.classList.remove("border-on-error");
+                                          }
+                                        }}
+                                        disabled={InputDisabled}
+                                      ></textarea>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="col-lg-12">
+                                  <div className="mb-3">
+                                    <label htmlFor="issues" className="col-form-label">Description<span className="text-danger1"> *</span></label>
+                                    <div className="">
+                                      <textarea style={{height:'80px'}}
+                                        className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                        // className="form-control"
+                                        id="issues"
+                                        value={formData.issues}
+                                        onChange={(e) => {
+                                          setFormData({ ...formData, issues: e.target.value });
+                                          if (e.target.value) {
+                                            document.getElementById("issues")?.classList.remove("border-on-error");
+                                          }
+
+                                        }}
+                                        disabled={InputDisabled}
+                                      ></textarea>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+
+                        <section className='card card-body mt-2'>
+                          <fieldset>
+                            <div className='row'>
+                              <div className='col-sm-6'>
+                                <h3 className='text-dark font-16 fw-bold mt-2 mb-3'>Recommendation</h3>
+                              </div>
+                              <div style={{ textAlign: 'right' }} className='col-sm-6'>
+                                {!InputDisabled && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-0' src={require("../../assets/plus.png")} onClick={handleAddRecommendationRow}></img>}
+
+                              </div>
+                            </div>
+
+
+                            <table id="tabRec" className='mtbalenew overhi'>
+                              <thead>
+                                <tr><th style={{minWidth:'190px',maxWidth:'190px'}}>Section<span className="text-danger1"> *</span></th>
+                                  <th>Date<span className="text-danger1"> *</span></th>
+                                  <th colSpan={2}>Time<span className="text-danger1"> *</span></th>
+                                  <th>Auditor<span className="text-danger1"> *</span></th>
+                                  {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{minWidth:'70px',maxWidth:'70px'}}>Action</th>}
+                                </tr>
+                              </thead>
+
+                              <tbody>
+
+                                {recommendationRows.map((row, index) => (
+                                  <tr key={index}>
+                                    <td style={{minWidth:'190px',maxWidth:'190px'}}>
+                                      <input
+                                        type="text"
+                                        className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                        // className="form-control"
+                                        value={row.section}
+                                        onChange={(e) => handleRecommendationChange(index, 'section', e.target.value)}
+                                        disabled={InputDisabled}
+                                      />
+                                    </td>
+                                    <td>
+                                      <input
+                                        type="date"
+                                        className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                        // className="form-control"
+                                        value={row.date}
+                                        onChange={(e) => handleRecommendationChange(index, 'date', e.target.value)}
+                                        disabled={InputDisabled}
+                                      />
+                                    </td>
+                                    <td>
+                                      <input
+                                        type="time"
+                                        className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                        // className="form-control"
+                                        value={row.startTime}
+                                        onChange={(e) => handleRecommendationChange(index, 'startTime', e.target.value)}
+                                        disabled={InputDisabled}
+                                      />
+
+                                    </td>
+
+                                    <td>
+                                      <Select
+                                        options={rows1}
+                                        // isMulti
+                                        className={`recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                        value={row.auditor}
+                                        onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
+                                        placeholder="Select"
+                                        isDisabled={InputDisabled}
+                                      />
+                                    </td>
+                                    {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{minWidth:'70px',maxWidth:'70px'}}>
+                                      <img src={require("../../assets/del.png")} onClick={() => handleDeleteRecommendationRow(index)} />
+
+                                    </td>
+                                    }
+                                  </tr>
+                                ))}
+                              </tbody>
+
+                            </table>
+
+
+
+                            <TextField id="recApp" className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`} onChange={(e, newValue) => { setFormData(prevState => ({ ...prevState, recommendationforApproval: newValue })); if (newValue) { document.getElementById("recApp")?.classList.remove("border-on-error") } }} errorMessage={""} multiline autoAdjustHeight value={formData.recommendationforApproval} validateOnFocusOut={true} required={true} label="Recommendation for Approval" disabled={InputDisabled} />
+
+
+                          </fieldset>
+                        </section>
+
+                        <div className="card mt-2">
+                          <div className="card-body">
+                            <h4 className="text-dark font-16 fw-bold mb-3">Audit Program Detail</h4>
+
+                            <div className="row">
+
+
+                              {/* <div className="col-lg-4">
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="exclusions" className="form-label">Exclusions<span className="text-danger1"> *</span></label>
+                                                                    <textarea
+
+                                                                        className={`form-control ${(!ValidAudit) ? "border-on-error" : ""}`}
+                                                                        id="exclusions"
+                                                                        placeholder=""
+                                                                        value={formData.exclusions}
+                                                                        onChange={(e) => {
+                                                                            setFormData({ ...formData, exclusions: e.target.value })
+                                                                            if (e.target.value) {
+                                                                                document.getElementById("exclusions")?.classList.remove("border-on-error");
+                                                                            }
+                                                                        }}
+                                                                        disabled={InputDisabled}
+                                                                    ></textarea>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="col-lg-4">
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="boundary" className="form-label">Boundary<span className="text-danger1"> *</span></label>
+                                                                    <textarea
+                                                                        className={`form-control ${(!ValidAudit) ? "border-on-error" : ""}`}
+                                                                        id="boundary"
+                                                                        placeholder=""
+                                                                        value={formData.boundary}
+                                                                        onChange={(e) => {
+                                                                            setFormData({ ...formData, boundary: e.target.value })
+                                                                            if (e.target.value) {
+                                                                                document.getElementById("boundary")?.classList.remove("border-on-error");
+                                                                            }
+                                                                        }}
+                                                                        disabled={InputDisabled}
+                                                                    ></textarea>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="col-lg-4">
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="objective" className="form-label">Aim / Objective<span className="text-danger1"> *</span></label>
+                                                                    <textarea
+                                                                        className={`form-control ${(!ValidAudit) ? "border-on-error" : ""}`}
+                                                                        id="objective"
+                                                                        placeholder=""
+                                                                        value={formData.objective}
+                                                                        onChange={(e) => {
+                                                                            setFormData({ ...formData, objective: e.target.value })
+                                                                            if (e.target.value) {
+                                                                                document.getElementById("objective")?.classList.remove("border-on-error");
+                                                                            }
+                                                                        }}
+                                                                        disabled={InputDisabled}
+                                                                    ></textarea>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="col-lg-4">
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="criteria" className="form-label">Criteria<span className="text-danger1"> *</span></label>
+                                                                    <textarea
+                                                                        className={`form-control ${(!ValidAudit) ? "border-on-error" : ""}`}
+                                                                        id="criteria"
+                                                                        placeholder=""
+                                                                        value={formData.criteria}
+                                                                        onChange={(e) => {
+                                                                            setFormData({ ...formData, criteria: e.target.value })
+                                                                            if (e.target.value) {
+                                                                                document.getElementById("criteria")?.classList.remove("border-on-error");
+                                                                            }
+                                                                        }}
+                                                                        disabled={InputDisabled}
+                                                                    ></textarea>
+                                                                </div>
+                                                            </div>
+                                                            <div className="col-lg-4">
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="scope" className="form-label">Scope<span className="text-danger1"> *</span></label>
+                                                                    <textarea
+                                                                        className={`form-control ${(!ValidAudit) ? "border-on-error" : ""}`}
+                                                                        id="scope"
+                                                                        placeholder=""
+                                                                        value={formData.scope}
+                                                                        onChange={(e) => {
+                                                                            setFormData({ ...formData, scope: e.target.value })
+                                                                            if (e.target.value) {
+                                                                                document.getElementById("scope")?.classList.remove("border-on-error");
+                                                                            }
+                                                                        }}
+                                                                        disabled={InputDisabled}
+                                                                    ></textarea>
+                                                                </div>
+                                                            </div> */}
+
+
+                              <div className='col-sm-4 mb-3'>
+                                <label htmlFor="scope" className="form-label">Type <span className="text-danger1"> *</span></label>
+                                <select
+                                  id="drpType"
+                                  value={formData.auditTypesId}
+                                  onChange={handleAuditTypeChange}
+                                  // onChange={(e) => setFormData({ ...formData, auditTypesId: Number(e.target.value) })}
+                                  className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`}
+                                  disabled={InputDisabled}
+                                >
+                                  <option value="">Select</option>
+                                  {auditTypes.map((type) => (
+                                    <option key={type.Id} value={type.Id}>
+                                      {type.Title}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div className='col-sm-4 mb-3'>
+                                <label htmlFor="scope" className="form-label">Year<span className="text-danger1"> *</span></label>
+                                <select
+                                  id="drpYear"
+                                  value={formData.Year}
+
+                                  className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`}
+                                  disabled={InputDisabled} onChange={(e: any) => setFormData({ ...formData, Year: e.target.value })}
+                                >
+                                  <option value="">Select</option>
+                                  {Array.from({ length: 3 }, (_, i) => new Date().getFullYear() + i).map((year) => (
+                                    <option key={year} value={year}>
+                                      {year}
+                                    </option>
+                                  ))}
+
+                                </select>
+                              </div>
+
+                              <div className='col-sm-4 mb-3'>
+                                <label htmlFor="scope" className="form-label">Months <span className="text-danger1"> *</span></label>
+
+
+                                <select
+                                  id="drpMonths"
+                                  value={formData.MonthName}
+
+                                  className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`}
+                                  disabled={InputDisabled || auditTypeOption === 'Annual'} onChange={(e: any) => setFormData({ ...formData, MonthName: e.target.value })}
+                                >
+                                  <option value="">Select</option>
+                                  {[
+                                    "January",
+                                    "February",
+                                    "March",
+                                    "April",
+                                    "May",
+                                    "June",
+                                    "July",
+                                    "August",
+                                    "September",
+                                    "October",
+                                    "November",
+                                    "December",
+                                  ].map((month, index) => (
+                                    <option key={index} value={month}>
+                                      {month}
+                                    </option>
+                                  ))}
+
+                                </select>
+                              </div>
+
+                              <div className="col-lg-4">
+                                <div className="mb-3">
+                                  <label htmlFor="attachment" className="col-form-label">Attachment</label>
+                                  <div className="">
+
+                                    <div>
+                                      <input
+                                        type="file"
+                                        // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                        className="form-control"
+                                        id="attachment"
+                                        accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                        onChange={(e) => onFileChange(e, "Gallery", "AnnualAuditProgramDocs")}
+                                        // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
+                                        disabled={InputDisabled}
+                                        multiple
+                                      />
+
+                                    </div>
+
+                                    <div>
+                                      {FilesArr.length > 0 ?
+                                        (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
+                                          <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
+                                        </a>) : ""
+
+                                      }
+                                    </div>
+
+
+
+                                  </div>
+
+                                </div>
+                              </div>
+
+
+                            </div>
+                          </div>
+                        </div>
+
+
+
+                        {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
+
+                        {/* {modeValue === "approve" && editID != null && editID.Status === "Pending" && editID.CurrentUserRole !== "Initiator" && */}
+
+                        <div className="card mt-2" style={{ marginBottom: '17px' }}>
+                          <div className="card-body">
+                            <div className='row'>
+                              <div className='col-sm-8'>
+                                <h4 className="text-dark font-16 fw-bold mb-3 ">Approval Hierarchy</h4>
+                                <label>Define the approval hierarchy to ensure requests are routed to the appropriate approvers.
+                                </label>
+                              </div>
+                              <div className='col-sm-4'>
+                                <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
+                                  {!InputDisabled &&
+                                    <img style={{ width: '34px' }} src={require("../../assets/plus.png")} onClick={handleAddRow} className='' />
+                                  }
+
+                                </div>
+                              </div>
+
+                            </div>
+
+                            <div style={{ overflow: 'inherit' }} className="table-responsive mt-3 pt-0">
+                              <table style={{ overflow: 'inherit' }} className="mtbalenew  table-centered table-nowrap table-borderless mb-0 overhi" id="myTabl">
+                                <thead >
+                                  <tr>
+                                    <th style={{ minWidth: "35px", maxWidth: "35px" }}>S.No</th>
+                                    <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Role<span className="text-danger1"> *</span></th>
+                                    <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level</th>
+                                    <th>Approver name<span className="text-danger1"> *</span></th>
+                                    <th style={{ minWidth: '70px', maxWidth: '70px' }} >Approval criteria<span className="text-danger1"> *</span></th>
+                                    <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
+                                  </tr>
+                                </thead>
+                                <tbody style={{ maxHeight: "8007px", overflow: 'inherit' }}>
+                                  {forwardToArr.map((row, index) => (
+                                    <tr>
+                                      <td style={{ minWidth: "35px", maxWidth: "35px", overflow: 'inherit' }}> <div
+                                        style={{ marginLeft: "5px" }}
+                                        className="indexdesign"
+                                      >
+                                        {index + 1}</div>
+                                      </td>
+                                      <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding">
+                                        <select
+                                          // className="form-select"
+                                          className={`form-select HierarchyClsErr newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
+
+                                          onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={InputDisabled}>
+
+                                          <option value="" selected>Select Role</option>
+                                          {/* {UserRoles.map((role: any, index: number) => (
+                                                                                    <option key={index} value={role.value}>{role.label}</option>
+                                                                                ))} */}
+                                          {UserRoles.filter((role: any) =>
+                                            !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
+                                          ).map((role: any, idx: number) => (
+                                            <option key={idx} value={role.value}>{role.label}</option>
+                                          ))}
+
+
+
+                                        </select>
+
+                                      </td>
+                                      <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>Level {index + 1}</td>
+                                      <td style={{ overflow: 'inherit' }}>
+
+                                        <Select
+                                          options={rows1}
+                                          isMulti
+                                          value={row.approvers}
+                                          name="Approvers"
+                                          className={`newse HierarchyClsErr ${(!ValidForwardTo) ? "border-on-error" : ""}`}
+                                          // onChange={(selectedOption: any) => onSelect(selectedOption)}
+                                          onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
+                                          placeholder="Enter Approver Name"
+                                          isDisabled={InputDisabled}
+                                        />
+
+
+
+                                      </td>
+                                      <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
+                                        {/* <label htmlFor="approvalType">Approval Type: </label> */}
+                                        <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse HierarchyClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={InputDisabled} >
+                                          <option value="">Select </option>
+                                          <option value="One">Anyone</option>
+                                          <option value="All">Everyone</option>
+                                        </select>
+                                      </td>
+                                      <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>
+
+                                        {/* {editID.CurrentUserRole === "OES" ?  */}
+
+                                        {!InputDisabled ? <img src={require("../../assets/del.png")} onClick={() => handleDeleteRow(index)} /> : <img src={require("../../assets/recycle-bin.png")} className='sidebariconsmall' />}
+                                        {/* : <img src={require("../assets/recycle-bin.png")} className='sidebariconsmall' /> */}
+                                        {/* } */}
+
+                                      </td>
+                                    </tr>
+
+                                  ))}
+
+
+                                </tbody>
+                              </table>
+                            </div>
+
+
+
+                            {/* {editID.CurrentUserRole === "OES" &&  */}
+                            {/* <div className="row mt-3">
+                                                            <div className="col-12 text-center">
+                                                                <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardApproval("Forward")} >
+                                                                    <i className="fe-check-circle me-1"></i> Forward
+                                                                </button>
+
+                                                                <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={() => ForwardApproval("Rework")} >
+                                                                    <i className="fe-corner-up-left me-1"></i> Rework
+                                                                </button>
+
+                                                                <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={() => ForwardApproval("Rejected")} >
+                                                                    <i className="fe-x me-1"></i> Reject
+                                                                </button>
+
+                                                                <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}>
+                                                                    <i className="fe-x me-1"></i> Cancel
+                                                                </button>
+
+                                                            </div>
+                                                        </div> */}
+                            {/* } */}
+                          </div>
+                        </div>
+                        {/* // } */}
+
+
+
+                        {/* ////////////Approval card */}
+
+                        {
+                          (InputDisabled && editID != null && modeValue === "approve" && editID.ApprovalType === "Approval" && editID.Status === "Pending") ? (
+                            <WorkflowAction currentItem={editID} ctx={props.context} ContentType={CONTENTTYPE_AuditProgram}
+                              DisableApproval={false} DisableCancel={false}
+                            />
+                          ) : (<div></div>)
+                        }
+
+                        {/* ////////////Audit History card */}
+                        {/* {editID !== null && editID.length != 0 && modeValue === "approve" && */}
+                        {MainEditItem !== null && MainEditItem.length != 0 && MainEditItem?.Status !== "Save as draft" &&
+                          <WorkflowAuditHistory ContentItemId={MainEditItem} ContentType={CONTENTTYPE_AuditProgram} ctx={props.context} />
+                        }
+                        {/* ////////////Audit History card */}
+
+
+                        {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
+
+                        <div className="row mt-3">
+                          <div className="col-12 text-center">
+
+
+                            {((InputDisabled != true && editItemID == null && MainEditItem == null) || (modeValue === "" || modeValue === "edit") || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "Initiator" && editID.IsInitiator == "Yes" && (editID?.Status === "Pending" || editID?.Status === "Save as draft"))) &&
+                              <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
+                                <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
+                                Save As Draft</button>
+                            }
+
+                            {((InputDisabled != true && editItemID == null && MainEditItem == null) || (modeValue === "" || modeValue === "edit") || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "Initiator" && editID.IsInitiator == "Yes" && (editID?.Status === "Pending" || editID?.Status === "Save as draft"))) &&
+                              <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
+                                <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
+                                Submit</button>
+                            }
+
+                            {/* {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</button>}
+
+
+                                                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</button>}
+ */}
+
+
+                            {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.ApprovalType !== "Approval")) &&
+                              <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
+                                className='me-1' alt="x" /> Cancel</button>
+                            }
+
+                          </div>
+                        </div>
+
+
+                        {/* ////////////Approval card */}
+
+
+                        {/* </div> */}
+
+                        {/* /////////// */}
+
+                        <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
+                          <Modal.Header closeButton>
+                            <Modal.Title > <h4 className='font-16 text-dark fw-bold'>Attachment Details</h4>  <br></br>
+                              <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for Annual Audit Program
+                              </p>
+
+                            </Modal.Title>
+
+
+                          </Modal.Header>
+                          <Modal.Body className="" id="style-5">
+
+                            {/* {DocumentLink &&
+                                                            (
+                                                                <> */}
+                            <table className="mtbalenew">
+                              <thead style={{ background: '#eef6f7' }}>
+                                <tr>
+                                  <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                                  <th>File Name</th>
+                                  {/* {editForm && <th>File Link</th>} */}
+                                  <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th>
+                                  {/* {!InputDisabled && <th className='text-center'>Action</th>} */}
+                                  <th className='text-center'>Action</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {FilesArr.length > 0 && (
+                                  FilesArr.map((row: any, index: number) => (
+                                    <tr>
+                                      <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
+                                        <td title={row.name || (row.FileLeafRef)?.split('_')[2] }>
+                                        {row.name || (row.FileLeafRef)?.split('_')[2] }
+                                        </td>
+                                      {/* {row.Id && <td style={{ textAlign: 'center' }} >
+                                                                                <span onClick={() => OpenFile(row, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                    <FontAwesomeIcon icon={faDownload} /></span>
+                                                                               {row.Id && <span onClick={() => OpenFile(row, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                    <FontAwesomeIcon icon={faEye} /></span>}
+                                                                            </td>} */}
+                                      {/* <td>{DocumentLink.Created
+                                                                                        ? new Intl.DateTimeFormat('en-GB', {
+                                                                                            day: '2-digit',
+                                                                                            month: 'short',
+                                                                                            year: 'numeric'
+                                                                                        }).format(new Date(DocumentLink.Created)).replace(/ /g, "/")
+                                                                                        : ""}</td> */}
+                                      <td style={{ minWidth: '50px', maxWidth: '50px' }}>{row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "numeric"
+                                      }).replace(/ /g, "/") : new Date().toLocaleDateString("en-GB", {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "numeric"
+                                      }).replace(/ /g, "/")}</td>
+
+                                      <td>
+                                        {row.Id && (
+                                          <>
+                                            <span
+                                              onClick={() => OpenFile(row, "Download")}
+                                              style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                                            >
+                                              <FontAwesomeIcon icon={faDownload} />
+                                            </span>
+                                            <span
+                                              onClick={() => OpenFile(row, "Open")}
+                                              style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                                            >
+                                              <FontAwesomeIcon icon={faEye} />
+                                            </span>
+                                          </>
+                                        )}
+
+                                        {!InputDisabled && <img src={require("../../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} />}
+                                      </td>
+
+
+                                    </tr>
+                                  ))
+                                )}
+                              </tbody>
+                            </table>
+                            {/* </>
+                                                            )
+                                                        } */}
+
+                          </Modal.Body>
+
+                        </Modal>
+
+                        {/* ///////////////// */}
+
+                      </div>
+
+
+
+                    }
+
+
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
+
+const FormComponent: React.FC<IFormProps> = (props) => (
+  <Provider>
+    <FormContext props={props} />
+  </Provider>
+);
+
+
+
+export default FormComponent;

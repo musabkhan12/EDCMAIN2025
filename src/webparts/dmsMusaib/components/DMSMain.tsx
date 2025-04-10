@@ -123,7 +123,7 @@ import { ISearchHitResource } from "../../../Shared/SearchHelperInterfaces";
 import Testfile from "../processcomponents/test";
 import Shownew from "../processcomponents/new";
 import NC from "../processcomponents/NC";
-import { FormComponent } from "../EDCprocessComponent/FormComponent/Form";
+import FormComponent from "../EDCprocessComponent/FormComponent/Form";
 import { Listing } from "../EDCprocessComponent/ListingComponent/Listing";
 import AnnualAuditPlan from "../AnnualAuditPlanComponent/AnnualAuditPlan";
 import AnnualAuditReport from "../AnnualAuditReportComponent/AnnualAuditReport";
@@ -4302,7 +4302,7 @@ const ArgPoc = ({ props }: any) => {
         </div>
          <div class="col-md-10 pe-0">
          <div class="CardTextContainer">
-        <p style="cursor: pointer;" class="p1st"  onclick="PreviewFile('${file.ServerRelativeUrl}', '${siteID}' , '${docLibName}','${file.ListItemAllFields.Status}')">${file.Name}</p>
+        <p style="cursor: pointer;" class="p1st" title="${file.Name}"  onclick="PreviewFile('${file.ServerRelativeUrl}', '${siteID}' , '${docLibName}','${file.ListItemAllFields.Status}')">${file.Name}</p>
           <p class="p3rd">${((file.Length as unknown as number) / (1024 * 1024)).toFixed(2)} MB</p>
          </div>
          </div>
@@ -5456,7 +5456,7 @@ const ArgPoc = ({ props }: any) => {
                  </div>
                   <div class="col-md-11 pe-0">
                    <p class="p2nd"> ${((file.Size as unknown as number) / (1024 * 1024)).toFixed(2)} MB</p>
-                 <p class="p1st mb-1"><a href="#" class="newfont" onclick="PreviewFile('${fileserverrelativeurl}', '${currentsiteID}' , '${currentDocumentLibrary}')" >${file.Title} (${filefoldername})</a></p>
+                 <p class="p1st mb-1" title="${file.Title}"><a href="#" class="newfont" onclick="PreviewFile('${fileserverrelativeurl}', '${currentsiteID}' , '${currentDocumentLibrary}')" >${file.Title} (${filefoldername})</a></p>
                                    <p class="p2nd1 mb-1">${file.Summary}</p>
                                    <div class="newdes mt-2">
                   <p class="p2nd mb-0"><span class="fw-bold newfont">Uploaded by : </span> <span style="font-size:13px; font-weight:500"> ${file.CreatedBy} </span> &nbsp; &nbsp;| </p>
@@ -5811,7 +5811,7 @@ const ArgPoc = ({ props }: any) => {
       </div>
       <div class="col-md-10 pe-0">
       <div class="CardTextContainer">
-      <p class="p1st">${file.FileName}</p>
+      <p class="p1st" title="${file.FileName}">${file.FileName}</p>
       <div class="fileSizeAndVersion">
       <p class="p3rd">${file.FileSize} MB</p>
       </div>
@@ -6530,7 +6530,7 @@ const ArgPoc = ({ props }: any) => {
     </div>
     <div class="col-md-10 pe-0">
     <div class="CardTextContainer">
-    <p class="p1st">${file.FileName}</p>
+    <p class="p1st" title="${file.FileName}">${file.FileName}</p>
     <div class="fileSizeAndVersion">
     <p class="p3rd">${file.FileSize} MB</p>
     </div>
@@ -7210,7 +7210,7 @@ const ArgPoc = ({ props }: any) => {
          </div></div>
          <div class="col-md-10 pe-0">
          <div class="CardTextContainer"> 
-          <p class="p1st">${file.FileName}</p>
+          <p class="p1st" title="${file.FileName}">${file.FileName}</p>
           <p class="p2nd"></p>
           <p class="p3rd">${file.FileSize}</p>
           </div></div></div>
@@ -9497,7 +9497,7 @@ const ArgPoc = ({ props }: any) => {
   <img class="filextension" src=${folderimg} icon"/>
   </div></div></div>
   <div class="col-md-10"> 
-  <p class="p1st p1stfolder">${folderName}</p>
+  <p class="p1st p1stfolder" title={${folderName}}>${folderName}</p>
   <p class="p2nd">${files.SiteTitle} </p>
   <div class="mycreatedfolderpublicorlibrary"> <p class="filestatus">${folderisprivateorpublic} </p> 
   
@@ -10250,7 +10250,7 @@ const ArgPoc = ({ props }: any) => {
      </div>
          <div class="col-md-10 pe-0">
          <div class="CardTextContainer">
-    <p class="p1st">${file.FileName}</p>
+    <p class="p1st" title="${file.FileName}">${file.FileName}</p>
 
     <p class="p3rd">${file.FileSize} MB</p>
     </div></div>

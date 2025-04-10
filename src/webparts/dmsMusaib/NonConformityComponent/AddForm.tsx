@@ -22,6 +22,8 @@ import "@pnp/sp/presets/all";
 import { Checkbox } from '@fluentui/react';
 import Swal from 'sweetalert2';
 import moment from 'moment';
+import CustomBreadcrumb from '../ChangerequestComponent/CustomBreadcrumb/CustomBreadcrumb';
+
 
 const datePickerErrorStyles: Partial<IDatePickerStyles> = {
   root: {
@@ -68,6 +70,7 @@ export class IState {
   exFiles: any[];
   fileDeleteId: any[];
   files: FileList;
+  siteurl:any;
 }
 
 export default class AuditPlan extends React.Component<IAuditPlanProps, IState> {
@@ -102,12 +105,14 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       exFiles: [],
       fileDeleteId: [],
       files: {} as FileList,
+      siteurl : this.props.context.pageContext.web.absoluteUrl,
     };
     this.handleFileChange = this.handleFileChange.bind(this);
     this._OpenModal = this._OpenModal.bind(this);
     this._CloseModal = this._CloseModal.bind(this);
     this.removeFiles = this.removeFiles.bind(this);
     this.toBeDeleted = this.toBeDeleted.bind(this);
+   
   }
   private handleFileChange(e: React.ChangeEvent<HTMLInputElement>, _self: any) {
     if (e.target.files) {
@@ -125,6 +130,16 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       showDialog: true
     });
   }
+  private Breadcrumb = [
+    {
+      MainComponent: "My Request",
+      MainComponentURl: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/EDCMAIN.aspx`,
+    },
+    {
+      ChildComponent: "Non Conformity",
+      ChildComponentURl: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/EDCMAIN.aspx#/NonConformity`,
+    },
+  ];
   private _CloseModal() {
     this.setState({
       showDialog: false
@@ -238,7 +253,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
   public async getDepartment() {
     const sp = spfi().using(SPFx(this.props.context));
     try {
-      const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items();
+      // const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items();
+      const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items.orderBy("Title" , true)();
       const options = deptItems.map((item: {
         DepartmentCode: any; Title: string; Id: number
       }) => ({
@@ -304,8 +320,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     if (this.state.categoryValueIsCheck.length == 0) {
       Swal.fire({ title: "Please select at least one category!" });
       document.querySelectorAll("#categoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
-        el.classList.add(styles.errCh);       
-      });      
+        el.classList.add(styles.errCh);
+      });
     }
     else {
       document.querySelectorAll("#categoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
@@ -315,8 +331,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     if (this.state.subCategoryIsCheck.length == 0) {
       Swal.fire({ title: "Please select at least one Sub category!" });
       document.querySelectorAll("#SubCategoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
-        el.classList.add(styles.errCh);        
-      });     
+        el.classList.add(styles.errCh);
+      });
     }
     else {
       document.querySelectorAll("#SubCategoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
@@ -327,7 +343,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       Swal.fire({ title: "Please select at least one location!" });
       document.querySelectorAll("#locationCheckbox .ms-Checkbox-checkbox").forEach((el) => {
         el.classList.add(styles.errCh);
-      });      
+      });
     }
     else {
       document.querySelectorAll("#locationCheckbox .ms-Checkbox-checkbox").forEach((el) => {
@@ -487,7 +503,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     };
     var fileData = this.state.copyFil.map((item: any, i: number) => {
       return (
-        <tr>
+        <tr style={{ display: 'table', width: '100%' }}>
           <td>
             {item.name}
           </td>
@@ -502,7 +518,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     });
     var upFiles = this.state.exFiles.map((item: any, i: number) => {
       return (
-        <tr>
+        <tr style={{ display: 'table', width: '100%' }}>
           <td>
             {item.Name}
           </td>
@@ -519,14 +535,20 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       )
     });
     return (
-      <section className={`${styles.auditPlan} `}>
+      <section className='card card-body'>
         <div className={styles.welcome}>
+          <div className="row">
+            <div className="col-lg-4">
+              <CustomBreadcrumb Breadcrumb={this.Breadcrumb} />
+            </div>
+
+          </div>
           <form>
             {/* Section 1 */}
-            <div className="row">
-              <div className="form-group col-md-12"><h3>Problem Details</h3></div>
+            <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row">
+              <div className="form-group col-md-12"><h3 className='text-dark font-16 text-left fw-bold mb-3'>Problem Details</h3></div>
             </div>
-            <div className="row">
+            <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
               <div className="form-group col-md-4">
                 <Dropdown
                   required
@@ -562,7 +584,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                 />
               </div>
             </div>
-            <div className="row">
+            <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
               <div className="form-group col-md-4" id="categoryCheckbox">
                 <label>Category: <span className={styles.textdanger}>*</span></label>
                 {this.state.categoryCheckOption.map((item: any) => {
@@ -598,7 +620,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                 )}
               </div>
             </div>
-            <div className="row">
+            <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
               <div className="form-group col-md-4">
                 <PeoplePicker
                   context={peoplePickerContext}
@@ -631,25 +653,28 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                   styles={this.state.errors.dueDate ? datePickerErrorStyles : {}}
                 />
               </div>
-              <div className="col-lg-4">
+              <div style={{ position: 'relative' }} className="col-lg-4 mt-1">
                 <label htmlFor="Attchments" style={{ marginRight: "10px" }}>Attachments <span className={styles.textdanger}>*</span></label>
-                <button type="button" onClick={this._OpenModal} >{this.state.fileCount}</button>
+
                 <input className="form-control" type="file" name="myFile" onChange={(e) => this.handleFileChange(e, this)} id="newfile" multiple
                   style={{
                     backgroundColor: this.state.errors.Attchments ? "#ffcccb" : "white",
-                  }} />                
+                  }} />
+                <span onClick={this._OpenModal} className='newpo'>{this.state.fileCount}</span>
                 {this.state.showDialog && <div id="myModal" className={styles.modal}>
                   <div className={styles.modalcontent}>
                     <span><b>Attachment Details</b></span>
                     <br />
                     <span>Below are the attachment details for the Initiative</span>
                     <span className={styles.close} onClick={e => this._CloseModal()}>&times;</span>
-                    <table>
+                    <table className='mtbalenew'>
                       <thead>
-                        <th>File Name</th>
-                        <th>File Link</th>
-                        <th>Upload Date</th>
-                        <th>Delete</th>
+                        <tr style={{ display: 'table', width: '100%' }}>
+                          <th>File Name</th>
+                          <th>File Link</th>
+                          <th>Upload Date</th>
+                          <th>Delete</th>
+                        </tr>
                       </thead>
                       {upFiles}{fileData}
                     </table>
@@ -657,13 +682,13 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                 </div>}
               </div>
             </div>
-            <div className='row'>
-              <div className="form-group col-md-12">
+            <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row mb-3'>
+              <div className="form-group col-md-12 newdes">
                 <TextField label="Problem Description:"
                   required
                   name='problemDescription'
                   value={this.state.problemDescription}
-                  multiline rows={3}
+                  multiline rows={5}
                   onChange={this.handleChange}
                   //errorMessage={this.state.errors.problemDescription}
                   styles={{
@@ -675,16 +700,16 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
               </div>
             </div>
             {/* Button Section 4 */}
-            <div className="row" style={{ margin: '10px' }}>
-              <div className="form-group col-md-2">
-                <PrimaryButton text="Submit" onClick={() => this.handleSubmit("submit")} />
-              </div>
-              <div className="form-group col-md-2">
-                <PrimaryButton text="Save as Draft" onClick={() => this.handleSubmitDraft("draft")} />
-              </div>
-              <div className="form-group col-md-2">
-                <DefaultButton text="Cancel" onClick={() => this.cancelRequest()} />
-              </div>
+            <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
+
+              <PrimaryButton text="Submit" onClick={() => this.handleSubmit("submit")} />
+
+
+              <PrimaryButton text="Save as Draft" onClick={() => this.handleSubmitDraft("draft")} />
+
+
+              <DefaultButton text="Cancel" onClick={() => this.cancelRequest()} />
+
             </div>
           </form>
         </div>

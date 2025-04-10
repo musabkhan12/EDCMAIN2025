@@ -98,7 +98,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
         default:
       }
       setLoading(true);
-      if (props.ContentType != "Document Cancellation" && props.ContentType != "Change Request" && props.ContentType != "Annual Audit Plan" && props.ContentType != "Annual Audit Report") {
+      if (props.ContentType != "Document Cancellation" && props.ContentType != "Change Request" && props.ContentType != "Annual Audit Plan" && props.ContentType != "Annual Audit Report" && props.ContentType != "Annual Audit Program") {
         sp.web.lists.getByTitle("ARGMyRequest").items
           .select("*,Requester/Id,Requester/Title,Approver/Id,Approver/Title")
           .expand("Approver,Requester")
@@ -315,7 +315,21 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                         <td style={{ minWidth: '40px', maxWidth: '40px' }}> {index + 1}</td>
 
 
-                        <td style={{ minWidth: '50px', maxWidth: '50px' }}>
+                        <td title= {
+                            row.LevelId !== undefined && row.LevelId !== null
+                              ? row.LevelId === 0
+                                ? "Initiator"
+                                : `Level ${row.LevelId}`
+                              : row.Level !== undefined && row.Level !== null
+                                ? row.Level === 0
+                                  ? row.CurrentUserRole === "OES"
+                                    ? "Organisation Escation Strategy"
+                                    : row.CurrentUserRole == null || row.CurrentUserRole == "Initiator"
+                                      ? "Initiator"
+                                      : `Level ${row.Level}`
+                                  : `Level ${row.Level}`
+                                : ""
+                          } style={{ minWidth: '50px', maxWidth: '50px' }}>
                           {
                             row.LevelId !== undefined && row.LevelId !== null
                               ? row.LevelId === 0
