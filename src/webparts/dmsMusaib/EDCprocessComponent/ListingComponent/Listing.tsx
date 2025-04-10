@@ -70,7 +70,9 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
         if (item.ProcessName === 'Non Conformity') {
             // alert(item.SubmitStatus + "submit status");
+            //alert(item.SubmitStatus + "submit status");
 
+            //const actionType = item.SubmitStatus === "No" ? "edit" : "view";
             const actionType = item.SubmitStatus === "No" ? "edit" : "view";
             const newPath = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId || ""}`;
 

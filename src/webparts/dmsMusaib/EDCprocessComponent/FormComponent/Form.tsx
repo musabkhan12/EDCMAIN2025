@@ -333,7 +333,7 @@ const FormContext = ({ props }: any) => {
     const userProfile = await sp.profiles.myProperties();
     setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
     const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
-    setselectUserDept(setAllDept1.filter((user:any) => user.label === UserDept));
+    setselectUserDept(setAllDept1.filter((user: any) => user.label === UserDept));
     var allAuditTypes = await getAuditTypes(sp);
     setauditTypes(allAuditTypes);
 
@@ -369,9 +369,9 @@ const FormContext = ({ props }: any) => {
       setFormData({
         ...formData,
         memoSerialNo: memo,
-        deptId: setAllDept1.filter((user:any) => user.label === UserDept)[0]?.value || 0,
-        memoNo: setAllDept1.filter((user:any) => user.label === UserDept)[0]
-          ? `${setAllDept1.filter((user:any) => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        deptId: setAllDept1.filter((user: any) => user.label === UserDept)[0]?.value || 0,
+        memoNo: setAllDept1.filter((user: any) => user.label === UserDept)[0]
+          ? `${setAllDept1.filter((user: any) => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
           : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
       });
 
@@ -501,15 +501,15 @@ const FormContext = ({ props }: any) => {
           // attachmentJson: setBannerById[0].AttachmentJson || null
         }));
 
-        if(setBannerById[0].AuditProgramTypeId){
-          const selectedAuditType = allAuditTypes.find((type:any) => type.Id === setBannerById[0].AuditProgramTypeId);
+        if (setBannerById[0].AuditProgramTypeId) {
+          const selectedAuditType = allAuditTypes.find((type: any) => type.Id === setBannerById[0].AuditProgramTypeId);
           const auditTypeTitle = selectedAuditType ? selectedAuditType.Title : '';
           setAuditTypeOption(selectedAuditType ? selectedAuditType.Title : '');
         }
 
-       
 
-        setselectUserDept(setAllDept1.filter((user:any) => user.value === setBannerById[0].DepartmentId));
+
+        setselectUserDept(setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId));
 
         setselectUserDeptCC(setBannerById[0].CCDepartments?.map((obj: any) => {
           const filteredDept = setAllDept1.find((dept: any) => dept.value === obj.ID);
@@ -599,7 +599,7 @@ const FormContext = ({ props }: any) => {
     setFormLoading(false);
 
     // setRequesterRoleId(await getRequesterID(sp))
-   
+
     setFormNameId(await getFormNameID(sp, CONTENTTYPE_AuditProgram))
     setListNameId(await getListNameID(sp, LIST_TITLE_AuditProgram))
     createTooltipContent(filteredDeptArrayCC);
@@ -883,17 +883,17 @@ const FormContext = ({ props }: any) => {
         document.getElementById("drpType")?.classList.add("border-on-error");
         if (!MonthName) {
           document.getElementById("drpMonths")?.classList.add("border-on-error");
-         
+
         }
         if (!Year) {
           document.getElementById("drpYear")?.classList.add("border-on-error");
-         
+
         }
         validAudit = false;
       }
       if (auditTypeTitle == 'Monthly' && !MonthName) {
         document.getElementById("drpMonths")?.classList.add("border-on-error");
-        if(!Year){
+        if (!Year) {
           document.getElementById("drpYear")?.classList.add("border-on-error");
         }
         validAudit = false;
@@ -902,7 +902,7 @@ const FormContext = ({ props }: any) => {
         document.getElementById("drpYear")?.classList.add("border-on-error");
         validAudit = false;
       }
-      
+
 
 
       // setValidSubmit(valid);
@@ -1146,7 +1146,7 @@ const FormContext = ({ props }: any) => {
                   FormNameId: FormNameId,
                   ApprovalType: "Approval",
                   // IsApprovalGenerated: "No"
-                  RedirectionLink:"Annual Audit Program/approve/"+editItemID,
+                  RedirectionLink: "Annual Audit Program/approve/" + editItemID,
 
 
 
@@ -1295,7 +1295,7 @@ const FormContext = ({ props }: any) => {
             }
 
             let arr = {
-              Title:formData.subject,
+              Title: formData.subject,
               MemoNumber: formData.memoNo,
               MemoSerialNumber: formData.memoSerialNo,
               // IssueNumber:,
@@ -1419,7 +1419,7 @@ const FormContext = ({ props }: any) => {
                   FormNameId: FormNameId,
                   ApprovalType: "Approval",
                   IsApprovalGenerated: "No",
-                  RedirectionLink:"Annual Audit Program/approve/"+postId,
+                  RedirectionLink: "Annual Audit Program/approve/" + postId,
 
 
 
@@ -1645,7 +1645,7 @@ const FormContext = ({ props }: any) => {
                 FormNameId: FormNameId,
                 ApprovalType: "Approval",
                 // IsApprovalGenerated: "No"
-                RedirectionLink:"Annual Audit Program/approve/"+editItemID,
+                RedirectionLink: "Annual Audit Program/approve/" + editItemID,
 
 
 
@@ -1913,7 +1913,7 @@ const FormContext = ({ props }: any) => {
                   FormNameId: FormNameId,
                   ApprovalType: "Approval",
                   IsApprovalGenerated: "No",
-                  RedirectionLink:"Annual Audit Program/approve/"+postId,
+                  RedirectionLink: "Annual Audit Program/approve/" + postId,
 
 
 
@@ -2359,7 +2359,7 @@ const FormContext = ({ props }: any) => {
 
                                 <div className="col-lg-4">
                                   <div className="row mb-3">
-                                    <label style={{display:'flex'}} htmlFor="to" className="col-form-label">To
+                                    <label style={{ display: 'flex' }} htmlFor="to" className="col-form-label">To
 
                                       <Icon
                                         iconName="Info"
@@ -2420,7 +2420,7 @@ const FormContext = ({ props }: any) => {
 
                                 <div className="col-lg-4">
                                   <div className="mb-3">
-                                    <label style={{display:'flex'}} htmlFor="recommendation" className="col-form-label">CC
+                                    <label style={{ display: 'flex' }} htmlFor="recommendation" className="col-form-label">CC
                                       <Icon
                                         iconName="Info"
                                         className="ms-1"
@@ -2566,7 +2566,7 @@ const FormContext = ({ props }: any) => {
                                   <div className="mb-0">
                                     <label htmlFor="background" className="col-form-label">Background<span className="text-danger1"> *</span></label>
                                     <div>
-                                      <textarea style={{height:'80px'}}
+                                      <textarea style={{ height: '80px' }}
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                         id="background"
                                         value={formData.background}
@@ -2586,7 +2586,7 @@ const FormContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="issues" className="col-form-label">Description<span className="text-danger1"> *</span></label>
                                     <div className="">
-                                      <textarea style={{height:'80px'}}
+                                      <textarea style={{ height: '80px' }}
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                         // className="form-control"
                                         id="issues"
@@ -2623,11 +2623,11 @@ const FormContext = ({ props }: any) => {
 
                             <table id="tabRec" className='mtbalenew overhi'>
                               <thead>
-                                <tr><th style={{minWidth:'190px',maxWidth:'190px'}}>Section<span className="text-danger1"> *</span></th>
+                                <tr><th style={{ minWidth: '190px', maxWidth: '190px' }}>Section<span className="text-danger1"> *</span></th>
                                   <th>Date<span className="text-danger1"> *</span></th>
                                   <th colSpan={2}>Time<span className="text-danger1"> *</span></th>
                                   <th>Auditor<span className="text-danger1"> *</span></th>
-                                  {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{minWidth:'70px',maxWidth:'70px'}}>Action</th>}
+                                  {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>}
                                 </tr>
                               </thead>
 
@@ -2635,7 +2635,7 @@ const FormContext = ({ props }: any) => {
 
                                 {recommendationRows.map((row, index) => (
                                   <tr key={index}>
-                                    <td style={{minWidth:'190px',maxWidth:'190px'}}>
+                                    <td style={{ minWidth: '190px', maxWidth: '190px' }}>
                                       <input
                                         type="text"
                                         className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
@@ -2678,7 +2678,7 @@ const FormContext = ({ props }: any) => {
                                         isDisabled={InputDisabled}
                                       />
                                     </td>
-                                    {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{minWidth:'70px',maxWidth:'70px'}}>
+                                    {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                       <img src={require("../../assets/del.png")} onClick={() => handleDeleteRecommendationRow(index)} />
 
                                     </td>
@@ -3145,9 +3145,9 @@ const FormContext = ({ props }: any) => {
                                   FilesArr.map((row: any, index: number) => (
                                     <tr>
                                       <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
-                                        <td title={row.name || (row.FileLeafRef)?.split('_')[2] }>
-                                        {row.name || (row.FileLeafRef)?.split('_')[2] }
-                                        </td>
+                                      <td title={row.name || (row.FileLeafRef)?.split('_')[2]}>
+                                        {row.name || (row.FileLeafRef)?.split('_')[2]}
+                                      </td>
                                       {/* {row.Id && <td style={{ textAlign: 'center' }} >
                                                                                 <span onClick={() => OpenFile(row, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                                                                     <FontAwesomeIcon icon={faDownload} /></span>
