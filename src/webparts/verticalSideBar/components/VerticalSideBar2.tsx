@@ -102,7 +102,7 @@ console.log(useActive,'useActive');
       setNavItems(arr);
     }
     else {
-      await _context.web.lists.getByTitle("ARGSidebarNavigation").items.getAll().then((res: any) => {
+      await _context.web.lists.getByTitle("ARGSidebarNavigation").items.filter("IsActive eq 1").getAll().then((res: any) => {
         console.log(res, 'res');
         const items: NavItem[] = res.map((item: any) => {
           return {

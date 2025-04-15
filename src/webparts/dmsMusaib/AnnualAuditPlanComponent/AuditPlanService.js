@@ -27,7 +27,7 @@ export const getDataRoles = async (_sp) => {
     let bannerimg = []
     const currentUser = await _sp.web.currentUser();
     await _sp.web.lists.getByTitle("AnnualAuditPlanList").items.getById(id)
-    .select("*,Author/ID,Author/Title,AuditPlanType/AuditPlanType,AuditPlanType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Department,ToDepartments/DepartmentCode").expand("ToDepartments,CCDepartments,Author,AuditPlanType,To,Cc,From")()
+    .select("*,RecommendationType/RecommendationTypeValue,Author/ID,Author/Title,AuditPlanType/AuditPlanType,AuditPlanType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Department,ToDepartments/DepartmentCode").expand("RecommendationType,ToDepartments,CCDepartments,Author,AuditPlanType,To,Cc,From")()
       .then((res) => {
         
         console.log(res, ' let arrs=[]');      
@@ -447,3 +447,51 @@ export const getDocumentLinkByID = async (_sp, AttachmentIds) => {
   console.log(results, 'results');
   return results;
 }
+export const getLatestChangeRequestTemplateType= async (_sp,List) =>{
+  let arr = [];
+  // var List ="Annual Audit Program"
+  // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
+  // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
+  await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`TemplateType/TemplateTypeName eq '${List}' and Status eq 'Approved'`).orderBy("ID", false).top(1)()
+    .then((res) => {
+      arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  // console.log(arr, 'arr');
+  return arr;
+}
+
+export const getRecommendationTypes= async (_sp) =>{
+  let arr = []
+  // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
+  // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
+  await _sp.web.lists.getByTitle("RecommendationTypeMaster").items()
+    .then((res) => {
+     
+      arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  // console.log(arr, 'arr');
+  return arr;
+}
+export const getGeneratedTemplateDoc = async (_sp, itemId) => {
+  let results = [];
+  // for (let itemId of AttachmentIds) {
+    await _sp.web.lists.getByTitle("AnnualAuditProgramGeneratedTemplateDoc").items
+      .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
+      .then((res) => {
+        console.log(res, ' let arrs=[]');
+        results.push(res);
+      })
+      .catch((error) => {
+        console.log("Error fetching data: ", error);
+      });
+  // }
+  console.log(results, 'results');
+  return results;
+}
+

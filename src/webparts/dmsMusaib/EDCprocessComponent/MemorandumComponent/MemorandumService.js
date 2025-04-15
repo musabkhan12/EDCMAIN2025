@@ -26,7 +26,7 @@ export const getDataRoles = async (_sp) => {
     let arrs = []
     let bannerimg = []
     const currentUser = await _sp.web.currentUser();
-    await _sp.web.lists.getByTitle("AnnualAuditProgram").items.getById(id)
+    await _sp.web.lists.getByTitle("Memorandum").items.getById(id)
     .select("*,RecommendationType/RecommendationTypeValue,Author/ID,Author/Title,AuditType/Title,AuditType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Department,ToDepartments/DepartmentCode,AuditProgramType/Title,AuditProgramType/ID").expand("RecommendationType,AuditProgramType,ToDepartments,CCDepartments,Author,AuditType,To,Cc,From")()
       .then((res) => {
        
@@ -180,7 +180,7 @@ export const getDataRoles = async (_sp) => {
    
     let resultArr = []
     try {
-      const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgram').items.add(itemData);
+      const newItem = await _sp.web.lists.getByTitle('Memorandum').items.add(itemData);
    
       // console.log('Item added successfully:', newItem);
       // Swal.fire('Item added successfully', '', 'success');
@@ -199,7 +199,7 @@ export const getDataRoles = async (_sp) => {
   export const updateItem = async (itemData, _sp, id) => {
     let resultArr = []
     try {
-      const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgram').items.getById(id).update(itemData);
+      const newItem = await _sp.web.lists.getByTitle('Memorandum').items.getById(id).update(itemData);
       console.log('Item added successfully:', newItem);
       resultArr = newItem
       // Perform any necessary actions after successful addition
@@ -214,7 +214,7 @@ export const getDataRoles = async (_sp) => {
   export const updateItem2 = async (itemData, _sp, id) => {
     let resultArr = []
     try {
-      const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgramRecommendationList').items.getById(id).update(itemData);
+      const newItem = await _sp.web.lists.getByTitle('MemorandumRecommendationList').items.getById(id).update(itemData);
       console.log('Item added successfully:', newItem);
       resultArr = newItem
       // Perform any necessary actions after successful addition
@@ -257,7 +257,7 @@ export const getDataRoles = async (_sp) => {
    
     let resultArr = []
     try {
-      const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgramRecommendationList').items.add(itemData);
+      const newItem = await _sp.web.lists.getByTitle('MemorandumRecommendationList').items.add(itemData);
    
       console.log('Item added successfully:', newItem);
       // Swal.fire('Item added successfully', '', 'success');
@@ -370,7 +370,7 @@ export const getDataRoles = async (_sp) => {
     debugger
     let arr = []
     let sampleDataArray = []
-    arr = await sp.web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.select("*,AnnualAuditProgram/ID,Auditor/ID,Auditor/Title").expand("AnnualAuditProgram,Auditor").filter(`AnnualAuditProgram/ID eq ${AuditID}`).getAll();
+    arr = await sp.web.lists.getByTitle("MemorandumRecommendationList").items.select("*,Memorandum/ID,Auditor/ID,Auditor/Title").expand("Memorandum,Auditor").filter(`Memorandum/ID eq ${AuditID}`).getAll();
     // .then((res) => {
     //   arr = res
     //   console.log(arr, 'arr');
@@ -430,7 +430,7 @@ export const uploadAllFiles = async (files, sp, docLib) => {
 export const uploadFileToLibrary = async (file, sp, docLib) => {
   let arrFIleData = [];
   let fileSize = 0;
-  const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
+  const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
   try {
     // await sp.web.lists.getByTitle(docLib).rootFolder
     const result = folder.files.addChunked(file.name, file, (progress, data) => {
@@ -460,7 +460,7 @@ export const uploadFileToLibrary = async (file, sp, docLib) => {
 export const getDocumentLinkByID = async (_sp, AttachmentIds) => {
   let results = [];
   for (let itemId of AttachmentIds) {
-    await _sp.web.lists.getByTitle("AnnualAuditProgramDocs").items.getById(itemId)
+    await _sp.web.lists.getByTitle("MemorandumDocs").items.getById(itemId)
       .select("*,FileRef, FileLeafRef")()
       .then((res) => {
         console.log(res, ' let arrs=[]');
@@ -498,7 +498,7 @@ export const getRecommendationTypes= async (_sp) =>{
   // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
   await _sp.web.lists.getByTitle("RecommendationTypeMaster").items()
     .then((res) => {
-     
+      
       arr = res;
     })
     .catch((error) => {
@@ -523,3 +523,4 @@ export const getLatestChangeRequestTemplateType= async (_sp,List) =>{
   // console.log(arr, 'arr');
   return arr;
 }
+

@@ -131,6 +131,7 @@ import AnnualAuditReport from "../AnnualAuditReportComponent/AnnualAuditReport";
 
 import AuditPlan from "../NonConformityComponent/AuditPlan";
 import NonConfirmityApprove from "../NonConformityComponent/EditForm";
+import MemoComponent from "../EDCprocessComponent/MemorandumComponent/Memorandum";
 interface NavItem {
   Title: string;
   Url: string;
@@ -560,6 +561,14 @@ const ArgPoc = ({ props }: any) => {
         cleanUrlInMyRequest=true;
         returnFromMyRequest=true;
         setlistorgriddata('NonConfirmityApprove')
+      }
+      else if(arrayToStoreURLParameter[1] === 'Memorandum' ){
+        //  alert("Document Camcetllation")
+        const get = document.getElementById('files-container')
+        get.innerHTML = '';
+        cleanUrlInMyRequest=true;
+        returnFromMyRequest=true;
+        setlistorgriddata('Memorandum')
       }
     }
 
@@ -5257,8 +5266,6 @@ const ArgPoc = ({ props }: any) => {
     }
     if (ismyrequordoclibforfilepreview === "getdoclibdata") {
       // Generate the correct preview URL
-      // const previewUrl = `${siteUrl}/sites/IntranetUAT/${currentEntity}/${myactualdoclib}/Forms/AllItems.aspx?id=${path}&parent=${encodedParentFolder}`;
-      //  const previewUrl = `${siteUrl}/sites/AlRostmanispfx2/${currentEntity}/${myactualdoclib}/Forms/AllItems.aspx?id=${path}&parent=${encodedParentFolder}`;
       const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${path}&parent=${encodedParentFolder}`;
 
       // const previewUrl = `${siteUrl}/sites/SPFXDemo/${currentEntity}/${myactualdoclib}/Forms/AllItems.aspx?id=${path}&parent=${encodedParentFolder}`;
@@ -8567,8 +8574,6 @@ const ArgPoc = ({ props }: any) => {
 
         const parentFolder = file.ServerRelativeUrl.substring(0, file.ServerRelativeUrl.lastIndexOf('/'));
         const siteUrl = window.location.origin;
-        // const previewUrl = `${siteUrl}/sites/AlRostmani/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
-        // const previewUrl = `${siteUrl}/sites/AlRostmanispfx2/${currentEntity}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
         const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
         console.log("previewUrl", previewUrl);
         payload.FilePreviewURL = previewUrl
@@ -10386,10 +10391,9 @@ const ArgPoc = ({ props }: any) => {
           const encodedFilePath = encodeURIComponent(file.ServerRelativeUrl);
           const parentFolder = file.ServerRelativeUrl.substring(0, file.ServerRelativeUrl.lastIndexOf('/'));
           const siteUrl = window.location.origin;
-          // const previewUrl = `${siteUrl}/sites/AlRostmani/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+          // const previewUrl = `${siteUrl}/sites/edcspfx/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
           const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
-          //  const previewUrl = `${siteUrl}/sites/AlRostmanispfx2/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
-          console.log("previewUrl", previewUrl);
+           console.log("previewUrl", previewUrl);
 
           payload.FilePreviewURL = previewUrl
         }
@@ -10507,6 +10511,21 @@ const ArgPoc = ({ props }: any) => {
     setDynamicContent(null);
     setSelectedText(null);
     window.location.hash = "/AnnualAuditProgram";
+  }
+
+  const Memorandum = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    const selectedTextDiv = document.getElementById('selectedText');
+    const breadcrumbElement = document.getElementById("breadcrumb");
+    breadcrumbElement.style.display = 'none';
+    selectedTextDiv.style.display = 'none';
+    const getfilescontainer = document.getElementById('files-container')
+    if (getfilescontainer) {
+      getfilescontainer.classList.add('hidemydatacards')
+    }
+    setlistorgriddata('Memorandum');
+    setDynamicContent(null);
+    setSelectedText(null);
+    window.location.hash = "/Memorandum";
   }
   const NonConformityfunc = async (event: React.MouseEvent<HTMLButtonElement>) => {
     const selectedTextDiv = document.getElementById('selectedText');
@@ -11482,9 +11501,8 @@ const ArgPoc = ({ props }: any) => {
       const siteUrl = window.location.origin;
       console.log(siteUrl, "siteUrl");
       const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
-      // const previewUrl = `${siteUrl}/sites/AlRostmani/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
-      // const previewUrl = `${siteUrl}/sites/AlRostmanispfx2/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
-      preURL = previewUrl;
+      // const previewUrl = `${siteUrl}/sites/edcspfx/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
+       preURL = previewUrl;
     }
     console.log("filePath", filePath);
     const fileServerRelativePath = testidsub.web.getFileByServerRelativePath(filePath);
@@ -13150,11 +13168,11 @@ const ArgPoc = ({ props }: any) => {
       const encodedFilePath = encodeURIComponent(serverRelativeUrl);
 
       // Example: 
-      // serverRelativeUrl = "/sites/AlRostmani/test/DocumentLibraryInsideTest/Book.xlsx"
+      // serverRelativeUrl = "/sites/edcspfx/test/DocumentLibraryInsideTest/Book.xlsx"
       const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
       const siteUrl = window.location.origin;
 
-      // const previewUrl = `${siteUrl}/sites/AlRostmani/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+      // const previewUrl = `${siteUrl}/sites/edcspfx/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       const previewUrl = `${siteUrl}${locationPath}/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       console.log("Generated Preview URL:", previewUrl);
@@ -13389,7 +13407,7 @@ const ArgPoc = ({ props }: any) => {
     const siteUrl = window.location.origin;
     console.log(siteUrl, "siteUrl");
 
-    // const previewUrl = `${siteUrl}/sites/AlRostmani/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
+    // const previewUrl = `${siteUrl}/sites/edcspfx/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
     const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
 
     if (previewUrl) {
@@ -13655,7 +13673,7 @@ const ArgPoc = ({ props }: any) => {
         const parentFolder = uploadResult.data.ServerRelativeUrl.substring(0, uploadResult.data.ServerRelativeUrl.lastIndexOf('/'));
         const siteUrl = window.location.origin;
         const encodedFilePath = encodeURIComponent(uploadResult.data.ServerRelativeUrl);
-        // const previewUrl = `${siteUrl}/sites/AlRostmani/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+        // const previewUrl = `${siteUrl}/sites/edcspfx/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
         const previewUrl = `${siteUrl}${locationPath}/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
 
         await listItem.update(payload);
@@ -14264,6 +14282,16 @@ const ArgPoc = ({ props }: any) => {
 
                         {listorgriddata === 'AnnualAuditProgram' && (
                           <FormComponent
+                            userDisplayName={currentUserEmailRef.current}
+                            userid={currentUserIDref.current}
+                            context={props.context}
+                            item=''
+                            onClose={() => { }}
+                          />
+                        )}
+
+                    {listorgriddata === 'Memorandum' && (
+                          <MemoComponent
                             userDisplayName={currentUserEmailRef.current}
                             userid={currentUserIDref.current}
                             context={props.context}

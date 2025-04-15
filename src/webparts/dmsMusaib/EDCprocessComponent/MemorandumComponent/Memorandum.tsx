@@ -1,7 +1,7 @@
 import * as React from 'react';
-import type { IFormProps } from './IFormProps';
-import { escape } from '@microsoft/sp-lodash-subset';
-import styles from '../AuditApp.module.scss';
+import type { IMemorandumProps } from './IMemorandumProps';
+import { escape, set } from '@microsoft/sp-lodash-subset';
+// import styles from '../AuditApp.module.scss';
 import Provider from '../../../../GlobalContext/provider';
 
 import VerticalSideBar from '../../../verticalSideBar/components/VerticalSideBar';
@@ -23,14 +23,14 @@ import { FormSubmissionMode } from '../../../../Shared/Interfaces';
 import { decryptId } from '../../../../APISearvice/CryptoService';
 import { WorkflowAction } from '../../../../CustomJSComponents/WorkflowAction/WorkflowAction';
 import { WorkflowAuditHistory } from '../../../../CustomJSComponents/WorkflowAuditHistory/WorkflowAuditHistory';
-import { CONTENTTYPE_AuditProgram, LIST_TITLE_AuditProgram, SITE_URL, Tenant_URL } from '../../../../Shared/Constants';
+import { CONTENTTYPE_Memo, LIST_TITLE_Memo, SITE_URL, Tenant_URL } from '../../../../Shared/Constants';
 import { PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
-import { addAllProcessItem, addItem, addItem2, getLatestChangeRequestTemplateType, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getAuditTypes, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles, getRecommendationTypes, getGeneratedTemplateDoc } from './FormService';
+import { addAllProcessItem, addItem, addItem2, getLatestChangeRequestTemplateType, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getAuditTypes, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles, getRecommendationTypes, getGeneratedTemplateDoc } from './MemorandumService';
 import { TextField } from '@fluentui/react';
 import { Icon } from '@fluentui/react/lib/Icon';
 import { Tooltip } from 'react-tooltip';
@@ -49,7 +49,7 @@ interface ForwardTo {
   approvalType: string;
 }
 
-const FormContext = ({ props }: any) => {
+const MemoContext = ({ props }: any) => {
   const sp: SPFI = getSP();
   const elementRef = React.useRef<HTMLDivElement>(null);
   const siteUrl = props.siteUrl;
@@ -283,8 +283,8 @@ const FormContext = ({ props }: any) => {
       MainComponentURl: `${SITE_URL}/SitePages/EDCMAIN.aspx`,
     },
     {
-      ChildComponent: "Annual Audit Program",
-      ChildComponentURl: `${SITE_URL}/SitePages/EDCMAIN.aspx#/AnnualAuditProgram`,
+      ChildComponent: "Memorandum",
+      ChildComponentURl: `${SITE_URL}/SitePages/EDCMAIN.aspx#/Memorandum`,
     },
   ];
   const [forwardToArrEdit, setForwardToArrEdit] = React.useState<ForwardTo[]>([]);
@@ -352,7 +352,7 @@ const FormContext = ({ props }: any) => {
 
 
       if (recommendationTypes.length > 0) {
-        const defaultRecommendationType = recommendationTypes.find(type => type.RecommendationTypeValue === "Table");
+        const defaultRecommendationType = recommendationTypes.find((type:any) => type.RecommendationTypeValue === "Table");
         if (defaultRecommendationType) {
           setFormData(prevFormData => ({
             ...prevFormData,
@@ -362,7 +362,7 @@ const FormContext = ({ props }: any) => {
         }
       }
 
-      const listItems = await sp.web.lists.getByTitle("AnnualAuditProgram").items.orderBy("MemoSerialNumber", false).top(1)();
+      const listItems = await sp.web.lists.getByTitle("Memorandum").items.orderBy("MemoSerialNumber", false).top(1)();
       if (listItems.length > 0) {
         memo = listItems[0].MemoSerialNumber ? listItems[0].MemoSerialNumber + 1 : 1;
         // if (memo < 999) {
@@ -430,10 +430,12 @@ const FormContext = ({ props }: any) => {
 
 
 
+
+
     let formitemid;
     //#region getdataByID
-    if (sessionStorage.getItem("AuditPlanId") != undefined) {
-      const iD = sessionStorage.getItem("AuditPlanId")
+    if (sessionStorage.getItem("MemorandumId") != undefined) {
+      const iD = sessionStorage.getItem("MemorandumId")
       let iDs = decryptId(iD)
       formitemid = Number(iDs);
       setFormItemId(Number(iDs))
@@ -460,9 +462,9 @@ const FormContext = ({ props }: any) => {
 
           //  ProcessListItem =await getApprovalByID(sp, Number(segments[paramIndex + 2]),CONTENTTYPE_DocumentCancel);
           // setInputDisabled((ProcessListItem.Status == "Pending" || ProcessListItem?.Status === "Save as draft") && ProcessListItem.Level === 0 && ProcessListItem.CurrentUserRole !=="OES")
-          setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditProgram));
+          setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_Memo));
           // var ProcessItemId: any = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditPlan);
-          setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditProgram));
+          setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_Memo));
         }
         // else {
 
@@ -471,7 +473,7 @@ const FormContext = ({ props }: any) => {
         // }
       }
 
-      setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditProgram))
+      setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_Memo))
 
     }
     // formitemid =20;
@@ -509,9 +511,9 @@ const FormContext = ({ props }: any) => {
           // approval: setBannerById[0].,
           CC: setBannerById[0].CcId || [],
           auditProgramTypeId: setBannerById[0].AuditTypeId || [],
-          auditTypesId: setBannerById[0].AuditProgramTypeId || 0,
-          Year: setBannerById[0].Year || "",
-          MonthName: setBannerById[0].MonthName || "",
+          // auditTypesId: setBannerById[0].AuditProgramTypeId || 0,
+          // Year: setBannerById[0].Year || "",
+          // MonthName: setBannerById[0].MonthName || "",
           // exclusions: setBannerById[0].Exclusions,
           // boundary: setBannerById[0].Boundary,
           // objective: setBannerById[0].AimObjective,
@@ -585,9 +587,9 @@ const FormContext = ({ props }: any) => {
 
         }
 
-        setTemplateDoc(await getGeneratedTemplateDoc(sp, Number(formitemid)));
+        // setTemplateDoc(await getGeneratedTemplateDoc(sp, Number(formitemid)));
 
-        const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_AuditProgram, setBannerById[0].ReferenceNumber)
+        const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_Memo, setBannerById[0].ReferenceNumber)
 
         if (ApprowData.length > 0) {
 
@@ -636,13 +638,13 @@ const FormContext = ({ props }: any) => {
 
     // setRequesterRoleId(await getRequesterID(sp))
 
-    setFormNameId(await getFormNameID(sp, CONTENTTYPE_AuditProgram))
-    setListNameId(await getListNameID(sp, LIST_TITLE_AuditProgram))
+    setFormNameId(await getFormNameID(sp, CONTENTTYPE_Memo))
+    setListNameId(await getListNameID(sp, LIST_TITLE_Memo))
     createTooltipContent(filteredDeptArrayCC);
     createTooltipContentTo(filteredDeptArrayTo)
 
 
-    let ChangeRequestTemplateType = await getLatestChangeRequestTemplateType(sp, CONTENTTYPE_AuditProgram);
+    let ChangeRequestTemplateType = await getLatestChangeRequestTemplateType(sp, CONTENTTYPE_Memo);
 
     if (ChangeRequestTemplateType.length > 0) {
       const template = ChangeRequestTemplateType[0];
@@ -899,6 +901,7 @@ const FormContext = ({ props }: any) => {
           // document.getElementById("date")?.classList.add("border-on-error");
           validRec = false;
         }
+
         if (recommendationRows.length > 0 && recommendationRows.every((row: any) => row.section.trim() !== "" && row.date.trim() !== "" && row.startTime.trim() !== "" && row.auditor != null && row.auditor.length != 0) == false) {
           // document.getElementById("date")?.classList.add("border-on-error");
           validRec = false;
@@ -914,6 +917,8 @@ const FormContext = ({ props }: any) => {
 
           });
         }
+
+
       }
       else if (formData.RecommendationTypeValue === "TextBox") {
         if (!formData.recommendationDetails.trim()) {
@@ -952,29 +957,29 @@ const FormContext = ({ props }: any) => {
         valid1 = false;
       }
 
-      if (!auditTypesId) {
-        document.getElementById("drpType")?.classList.add("border-on-error");
-        if (!MonthName) {
-          document.getElementById("drpMonths")?.classList.add("border-on-error");
+      // if (!auditTypesId) {
+      //   document.getElementById("drpType")?.classList.add("border-on-error");
+      //   if (!MonthName) {
+      //     document.getElementById("drpMonths")?.classList.add("border-on-error");
 
-        }
-        if (!Year) {
-          document.getElementById("drpYear")?.classList.add("border-on-error");
+      //   }
+      //   if (!Year) {
+      //     document.getElementById("drpYear")?.classList.add("border-on-error");
 
-        }
-        validAudit = false;
-      }
-      if (auditTypeTitle == 'Monthly' && !MonthName) {
-        document.getElementById("drpMonths")?.classList.add("border-on-error");
-        if (!Year) {
-          document.getElementById("drpYear")?.classList.add("border-on-error");
-        }
-        validAudit = false;
-      }
-      if (auditTypeTitle == 'Annual' && !Year) {
-        document.getElementById("drpYear")?.classList.add("border-on-error");
-        validAudit = false;
-      }
+      //   }
+      //   validAudit = false;
+      // }
+      // if (auditTypeTitle == 'Monthly' && !MonthName) {
+      //   document.getElementById("drpMonths")?.classList.add("border-on-error");
+      //   if (!Year) {
+      //     document.getElementById("drpYear")?.classList.add("border-on-error");
+      //   }
+      //   validAudit = false;
+      // }
+      // if (auditTypeTitle == 'Annual' && !Year) {
+      //   document.getElementById("drpYear")?.classList.add("border-on-error");
+      //   validAudit = false;
+      // }
 
 
 
@@ -1003,7 +1008,7 @@ const FormContext = ({ props }: any) => {
 
     }
 
-    if (valid == false || valid1 == false || validRec == false || validAudit == false || validraft == false) {
+    if (valid == false || valid1 == false || validRec == false || validraft == false) {
       Swal.fire(errormsg !== "" ? errormsg : 'Please fill all the mandatory fields.');
 
       return false
@@ -1034,6 +1039,7 @@ const FormContext = ({ props }: any) => {
   // #region  Submit Form
   const handleFormSubmit = async () => {
     if (await validateForm(FormSubmissionMode.SUBMIT)) {
+
       if (editForm) {
         Swal.fire({
           title: 'Do you want to submit this request?',
@@ -1053,7 +1059,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
 
 
 
@@ -1099,7 +1105,7 @@ const FormContext = ({ props }: any) => {
               // IssueNumber:,
               // RevisionNumber:,
               AuditTypeId: formData.auditProgramTypeId,
-              AuditProgramTypeId: formData.auditTypesId,
+              // AuditProgramTypeId: formData.auditTypesId,
               FromId: formData.from,
               ToId: formData.to,
               CcId: formData.CC,
@@ -1109,8 +1115,8 @@ const FormContext = ({ props }: any) => {
               Issues: formData.issues,
               RecommendedforApproval: formData.recommendationforApproval,
               DepartmentId: formData.deptId,
-              Year: formData.Year || 0,
-              MonthName: formData.MonthName,
+              // Year: formData.Year || 0,
+              // MonthName: formData.MonthName,
               ToDepartmentsId: formData.ToDepartments || [],
               CCDepartmentsId: formData.CCDepartments || [],
               SubmiitedDate: new Date().toLocaleDateString("en-CA"),
@@ -1140,7 +1146,7 @@ const FormContext = ({ props }: any) => {
               for (const row of recommendationRows) {
 
                 const postPayload2 = {
-                  AnnualAuditProgramId: editItemID, // Assuming "Title" column exists
+                  MemorandumId: editItemID, // Assuming "Title" column exists
                   Section: row.section,
                   Date: row.date,
                   Time: row.startTime,
@@ -1219,11 +1225,11 @@ const FormContext = ({ props }: any) => {
                   RequesterNameId: currentUser.Id,
                   RequestedDate: new Date().toLocaleDateString("en-CA"),
                   RequesterRoleId: RequesterRoleId,
-                  ProcessName: "Annual Audit Program",
+                  ProcessName: "Memorandum",
                   FormNameId: FormNameId,
                   ApprovalType: "Approval",
                   // IsApprovalGenerated: "No"
-                  RedirectionLink: "Annual Audit Program/approve/" + editItemID,
+                  RedirectionLink: "Memorandum/approve/" + editItemID,
 
 
 
@@ -1269,7 +1275,7 @@ const FormContext = ({ props }: any) => {
             // Delete each item from SharePoint
             for (const item of toDelete1) {
               try {
-                await sp.web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.getById(item.id).delete();
+                await sp.web.lists.getByTitle("MemorandumRecommendationList").items.getById(item.id).delete();
                 // console.log(`Deleted item with ID: ${item.ID}`);
               } catch (error) {
                 console.error(`Error deleting item with ID: ${item.id}`, error);
@@ -1333,7 +1339,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -1378,7 +1384,7 @@ const FormContext = ({ props }: any) => {
               // IssueNumber:,
               // RevisionNumber:,
               AuditTypeId: formData.auditProgramTypeId,
-              AuditProgramTypeId: formData.auditTypesId,
+              // AuditProgramTypeId: formData.auditTypesId,
               FromId: formData.from,
               ToId: formData.to,
               CcId: formData.CC,
@@ -1393,8 +1399,8 @@ const FormContext = ({ props }: any) => {
               // AimObjective: formData.objective,
               // Criteria: formData.criteria,
               // Scope: formData.scope,
-              Year: formData.Year || 0,
-              MonthName: formData.MonthName,
+              // Year: formData.Year || 0,
+              // MonthName: formData.MonthName,
               ToDepartmentsId: formData.ToDepartments || [],
               CCDepartmentsId: formData.CCDepartments || [],
               SubmiitedDate: new Date().toLocaleDateString("en-CA"),
@@ -1431,7 +1437,7 @@ const FormContext = ({ props }: any) => {
               for (const row of recommendationRows) {
 
                 const postPayload2 = {
-                  AnnualAuditProgramId: postId, // Assuming "Title" column exists
+                  MemorandumId: postId, // Assuming "Title" column exists
                   Section: row.section,
                   Date: row.date,
                   Time: row.startTime,
@@ -1500,11 +1506,11 @@ const FormContext = ({ props }: any) => {
                   RequesterNameId: currentUser.Id,
                   RequestedDate: new Date().toLocaleDateString("en-CA"),
                   RequesterRoleId: RequesterRoleId,
-                  ProcessName: "Annual Audit Program",
+                  ProcessName: "Memorandum",
                   FormNameId: FormNameId,
                   ApprovalType: "Approval",
                   IsApprovalGenerated: "No",
-                  RedirectionLink: "Annual Audit Program/approve/" + postId,
+                  RedirectionLink: "Memorandum/approve/" + postId,
 
 
 
@@ -1548,6 +1554,7 @@ const FormContext = ({ props }: any) => {
 
   const handleSaveAsDraft = async () => {
     if (await validateForm(FormSubmissionMode.DRAFT)) {
+
       if (editForm) {
         Swal.fire({
           title: 'Do you want to save this request?',
@@ -1565,7 +1572,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -1611,7 +1618,7 @@ const FormContext = ({ props }: any) => {
               // IssueNumber:,
               // RevisionNumber:,
               AuditTypeId: formData.auditProgramTypeId,
-              AuditProgramTypeId: formData.auditTypesId,
+              // AuditProgramTypeId: formData.auditTypesId,
               FromId: formData.from,
               ToId: formData.to,
               CcId: formData.CC,
@@ -1626,8 +1633,8 @@ const FormContext = ({ props }: any) => {
               // AimObjective: formData.objective,
               // Criteria: formData.criteria,
               // Scope: formData.scope,
-              Year: formData.Year || 0,
-              MonthName: formData.MonthName,
+              // Year: formData.Year || 0,
+              // MonthName: formData.MonthName,
               ToDepartmentsId: formData.ToDepartments || [],
               CCDepartmentsId: formData.CCDepartments || [],
               SubmiitedDate: new Date().toLocaleDateString("en-CA"),
@@ -1656,7 +1663,7 @@ const FormContext = ({ props }: any) => {
               for (const row of recommendationRows) {
 
                 const postPayload2 = {
-                  AnnualAuditProgramId: editItemID, // Assuming "Title" column exists
+                  MemorandumId: editItemID, // Assuming "Title" column exists
                   Section: row.section || "",
                   Date: row.date ? row.date : null,
                   Time: row.startTime || "",
@@ -1733,11 +1740,11 @@ const FormContext = ({ props }: any) => {
                 RequesterNameId: currentUser.Id,
                 RequestedDate: new Date().toLocaleDateString("en-CA"),
                 RequesterRoleId: RequesterRoleId,
-                ProcessName: "Annual Audit Program",
+                ProcessName: "Memorandum",
                 FormNameId: FormNameId,
                 ApprovalType: "Approval",
                 // IsApprovalGenerated: "No"
-                RedirectionLink: "Annual Audit Program/approve/" + editItemID,
+                RedirectionLink: "Memorandum/approve/" + editItemID,
 
 
 
@@ -1785,7 +1792,7 @@ const FormContext = ({ props }: any) => {
             // Delete each item from SharePoint
             for (const item of toDelete1) {
               try {
-                await sp.web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.getById(item.id).delete();
+                await sp.web.lists.getByTitle("MemorandumRecommendationList").items.getById(item.id).delete();
                 // console.log(`Deleted item with ID: ${item.ID}`);
               } catch (error) {
                 console.error(`Error deleting item with ID: ${item.id}`, error);
@@ -1848,7 +1855,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -1893,7 +1900,7 @@ const FormContext = ({ props }: any) => {
               // IssueNumber:,
               // RevisionNumber:,
               AuditTypeId: formData.auditProgramTypeId,
-              AuditProgramTypeId: formData.auditTypesId,
+              // AuditProgramTypeId: formData.auditTypesId,
               FromId: formData.from,
               ToId: formData.to,
               CcId: formData.CC,
@@ -1909,8 +1916,8 @@ const FormContext = ({ props }: any) => {
               // Criteria: formData.criteria,
               // Scope: formData.scope,            
 
-              Year: formData.Year || 0,
-              MonthName: formData.MonthName,
+              // Year: formData.Year || 0,
+              // MonthName: formData.MonthName,
               ToDepartmentsId: formData.ToDepartments || [],
               CCDepartmentsId: formData.CCDepartments || [],
               SubmiitedDate: new Date().toLocaleDateString("en-CA"),
@@ -1947,7 +1954,7 @@ const FormContext = ({ props }: any) => {
                 if ((row.section.trim() == "" && row.date.trim() == "" && row.startTime.trim() == "" && (row.auditor == null || row.auditor.length == 0)) == false) {
 
                   const postPayload2 = {
-                    AnnualAuditProgramId: postId, // Assuming "Title" column exists
+                    MemorandumId: postId, // Assuming "Title" column exists
                     Section: row.section || "",
                     Date: row.date ? row.date : null,
                     Time: row.startTime || "",
@@ -2008,11 +2015,11 @@ const FormContext = ({ props }: any) => {
                   RequesterNameId: currentUser.Id,
                   RequestedDate: new Date().toLocaleDateString("en-CA"),
                   RequesterRoleId: RequesterRoleId,
-                  ProcessName: "Annual Audit Program",
+                  ProcessName: "Memorandum",
                   FormNameId: FormNameId,
                   ApprovalType: "Approval",
                   IsApprovalGenerated: "No",
-                  RedirectionLink: "Annual Audit Program/approve/" + postId,
+                  RedirectionLink: "Memorandum/approve/" + postId,
 
 
 
@@ -2297,9 +2304,8 @@ const FormContext = ({ props }: any) => {
 
                         <div className="card">
                           <div className="card-body">
-                            <div className="previewIcon">
-                            <h4 style={{textAlign:'left', margin:'inherit'}} className="text-dark font-16 fw-bold mb-3">Memorandum</h4>
-                           {TemplateDoc && TemplateDoc.length >0 && <div className='btn btn-primary' 
+                            <h4 className="text-dark font-16 fw-bold mb-3">Memorandum</h4>
+                            {TemplateDoc && TemplateDoc.length >0 && <div className='btn btn-primary' 
                               onClick={() => OpenFile(TemplateDoc[0], "Open")}
                               
                             >
@@ -2308,9 +2314,7 @@ const FormContext = ({ props }: any) => {
                               {/* <FontAwesomeIcon icon={faEye} /> */}
                             </div>
                            }
-                            </div>
                             
-                           
 
                             <div className="row mb-3">
                               {AuditProgramType.map((row, index) => (<div className="col-lg-3">
@@ -2701,6 +2705,43 @@ const FormContext = ({ props }: any) => {
                                   </div>
                                 </div>
 
+                                
+                              <div className="col-lg-4">
+                                <div className="mb-3">
+                                  <label htmlFor="attachment" className="col-form-label">Attachment</label>
+                                  <div className="">
+
+                                    <div>
+                                      <input
+                                        type="file"
+                                        // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                        className="form-control"
+                                        id="attachment"
+                                        accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                        onChange={(e) => onFileChange(e, "Gallery", "MemorandumDocs")}
+                                        // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
+                                        disabled={InputDisabled}
+                                        multiple
+                                      />
+
+                                    </div>
+
+                                    <div>
+                                      {FilesArr.length > 0 ?
+                                        (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
+                                          <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
+                                        </a>) : ""
+
+                                      }
+                                    </div>
+
+
+
+                                  </div>
+
+                                </div>
+                              </div>
+
                                 <div className="col-lg-8 mb-3">
                                   <div className="mb-0">
                                     <label htmlFor="background" className="col-form-label">Background<span className="text-danger1"> *</span></label>
@@ -2753,9 +2794,34 @@ const FormContext = ({ props }: any) => {
                               <div className='col-sm-6'>
                                 <h3 className='text-dark font-16 fw-bold mt-2 mb-3'>Recommendation</h3>
                               </div>
-                             
+                              
                             </div>
-                            <div className="row mb-3">
+                            {/* <div className="row mb-3">
+                              <div className="col-sm-12">
+                              <div style={{ textAlign: 'right' }} className='col-sm-6'>
+                                {!InputDisabled && formData.RecommendationTypeValue === "Table" && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-0' src={require("../../assets/plus.png")} onClick={handleAddRecommendationRow}></img>}
+                              </div>
+                                <h5 className="text-dark font-14 fw-bold mb-2">Select Recommendation type<span className="text-danger1"> *</span></h5>
+                                {RecommType.map((type, index) => (
+                                  <div key={index} className="form-check form-check-inline">
+                                    <input
+                                      className="form-check-input RecTypeClsErr"
+                                      type="radio"
+                                      name="recommendationType"
+                                      id={`recommendationType_${type.Id}`}
+                                      value={type.Id}
+                                      disabled={InputDisabled}
+                                      onChange={(e) => setFormData({ ...formData, recommendationTypeId: Number(e.target.value), RecommendationTypeValue: type.RecommendationTypeValue })}
+                                      checked={formData.recommendationTypeId === type.Id}
+                                    />
+                                    <label className="form-check-label" htmlFor={`recommendationType_${type.Id}`}>
+                                      {type.RecommendationTypeValue}
+                                    </label>
+                                  </div>
+                                ))}
+                              </div>
+                            </div> */}
+                             <div className="row mb-3">
                            
                            <div className='col-sm-6'>
                                 <h5 className="text-dark font-14 fw-bold mb-2">Select Recommendation type<span className="text-danger1"> *</span></h5>
@@ -2783,7 +2849,7 @@ const FormContext = ({ props }: any) => {
                             
                             </div>
                             {formData.RecommendationTypeValue === "Table" ? (
-                              <table id="tabRec" className='mtbalenew overhi mb-3'>
+                              <table id="tabRec" className='mtbalenew overhi'>
                                 <thead>
                                   <tr><th style={{ minWidth: '190px', maxWidth: '190px' }}>Section<span className="text-danger1"> *</span></th>
                                     <th>Date<span className="text-danger1"> *</span></th>
@@ -2851,7 +2917,7 @@ const FormContext = ({ props }: any) => {
 
                               </table>
                             ) : formData.RecommendationTypeValue === "TextBox" ? (
-                              <div className="row mb-3 mt-2">
+                              <div className="row mb-3">
                                 <div className="col-lg-12">
                                   <label htmlFor="recommendationDetails" className="form-label">
                                     Recommendation Details <span className="text-danger1"> *</span>
@@ -2880,108 +2946,11 @@ const FormContext = ({ props }: any) => {
                           </fieldset>
                         </section>
 
-                        <div className="card mt-2">
+                        {/* <div className="card mt-2">
                           <div className="card-body">
                             <h4 className="text-dark font-16 fw-bold mb-3">Audit Program Detail</h4>
 
                             <div className="row">
-
-
-                              {/* <div className="col-lg-4">
-                                                                <div className="mb-3">
-                                                                    <label htmlFor="exclusions" className="form-label">Exclusions<span className="text-danger1"> *</span></label>
-                                                                    <textarea
-
-                                                                        className={`form-control ${(!ValidAudit) ? "border-on-error" : ""}`}
-                                                                        id="exclusions"
-                                                                        placeholder=""
-                                                                        value={formData.exclusions}
-                                                                        onChange={(e) => {
-                                                                            setFormData({ ...formData, exclusions: e.target.value })
-                                                                            if (e.target.value) {
-                                                                                document.getElementById("exclusions")?.classList.remove("border-on-error");
-                                                                            }
-                                                                        }}
-                                                                        disabled={InputDisabled}
-                                                                    ></textarea>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="col-lg-4">
-                                                                <div className="mb-3">
-                                                                    <label htmlFor="boundary" className="form-label">Boundary<span className="text-danger1"> *</span></label>
-                                                                    <textarea
-                                                                        className={`form-control ${(!ValidAudit) ? "border-on-error" : ""}`}
-                                                                        id="boundary"
-                                                                        placeholder=""
-                                                                        value={formData.boundary}
-                                                                        onChange={(e) => {
-                                                                            setFormData({ ...formData, boundary: e.target.value })
-                                                                            if (e.target.value) {
-                                                                                document.getElementById("boundary")?.classList.remove("border-on-error");
-                                                                            }
-                                                                        }}
-                                                                        disabled={InputDisabled}
-                                                                    ></textarea>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="col-lg-4">
-                                                                <div className="mb-3">
-                                                                    <label htmlFor="objective" className="form-label">Aim / Objective<span className="text-danger1"> *</span></label>
-                                                                    <textarea
-                                                                        className={`form-control ${(!ValidAudit) ? "border-on-error" : ""}`}
-                                                                        id="objective"
-                                                                        placeholder=""
-                                                                        value={formData.objective}
-                                                                        onChange={(e) => {
-                                                                            setFormData({ ...formData, objective: e.target.value })
-                                                                            if (e.target.value) {
-                                                                                document.getElementById("objective")?.classList.remove("border-on-error");
-                                                                            }
-                                                                        }}
-                                                                        disabled={InputDisabled}
-                                                                    ></textarea>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="col-lg-4">
-                                                                <div className="mb-3">
-                                                                    <label htmlFor="criteria" className="form-label">Criteria<span className="text-danger1"> *</span></label>
-                                                                    <textarea
-                                                                        className={`form-control ${(!ValidAudit) ? "border-on-error" : ""}`}
-                                                                        id="criteria"
-                                                                        placeholder=""
-                                                                        value={formData.criteria}
-                                                                        onChange={(e) => {
-                                                                            setFormData({ ...formData, criteria: e.target.value })
-                                                                            if (e.target.value) {
-                                                                                document.getElementById("criteria")?.classList.remove("border-on-error");
-                                                                            }
-                                                                        }}
-                                                                        disabled={InputDisabled}
-                                                                    ></textarea>
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-lg-4">
-                                                                <div className="mb-3">
-                                                                    <label htmlFor="scope" className="form-label">Scope<span className="text-danger1"> *</span></label>
-                                                                    <textarea
-                                                                        className={`form-control ${(!ValidAudit) ? "border-on-error" : ""}`}
-                                                                        id="scope"
-                                                                        placeholder=""
-                                                                        value={formData.scope}
-                                                                        onChange={(e) => {
-                                                                            setFormData({ ...formData, scope: e.target.value })
-                                                                            if (e.target.value) {
-                                                                                document.getElementById("scope")?.classList.remove("border-on-error");
-                                                                            }
-                                                                        }}
-                                                                        disabled={InputDisabled}
-                                                                    ></textarea>
-                                                                </div>
-                                                            </div> */}
-
 
                               <div className='col-sm-4 mb-3'>
                                 <label htmlFor="scope" className="form-label">Type <span className="text-danger1"> *</span></label>
@@ -3067,7 +3036,7 @@ const FormContext = ({ props }: any) => {
                                         className="form-control"
                                         id="attachment"
                                         accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                                        onChange={(e) => onFileChange(e, "Gallery", "AnnualAuditProgramDocs")}
+                                        onChange={(e) => onFileChange(e, "Gallery", "MemorandumDocs")}
                                         // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
                                         disabled={InputDisabled}
                                         multiple
@@ -3094,7 +3063,7 @@ const FormContext = ({ props }: any) => {
 
                             </div>
                           </div>
-                        </div>
+                        </div> */}
 
 
 
@@ -3242,7 +3211,7 @@ const FormContext = ({ props }: any) => {
 
                         {
                           (InputDisabled && editID != null && modeValue === "approve" && editID.ApprovalType === "Approval" && editID.Status === "Pending") ? (
-                            <WorkflowAction currentItem={editID} ctx={props.context} ContentType={CONTENTTYPE_AuditProgram}
+                            <WorkflowAction currentItem={editID} ctx={props.context} ContentType={CONTENTTYPE_Memo}
                               DisableApproval={false} DisableCancel={false}
                             />
                           ) : (<div></div>)
@@ -3251,7 +3220,7 @@ const FormContext = ({ props }: any) => {
                         {/* ////////////Audit History card */}
                         {/* {editID !== null && editID.length != 0 && modeValue === "approve" && */}
                         {MainEditItem !== null && MainEditItem.length != 0 && MainEditItem?.Status !== "Save as draft" &&
-                          <WorkflowAuditHistory ContentItemId={MainEditItem} ContentType={CONTENTTYPE_AuditProgram} ctx={props.context} />
+                          <WorkflowAuditHistory ContentItemId={MainEditItem} ContentType={CONTENTTYPE_Memo} ctx={props.context} />
                         }
                         {/* ////////////Audit History card */}
 
@@ -3300,7 +3269,7 @@ const FormContext = ({ props }: any) => {
                         <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
                           <Modal.Header closeButton>
                             <Modal.Title > <h4 className='font-16 text-dark fw-bold'>Attachment Details</h4>  <br></br>
-                              <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for Annual Audit Program
+                              <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for Memorandum
                               </p>
 
                             </Modal.Title>
@@ -3412,12 +3381,12 @@ const FormContext = ({ props }: any) => {
   );
 }
 
-const FormComponent: React.FC<IFormProps> = (props) => (
+const MemoComponent: React.FC<IMemorandumProps> = (props) => (
   <Provider>
-    <FormContext props={props} />
+    <MemoContext props={props} />
   </Provider>
 );
 
 
 
-export default FormComponent;
+export default MemoComponent;

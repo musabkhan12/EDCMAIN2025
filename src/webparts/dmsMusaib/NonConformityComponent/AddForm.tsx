@@ -538,7 +538,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       <section className='card card-body'>
         <div className={styles.welcome}>
           <div className="row">
-            <div className="col-lg-4">
+            <div className="col-lg-4 newbread">
               <CustomBreadcrumb Breadcrumb={this.Breadcrumb} />
             </div>
 

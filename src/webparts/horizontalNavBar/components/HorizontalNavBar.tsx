@@ -557,6 +557,8 @@ const HorizontalNavbar = ({ _context, siteUrl,context }: any) => {
           </div>
           {/* <Moon size='22' className={isDarkMode ? 'bx bx-moon desktoView' : 'bx bx-sun desktoView'} onClick={handleThemeToggle} /> */}
           <div className="dropdown searchcssmobile ">
+          {/* <img src={require("../assets/Group 17144.png")} onClick={toggleDropdownBell}></img> */}
+
             <Bell className='bx bx-bell searchcssmobile dropcssBell' size='80' onClick={toggleDropdownBell} />
             {/* <div id="myDropdownBell" className={`dropdown-content searchcssmobile ${isOpenBell ? 'show' : ''}`}>
 

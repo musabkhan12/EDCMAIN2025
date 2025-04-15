@@ -8,6 +8,7 @@
   // box-shadow: 0 0 1px var(--grey-color-light);
   transition: all 0.5s ease;
 }
+.newbread .page-title{margin-top: -71px !important; text-align: left;}
 .newline{padding-top: 10px;}
 .newline .form-check {
   display: inline-block;
@@ -1070,6 +1071,10 @@ margin: 0px 0px !important ;
 }
 .navlink_icon svg{    height: 22px;
   width: 22px;}
+.inbox-rightbar .card .fw-bold{
+    font-weight: 700 !important;
+  }
+
 @media(max-width:1920px)
 {
   .inbox-rightbar .card {
@@ -1576,6 +1581,13 @@ color: #fff !important;
   .tabview1,.tabcontentv, .tabv{
       width: 100% !important; 
   }
+  .newbread .page-title{
+    margin-top: 10px !important;
+  }
+  .newbutton button{
+    padding: 6px 4px !important;
+  }
+  
 
   .sidebar{display: block;}
   #myHeader .open{display: block;}
@@ -1825,3 +1837,9 @@ color: #fff !important;
 .cursor-none{cursor: none !important;}
 .swal2-confirm{background: #f37421 !important; border-color: #f37421 !important;box-shadow: none !important;}
 .swal2-confirm:hover{background: #f37421 !important; border-color: #f37421 !important;}
+.previewIcon {
+  display: flex;
+  align-items: center;
+  /* justify-content: end; */
+  justify-content: space-between;
+}

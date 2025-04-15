@@ -18,6 +18,7 @@ import moment from 'moment';
 import AnnualAuditPlan from '../../AnnualAuditPlanComponent/AnnualAuditPlan';
 import AnnualAuditReport from '../../AnnualAuditReportComponent/AnnualAuditReport';
 import NonConformity from '../../NonConformityComponent/EditForm';
+import MemoComponent from '../MemorandumComponent/Memorandum';
 let currentuserid: any;
 let currentusertitle: any
 export class Listing extends React.Component<IListingProps, IListingState, IFormProps> {
@@ -203,15 +204,15 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     <td style={{ minWidth: '40px', maxWidth: '40px' }}>
                         <div style={{ marginLeft: '5px' }} className='indexdesign'>{i + 1}</div>
                     </td>
-                    <td title={item?.RequestId} style={{ minWidth: '85px', maxWidth: '85px' }}>{item?.RequestId}</td>
-                    <td title={item.Title} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.Title}</td>
-                    <td title={item?.ProcessName === "Annual Audit Plan" ? "Audit Plan" : item?.ProcessName} style={{ minWidth: '85px', maxWidth: '85px' }}>
+                    <td title={item?.RequestId} style={{ minWidth: '90px', maxWidth: '90px' }}>{item?.RequestId}</td>
+                    <td title={item.Title} style={{ minWidth: '90px', maxWidth: '90px' }}>{item.Title}</td>
+                    <td title={item?.ProcessName === "Annual Audit Plan" ? "Audit Plan" : item?.ProcessName} style={{ minWidth: '90px', maxWidth: '90px' }}>
                         {item?.ProcessName === "Annual Audit Plan" ? "Audit Plan" : item?.ProcessName}
                     </td>
                     <td title={item.ReqName} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.ReqName}</td>
-                    <td title={moment(item.ReqDt).format("DD-MMM-YYYY")} style={{ minWidth: '85px', maxWidth: '85px' }}>{moment(item.ReqDt).format("DD-MMM-YYYY")}</td>
-                    <td title={item.Status} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.Status}</td>
-                    <td style={{ minWidth: '75px', maxWidth: '75px' }}>
+                    <td title={moment(item.ReqDt).format("DD-MMM-YYYY")} style={{ minWidth: '90px', maxWidth: '90px' }}>{moment(item.ReqDt).format("DD-MMM-YYYY")}</td>
+                    <td title={item.Status} style={{ minWidth: '90px', maxWidth: '90px' }}>{item.Status}</td>
+                    <td style={{ minWidth: '60px', maxWidth: '60px' }}>
                         <a href={path} onClick={() => this.editItem(item)}>
                             {/* <a  onClick={() => this.editItem(item)}> */}
                             <img src={require("../../assets/edit.png")} className="fas fa-trash" alt="delete" />
@@ -240,20 +241,24 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         {this.state.process == "Annual Audit Plan" && <AnnualAuditPlan description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''} />}
                         {this.state.process == "Annual Audit Report" && <AnnualAuditReport description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''} />}
                         {this.state.process == "Non Conformity" && <NonConformity description={''} context={this.props.context} currentUserID={this.props.userid} userDisplayName={currentusertitle} />}
+                        {this.state.process == "Memorandum" && <MemoComponent userDisplayName={''} userid={this.props.userid} context={this.props.context} item={this.state.edItm} onClose={this.closeForm} />}
+
                     </div>
                 ) : (
                     <section style={{ display: 'grid' }}>
                         <table id="tabAllItems" className='mtbalenew'>
                             <thead>
                                 <tr>
-                                    <th style={{ minWidth: '40px', maxWidth: '40px' }}>
-                                        S.No
-                                        <span style={{ width: '100%', height: '45px', clear: 'both', float: 'left' }} className='pb-3'></span>
+                                    <th style={{ minWidth: '40px', textAlign:'center', maxWidth: '40px' }}>
+                                       
+                                        <div style={{ width: '100%', height: '78px', clear: 'both', display:'flex', justifyContent:'start', textAlign
+                                            :'center'
+                                         }} className='pb-3'> S.No</div>
                                     </th>
                                     {['RequestId', 'Title', 'ProcessName', 'ReqName', 'ReqDt', 'Status'].map(column => (
-                                        <th key={column} style={{ minWidth: '85px', maxWidth: '85px' }}>
+                                        <th key={column} style={{ minWidth: '90px',textAlign:'center', maxWidth: '90px' }}>
                                             <div>
-                                                <div onClick={() => this.handleSort(column)} style={{ cursor: 'pointer', display: 'flex' }}>
+                                                <div onClick={() => this.handleSort(column)} style={{ cursor: 'pointer', display: 'flex', height:'35px' }}>
                                                     {/* {column} */}
                                                     {column === 'ProcessName'
                                                         ? 'Process Name'
@@ -280,8 +285,9 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                             </div>
                                         </th>
                                     ))}
-                                    <th style={{ minWidth: '75px', maxWidth: '75px' }}>Action
-                                        <span style={{ width: '100%', height: '45px', clear: 'both', float: 'left' }} className='pb-3'></span>
+                                    <th style={{ minWidth: '60px', textAlign:'center', maxWidth: '60px' }}>
+                                        <div style={{ width: '100%', height: '78px',  display:'flex', justifyContent:'start', textAlign
+                                            :'center' }} className='pb-3'>Action</div>
 
                                     </th>
                                 </tr>
@@ -329,6 +335,21 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 RequestId: itm.MemoNumber || "",
                 Title: itm.Subject || "",
                 ProcessName: "Annual Audit Program",
+                ReqName: itm.Author ? itm.Author.Title : '',
+                ReqDt: new Date(itm.Created),
+                Status: itm.Status,
+                MainListId: itm.Id,
+                Id: itm.Id,
+                SubmitStatus: ''
+            });
+        });
+
+        const MemoItems = await spfi(this._sp).web.lists.getByTitle("Memorandum").items.select('Id,MemoNumber,Title,Author/Title,Created,Status,Subject').expand('Author')();
+        MemoItems.forEach(itm => {
+            allItems.push({
+                RequestId: itm.MemoNumber || "",
+                Title: itm.Subject || "",
+                ProcessName: "Memorandum",
                 ReqName: itm.Author ? itm.Author.Title : '',
                 ReqDt: new Date(itm.Created),
                 Status: itm.Status,

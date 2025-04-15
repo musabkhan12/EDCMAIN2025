@@ -74,6 +74,9 @@ border: 0px solid #f37421 !important;    height: 85px;
 .inbox-rightbar .card .text-dark,.inbox-rightbar .card .fw-bold{
 font-weight: 500 !important;
 }
+.inbox-rightbar .card .fw-bold{
+  font-weight: 700 !important;
+  }
 .ms-inputBox, input:not([type]), input[type=file], input[type=password], input[type=text] {
     height: 40px;
     padding: .5rem;
@@ -675,6 +678,7 @@ padding: 1rem 0.9rem;
 .mobile-w1 {
   width: 100% !important;
 }
+.inbox-rightbar{width: 87% !important;}
 .psonew {
   width: 100%; position: relative !important;
 }

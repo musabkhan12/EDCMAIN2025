@@ -55,7 +55,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
     let postPayload2 = {}
 
 
-    if (props.ContentType == "Document Cancellation" || props.ContentType == "Change Request" || props.ContentType == "Annual Audit Plan" || props.ContentType == "Annual Audit Report"|| props.ContentType == "Annual Audit Program") {
+    if (props.ContentType == "Document Cancellation" || props.ContentType == "Change Request" || props.ContentType == "Annual Audit Plan" || props.ContentType == "Annual Audit Report"|| props.ContentType == "Annual Audit Program"|| props.ContentType == "Memorandum") {
       const currentUser = await sp.web.currentUser();
 
       postPayload = {
@@ -131,7 +131,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
           // const postId = postResult?.data?.ID;
 
         }
-        else if (props.ContentType == "Annual Audit Plan"|| props.ContentType == "Annual Audit Program") {
+        else if (props.ContentType == "Annual Audit Plan"|| props.ContentType == "Annual Audit Program"|| props.ContentType == "Memorandum") {
           postResult = await updateItemApproval2(postPayload, sp, props.currentItem.Id);
 
         }

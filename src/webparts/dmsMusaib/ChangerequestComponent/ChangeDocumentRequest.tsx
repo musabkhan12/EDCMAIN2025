@@ -26,7 +26,9 @@ import {
   getListNameID, GetQueryString, getRequesterID, UpdateAllProcessItem, updateApprovalItem,
   updateItem, updateItemChangeRequestReasonList, updateItemChangeRequestList,
   getDocumentCodeselected, getDocumentLinkByIDarr,
-  getAllDepartment
+  getAllDepartment,
+  getAllTemplateType,
+  getGeneratedTemplateDocCR
 } from './DocumentCancellation';
 import Select from "react-select";
 import Swal from 'sweetalert2';
@@ -124,6 +126,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [documentcodeerr, setdocumentcodeerr] = React.useState(false);
   const [amendmenterr, setamendmenterr] = React.useState(false);
   const [departmenterr, setdepartmenterr] = React.useState(false);
+  const [templatetypeerr, settemplatetypeerr] = React.useState(false);
   const [classificationerr, setclassificationerr] = React.useState(false);
   const [custodianerr, setcustodianerr] = React.useState(false);
   const [locationerr, setlocationerr] = React.useState(false);
@@ -140,6 +143,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [rows, setRows] = React.useState<any>([]);
   const [ReqType, setReqType] = React.useState<any>([]);
   const [Departopt, setDepartment] = React.useState<any>([]);
+  const [TemplateTypeopt, setTemplateType] = React.useState<any>([]);
   const [Amendtype, setAmendtype] = React.useState<any>([]);
   const [Classificationopt, setClassificationopt] = React.useState<any>([]);
   const [LocationOpt, setLocationOpt] = React.useState<any>([]);
@@ -153,6 +157,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [selectedOptionReq, setSelectedOptionReq] = React.useState(null);
   const [selectedOptionAmend, setSelectedOptionAmend] = React.useState(null);
   const [SelectedOptionDepart, setSelectedOptionDepart] = React.useState(null);
+  const [SelectedOptionTemplate, setSelectedOptionTemplate] = React.useState(null);
+
   const [selectedOptionClass, setSelectedOptionClassification] = React.useState(null);
   const [selectedOptionLoc, setselectedOptionLoc] = React.useState(null);
   const [selectedOptionCusto, setselectedOptionCusto] = React.useState(null);
@@ -177,6 +183,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [issueNo, setissueNo] = React.useState("");
   const [revisionNo, setrevisionNo] = React.useState("");
   const [pageValue, setpage] = React.useState("");
+  const [TemplateDoc, setTemplateDoc] = React.useState<any>([]);
   const [cancellReason, setcancellReason] = React.useState([{ id: 0, description: "", reason: "" }]);
   const [cancellReasonEdit, setcancellReasonEdit] = React.useState([]);
   const [formData, setFormData] = React.useState({
@@ -184,6 +191,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     RequesterName: "",
     RequesterDesignation: "",
     DepartmentId: 0,
+    TemplateTypeId: 0,
     RequestDate: "",
     IssueDate: "",
     LocationId: 0,
@@ -271,6 +279,16 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       departmentcode: item.DepartmentCode
     }));
     setDepartment(optionsDepartment);
+    var TemplateTypeArr = await getAllTemplateType(sp);
+    TemplateTypeArr.sort((a, b) => a.TemplateTypeName.localeCompare(b.TemplateTypeName));
+    const optionsTemplateType = TemplateTypeArr.map((item: any) => ({
+      value: item.ID,
+      label: item.TemplateTypeName,
+      itemId: item.ID,
+      TemplateTypeName: item.TemplateTypeName,
+      TemplateTypeValue: item.TemplateTypeValue
+    }));
+    setTemplateType(optionsTemplateType);
     var AmendmentTypeArr = await getAllAmendmentType(sp);
     AmendmentTypeArr.sort((a, b) => a.AmendmentType.localeCompare(b.AmendmentType));
     const optionsamendment = AmendmentTypeArr.map((item: any) => ({
@@ -331,7 +349,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
     }));
 
-
+    const selectedTemplatefirst = optionsTemplateType.filter((cust: { label: any; }) => cust.label === "Others")[0] || null;
+    setSelectedOptionTemplate(selectedTemplatefirst);
+    setFormData(prevData => ({
+      ...prevData,
+      TemplateTypeId: selectedTemplatefirst.value
+      // Format as YYYY-MM-DD
+    }));
     var DocCodeArr = await getAllDocumentCode(sp);
     const options = DocCodeArr.map((item: any) => ({
       value: item.DocumentCode,
@@ -470,6 +494,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           RequesterNameId: setBannerById[0].RequesterNameId,
           RequesterDesignation: setBannerById[0].RequesterDesignation,
           DepartmentId: setBannerById[0].DepartmentId,
+          TemplateTypeId: setBannerById[0].TemplateTypeId,
           RequestDate: setBannerById[0].RequestDate,
           IssueDate: setBannerById[0].IssueDate,
           LocationId: setBannerById[0].LocationId,
@@ -547,6 +572,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           RequestTypeId: setBannerById[0].RequestTypeId,
           DocumentTypeId: setBannerById[0].DocumentTypeId,
           DepartmentId: setBannerById[0].DepartmentId,
+          TemplateTypeId: setBannerById[0].TemplateTypeId,
           AttachmentId: setBannerById[0].AttachmentId,
           AttachmentJson: setBannerById[0].AttachmentJson,
           Status: setBannerById[0].Status
@@ -564,11 +590,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         const selectedClassifiction = optionsclassification.filter((classi: { value: any; }) => classi.value === setBannerById[0].ClassificationId)[0] || null;
         const selectedRequesttype = optionsreq.filter((cust: { value: any; }) => cust.value === setBannerById[0].RequestTypeId)[0] || null;
         const selecteddepart = optionsDepartment.filter((cust: { value: any; }) => cust.value === setBannerById[0].DepartmentId)[0] || null;
+        const selectedTemplate = optionsTemplateType.filter((cust: { value: any; }) => cust.value === setBannerById[0].TemplateTypeId)[0] || null;
         setSelectedOption(selectedDocCode.length > 0 && selectedDocCode[0]);
         setselectedOptionDoctype(selectedDocumentType);
         setSelectedOptionClassification(selectedClassifiction);
         setSelectedOptionAmend(selectedAmendment);
         setSelectedOptionDepart(selecteddepart);
+        setSelectedOptionTemplate(selectedTemplate);
         setselectedOptionCusto(selectedCustodian);
         setselectedOptionLoc(selectedLocation);
         setselectedCheckboxIds(setBannerById[0].ChangeRequestTypeId);
@@ -588,6 +616,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         else {
           setDocumentLink(null);
         }  // Set the selected users
+        setTemplateDoc(await getGeneratedTemplateDocCR(sp, Number(formitemid)));
         const rowData: any[] = await getItemByIDChangeRequest(sp, Number(setBannerById[0].ID)) //baseUrl
         const initialRows = rowData.map((item: any) => ({
           id: item.Id,
@@ -635,6 +664,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         DocumentCode: selectedList.value,
         DocumentTypeId: selectedList.DocumentTypeId,
         DepartmentId: selectedList.DepartmentId,
+        //TemplateTypeId:selectedList.TemplateTypeId,
         AttachmentId: selectedList.AttachmentId,
         AttachmentJson: selectedList.AttachmentJson
         // Format as YYYY-MM-DD
@@ -657,10 +687,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       const selectedClassifiction = Classificationopt.filter((docType: { value: any; }) => docType.value === selectedList.ClassificationId)[0] || null;
       //const selectedRequesttype = optionsreq.filter((cust: { value: any; }) => cust.value === selectedList.RequestTypeId)[0] || null;
       const selecteddepart = Departopt.filter((cust: { value: any; }) => cust.value === selectedList.DepartmentId)[0] || null;
+      const selectedTemplate = TemplateTypeopt.filter((cust: { value: any; }) => cust.value === selectedList.TemplateTypeId)[0] || null;
       setselectedOptionDoctype(selectedDocumentType);
       setSelectedOptionClassification(selectedClassifiction);
       setSelectedOptionAmend(selectedAmendment);
       setSelectedOptionDepart(selecteddepart);
+      setSelectedOptionTemplate(selectedTemplate);
       setselectedOptionCusto(selectedCustodian);
       setselectedOptionLoc(selectedLocation);
       //setselectedCheckboxIds(selectedList.ChangeRequestTypeId);
@@ -699,7 +731,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       ReferenceNumber: "",
     }));
     //setselectedCheckboxIds([]);
-    if(selectedList?.label != "Change Request for New Addition"){
+    if (selectedList?.label != "Change Request for New Addition") {
       setselectedOptionDoctype(null);
       setselectedOptionCusto(null);
       setselectedOptionLoc(null);
@@ -708,7 +740,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     //setSelectedOptionClassification(null);
     //setSelectedOptionAmend(null);
     //setSelectedOptionDepart(null);
-  
+
     //setSelectedOptionReq(null);
     setSelectedOption(null);
     //setAttachmentarr([]);
@@ -738,6 +770,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       // Format as YYYY-MM-DD
     }));
     setSelectedOptionDepart(selectedList);  // Set the selected users
+  };
+  const onSelectTemplatetype = (selectedList: any) => {
+    console.log(selectedList, "selectedListadtemplatetype");
+    setFormData(prevData => ({
+      ...prevData,
+      TemplateTypeId: selectedList.value
+      // Format as YYYY-MM-DD
+    }));
+    setSelectedOptionTemplate(selectedList);  // Set the selected users
   };
   const onSelectClassification = (selectedList: any) => {
     console.log(selectedList, "selectedListclasss");
@@ -1023,6 +1064,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     setdocumentcodeerr(false);
     setamendmenterr(false);
     setdepartmenterr(false);
+    settemplatetypeerr(false);
     setattachmenterr(false);
     setchangedescriptionerr(false);
     setchangereasonerr(false);
@@ -1066,6 +1108,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       }
       if (!SelectedOptionDepart) {
         setdepartmenterr(true);
+        valid = false;
+      }
+      if (!SelectedOptionTemplate) {
+        settemplatetypeerr(true);
         valid = false;
       }
       if (cancellReason.length > 0) {
@@ -1279,6 +1325,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
               DepartmentId: formData.DepartmentId,
+              TemplateTypeId: formData.TemplateTypeId,
               RequestDate: new Date(formData.RequestDate).toISOString(),
               IssueDate: new Date(formData.IssueDate).toISOString(),
               LocationId: formData.LocationId,
@@ -1415,6 +1462,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
               DepartmentId: formData.DepartmentId,
+              TemplateTypeId: formData.TemplateTypeId,
               RequestDate: formData.RequestDate != "" ? new Date(formData.RequestDate).toISOString() : new Date().toISOString(),
               //IssueDate: formData.IssueDate,
               LocationId: formData.LocationId,
@@ -1585,6 +1633,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
               DepartmentId: formData.DepartmentId,
+              TemplateTypeId: formData.TemplateTypeId,
               RequestDate: new Date(formData.RequestDate).toISOString(),
               LocationId: formData.LocationId,
               CustodianId: formData.CustodianId,
@@ -1734,6 +1783,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
               DepartmentId: formData.DepartmentId,
+              TemplateTypeId: formData.TemplateTypeId,
               RequestDate: new Date(formData.RequestDate).toISOString(),
               IssueDate: new Date().toISOString(),
               LocationId: formData.LocationId,
@@ -2177,6 +2227,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
               DepartmentId: formData.DepartmentId,
+              TemplateTypeId: formData.TemplateTypeId,
               RequestDate: formData.RequestDate,
               IssueDate: formData.IssueDate,
               LocationId: selectedOption.LocationId,
@@ -2302,6 +2353,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
               DepartmentId: formData.DepartmentId,
+              TemplateTypeId: formData.TemplateTypeId,
               RequestDate: formData.RequestDate,
               IssueDate: formData.IssueDate,
               LocationId: selectedOption.LocationId,
@@ -2506,11 +2558,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     const encodedFilePath = encodeURIComponent(serverRelativeUrl);
 
     // Example: 
-    // serverRelativeUrl = "/sites/AlRostmani/test/DocumentLibraryInsideTest/Book.xlsx"
+    // serverRelativeUrl = "/sites/edcspfx/test/DocumentLibraryInsideTest/Book.xlsx"
     const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
     const siteUrl = window.location.origin;
 
-    // const previewUrl = `${siteUrl}/sites/AlRostmani/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    // const previewUrl = `${siteUrl}/sites/edcspfx/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     const previewUrl = `${siteUrl}${locationPath}/ChangeRequestDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     console.log("Generated Preview URL:", previewUrl);
@@ -2720,7 +2772,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                         <div className="card">
                           <div className="card-body">
 
-                            <h3 className="text-dark font-16 mb-3">Requested By</h3>
+                            <h4 className="text-dark font-16 fw-bold mb-3">Requested By</h4>
+                            {TemplateDoc && TemplateDoc.Length > 0 && <span
+                              onClick={() => OpenFile(TemplateDoc[0], "Open")}
+                              style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                            >
+                              <FontAwesomeIcon icon={faEye} />
+                            </span>
+                            }
                             {/* <p className="sub-header">
                                                         Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aspernatur, itaque.
                                                     </p> */}
@@ -2922,7 +2981,24 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   />
                                 </div>
                               </div>
+                              <div className="col-lg-4">
 
+
+                                <div className="mb-3">
+                                  <label htmlFor="RequesterName" className="form-label">Template Type:<span className="text-danger1">*</span></label>
+                                  {/* <input type="text" id="Name" name="department" className="form-control" value={formData.Department} disabled={true} />
+   */}
+                                  <Select
+                                    options={TemplateTypeopt}
+                                    value={SelectedOptionTemplate}
+                                    name="Template Type"
+                                    className={`${(!ValidSubmit && templatetypeerr) ? "border-on-error" : ""}`}
+                                    onChange={(selectedOption: any) => onSelectTemplatetype(selectedOption)}
+                                    placeholder="Search Template type"
+                                    isDisabled={InputDisabled}
+                                  />
+                                </div>
+                              </div>
                               {console.log("FormItemIdFormItemIdFormItemId", FormItemId, modeValue, selectedOption, Attachmentarr, DocumentLink)}
                               {/* //modeValue != "view" || modeValue == "edit" || modeValue != "approve"  && */}
                               {(FormItemId == null || (FormItemId != null && modeValue == "edit") || (modeValue == "view" || modeValue == "approve")
@@ -2972,7 +3048,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   </div>
                                 </div>
                               }
-                              {console.log("ghghghghghghgh",showpreviousattachment,"jjjj",(showpreviousattachment ||(((modeValue == "view" || modeValue == "approve" ||
+                              {console.log("ghghghghghghgh", showpreviousattachment, "jjjj", (showpreviousattachment || (((modeValue == "view" || modeValue == "approve" ||
                                 (selectedOptionReq?.label != "Change Request for New Addition" && selectedOption)) ||
                                 (modeValue == "edit" && formData?.Status == "Save as draft")) && DocumentLink && Attachmentarr.length == 0)))}
                               {(showpreviousattachment && selectedOptionReq?.label != "Change Request for New Addition" || (((modeValue == "view" || modeValue == "approve" ||
@@ -3003,7 +3079,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                           <div className="card-body">
                             <div className='row'>
                               <div className='col-sm-12'>
-                                <h3 className="text-dark font-16 mb-1">Change Request Type<span className="text-danger1">*</span></h3>
+                                <h3 className="text-dark font-16 fw-bold mb-3">Change Request Type<span className="text-danger1">*</span></h3>
                                 {/* <label className="form-label text-muted font-16">Change Request Type</label> */}
                                 <div className="row"> {renderCheckboxes()}</div>
                               </div>
@@ -3015,7 +3091,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                           <div className="card-body">
                             <div className='row'>
                               <div className='col-sm-8'>
-                                <h3 className="text-dark font-16 mb-3">Description</h3>
+                                <h3 className="text-dark font-16 fw-bold mb-3">Description</h3>
 
                               </div>
                               {console.log("formData?.Status ", InputDisabled, formData)}
@@ -3134,7 +3210,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                             <div className="card-body">
                               <div className='row'>
                                 <div className='col-sm-8'>
-                                  <h3 className="header-title text-dark font-16 mb-3 ">Forward Approval To</h3>
+                                  <h3 className="header-title text-dark font-16 fw-bold mb-3 ">Forward Approval To</h3>
                                   <label>Define the approval hierarchy to ensure requests are routed to the appropriate approvers.
                                   </label>
                                 </div>

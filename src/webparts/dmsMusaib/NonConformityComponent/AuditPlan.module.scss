@@ -1,8 +1,8 @@
 @import '~@fluentui/react/dist/sass/References.scss';
 
 .auditPlan {
-  overflow: hidden;
-  padding: 1em;
+  overflow: inherit;
+  padding: 1em 0em;
   color: "[theme:bodyText, default: #323130]";
   color: var(--bodyText);
 
@@ -10,6 +10,10 @@
     font-family: $ms-font-family-fallbacks;
   }
 }
+// .newaddid .auditPlan1 {
+//   overflow: inherit;
+//   padding: 1em 0em;
+// }
 
 .welcome {
   text-align: center;
@@ -102,3 +106,7 @@
   color: blue;
   cursor: pointer; 
 }
+#approvalSection textarea{width: 100%;}
+.librarydata .page-title{text-align: left;    margin-top: -57px}
+.newcssbtn .ms-Button--primary + .newcssbtn .ms-Button--primary{background: #ffc107 !important; border-color: #ffc107 !important; color: #000 !important;}
+.newcssbtn .ms-Button--primary + .newcssbtn .ms-Button--primary + .newcssbtn .ms-Button--primary{background: #d3d4d5 !important; border-color: #d3d4d5 !important; color: #000 !important;}

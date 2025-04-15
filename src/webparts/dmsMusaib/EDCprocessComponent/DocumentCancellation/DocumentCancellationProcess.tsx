@@ -130,6 +130,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         ChangeRequestID: 0,
         AttachmentId: [],
         AttachmentJson: "",
+        TemplateTypeId:0,
 
 
 
@@ -273,10 +274,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             AmendmentType: item.AmendmentType.AmendmentType,
             Classification: item.Classification.Classification,
             DocumentType: item.DocumentType.DocumentType,
-            // DocumentName: "",
-            // IsRework: false,
-            // DigitalSignStatus: false,
-
+            TemplateTypeId:item.TemplateTypeId,
 
         }));
 
@@ -419,6 +417,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     AmendmentType: setBannerById[0].AmendmentType.AmendmentType,
                     Classification: setBannerById[0].Classification.Classification,
                     DocumentType: setBannerById[0].DocumentType.DocumentType,
+                    TemplateTypeId:setBannerById[0].TemplateTypeId,
 
 
                 }
@@ -462,6 +461,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     AmendmentType: setBannerById[0].AmendmentType.AmendmentType,
                     Classification: setBannerById[0].Classification.Classification,
                     DocumentType: setBannerById[0].DocumentType.DocumentType,
+                    TemplateTypeId:setBannerById[0].TemplateTypeId
 
                     // Format as YYYY-MM-DD
                 }));
@@ -531,6 +531,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             AmendmentType: selectedList.AmendmentType,
             Classification: selectedList.Classification,
             DocumentType: selectedList.DocumentType,
+            TemplateTypeId:selectedList.TemplateTypeId,
             // Format as YYYY-MM-DD
         }));
         setSelectedOption(selectedList);
@@ -809,7 +810,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             InitiatorSubmitStatus: "Yes",
                             CurrentUserRole: "OES",
                             AttachmentId: selectedOption.AttachmentId,
-                            AttachmentJson: selectedOption.AttachmentJson
+                            AttachmentJson: selectedOption.AttachmentJson,
+                            TemplateTypeId:selectedOption.TemplateTypeId,
 
 
                         }
@@ -944,6 +946,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             OESSubmitStatus: "No",
                             InitiatorSubmitStatus: "Yes",
                             CurrentUserRole: "OES",
+                            TemplateTypeId:selectedOption.TemplateTypeId,
                             AttachmentId: selectedOption.AttachmentId,
                             AttachmentJson: selectedOption.AttachmentJson ? selectedOption.AttachmentJson : ""
 
@@ -1048,7 +1051,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             InitiatorSubmitStatus: "No",
                             CurrentUserRole: "OES",
                             AttachmentId: selectedOption.AttachmentId,
-                            AttachmentJson: selectedOption.AttachmentJson
+                            AttachmentJson: selectedOption.AttachmentJson,
+                            TemplateTypeId:selectedOption.TemplateTypeId,
 
 
                         }
@@ -1181,7 +1185,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             InitiatorSubmitStatus: "No",
                             CurrentUserRole: "OES",
                             AttachmentId: selectedOption.AttachmentId,
-                            AttachmentJson: selectedOption.AttachmentJson
+                            AttachmentJson: selectedOption.AttachmentJson,
+                            TemplateTypeId:selectedOption.TemplateTypeId,
 
 
                         };
@@ -1911,7 +1916,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                 <div className="card">
                                                     <div className="card-body">
 
-                                                        <h3 className="text-dark font-16 mb-3">Requested By</h3>
+                                                        <h3 className="text-dark font-16 fw-bold mb-3">Requested By</h3>
 
                                                         {FormLoading ?
 
@@ -2108,7 +2113,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                     <div className="card-body">
                                                         <div className='row'>
                                                             <div className='col-sm-8'>
-                                                                <h3 className="text-dark font-16 mb-3">Description</h3>
+                                                                <h3 className="text-dark font-16 fw-bold mb-3">Description</h3>
 
                                                             </div>
 
@@ -2214,7 +2219,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                         <div className="card-body">
                                                             <div className='row'>
                                                                 <div className='col-sm-8'>
-                                                                    <h4 className="header-title text-dark font-16 mb-3 ">Forward Approval To</h4>
+                                                                    <h4 className="header-title text-dark font-16 fw-bold mb-3 ">Forward Approval To</h4>
 
                                                                 </div>
                                                                 <div className='col-sm-4'>
@@ -2348,7 +2353,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                         <div className="card-body">
                                                             <div className='row'>
                                                                 <div className='col-sm-8'>
-                                                                    <h4 className="header-title text-dark font-16 mb-3 ">Forward Approval To</h4>
+                                                                    <h4 className="header-title text-dark font-16 fw-bold mb-3 ">Forward Approval To</h4>
                                                                     <label>Define the approval hierarchy to ensure requests are routed to the appropriate approvers.
                                                                     </label>
 

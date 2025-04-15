@@ -50,14 +50,14 @@ const NotificationList = ({ NotificationArray, handleNotificationClick, OnCleara
    
         let webUrl = window.location.href;
         const baseUrl = webUrl.substring(0, webUrl.lastIndexOf("/SitePages") + "/SitePages".length);
-        console.log(baseUrl , "notification baseurl"); // Output: https://example.com/webUrl/sites/AlRostmani/SitePages
+        console.log(baseUrl , "notification baseurl"); // Output: https://example.com/webUrl/sites/edcspfx/SitePages
         window.location.href = `${baseUrl}/NotificationDetails.aspx`;
     }
     const goToSettings = () => {
    
         let webUrl = window.location.href;
         const baseUrl = webUrl.substring(0, webUrl.lastIndexOf("/SitePages") + "/SitePages".length);
-        console.log(baseUrl); // Output: https://example.com/webUrl/sites/AlRostmani/SitePages
+        console.log(baseUrl); // Output: https://example.com/webUrl/sites/edcspfx/SitePages
         window.location.href = `${baseUrl}/ManageNotification.aspx`;
     }
     return (
@@ -85,7 +85,11 @@ const NotificationList = ({ NotificationArray, handleNotificationClick, OnCleara
                                     onClick={() => handleNotificationClick(notify)} style={{display: 'flex', margin: '0 auto' }}>
                                     <div className="">
                                         <span className="float-start noti-close-btn text-muted">
-                                            <img  src={require("../../../CustomAsset/Noti.jpg")}
+                                        {/* <img  src={require("../../../CustomAsset/Noti.jpg")}
+                                       
+                                       className="me-1 noti"
+                                     /> */}
+                                            <img src={require("../assets/Group17144.png")}
                                        
                                         className="me-1 noti"
                                       /></span>
@@ -118,10 +122,16 @@ const NotificationList = ({ NotificationArray, handleNotificationClick, OnCleara
                                     onClick={() => handleNotificationClick(notify)} style={{ display: 'flex', margin: '0px auto' }}>
                                     <div className="">
                                     <span className="float-start noti-close-btn text-muted">
-                                            <img  src={require("../../../CustomAsset/Noti.jpg")}
+                                            {/* <img  src={require("../../../CustomAsset/Noti.jpg")}
                                        
                                         className="me-1 noti"
-                                      /></span>
+                                      /> */}
+                                       <img src={require("../assets/Group17144.png")}
+                                       
+                                       className="me-1 noti"
+                                     />
+                                      
+                                      </span>
                                         <div className="d-flex align-items-center">
                                             <div className="flex-grow-1 text-truncate ms-2">
                                                 <h5 className="noti-item-title hovertext  fw-semibold font-14 mb-0" style={{ textTransform: 'capitalize' }}>
@@ -151,10 +161,15 @@ const NotificationList = ({ NotificationArray, handleNotificationClick, OnCleara
                                     onClick={() => handleNotificationClick(notify)} style={{ display: 'flex', margin: '0px auto' }}>
                                     <div className="">
                                     <span className="float-start noti-close-btn text-muted">
-                                            <img  src={require("../../../CustomAsset/Noti.jpg")}
+                                            {/* <img  src={require("../../../CustomAsset/Noti.jpg")}
                                        
                className="me-1 noti"
-                                      /></span>
+                                      /> */}
+                                       <img src={require("../assets/Group17144.png")}
+                                       
+                                       className="me-1 noti"
+                                     />
+                                      </span>
                                         <div className="d-flex align-items-center">
                                             <div className="flex-grow-1 text-truncate ms-2">
                                                 <h5 className="noti-item-title hovertext  fw-semibold font-14 mb-0" style={{ textTransform: 'capitalize' }}>

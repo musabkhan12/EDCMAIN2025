@@ -74,6 +74,9 @@ border: 0px solid #f37421 !important;    height: 85px;
 .inbox-rightbar .card .text-dark,.inbox-rightbar .card .fw-bold{
 font-weight: 500 !important;
 }
+.inbox-rightbar .card .fw-bold{
+  font-weight: 700 !important;
+  }
 .ms-inputBox, input:not([type]), input[type=file], input[type=password], input[type=text] {
     height: 40px;
     padding: .5rem;
@@ -685,6 +688,7 @@ float: left;}
  .mobile-w2 {
   width: 100% !important;
 }
+.inbox-rightbar{width: 87% !important;}
 .navcss{padding: 0px 1.5rem !important;}
 .mobile-5,.mobile-6 {
 float: left;

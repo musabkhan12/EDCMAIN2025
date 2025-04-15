@@ -559,7 +559,7 @@ const CreateFolder: React.FC<CreateFolderProps> = ({
         (payloadForFolderMaster as any).DocumentLibraryName=folderName;
         //  (payloadForFolderMaster as any).FolderPath=`/sites/IntranetUAT/${OthProps.Entity}/${folderName}`;
          (payloadForFolderMaster as any).FolderPath=`${locationPath}/${OthProps.Entity}/${folderName}`;
-        // (payloadForFolderMaster as any).FolderPath=`/sites/AlRostmani/${OthProps.Entity}/${folderName}`;
+        // (payloadForFolderMaster as any).FolderPath=`/sites/edcspfx/${OthProps.Entity}/${folderName}`;
         (payloadForFolderMaster as any).IsLibrary=true;
 
       }else{

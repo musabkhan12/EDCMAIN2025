@@ -744,7 +744,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
       <section style={{ padding: '10px 0px' }}>
         <div className={styles.welcome}>
           <div className="row">
-            <div className="col-lg-4">
+            <div className="col-lg-4 newbread">
               <CustomBreadcrumb Breadcrumb={this.Breadcrumb} />
             </div>
 

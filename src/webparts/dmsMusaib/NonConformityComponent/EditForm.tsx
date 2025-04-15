@@ -553,7 +553,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         .items
         .select("*", "AssignedTo/Title,RequesterName/Title,ActionTakenBy/Title")
         .expand("AssignedTo,RequesterName,ActionTakenBy")
-        .filter("ListItemId eq '" + this.state.mainItemId + "' and ProcessName eq 'Non Conformity'")
+        .filter("ListItemId eq '" + this.state.mainItemId + "' and ProcessName eq ''")
         .orderBy("Id", false)();
       var cnt: any = 0;
       var appItems: any[] = [];
@@ -601,7 +601,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       }
       //AllProcessApproval Table data
       const approvalItems = await sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.select("*", "Approvers/Name").expand("Approvers")
-        .filter("MainListID eq '" + this.state.mainItemId + "'and ProcessName eq 'Non Conformity'")
+        .filter("MainListID eq '" + this.state.mainItemId + "'and ProcessName eq ''")
         .orderBy("Level")();
       var allApp: any[] = [];
       var cnt: any = 0;
@@ -1275,7 +1275,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 RequestId: documentCode,
                 RequesterNameId: _self.props.currentUserID,
                 RequestedDate: new Date(),
-                ProcessName: "Non Conformity",
+                ProcessName: "",
                 FormNameId: _self.state.formNameId,
                 MainListID: _self.state.ncItemId,
                 RequesterRoleId: _self.state.reqRolId,
@@ -1298,7 +1298,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 RequestId: this.state.notUpdateDepartmentCode,
                 RequesterNameId: _self.props.currentUserID,
                 RequestedDate: new Date(),
-                ProcessName: "Non Conformity",
+                ProcessName: "",
                 FormNameId: _self.state.formNameId,
                 MainListID: _self.state.ncItemId,
                 RequesterRoleId: _self.state.reqRolId,
@@ -1788,7 +1788,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       <section style={{ padding: '10px 0px' }}>
         <div className={styles.welcome}>
           <div className="row">
-            <div className="col-lg-4">
+            <div className="col-lg-4 newbread">
               <CustomBreadcrumb Breadcrumb={this.Breadcrumb} />
             </div>
 
@@ -2159,36 +2159,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               </form>
             </fieldset>
           </section>) : null}
-          {this.state.editSubmitStatus == "Yes" ?
-            <section className='card card-body mt-2'>
-              <form>
-                <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row'>
-                  <div className="form-group col-md-12"><h3 style={{ textAlign: 'left' }} className='text-dark text-left font-16 fw-bold mb-3'>Audit Report</h3></div>
-                </div>
-                <div style={{ display: 'grid' }} className='row'>
-                  <table className='mtbalenew'>
-                    <thead>
-                      <tr>
-                        <th style={{ minWidth: '70px', maxWidth: '70px' }}>S No.</th>
-                        <th style={{ minWidth: '70px', maxWidth: '70px' }}>Level</th>
-                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Assigned To</th>
-                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Requestor Name</th>
-                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Requested Date</th>
-                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Action Taken By</th>
-                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Action Taken On</th>
-                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Remarks</th>
-                        <th style={{ minWidth: '70px', maxWidth: '70px' }}>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {auditHistory}
-                    </tbody>
-                  </table>
-                </div>
-              </form>
-            </section> : null}
+          <div className='card card-body mt-2'>
           {this.state.showApprove === true || this.state.showReject === true ?
-            <section style={{ justifyContent: 'left', textAlign: 'left', display: 'grid' }} id="approvalSection" className='card card-body'>
+            <section style={{ justifyContent: 'left', textAlign: 'left' }} id="approvalSection">
               <TextField label="Remarks" required name="remarks" value={this.state.remarks} multiline rows={3} onChange={this.handleChange}
                 styles={{
                   fieldGroup: {
@@ -2213,7 +2186,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             </div>
           }
           {this.state.showApprove &&
-            <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
+            <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }} className="newcssbtn">
 
               <PrimaryButton text="Approve" onClick={() => this._approveRequest("Approve")} />
 
@@ -2256,6 +2229,36 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
             </div>
           }
+        </div>
+          {this.state.editSubmitStatus == "Yes" ?
+            <section className='card card-body mt-2'>
+              <form>
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row'>
+                  <div className="form-group col-md-12"><h3 style={{ textAlign: 'left' }} className='text-dark text-left font-16 fw-bold mb-3'>Audit Report</h3></div>
+                </div>
+                <div style={{ display: 'grid' }} className='row'>
+                  <table className='mtbalenew'>
+                    <thead>
+                      <tr>
+                        <th style={{ minWidth: '70px', maxWidth: '70px' }}>S No.</th>
+                        <th style={{ minWidth: '70px', maxWidth: '70px' }}>Level</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Assigned To</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Requestor Name</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Requested Date</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Action Taken By</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Action Taken On</th>
+                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Remarks</th>
+                        <th style={{ minWidth: '70px', maxWidth: '70px' }}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditHistory}
+                    </tbody>
+                  </table>
+                </div>
+              </form>
+            </section> : null}
+           
         </div>
       </section >
     )

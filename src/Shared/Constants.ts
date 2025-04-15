@@ -9,10 +9,13 @@ export const CONTENTTYPE_DocumentCancel ="Document Cancellation";
 export const LIST_TITLE_DocCancel="ChangeRequestDocumentCancellationList";
 export const CONTENTTYPE_AuditPlan ="Annual Audit Plan";
 export const LIST_TITLE_AuditPlan="AnnualAuditPlanList";
+export const LIST_AuditPlan ="Audit Plan";
 export const CONTENTTYPE_AuditReport = "Annual Audit Report";
 export const LIST_TITLE_AuditReport = "AnnualAuditReportList";
 export const CONTENTTYPE_AuditProgram ="Annual Audit Program";
 export const LIST_TITLE_AuditProgram="AnnualAuditProgram";
+export const CONTENTTYPE_Memo ="Memorandum";
+export const LIST_TITLE_Memo="Memorandum";
 export const Tenant_URL ="https://officeindia.sharepoint.com"
 export const SITE_URL ="https://officeindia.sharepoint.com/sites/edcspfx"
  

@@ -270,7 +270,7 @@ export const getItemByID = async (_sp, id) => {
   let arrs = []
   let bannerimg = []
   await _sp.web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.getById(id)
-  .select("*,Department/ID,Department/Department,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title,Location/Location,Custodian/Custodian,DocumentType/DocumentType,AmendmentType/AmendmentType,Classification/Classification").expand("Department,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")()
+  .select("*,TemplateTypeId,Department/ID,Department/Department,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title,Location/Location,Custodian/Custodian,DocumentType/DocumentType,AmendmentType/AmendmentType,Classification/Classification").expand("Department,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")()
     .then((res) => {
       console.log(res, ' let arrs=[]');      
 

@@ -106,6 +106,33 @@ export const getAllDepartment = async (_sp) => {
     });
   return arr;
 };
+export const getAllTemplateType = async (_sp) => {
+  let arr = [];
+
+  await _sp.web.lists.getByTitle("TemplateTypeMaster").items
+    .select("*,Author/ID,Author/Title")
+    .expand("Author")
+    .orderBy("Modified", false)
+    .filter("IsActive eq 'Yes'")() // Order by Modified descending to get latest first
+    .then((res) => {
+      console.log(res);
+
+      // Filter only latest entry for each unique DocumentCode
+      const latestDocuments = res.reduce((acc, item) => {
+        if (!acc[item.TemplateTypeName]) {
+          acc[item.TemplateTypeName] = item;
+        }
+        return acc;
+      }, {});
+
+      arr = Object.values(latestDocuments);
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  return arr;
+};
+
 export const getAllRequestType = async (_sp) => {
   let arr = [];
 
@@ -182,7 +209,22 @@ export const getAllClassificationMaster = async (_sp) => {
     });
   return arr;
 };
-
+export const getGeneratedTemplateDocCR = async (_sp, itemId) => {
+  let results = [];
+  // for (let itemId of AttachmentIds) {
+    await _sp.web.lists.getByTitle("ChangeRequestGeneratedTemplateDoc").items
+      .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
+      .then((res) => {
+        console.log(res, ' let arrs=[]');
+        results = res;
+      })
+      .catch((error) => {
+        console.log("Error fetching data: ", error);
+      });
+  // }
+  console.log(results, 'results');
+  return results;
+}
 export const addItem = async (itemData, _sp) => {
 
   let resultArr = []

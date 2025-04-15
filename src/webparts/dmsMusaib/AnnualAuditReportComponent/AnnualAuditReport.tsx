@@ -191,7 +191,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
             MainComponentURl: `${SITE_URL}/SitePages/EDCMAIN.aspx`,
         },
         {
-            ChildComponent: "Annual Audit Report",
+            ChildComponent: "Audit Checklist and Report",
             ChildComponentURl: `${SITE_URL}/SitePages/EDCMAIN.aspx#/AnnualAuditReport`,
         },
     ];
