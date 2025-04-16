@@ -194,7 +194,13 @@ background-color: #ccc;
     padding: 0;
     line-height: 19px;
 }
-
+.previewIcon {
+    display: flex;
+    align-items: center;
+    /* justify-content: end; */
+    justify-content: space-between;
+    width: 100%;
+}
 .active4:after {
     content: "\2212";
 }

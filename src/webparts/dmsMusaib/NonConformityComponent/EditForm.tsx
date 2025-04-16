@@ -38,7 +38,7 @@ const datePickerErrorStyles: Partial<IDatePickerStyles> = {
       },
     },
   },
-};;
+};
 
 export interface IEditState {
   // mainItemId?: any | null;
@@ -138,6 +138,11 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
   constructor(props: IAuditPlanProps) {
     super(props);
+    const selectedTextDiv = document.getElementById('selectedText');
+    selectedTextDiv.style.display = 'none';
+    // const breadcrumbElement = document.getElementById("breadcrumb");
+    // breadcrumbElement.style.display = 'none';
+    
     this.state = {
       // mainItemId: props.edItm || null,
       mainItemId: '',
@@ -549,11 +554,18 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         notUpdateSerialNo: Items.SerialNumber,
       });
       //Process Approval List
-      const apprItems = await sp.web.lists.getByTitle("ProcessApprovalList")
-        .items
-        .select("*", "AssignedTo/Title,RequesterName/Title,ActionTakenBy/Title")
-        .expand("AssignedTo,RequesterName,ActionTakenBy")
-        .filter("ListItemId eq '" + this.state.mainItemId + "' and ProcessName eq ''")
+      const apprItems = await sp.web.lists
+        .getByTitle("ProcessApprovalList")
+        .items.select(
+          "*",
+          "AssignedTo/Title,ActionTakenRole/Title,RequesterName/Title,ActionTakenBy/Title"
+        )
+        .expand("AssignedTo,ActionTakenRole,RequesterName,ActionTakenBy")
+        .filter(
+          "ListItemId eq '" +
+            this.state.mainItemId +
+            "' and ProcessName eq 'Non Conformity'"
+        )
         .orderBy("Id", false)();
       var cnt: any = 0;
       var appItems: any[] = [];
@@ -564,10 +576,13 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           objToAdd["Level"] = itm.Level;
           objToAdd["AssignedTo"] = itm.AssignedTo.Title;
           objToAdd["RequesterName"] = itm.RequesterName.Title;
-          if (itm.RequestedDate == '' || itm.RequestedDate == null) {
-            objToAdd["RequestedDate"] = '';
+          objToAdd["ActionTakenRole"] = itm.ActionTakenRole?.Title||"";
+          {
+            /* Divyansh Changes */
           }
-          else {
+          if (itm.RequestedDate == "" || itm.RequestedDate == null) {
+            objToAdd["RequestedDate"] = "";
+          } else {
             objToAdd["RequestedDate"] = itm.RequestedDate;
           }
           if (itm.ActionTakenById != null) {
@@ -601,7 +616,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       }
       //AllProcessApproval Table data
       const approvalItems = await sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.select("*", "Approvers/Name").expand("Approvers")
-        .filter("MainListID eq '" + this.state.mainItemId + "'and ProcessName eq ''")
+        .filter("MainListID eq '" + this.state.mainItemId + "'and ProcessName eq 'Non Conformity'")
         .orderBy("Level")();
       var allApp: any[] = [];
       var cnt: any = 0;
@@ -871,9 +886,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   };
   public validateFormDraft = (): boolean => {
     let editErrors: { [key: string]: string } = {};
-    if (!this.state.editProblemDescription) editErrors.editProblemDescription = "Problem Description is required";
+  
+    if (!this.state.editDepartment) {
+      editErrors.editDepartment = "Department is required";
+      this.setState({ editErrors });
+      Swal.fire('Please select a department.');
+      return false;
+    }
+  
     this.setState({ editErrors });
-    return Object.keys(editErrors).length === 0;
+    return true;
   };
   public _approveRequest = (formsubmode: string) => {
     if (this.validateFormRemark()) {
@@ -1275,7 +1297,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 RequestId: documentCode,
                 RequesterNameId: _self.props.currentUserID,
                 RequestedDate: new Date(),
-                ProcessName: "",
+                ProcessName: "Non Conformity",
                 FormNameId: _self.state.formNameId,
                 MainListID: _self.state.ncItemId,
                 RequesterRoleId: _self.state.reqRolId,
@@ -1298,7 +1320,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 RequestId: this.state.notUpdateDepartmentCode,
                 RequesterNameId: _self.props.currentUserID,
                 RequestedDate: new Date(),
-                ProcessName: "",
+                ProcessName: "Non Conformity",
                 FormNameId: _self.state.formNameId,
                 MainListID: _self.state.ncItemId,
                 RequesterRoleId: _self.state.reqRolId,
@@ -1762,7 +1784,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           <td style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.AssignedTo}
           </td>
-          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
+          <td style={{ minWidth: "90px", maxWidth: "90px" }}>
+            {item.ActionTakenRole} {/* Divyansh Changes */}
+          </td>
+          <td style={{ minWidth: "90px", maxWidth: "90px" }}>
             {item.RequesterName}
           </td>
           <td style={{ minWidth: '90px', maxWidth: '90px' }}>
@@ -2159,9 +2184,67 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               </form>
             </fieldset>
           </section>) : null}
-          <div className='card card-body mt-2'>
+          {this.state.editSubmitStatus == "Yes" ?
+            <section className='card card-body mt-2'>
+              <form>
+                <div
+                  style={{ justifyContent: "left", textAlign: "left" }}
+                  className="row"
+                >
+                  <div className="form-group col-md-12">
+                    <h3
+                      style={{ textAlign: "left" }}
+                      className="text-dark text-left font-16 fw-bold mb-3"
+                    >
+                      Audit History {/* Divyansh Changes */}
+                    </h3>
+                  </div>
+                </div>
+                <div style={{ display: 'grid' }} className='row'>
+                  <table className='mtbalenew'>
+                    <thead>
+                      <tr>
+                        <th style={{ minWidth: "70px", maxWidth: "70px" }}>
+                          S No.
+                        </th>
+                        <th style={{ minWidth: "70px", maxWidth: "70px" }}>
+                          Level
+                        </th>
+                        <th style={{ minWidth: "90px", maxWidth: "90px" }}>
+                          Assigned To
+                        </th>
+                        <th style={{ minWidth: "90px", maxWidth: "90px" }}>
+                          Assigned To Role {/** Divyansh Changes */}
+                        </th>
+                        <th style={{ minWidth: "90px", maxWidth: "90px" }}>
+                          Requestor Name
+                        </th>
+                        <th style={{ minWidth: "90px", maxWidth: "90px" }}>
+                          Requested Date
+                        </th>
+                        <th style={{ minWidth: "90px", maxWidth: "90px" }}>
+                          Action Taken By
+                        </th>
+                        <th style={{ minWidth: "90px", maxWidth: "90px" }}>
+                          Action Taken On
+                        </th>
+                        <th style={{ minWidth: "90px", maxWidth: "90px" }}>
+                          Remarks
+                        </th>
+                        <th style={{ minWidth: "70px", maxWidth: "70px" }}>
+                          Status
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditHistory}
+                    </tbody>
+                  </table>
+                </div>
+              </form>
+            </section> : null}
           {this.state.showApprove === true || this.state.showReject === true ?
-            <section style={{ justifyContent: 'left', textAlign: 'left' }} id="approvalSection">
+            <section style={{ justifyContent: 'left', textAlign: 'left', display: 'grid' }} id="approvalSection" className='card card-body'>
               <TextField label="Remarks" required name="remarks" value={this.state.remarks} multiline rows={3} onChange={this.handleChange}
                 styles={{
                   fieldGroup: {
@@ -2170,23 +2253,24 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 }} />
             </section> : null
           }
+          {/* Vishnu Changes  */}
           {this.state.showSubmit &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
-              <PrimaryButton text="Submit" onClick={() => this.handleSubmit("submit")} />
-
-              {this.state.showDraft &&
+            {this.state.showDraft &&
 
                 <PrimaryButton text="Save as Draft" onClick={() => this.handleDraft("draft")} />
 
               }
+
+            <PrimaryButton text="Submit" onClick={() => this.handleSubmit("submit")} />
 
               <DefaultButton text="Cancel" onClick={() => this.cancelRequest()} />
 
             </div>
           }
           {this.state.showApprove &&
-            <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }} className="newcssbtn">
+            <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
               <PrimaryButton text="Approve" onClick={() => this._approveRequest("Approve")} />
 
@@ -2229,36 +2313,6 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
             </div>
           }
-        </div>
-          {this.state.editSubmitStatus == "Yes" ?
-            <section className='card card-body mt-2'>
-              <form>
-                <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row'>
-                  <div className="form-group col-md-12"><h3 style={{ textAlign: 'left' }} className='text-dark text-left font-16 fw-bold mb-3'>Audit Report</h3></div>
-                </div>
-                <div style={{ display: 'grid' }} className='row'>
-                  <table className='mtbalenew'>
-                    <thead>
-                      <tr>
-                        <th style={{ minWidth: '70px', maxWidth: '70px' }}>S No.</th>
-                        <th style={{ minWidth: '70px', maxWidth: '70px' }}>Level</th>
-                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Assigned To</th>
-                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Requestor Name</th>
-                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Requested Date</th>
-                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Action Taken By</th>
-                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Action Taken On</th>
-                        <th style={{ minWidth: '90px', maxWidth: '90px' }}>Remarks</th>
-                        <th style={{ minWidth: '70px', maxWidth: '70px' }}>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {auditHistory}
-                    </tbody>
-                  </table>
-                </div>
-              </form>
-            </section> : null}
-           
         </div>
       </section >
     )

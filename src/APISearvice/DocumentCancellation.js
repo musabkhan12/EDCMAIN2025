@@ -610,3 +610,20 @@ export const getDocumentLinkByID = async (_sp,itemId) => {
   console.log(reqId, 'arr');
   return reqId;
 }
+
+export const getGeneratedTemplateDoc = async (_sp, itemId) => {
+  let results = [];
+  // for (let itemId of AttachmentIds) {
+    await _sp.web.lists.getByTitle("DocumentCancellationGeneratedTemplateDoc").items
+      .select("*,FileRef, FileLeafRef").filter(`ListItemId/ID eq ${itemId}`)()
+      .then((res) => {
+        console.log(res, ' let arrs=[]');
+        results = res;
+      })
+      .catch((error) => {
+        console.log("Error fetching data: ", error);
+      });
+  // }
+  console.log(results, 'results');
+  return results;
+}

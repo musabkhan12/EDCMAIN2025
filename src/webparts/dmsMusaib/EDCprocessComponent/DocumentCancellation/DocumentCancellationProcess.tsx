@@ -26,7 +26,7 @@ import "./documentCancellation.scss";
 // import { allowstringonly, getCurrentUser } from '../../../APISearvice/CustomService';
 import { allowstringonly, getCurrentUser } from '../../../../APISearvice/CustomService';
 // import { addAllProcessItem, addApprovalItem, addItem, addItem2, getAllDocumentCode, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getFormNameID, getItemByID, getItemByID2, getListNameID, getRequesterID, getRequestTypeID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2 } from '../../../APISearvice/DocumentCancellation';
-import { addAllProcessItem, addApprovalItem, addItem, addItem2, getAllDocumentCode, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, getRequesterID, getRequestTypeID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2 } from '../../../../APISearvice/DocumentCancellation';
+import { addAllProcessItem, addApprovalItem, addItem, addItem2, getAllDocumentCode, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDoc, getItemByID, getItemByID2, getListNameID, getRequesterID, getRequestTypeID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2 } from '../../../../APISearvice/DocumentCancellation';
 import Select from "react-select";
 import Swal from 'sweetalert2';
 // import { FormSubmissionMode } from '../../../Shared/Interfaces';
@@ -67,6 +67,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     selectedTextDiv.style.display = 'none';
 
     const [Loading, setLoading] = React.useState(false);
+      const [TemplateDoc, setTemplateDoc] = React.useState<any>([]);
     const [FormLoading, setFormLoading] = React.useState(false);
     const [FormItemId, setFormItemId] = React.useState(null);
     const [editID, setEditID] = React.useState(null);
@@ -482,7 +483,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                 }
 
-
+                setTemplateDoc(await getGeneratedTemplateDoc(sp, Number(formitemid)));
 
             }
 
@@ -1916,7 +1917,19 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                 <div className="card">
                                                     <div className="card-body">
 
-                                                        <h3 className="text-dark font-16 fw-bold mb-3">Requested By</h3>
+                                                        {/* <h3 className="text-dark font-16 fw-bold mb-3">Requested By</h3> */}
+                                                        <div className="previewIcon">
+                                                            <h4 style={{ textAlign: 'left', margin: 'inherit' }} className="text-dark font-16 fw-bold mb-3">Requested By</h4>
+                                                            {TemplateDoc && TemplateDoc.length > 0 && <div className='btn btn-primary'
+                                                                onClick={() => OpenFile(TemplateDoc[0], "Open")}
+
+                                                            >
+
+                                                                <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} ></img>
+                                                                {/* <FontAwesomeIcon icon={faEye} /> */}
+                                                            </div>
+                                                            }
+                                                        </div>
 
                                                         {FormLoading ?
 

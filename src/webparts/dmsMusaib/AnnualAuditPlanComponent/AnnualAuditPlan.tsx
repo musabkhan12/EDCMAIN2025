@@ -338,19 +338,19 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
         const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
         setselectUserDept(setAllDept1.filter(user => user.label === UserDept));
-       const recommendationTypes = await getRecommendationTypes(sp);
+        const recommendationTypes = await getRecommendationTypes(sp);
         setRecommType(recommendationTypes);
         if (formMode == "") {
             if (recommendationTypes.length > 0) {
                 const defaultRecommendationType = recommendationTypes.find(type => type.RecommendationTypeValue === "Table");
                 if (defaultRecommendationType) {
-                  setFormData(prevFormData => ({
-                    ...prevFormData,
-                    RecommendationTypeValue: "Table",
-                    recommendationTypeId: defaultRecommendationType.Id
-                  }));
+                    setFormData(prevFormData => ({
+                        ...prevFormData,
+                        RecommendationTypeValue: "Table",
+                        recommendationTypeId: defaultRecommendationType.Id
+                    }));
                 }
-              }
+            }
 
             const listItems = await sp.web.lists.getByTitle("AnnualAuditPlanList").items.orderBy("MemoSerialNumber", false).top(1)();
             if (listItems.length > 0) {
@@ -1092,34 +1092,34 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         const postResult = await updateItem(arr, sp, editItemID);
                         const postId = postResult?.data?.ID;
                         if (formData.RecommendationTypeValue == "Table") {
-                        for (const row of recommendationRows) {
+                            for (const row of recommendationRows) {
 
-                            const postPayload2 = {
-                                AnnualAuditPlanIDId: editItemID, // Assuming "Title" column exists
-                                Section: row.section,
-                                Date: row.date,
-                                Time: row.startTime,
-                                AuditorId: row.auditorIds
+                                const postPayload2 = {
+                                    AnnualAuditPlanIDId: editItemID, // Assuming "Title" column exists
+                                    Section: row.section,
+                                    Date: row.date,
+                                    Time: row.startTime,
+                                    AuditorId: row.auditorIds
+                                }
+
+                                if (row.id) {
+
+                                    const postResult2 = await updateItem2(postPayload2, sp, row.id);
+                                    const postId2 = postResult2?.data?.ID;
+
+                                }
+                                else {
+                                    const postResult2 = await addItem2(postPayload2, sp);
+                                    const postId2 = postResult2?.data?.ID;
+
+                                }
+
+                                // debugger
+                                // if (!postId2) {
+                                //     console.error("Post creation failed.");
+                                //     return;
+                                // }
                             }
-
-                            if (row.id) {
-
-                                const postResult2 = await updateItem2(postPayload2, sp, row.id);
-                                const postId2 = postResult2?.data?.ID;
-
-                            }
-                            else {
-                                const postResult2 = await addItem2(postPayload2, sp);
-                                const postId2 = postResult2?.data?.ID;
-
-                            }
-
-                            // debugger
-                            // if (!postId2) {
-                            //     console.error("Post creation failed.");
-                            //     return;
-                            // }
-                        }
                         }
                         let isValid = true;
 
@@ -1376,24 +1376,24 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             return;
                         }
                         if (formData.RecommendationTypeValue == "Table") {
-                        for (const row of recommendationRows) {
+                            for (const row of recommendationRows) {
 
-                            const postPayload2 = {
-                                AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
-                                Section: row.section,
-                                Date: row.date,
-                                Time: row.startTime,
-                                AuditorId: row.auditorIds
-                            }
+                                const postPayload2 = {
+                                    AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
+                                    Section: row.section,
+                                    Date: row.date,
+                                    Time: row.startTime,
+                                    AuditorId: row.auditorIds
+                                }
 
-                            const postResult2 = await addItem2(postPayload2, sp);
-                            const postId2 = postResult2?.data?.ID;
-                            // debugger
-                            if (!postId2) {
-                                console.error("Post creation failed.");
-                                return;
+                                const postResult2 = await addItem2(postPayload2, sp);
+                                const postId2 = postResult2?.data?.ID;
+                                // debugger
+                                if (!postId2) {
+                                    console.error("Post creation failed.");
+                                    return;
+                                }
                             }
-                        }
                         }
 
                         let isValid = true;
@@ -1598,45 +1598,45 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         const postId = postResult?.data?.ID;
                         //  ////////////////////////////
                         if (formData.RecommendationTypeValue == "Table") {
-                        for (const row of recommendationRows) {
+                            for (const row of recommendationRows) {
 
-                            const postPayload2 = {
-                                AnnualAuditPlanIDId: editItemID, // Assuming "Title" column exists
-                                Section: row.section || "",
-                                Date: row.date ? row.date : null,
-                                Time: row.startTime || "",
-                                AuditorId: row.auditorIds ? row.auditorIds : 0
-                            }
-
-                            if (row.id) {
-
-                                const postResult2 = await updateItem2(postPayload2, sp, row.id);
-                                const postId2 = postResult2?.data?.ID;
-
-                            }
-                            else {
-
-                                if ((row.section.trim() == "" && row.date.trim() == "" && row.startTime.trim() == "" && (row.auditor == null || row.auditor.length == 0)) == false) {
-
-
-                                    const postResult2 = await addItem2(postPayload2, sp);
-                                    const postId2 = postResult2?.data?.ID;
-                                    if (!postId2) {
-                                        console.error("Post creation failed.");
-                                        return;
-                                    }
-
+                                const postPayload2 = {
+                                    AnnualAuditPlanIDId: editItemID, // Assuming "Title" column exists
+                                    Section: row.section || "",
+                                    Date: row.date ? row.date : null,
+                                    Time: row.startTime || "",
+                                    AuditorId: row.auditorIds ? row.auditorIds : 0
                                 }
 
+                                if (row.id) {
 
+                                    const postResult2 = await updateItem2(postPayload2, sp, row.id);
+                                    const postId2 = postResult2?.data?.ID;
+
+                                }
+                                else {
+
+                                    if ((row.section.trim() == "" && row.date.trim() == "" && row.startTime.trim() == "" && (row.auditor == null || row.auditor.length == 0)) == false) {
+
+
+                                        const postResult2 = await addItem2(postPayload2, sp);
+                                        const postId2 = postResult2?.data?.ID;
+                                        if (!postId2) {
+                                            console.error("Post creation failed.");
+                                            return;
+                                        }
+
+                                    }
+
+
+
+                                }
+                                // }
+
+
+                                // debugger
 
                             }
-                            // }
-
-
-                            // debugger
-
-                        }
                         }
 
                         let isValid = true;
@@ -1883,29 +1883,29 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             return;
                         }
                         if (formData.RecommendationTypeValue == "Table") {
-                        for (const row of recommendationRows) {
+                            for (const row of recommendationRows) {
 
-                            if ((row.section.trim() == "" && row.date.trim() == "" && row.startTime.trim() == "" && (row.auditor == null || row.auditor.length == 0)) == false) {
+                                if ((row.section.trim() == "" && row.date.trim() == "" && row.startTime.trim() == "" && (row.auditor == null || row.auditor.length == 0)) == false) {
 
-                                const postPayload2 = {
-                                    AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
-                                    Section: row.section || "",
-                                    Date: row.date ? row.date : null,
-                                    Time: row.startTime || "",
-                                    AuditorId: row.auditorIds ? row.auditorIds : 0
+                                    const postPayload2 = {
+                                        AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
+                                        Section: row.section || "",
+                                        Date: row.date ? row.date : null,
+                                        Time: row.startTime || "",
+                                        AuditorId: row.auditorIds ? row.auditorIds : 0
+                                    }
+
+                                    const postResult2 = await addItem2(postPayload2, sp);
+                                    const postId2 = postResult2?.data?.ID;
+                                    // debugger
+                                    if (!postId2) {
+                                        console.error("Post creation failed.");
+                                        return;
+                                    }
                                 }
 
-                                const postResult2 = await addItem2(postPayload2, sp);
-                                const postId2 = postResult2?.data?.ID;
-                                // debugger
-                                if (!postId2) {
-                                    console.error("Post creation failed.");
-                                    return;
-                                }
+
                             }
-
-
-                        }
                         }
 
                         let isValid = true;
@@ -2258,7 +2258,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                 <div className="card">
                                                     <div className="card-body">
-                                                        <h4 style={{textAlign:'left'}} className="text-dark font-16 fw-bold mb-3">Memorandum</h4>
+                                                        <h4 style={{ textAlign: 'left' }} className="text-dark font-16 fw-bold mb-3">Memorandum</h4>
                                                         {TemplateDoc && TemplateDoc.Length > 0 && <span
                                                             onClick={() => OpenFile(TemplateDoc[0], "Open")}
                                                             style={{ color: "blue", cursor: "pointer", margin: "10px" }}
@@ -2411,7 +2411,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 </div>
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
-                                                                        <label htmlFor="Department" className="col-form-label">Department<span className="text-danger1"> *</span></label>
+                                                                        <label htmlFor="Department" className="col-form-label">From Department<span className="text-danger1"> *</span></label>
                                                                         <div className="">
                                                                             <Select
                                                                                 // options={AllDept}
@@ -2632,7 +2632,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
 
-                                                               
+
 
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
@@ -2709,7 +2709,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                             <div className='col-sm-6'>
                                                                 <h3 className='text-dark font-16 fw-bold mb-3'>Recommendation</h3>
                                                             </div>
-                                                           
+
                                                         </div>
 
                                                         <div className="row mb-3">
@@ -2734,11 +2734,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 ))}
                                                             </div>
                                                             <div style={{ textAlign: 'right' }} className='col-sm-6 mt-2'>
-                                                                {!InputDisabled  && formData.RecommendationTypeValue === "Table" && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-3' src={require("../assets/plus.png")} onClick={handleAddRecommendationRow}></img>}
+                                                                {!InputDisabled && formData.RecommendationTypeValue === "Table" && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-3' src={require("../assets/plus.png")} onClick={handleAddRecommendationRow}></img>}
 
                                                             </div>
                                                         </div>
-                                                       
+
 
                                                         {formData.RecommendationTypeValue === "Table" ? (
                                                             <table id="tabRec" className='mtbalenew overhi mb-3'>
@@ -2830,8 +2830,33 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
 
 
-                                                        <TextField id="recApp" className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`} onChange={(e, newValue) => { setFormData(prevState => ({ ...prevState, recommendationforApproval: newValue })); if (newValue) { document.getElementById("recApp")?.classList.remove("border-on-error") } }} errorMessage={""} multiline autoAdjustHeight value={formData.recommendationforApproval} validateOnFocusOut={true} required={true} label="Recommendation for Approval" disabled={InputDisabled} />
+                                                        {/* <TextField id="recApp" className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`} onChange={(e, newValue) => { setFormData(prevState => ({ ...prevState, recommendationforApproval: newValue })); if (newValue) { document.getElementById("recApp")?.classList.remove("border-on-error") } }} errorMessage={""} multiline autoAdjustHeight value={formData.recommendationforApproval} validateOnFocusOut={true} required={true} label="Recommendation for Approval" disabled={InputDisabled} /> */}
+                                                        {/* ////// */}
+                                                        <div className="row mb-3">
+                                                            <div className="col-lg-12">
+                                                                <label htmlFor="recApp" className="form-label">
+                                                                    Recommendation for Approval <span className="text-danger1"> *</span>
+                                                                </label>
+                                                                <textarea
+                                                                    id="recApp"
+                                                                    className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                    value={formData.recommendationforApproval || ""}
+                                                                    onChange={(e) => {
+                                                                        setFormData((prevState) => ({
+                                                                            ...prevState,
+                                                                            recommendationforApproval: e.target.value,
+                                                                        }));
+                                                                        if (e.target.value) {
+                                                                            document.getElementById("recApp")?.classList.remove("border-on-error");
+                                                                        }
+                                                                    }}
+                                                                    disabled={InputDisabled}
+                                                                    placeholder="Enter recommendation for approval"
+                                                                ></textarea>
 
+                                                            </div>
+                                                        </div>
+                                                        {/* ///// */}
 
                                                     </fieldset>
                                                 </section>
@@ -2938,40 +2963,40 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 </div>
                                                             </div>
                                                             <div className="col-lg-6">
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="attachment" className="col-form-label">Attachment</label>
-                                                                        <div className="">
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="attachment" className="col-form-label">Attachment</label>
+                                                                    <div className="">
 
-                                                                            <div>
-                                                                                <input
-                                                                                    type="file"
-                                                                                    // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                                                                    className="form-control"
-                                                                                    id="attachment"
-                                                                                    accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                                                                                    onChange={(e) => onFileChange(e, "Gallery", "AnnualAuditPlanDocs")}
-                                                                                    // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
-                                                                                    disabled={InputDisabled}
-                                                                                    multiple
-                                                                                />
-
-                                                                            </div>
-
-                                                                            <div>
-                                                                                {FilesArr.length > 0 ?
-                                                                                    (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
-                                                                                        <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
-                                                                                    </a>) : ""
-
-                                                                                }
-                                                                            </div>
-
-
+                                                                        <div>
+                                                                            <input
+                                                                                type="file"
+                                                                                // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                className="form-control"
+                                                                                id="attachment"
+                                                                                accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                                                                onChange={(e) => onFileChange(e, "Gallery", "AnnualAuditPlanDocs")}
+                                                                                // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
+                                                                                disabled={InputDisabled}
+                                                                                multiple
+                                                                            />
 
                                                                         </div>
 
+                                                                        <div>
+                                                                            {FilesArr.length > 0 ?
+                                                                                (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
+                                                                                    <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
+                                                                                </a>) : ""
+
+                                                                            }
+                                                                        </div>
+
+
+
                                                                     </div>
+
                                                                 </div>
+                                                            </div>
 
 
                                                         </div>

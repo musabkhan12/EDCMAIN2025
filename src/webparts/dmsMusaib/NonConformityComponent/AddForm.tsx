@@ -70,12 +70,14 @@ export class IState {
   exFiles: any[];
   fileDeleteId: any[];
   files: FileList;
-  siteurl:any;
+  siteurl: any;
 }
 
 export default class AuditPlan extends React.Component<IAuditPlanProps, IState> {
   constructor(props: IAuditPlanProps) {
     super(props);
+    const selectedTextDiv = document.getElementById('selectedText');
+    selectedTextDiv.style.display = 'none';
     this.state = {
       departmentOption: [],
       department: "",
@@ -105,14 +107,14 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       exFiles: [],
       fileDeleteId: [],
       files: {} as FileList,
-      siteurl : this.props.context.pageContext.web.absoluteUrl,
+      siteurl: this.props.context.pageContext.web.absoluteUrl,
     };
     this.handleFileChange = this.handleFileChange.bind(this);
     this._OpenModal = this._OpenModal.bind(this);
     this._CloseModal = this._CloseModal.bind(this);
     this.removeFiles = this.removeFiles.bind(this);
     this.toBeDeleted = this.toBeDeleted.bind(this);
-   
+
   }
   private handleFileChange(e: React.ChangeEvent<HTMLInputElement>, _self: any) {
     if (e.target.files) {
@@ -254,7 +256,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     const sp = spfi().using(SPFx(this.props.context));
     try {
       // const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items();
-      const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items.orderBy("Title" , true)();
+      const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items.orderBy("Title", true)();
       const options = deptItems.map((item: {
         DepartmentCode: any; Title: string; Id: number
       }) => ({
@@ -359,12 +361,89 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     this.setState({ errors });
     return Object.keys(errors).length === 0;
   };
-  public validateFormDraft = (): boolean => {
+  
+public validateFormDraft = (): boolean => {
     let errors: { [key: string]: string } = {};
-    if (!this.state.problemDescription) errors.problemDescription = "Problem Description is required";
+  
+    // Allow Save as Draft if at least department is selected
+    if (!this.state.department) {
+      errors.department = "Department is required";
+      Swal.fire('Please select a Department.');
+    }
+  
+    // You can skip checking other fields if department is selected
     this.setState({ errors });
-    return Object.keys(errors).length === 0;
+    return Object.keys(errors).length === 0 || (this.state.department && Object.keys(errors).length === 1 && errors.hasOwnProperty("department") === false);
   };
+  // public validateFormDraft = (): boolean => {
+  //   let errors: { [key: string]: string } = {};
+
+  //   // Department validation
+  //   // if (!this.state.department) errors.department = "Department is required";
+  //   if (!this.state.department) {
+  //     errors.department = "Department is required";
+  //     Swal.fire('Please select a Department.');
+  //   }
+
+  //   // Criteria validation
+  //   if (!this.state.criteria) errors.criteria = "Criteria is required";
+
+  //   // Close Out Status validation
+  //   if (!this.state.closeOutStatus) errors.closeOutStatus = "Close Out Status is required";
+
+  //   // Category validation (at least one checkbox must be selected)
+  //   if (this.state.categoryValueIsCheck.length == 0) {
+  //     errors.category = "Please select at least one category!";
+  //     document.querySelectorAll("#categoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
+  //       el.classList.add(styles.errCh);
+  //     });
+  //   } else {
+  //     document.querySelectorAll("#categoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
+  //       el.classList.remove(styles.errCh);
+  //     });
+  //   }
+
+  //   // Sub-Category validation (at least one checkbox must be selected)
+  //   if (this.state.subCategoryIsCheck.length == 0) {
+  //     errors.subCategory = "Please select at least one Sub-Category!";
+  //     document.querySelectorAll("#SubCategoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
+  //       el.classList.add(styles.errCh);
+  //     });
+  //   } else {
+  //     document.querySelectorAll("#SubCategoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
+  //       el.classList.remove(styles.errCh);
+  //     });
+  //   }
+
+  //   // Location validation (at least one checkbox must be selected)
+  //   if (this.state.locationValueIsCheck.length == 0) {
+  //     errors.location = "Please select at least one location!";
+  //     document.querySelectorAll("#locationCheckbox .ms-Checkbox-checkbox").forEach((el) => {
+  //       el.classList.add(styles.errCh);
+  //     });
+  //   } else {
+  //     document.querySelectorAll("#locationCheckbox .ms-Checkbox-checkbox").forEach((el) => {
+  //       el.classList.remove(styles.errCh);
+  //     });
+  //   }
+
+  //   // Assigned To validation
+  //   if (!this.state.assignTo) errors.assignTo = "Assigned To is required";
+
+  //   // Due Date validation
+  //   if (!this.state.dueDate) errors.dueDate = "Due Date is required";
+
+  //   // Attachments validation (either new files or existing files must be present)
+  //   if (!this.state.fileCount && this.state.exFiles.length == 0) {
+  //     errors.Attchments = "Attachments are required";
+  //   }
+
+  //   // Problem Description validation
+  //   if (!this.state.problemDescription) errors.problemDescription = "Problem Description is required";
+
+  //   this.setState({ errors });
+  //   return Object.keys(errors).length === 0 || (this.state.department && Object.keys(errors).length === 1 && errors.hasOwnProperty("department") === false);
+  // };
 
   public handleSubmit = (formsubmode: string) => {
     if (this.validateFormSubmit()) {
@@ -702,10 +781,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
             {/* Button Section 4 */}
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
-              <PrimaryButton text="Submit" onClick={() => this.handleSubmit("submit")} />
-
-
               <PrimaryButton text="Save as Draft" onClick={() => this.handleSubmitDraft("draft")} />
+
+              <PrimaryButton text="Submit" onClick={() => this.handleSubmit("submit")} />
 
 
               <DefaultButton text="Cancel" onClick={() => this.cancelRequest()} />

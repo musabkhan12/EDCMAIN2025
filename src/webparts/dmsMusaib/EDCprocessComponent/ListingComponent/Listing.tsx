@@ -134,7 +134,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
         let filitems = filteredItems.sort((a, b) => b.ReqDt - a.ReqDt)
         // Sort items based on the selected column and direction
         const sortedItems = filitems.sort((a, b) => {
-            debugger
+            // debugger
             if (sortColumn) {
                 const aValue = a[sortColumn];
                 const bValue = b[sortColumn];
@@ -329,7 +329,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
         const _self = this;
         console.log(this.props.userid, "this.props.userid");
         let allItems: any[] = [];
-        const auditItems = await spfi(this._sp).web.lists.getByTitle("AnnualAuditProgram").items.select('Id,MemoNumber,Title,Author/Title,Created,Status,Subject').expand('Author')();
+        const auditItems = await spfi(this._sp).web.lists.getByTitle("AnnualAuditProgram").items.select('Id,MemoNumber,Title,Author/Title,Created,Status,Subject').expand('Author').filter(`Author/ID eq '${this.props.userid}'`)();
         auditItems.forEach(itm => {
             allItems.push({
                 RequestId: itm.MemoNumber || "",
@@ -344,7 +344,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             });
         });
 
-        const MemoItems = await spfi(this._sp).web.lists.getByTitle("Memorandum").items.select('Id,MemoNumber,Title,Author/Title,Created,Status,Subject').expand('Author')();
+        const MemoItems = await spfi(this._sp).web.lists.getByTitle("Memorandum").items.select('Id,MemoNumber,Title,Author/Title,Created,Status,Subject').expand('Author').filter(`Author/ID eq '${this.props.userid}'`)();
         MemoItems.forEach(itm => {
             allItems.push({
                 RequestId: itm.MemoNumber || "",
@@ -359,7 +359,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             });
         });
 
-        const AnnualAuditPlanList = await spfi(this._sp).web.lists.getByTitle("AnnualAuditPlanList").items.select('Id,MemoNumber,Title,Author/Title,Created,Status,ReferenceNumber,Subject').expand('Author')();
+        const AnnualAuditPlanList = await spfi(this._sp).web.lists.getByTitle("AnnualAuditPlanList").items.select('Id,MemoNumber,Title,Author/Title,Created,Status,ReferenceNumber,Subject').expand('Author').filter(`Author/ID eq '${this.props.userid}'`)();
         AnnualAuditPlanList.forEach(async itm => {
 
             if (itm.Status === "Pending") {
@@ -418,7 +418,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
         });
 
-        const ChangeRequestDocumentCancellationListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,ReferenceNumber,Created').expand('Author', 'RequesterName').orderBy("Modified", false)();
+        const ChangeRequestDocumentCancellationListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,ReferenceNumber,Created').expand('Author', 'RequesterName').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
         for (const item of ChangeRequestDocumentCancellationListItems) {
             if (item.Status === "Rework") {
                 const processItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and (Status eq 'Pending' or Status eq 'Save as draft') and ProcessName eq 'Document Cancellation' and ListItemId eq ${item.Id}`)();
@@ -465,7 +465,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             }
         }
 
-        const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList").items.select('Id,ReferenceNumber,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode').expand('Author', 'RequesterName').orderBy("Modified", false)();
+        const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList").items.select('Id,ReferenceNumber,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode').expand('Author', 'RequesterName').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
         for (const item of ChangeRequestListItems) {
             if (item.Status === "Rework") {
                 const processItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and Status eq 'Pending' and ProcessName eq 'Change Request' and ListItemId eq ${item.Id}`)();
@@ -513,7 +513,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             }
         }
 
-        const AnnualAuditReportList = await spfi(this._sp).web.lists.getByTitle("AnnualAuditReportList").items.select('*,Id,Title,Author/Title,Created,Status,ReferenceNumber').expand('Author')();
+        const AnnualAuditReportList = await spfi(this._sp).web.lists.getByTitle("AnnualAuditReportList").items.select('*,Id,Title,Author/Title,Created,Status,ReferenceNumber').expand('Author').filter(`Author/ID eq '${this.props.userid}'`)();
         AnnualAuditReportList.forEach(async itm => {
 
             if (itm.Status === "Pending") {
@@ -571,7 +571,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
         });
 
-        const nonconfirmity = await spfi(this._sp).web.lists.getByTitle('NonConformityList').items.select('Id, DocumentCode ,Author/Title , Status , Created', 'SubmitStatus').expand('Author').orderBy("Modified", false)();
+        const nonconfirmity = await spfi(this._sp).web.lists.getByTitle('NonConformityList').items.select('Id, DocumentCode ,Author/Title , Status , Created', 'SubmitStatus').expand('Author').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
         console.log(nonconfirmity, "nonconfirmity")
         for (const item of nonconfirmity) {
             // alert (item.DocumentCode + "item.DocumentCode" )

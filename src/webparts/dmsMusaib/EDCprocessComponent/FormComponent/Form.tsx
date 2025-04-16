@@ -2298,19 +2298,19 @@ const FormContext = ({ props }: any) => {
                         <div className="card">
                           <div className="card-body">
                             <div className="previewIcon">
-                            <h4 style={{textAlign:'left', margin:'inherit'}} className="text-dark font-16 fw-bold mb-3">Memorandum</h4>
-                           {TemplateDoc && TemplateDoc.length >0 && <div className='btn btn-primary' 
-                              onClick={() => OpenFile(TemplateDoc[0], "Open")}
-                              
-                            >
+                              <h4 style={{ textAlign: 'left', margin: 'inherit' }} className="text-dark font-16 fw-bold mb-3">Memorandum</h4>
+                              {TemplateDoc && TemplateDoc.length > 0 && <div className='btn btn-primary'
+                                onClick={() => OpenFile(TemplateDoc[0], "Open")}
 
-<img style={{  cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} ></img>
-                              {/* <FontAwesomeIcon icon={faEye} /> */}
+                              >
+
+                                <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} ></img>
+                                {/* <FontAwesomeIcon icon={faEye} /> */}
+                              </div>
+                              }
                             </div>
-                           }
-                            </div>
-                            
-                           
+
+
 
                             <div className="row mb-3">
                               {AuditProgramType.map((row, index) => (<div className="col-lg-3">
@@ -2455,7 +2455,7 @@ const FormContext = ({ props }: any) => {
                                 </div>
                                 <div className="col-lg-4">
                                   <div className="mb-3">
-                                    <label htmlFor="Department" className="col-form-label">Department<span className="text-danger1"> *</span></label>
+                                    <label htmlFor="Department" className="col-form-label">From Department<span className="text-danger1"> *</span></label>
                                     <div>
                                       <Select
                                         // options={AllDept}
@@ -2753,11 +2753,11 @@ const FormContext = ({ props }: any) => {
                               <div className='col-sm-6'>
                                 <h3 className='text-dark font-16 fw-bold mt-2 mb-3'>Recommendation</h3>
                               </div>
-                             
+
                             </div>
                             <div className="row mb-3">
-                           
-                           <div className='col-sm-6'>
+
+                              <div className='col-sm-6'>
                                 <h5 className="text-dark font-14 fw-bold mb-2">Select Recommendation type<span className="text-danger1"> *</span></h5>
                                 {RecommType.map((type, index) => (
                                   <div key={index} className="form-check form-check-inline">
@@ -2776,11 +2776,11 @@ const FormContext = ({ props }: any) => {
                                     </label>
                                   </div>
                                 ))}
-                                </div>
-                                <div style={{ textAlign: 'right' }} className='col-sm-6 mt-2'>
+                              </div>
+                              <div style={{ textAlign: 'right' }} className='col-sm-6 mt-2'>
                                 {!InputDisabled && formData.RecommendationTypeValue === "Table" && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-3' src={require("../../assets/plus.png")} onClick={handleAddRecommendationRow}></img>}
                               </div>
-                            
+
                             </div>
                             {formData.RecommendationTypeValue === "Table" ? (
                               <table id="tabRec" className='mtbalenew overhi mb-3'>
@@ -2874,8 +2874,33 @@ const FormContext = ({ props }: any) => {
 
 
 
-                            <TextField id="recApp" className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`} onChange={(e, newValue) => { setFormData(prevState => ({ ...prevState, recommendationforApproval: newValue })); if (newValue) { document.getElementById("recApp")?.classList.remove("border-on-error") } }} errorMessage={""} multiline autoAdjustHeight value={formData.recommendationforApproval} validateOnFocusOut={true} required={true} label="Recommendation for Approval" disabled={InputDisabled} />
+                            {/* <TextField id="recApp" className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`} onChange={(e, newValue) => { setFormData(prevState => ({ ...prevState, recommendationforApproval: newValue })); if (newValue) { document.getElementById("recApp")?.classList.remove("border-on-error") } }} errorMessage={""} multiline autoAdjustHeight value={formData.recommendationforApproval} validateOnFocusOut={true} required={true} label="Recommendation for Approval" disabled={InputDisabled} /> */}
+                            {/* ////// */}
+                            <div className="row mb-3">
+                              <div className="col-lg-12">
+                                <label htmlFor="recApp" className="form-label">
+                                  Recommendation for Approval <span className="text-danger1"> *</span>
+                                </label>
+                                <textarea
+                                  id="recApp"
+                                  className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                  value={formData.recommendationforApproval || ""}
+                                  onChange={(e) => {
+                                    setFormData((prevState) => ({
+                                      ...prevState,
+                                      recommendationforApproval: e.target.value,
+                                    }));
+                                    if (e.target.value) {
+                                      document.getElementById("recApp")?.classList.remove("border-on-error");
+                                    }
+                                  }}
+                                  disabled={InputDisabled}
+                                  placeholder="Enter recommendation for approval"
+                                ></textarea>
 
+                              </div>
+                            </div>
+                            {/* ///// */}
 
                           </fieldset>
                         </section>

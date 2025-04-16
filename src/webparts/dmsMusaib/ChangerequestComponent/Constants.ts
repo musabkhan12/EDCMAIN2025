@@ -18,4 +18,4 @@ export const LIST_TITLE_DocCancel = "ChangeRequestDocumentCancellationList";
 export const CONTENTTYPE_ChangeDocument = "Change Request";
 export const LIST_TITLE_ChangeRequest = "ChangeRequestList";
 
-export const Tenant_URL = "https://officeindia.sharepoint.com"
+export const Tenant_URL = "https://edcadae.sharepoint.com"

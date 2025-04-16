@@ -1403,13 +1403,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
               }
             });
             //sessionStorage.removeItem("ChangeRequestId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
             // }, 1000);
             // }
           }
@@ -1523,14 +1523,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Submitted successfully.', '', 'success');
             // // sessionStorage.removeItem("bannerId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
             // }, 1000);
             // }
 
@@ -1724,14 +1724,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Saved successfully.', '', 'success');
             // sessionStorage.removeItem("ChangeRequestId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
             // }, 2000);
             // }
           }
@@ -1846,14 +1846,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Saved successfully.', '', 'success');
             // // sessionStorage.removeItem("bannerId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
             // }, 1000);
           }
         })
@@ -2054,7 +2054,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+              window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/MyApprovals.aspx`;
             }, 1000);
             // }
           }
@@ -2161,7 +2161,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+              window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/MyApprovals.aspx`;
             }, 1000);
             // }
           }
@@ -2308,7 +2308,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+              window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
             }, 1000);
 
           }
@@ -2435,7 +2435,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+              window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
             }, 1000);
             // }
           }
@@ -2772,14 +2772,19 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                         <div className="card">
                           <div className="card-body">
 
-                            <h4 className="text-dark font-16 fw-bold mb-3">Requested By</h4>
-                            {TemplateDoc && TemplateDoc.Length > 0 && <span
-                              onClick={() => OpenFile(TemplateDoc[0], "Open")}
-                              style={{ color: "blue", cursor: "pointer", margin: "10px" }}
-                            >
-                              <FontAwesomeIcon icon={faEye} />
-                            </span>
-                            }
+                            <div className="previewIcon">
+                              <h4 style={{ textAlign: 'left' }} className="text-dark font-16 fw-bold mb-3">Requested By</h4>
+
+                              {TemplateDoc && TemplateDoc.length > 0 && (
+                                <span
+                                  onClick={() => OpenFile(TemplateDoc[0], "Open")}
+                                  style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                                >
+                                  <div className="btn btn-primary">
+                                    <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../assets/noun-download-5006210.png")} ></img></div>
+                                </span>
+                              )}
+                            </div>
                             {/* <p className="sub-header">
                                                         Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aspernatur, itaque.
                                                     </p> */}
