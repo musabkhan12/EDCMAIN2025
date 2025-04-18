@@ -587,7 +587,7 @@ a:hover
  #folderContainer2 ul li{font-weight:400; margin-top: 6px;   width: 325px;}
 /* Popup body: Spacing for the select and textarea */
 .share-popup-body {
-  margin-bottom: 20px;
+  margin-bottom: 20px; position: relative;
 }
  
 /* React select container */
@@ -686,7 +686,7 @@ top: 0;
  #files-container button{    position: absolute;
   right: 28px;
   font-size: 14px; background: #f37421;
-  margin-top: 0px;}
+  margin-top: 3px;}
   #files-container button:hover{
     background: #747171;
   }

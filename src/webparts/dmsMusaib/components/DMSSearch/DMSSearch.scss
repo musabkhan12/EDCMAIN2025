@@ -416,7 +416,7 @@
    #folderContainer2 ul li{font-weight:400; margin-top: 6px; }
   /* Popup body: Spacing for the select and textarea */
   .share-popup-body {
-    margin-bottom: 20px;
+    margin-bottom: 20px; position: relative;
   }
    
   /* React select container */

@@ -1136,7 +1136,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId");
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // setTimeout(() => {
@@ -1346,7 +1346,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         //Swal.fire('Submitted successfully.', '', 'success');
@@ -1607,7 +1607,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId")
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -1817,7 +1817,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // sessionStorage.removeItem("bannerId")
@@ -1952,34 +1952,47 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                     <div className="mb-3">
                                                                         <label htmlFor="DocumentCode" className="col-form-label">Approved Audit Plan:<span className="text-danger1">*</span>
                                                                         </label>
-                                                                        <Select
-                                                                            options={rows}
-                                                                            value={selectedOption}
-                                                                            name="AuditPlan"
-                                                                            isClearable={true}
-                                                                            isSearchable={true}
-                                                                            className={`newse  ${(!ValidSubmit && approvedauditplanerr) ? "border-on-error" : ""} ${(!ValidDraft && approvedauditplanerr) ? "border-on-error" : ""}`}
-                                                                            onChange={(selectedOption: any) => onSelectDocCode(selectedOption)}
-                                                                            placeholder={"Search Audit plan"}
-                                                                            isDisabled={InputDisabled}
-                                                                        />
+                                                                        <div
+                                                                            title={selectedOption?.label || "Select a audit plan"}
+                                                                            style={{ width: "100%" }}
+                                                                        >
+                                                                            <Select
+                                                                                options={rows}
+                                                                                value={selectedOption}
+                                                                                name="AuditPlan"
+                                                                                isClearable={true}
+                                                                                isSearchable={true}
+                                                                                className={`newse  ${(!ValidSubmit && approvedauditplanerr) ? "border-on-error" : ""} ${(!ValidDraft && approvedauditplanerr) ? "border-on-error" : ""}`}
+                                                                                onChange={(selectedOption: any) => onSelectDocCode(selectedOption)}
+                                                                                placeholder={"Search Audit plan"}
+                                                                                isDisabled={InputDisabled}
+                                                                            />
+                                                                        </div>
+
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="Department" className="col-form-label">Department<span className="text-danger1"> *</span></label>
-                                                                        <div >   <Select
-                                                                            options={AllDept}
-                                                                            isDisabled={InputDisabled}
-                                                                            value={selectUserDept}
-                                                                            name="deptId"
-                                                                            className={`newse  ${(!ValidSubmit && departmenterr) ? "border-on-error" : ""} ${(!ValidDraft && departmenterr) ? "border-on-error" : ""}`}
-                                                                            // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
-                                                                            // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
-                                                                            // onChange={handleDepartmentChange}
-                                                                            onChange={(selectedOptions: any) => handleDepartmentChange(selectedOptions)}
-                                                                            placeholder="Select Department"
-                                                                        />
+                                                                        <div >
+                                                                            <div
+                                                                                title={selectUserDept?.label || "Select a department"}
+                                                                                style={{ width: "100%" }}
+                                                                            >
+                                                                                <Select
+                                                                                    options={AllDept}
+                                                                                    isDisabled={InputDisabled}
+                                                                                    value={selectUserDept}
+                                                                                    name="deptId"
+                                                                                    className={`newse  ${(!ValidSubmit && departmenterr) ? "border-on-error" : ""} ${(!ValidDraft && departmenterr) ? "border-on-error" : ""}`}
+                                                                                    // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
+                                                                                    // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
+                                                                                    // onChange={handleDepartmentChange}
+                                                                                    onChange={(selectedOptions: any) => handleDepartmentChange(selectedOptions)}
+                                                                                    placeholder="Select Department"
+                                                                                />
+                                                                            </div>
+
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -2156,7 +2169,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                     {console.log("ValidDRecommValidDRecomm", ValidDRecomm)}
                                                                     {recommendationRows.map((row, index) => (
                                                                         <tr key={index}>
-                                                                            <td>
+                                                                            <td title={row?.isoreference ? row?.isoreference : row?.isoreference}>
                                                                                 <input
                                                                                     type="text"
                                                                                     className={`form-control ${(RowErrors[index]?.isoreference) ? "border-on-error" : ""}`}
@@ -2176,7 +2189,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 disabled={InputDisabled}
                                                                             />
                                                                         </td> */}
-                                                                            <td>
+                                                                            <td title={row?.imsprocedure ? row?.imsprocedure : row?.imsprocedure}>
                                                                                 <input
                                                                                     type="text"
                                                                                     className={`form-control ${RowErrors[index]?.imsprocedure ? "border-on-error" : ""}`}
@@ -2185,7 +2198,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     disabled={InputDisabled}
                                                                                 />
                                                                             </td>
-                                                                            <td>
+                                                                            <td title={row?.inquiries ? row?.inquiries : row?.inquiries}>
                                                                                 <input
                                                                                     type="text"
                                                                                     className={`form-control ${(RowErrors[index]?.inquiries) ? "border-on-error" : ""}`}
@@ -2195,15 +2208,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     disabled={InputDisabled}
                                                                                 />
                                                                             </td>
-                                                                            <td>
-                                                                                {/* <input
-                                                                                type="text"
-                                                                                className={`form-control ${( RowErrors[index]?.auditorcomments) ? "border-on-error" : ""}`}
-                                                                                // className="form-control"
-                                                                                value={row.auditorcomments}
-                                                                                onChange={(e) => handleRecommendationChange(index, 'auditorcomments', e.target.value)}
-                                                                                disabled={InputDisabled}
-                                                                            /> */}
+                                                                            <td title={row?.auditorcomments ? row?.auditorcomments : row?.auditorcomments}>
+
                                                                                 <textarea
                                                                                     id="simpleinput"
                                                                                     className={`form-control ${(RowErrors[index]?.auditorcomments) ? "border-on-error" : ""}`}
@@ -2213,7 +2219,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     disabled={InputDisabled}
                                                                                 />
                                                                             </td>
-                                                                            <td>
+                                                                            <td title={row?.time ? row?.time : row?.time}>
                                                                                 <input
                                                                                     type="time"
                                                                                     className={`form-control ${(RowErrors[index]?.time) ? "border-on-error" : ""}`}
@@ -2223,7 +2229,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     disabled={InputDisabled}
                                                                                 />
                                                                             </td>
-                                                                            <td>
+                                                                            <td title={row?.sharewith ? row?.sharewith : row?.sharewith}>
                                                                                 <Select
                                                                                     options={rows1}
                                                                                     // isMulti
@@ -2446,7 +2452,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                 <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
                                                     <Modal.Header closeButton>
-                                                        <Modal.Title > <h4 className='font-16 text-dark fw-bold mb-0'>Attachment Details</h4>  
+                                                        <Modal.Title > <h4 className='font-16 text-dark fw-bold mb-0'>Attachment Details</h4>
                                                             <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for Annual Audit Report
                                                             </p>
 
@@ -2496,7 +2502,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 year: "numeric"
                                                                             }).replace(/ /g, "/")}</td>
 
-                                                                            {!InputDisabled && <td style={{textAlign:'center'}}> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>}
+                                                                            {!InputDisabled && <td style={{ textAlign: 'center' }}> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>}
                                                                             {(InputDisabled || !InputDisabled) &&
                                                                                 <td style={{ textAlign: 'center' }}>
                                                                                     <span onClick={() => OpenFile(FilesArr && FilesArr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
@@ -2570,7 +2576,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 year: "numeric"
                                                                             }).replace(/ /g, "/")}</td>
 
-                                                                            {!InputDisabled && <td style={{textAlign:'center'}}> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>}
+                                                                            {!InputDisabled && <td style={{ textAlign: 'center' }}> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>}
                                                                             {(InputDisabled || !InputDisabled) &&
                                                                                 <td style={{ textAlign: 'center' }}>
                                                                                     <span onClick={() => OpenFile(FilesArrDoclink && FilesArrDoclink[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>

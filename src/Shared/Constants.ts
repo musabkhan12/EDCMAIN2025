@@ -16,8 +16,10 @@ export const CONTENTTYPE_AuditProgram ="Annual Audit Program";
 export const LIST_TITLE_AuditProgram="AnnualAuditProgram";
 export const CONTENTTYPE_Memo ="Memorandum";
 export const LIST_TITLE_Memo="Memorandum";
-export const Tenant_URL ="https://edcadae.sharepoint.com"
-export const SITE_URL ="https://edcadae.sharepoint.com/sites/UATEDDMS"
+// export const Tenant_URL ="https://officeindia.sharepoint.com"
+// export const SITE_URL ="https://officeindia.sharepoint.com/sites/edcspfx"
+export const Tenant_URL ="https://officeindia.sharepoint.com"
+export const SITE_URL ="https://officeindia.sharepoint.com/sites/edcspfx"
  
 // Content Types
 export const CONTENTTYPE_Event="Event";

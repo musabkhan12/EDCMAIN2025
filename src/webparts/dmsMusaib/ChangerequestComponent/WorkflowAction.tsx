@@ -59,8 +59,9 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         arrrr[i] = arrrr[i].replace("TMP", "RRF");
       }
     }
+    console.log("props.currentItem",props.currentItem);
     let test = arrrr.join('.');
-    let testRev = RevisionNumber!= null && Number(RevisionNumber) + 1;
+    let testRev = currentchangerequest[0].RequestType?.RequestType == "Change in Existing Content" && RevisionNumber != null ? Number(RevisionNumber) + 1 : Number(RevisionNumber);
     console.log("arrrr", arrrr, test);
     if (props.currentItem.Maxlevel == props.currentItem.Level) {
       if ((props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One") {
@@ -111,7 +112,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
     }
     else {
       postPayload = {
-
+        RequestId: currentchangerequest[0].DocumentCode,
         Remark: formData.Remark,
 
         Status: Status
@@ -179,14 +180,19 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         }
 
         //if (postResult) {
-        Swal.fire(resultmessage, '', 'success');
-        setTimeout(() => {
+          Swal.fire(resultmessage, '', 'success').then(async (result) => {
+            if (result.isConfirmed) {
+              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+            }
+          });
+        // Swal.fire(resultmessage, '', 'success');
+        // setTimeout(() => {
 
-          // window.location.reload()
+        //   // window.location.reload()
 
-          window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/MyApprovals.aspx`;
+        //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
 
-        }, 1000);
+        // }, 1000);
 
 
 

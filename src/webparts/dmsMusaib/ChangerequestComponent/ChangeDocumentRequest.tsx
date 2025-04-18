@@ -168,6 +168,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [ValidDraft, setValidDraft] = React.useState(true);
   const [ValidSubmit, setValidSubmit] = React.useState(true);
   const [Validforward, setValidforward] = React.useState(true);
+  const [showviewdownload, setshowviewdownload] = React.useState(true);
+
   const [RequesterRoleId, setRequesterRoleId] = React.useState(null);
   const [FormNameId, setFormNameId] = React.useState(null);
   const [ListNameId, setListNameId] = React.useState(null);
@@ -366,6 +368,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       ChangeRequestID: item.ID,
       IssueDate: item.IssueDate,
       LocationId: item.LocationId,
+      TemplateTypeId:item.TemplateTypeId,
       CustodianId: item.CustodianId,
       SerialNumber: item.SerialNumber,
       RevisionDate: item.RevisionDate,
@@ -451,6 +454,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         debugger
         setEditForm(true);
         setMainEditItem(setBannerById[0]);
+        debugger
         // setCategoryData(await getCategory(sp, Number(setBannerById[0]?.TypeMaster))) // Category
         if (setBannerById[0].AttachmentId.length > 0) {
           let arrn = await getDocumentLinkByIDarr(sp, setBannerById[0].AttachmentId[0]);
@@ -1348,8 +1352,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               CurrentUserRole: "OES",
               DocumentName: attachmentIds.length != 0 ? DocumentName : formData.DocumentName,
               DocumentTypeId: formData.DocumentTypeId,
-              AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption.AttachmentId,
-              AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson
+              //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption.AttachmentId,
+              //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson,
+              AttachmentId: Attachmentidsss,
+              AttachmentJson: AttachmentJso
             }
             const postResult = await updateItemChangeRequestList(arr, sp, editItemID);
             const postId = postResult?.data?.ID;
@@ -1403,13 +1409,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
               }
             });
             //sessionStorage.removeItem("ChangeRequestId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             // }, 1000);
             // }
           }
@@ -1487,8 +1493,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               CurrentUserRole: "OES",
               DocumentName: DocumentName,
               DocumentTypeId: formData.DocumentTypeId,
-              AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption.AttachmentId,
-              AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson
+              //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption.AttachmentId,
+              //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson,
+              AttachmentId: Attachmentidsss,
+              AttachmentJson: AttachmentJso
             };
             console.log("postPayload new", postPayload);
 
@@ -1523,14 +1531,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Submitted successfully.', '', 'success');
             // // sessionStorage.removeItem("bannerId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             // }, 1000);
             // }
 
@@ -1656,8 +1664,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               OESSubmitStatus: "No",
               InitiatorSubmitStatus: "No",
               CurrentUserRole: "OES",
-              AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption.AttachmentId,
-              AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson
+              //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption.AttachmentId,
+              //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson,
+              AttachmentId: Attachmentidsss,
+              AttachmentJson: AttachmentJso
 
             }
             let descriptionError = false;
@@ -1724,14 +1734,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Saved successfully.', '', 'success');
             // sessionStorage.removeItem("ChangeRequestId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             // }, 2000);
             // }
           }
@@ -1802,8 +1812,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               Status: "Save as draft",
               DocumentName: DocumentName,
               DocumentTypeId: formData.DocumentTypeId,
-              AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption.AttachmentId,
-              AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson
+              //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption.AttachmentId,
+              //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson,
+              AttachmentId: Attachmentidsss,
+              AttachmentJson: AttachmentJso
 
             };
             console.log("postPayloaddraftttt", postPayload);
@@ -1846,14 +1858,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Saved successfully.', '', 'success');
             // // sessionStorage.removeItem("bannerId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             // }, 1000);
           }
         })
@@ -1992,7 +2004,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
               let arr2 = {
                 Title: currentUser.Title,
-                ContentTitle: selectedOption.ReferenceNumber,
+                ContentTitle: formData.ReferenceNumber,
                 MainListNameId: ListNameId,
                 ApproverRoleId: item.role,
                 Level: Number(item.level),
@@ -2002,7 +2014,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 Maxlevel: item.approvers?.length,
                 // ContentTitle:,
                 MainListID: String(editItemID),
-                RequestId: selectedOption.DocumentCode,
+                RequestId: formData.DocumentCode,
                 // RequestId:String(editID.Id),
                 RequesterNameId: currentUser.Id,
                 RequestedDate: new Date().toLocaleDateString("en-CA"),
@@ -2054,7 +2066,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/MyApprovals.aspx`;
+              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
             }, 1000);
             // }
           }
@@ -2161,7 +2173,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/MyApprovals.aspx`;
+              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
             }, 1000);
             // }
           }
@@ -2308,7 +2320,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
+              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             }, 1000);
 
           }
@@ -2435,7 +2447,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success');
             sessionStorage.removeItem("ChangeRequestId")
             setTimeout(() => {
-              window.location.href = `https://edcadae.sharepoint.com/sites/UATEDDMS/SitePages/EDCMAIN.aspx`;
+              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             }, 1000);
             // }
           }
@@ -2451,6 +2463,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>, libraryName: string, docLib: string) => {
     event.preventDefault();
     setAttachmentarr([]);
+    setshowviewdownload(false);
     debugger
     //setDocumentLink(null);
     filechanged = true;
@@ -2805,15 +2818,22 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   <label htmlFor="RequesterName" className="form-label">Department:<span className="text-danger1">*</span></label>
                                   {/* <input type="text" id="Name" name="department" className="form-control" value={formData.Department} disabled={true} />
                                    */}
-                                  <Select
-                                    options={Departopt}
-                                    value={SelectedOptionDepart}
-                                    name="Department"
-                                    className={`${(!ValidDraft && departmenterr) ? "border-on-error" : ""} ${(!ValidSubmit && departmenterr) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectDepart(selectedOption)}
-                                    placeholder="Search Department"
-                                    isDisabled={InputDisabled || formData?.Status == "Rework"}
-                                  />
+                                  <div
+                                    title={SelectedOptionDepart?.label || "Select a department"}
+                                    style={{ width: "100%" }}
+                                  >
+                                    <Select
+                                      options={Departopt}
+                                      value={SelectedOptionDepart}
+                                      name="Department"
+                                      className={`${(!ValidDraft && departmenterr) ? "border-on-error" : ""} ${(!ValidSubmit && departmenterr) ? "border-on-error" : ""}`}
+                                      onChange={(selectedOption: any) => onSelectDepart(selectedOption)}
+                                      placeholder="Search Department"
+                                      isDisabled={InputDisabled || formData?.Status == "Rework"}
+                                    />
+                                  </div>
+
+
                                 </div>
                               </div>
                               <div className="col-lg-4">
@@ -2824,41 +2844,54 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   <input type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" value={formData.RequesterDesignation} disabled={true} />
                                 </div>
                               </div>
+
                               <div className="col-lg-4">
                                 {console.log("formDataformData", formData, formData?.RequestDate)}
                                 <div className="mb-3">
                                   <label htmlFor="RequestDate" className="form-label">Request Date:</label>
-                                  <DatePicker
-                                    value={formData?.RequestDate ? new Date(moment(formData?.RequestDate).format('DD/MMM/YYYY')) : null} // Convert the date to Date object
-                                    onSelectDate={onDateChange}
-                                    maxDate={new Date()}
-                                    minDate={new Date()}
-                                    disabled={InputDisabled && formData?.Status != "Rework"}
-                                    //defaultValue={new Date().toDateString()}
-                                    formatDate={(date) => moment(date).format('DD/MMM/YYYY')} // Custom date format for display
-                                  />
 
-                                  {/* <input type="date" id="RequestDate" name="RequestDate" className="form-control" value={formData?.RequestDate} 
-                              onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} />
-                              <input type="text" id="RequestDate" name="RequestDate" className="form-control" value={formData?.RequestDate} onClick={(e)=> setshowdate(true)}
-                              onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} /> */}
+                                  <div
+                                    title={
+                                      formData?.RequestDate
+                                        ? moment(formData?.RequestDate).format('DD/MMM/YYYY')
+                                        : "Select a request date"
+                                    }
+                                  >
+                                    <DatePicker
+                                      value={
+                                        formData?.RequestDate
+                                          ? new Date(moment(formData?.RequestDate).format('YYYY-MM-DD'))
+                                          : null
+                                      }
+                                      onSelectDate={onDateChange}
+                                      maxDate={new Date()}
+                                      minDate={new Date()}
+                                      disabled={InputDisabled && formData?.Status !== "Rework"}
+                                      formatDate={(date) => moment(date).format('DD/MMM/YYYY')}
+                                    />
+                                  </div>
                                 </div>
                               </div>
-
                               <div className="col-lg-4">
 
                                 <div className="mb-3">
                                   <label htmlFor="DocumentCode" className="form-label">Request Type:<span className="text-danger1">*</span></label>
                                   {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={ReqType}
-                                    value={selectedOptionReq}
-                                    name="Request Type"
-                                    className={`${(!ValidDraft && requesttypeerr) ? "border-on-error" : ""} ${(!ValidSubmit && requesttypeerr) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectReq(selectedOption)}
-                                    placeholder="Search Request Type"
-                                    isDisabled={InputDisabled || formData?.Status == "Rework"}
-                                  />
+                                  <div
+                                    title={selectedOptionReq?.label || "Select a request type"}
+                                    style={{ width: "100%" }}
+                                  >
+                                    <Select
+                                      options={ReqType}
+                                      value={selectedOptionReq}
+                                      name="Request Type"
+                                      className={`${(!ValidDraft && requesttypeerr) ? "border-on-error" : ""} ${(!ValidSubmit && requesttypeerr) ? "border-on-error" : ""}`}
+                                      onChange={(selectedOption: any) => onSelectReq(selectedOption)}
+                                      placeholder="Search Request Type"
+                                      isDisabled={InputDisabled || formData?.Status == "Rework"}
+                                    />
+                                  </div>
+
                                 </div>
                               </div>
                               <div className="col-lg-4">
@@ -2868,23 +2901,33 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     {selectedOptionReq?.label != "Change Request for New Addition" && <span className="text-danger1">*</span>}
 
                                   </label>
+                                  {editItemID > 0 ?
+                                    <input type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" value={formData.DocumentCode} disabled={true} />
+                                    :
+                                    <div
+                                      title={selectedOption?.label || "Select a document code"}
+                                      style={{ width: "100%" }}
+                                    >
+                                      <Select
+                                        options={rows}
+                                        value={selectedOption}
+                                        name="DocumentCode"
+                                        isClearable={true}
+                                        //isOptionDisabled={() => selectedOptionReq.label == "Change Request for New Addition"}
+                                        isSearchable={true}
+                                        className={`${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidDraft && documentcodeerr) ? "border-on-error" : ""} ${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidSubmit && documentcodeerr) ? "border-on-error" : ""}`}
+                                        //className={`${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidSubmit && documentcodeerr) ? "border-on-error" : ""}`}
+                                        onChange={(selectedOption: any) => onSelectDocCode(selectedOption)}
+                                        placeholder={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.label == "Change Request for New Addition")
+                                          || InputDisabled ? "" : "Search Document Code"}
+                                        isDisabled={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.label == "Change Request for New Addition")
+                                          || InputDisabled
+                                        }
+                                      />
+                                    </div>
+                                  }
                                   {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={rows}
-                                    value={selectedOption}
-                                    name="DocumentCode"
-                                    isClearable={true}
-                                    //isOptionDisabled={() => selectedOptionReq.label == "Change Request for New Addition"}
-                                    isSearchable={true}
-                                    className={`${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidDraft && documentcodeerr) ? "border-on-error" : ""} ${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidSubmit && documentcodeerr) ? "border-on-error" : ""}`}
-                                    //className={`${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidSubmit && documentcodeerr) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectDocCode(selectedOption)}
-                                    placeholder={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.label == "Change Request for New Addition")
-                                      || InputDisabled ? "" : "Search Document Code"}
-                                    isDisabled={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.label == "Change Request for New Addition")
-                                      || InputDisabled
-                                    }
-                                  />
+
                                 </div>
                               </div>
                               <div className="col-lg-4">
@@ -2914,15 +2957,21 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 <div className="mb-3">
                                   <label htmlFor="DocumentCode" className="form-label">Document Type:<span className="text-danger1">*</span></label>
                                   {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={DocumentTypeOpt}
-                                    value={selectedOptionDoctype}
-                                    name="Document Type"
-                                    className={` ${(!ValidSubmit && documenttypeerr) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectDocumentType(selectedOption)}
-                                    placeholder="Search Document Type"
-                                    isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.label != "Change Request for New Addition") || formData?.Status == "Rework"}
-                                  />
+                                  <div
+                                    title={selectedOptionDoctype?.label || "Select a document type"}
+                                    style={{ width: "100%" }}
+                                  >
+                                    <Select
+                                      options={DocumentTypeOpt}
+                                      value={selectedOptionDoctype}
+                                      name="Document Type"
+                                      className={` ${(!ValidSubmit && documenttypeerr) ? "border-on-error" : ""}`}
+                                      onChange={(selectedOption: any) => onSelectDocumentType(selectedOption)}
+                                      placeholder="Search Document Type"
+                                      isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.label != "Change Request for New Addition") || formData?.Status == "Rework"}
+                                    />
+                                  </div>
+
                                 </div>
                               </div>
                               <div className="col-lg-4">
@@ -2930,14 +2979,21 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 <div className="mb-3">
                                   <label htmlFor="DocumentCode" className="form-label">Location:<span className="text-danger1">*</span></label>
                                   {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={LocationOpt}
-                                    value={selectedOptionLoc}
-                                    name="Location"
-                                    className={` ${(!ValidSubmit && locationerr) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectLocation(selectedOption)}
-                                    placeholder="Search Location" isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.label != "Change Request for New Addition") || formData?.Status == "Rework"}
-                                  />
+                                  <div
+                                    title={selectedOptionLoc?.label || "Select a Location"}
+                                    style={{ width: "100%" }}
+                                  >
+                                    <Select
+                                      options={LocationOpt}
+                                      value={selectedOptionLoc}
+                                      name="Location"
+                                      className={` ${(!ValidSubmit && locationerr) ? "border-on-error" : ""}`}
+                                      onChange={(selectedOption: any) => onSelectLocation(selectedOption)}
+                                      placeholder="Search Location"
+                                      isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.label != "Change Request for New Addition") || formData?.Status == "Rework"}
+                                    />
+                                  </div>
+
                                 </div>
                               </div>
                               <div className="col-lg-4">
@@ -2945,15 +3001,21 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 <div className="mb-3">
                                   <label htmlFor="DocumentCode" className="form-label">Custodian:<span className="text-danger1">*</span></label>
                                   {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={Custodianopt}
-                                    value={selectedOptionCusto}
-                                    name="Custodian"
-                                    className={` ${(!ValidSubmit && custodianerr) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectCustodian(selectedOption)}
-                                    placeholder="Search Custodian"
-                                    isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.label != "Change Request for New Addition") || formData?.Status == "Rework"}
-                                  />
+                                  <div
+                                    title={selectedOptionCusto?.label || "Select a custodian"}
+                                    style={{ width: "100%" }}
+                                  >
+                                    <Select
+                                      options={Custodianopt}
+                                      value={selectedOptionCusto}
+                                      name="Custodian"
+                                      className={` ${(!ValidSubmit && custodianerr) ? "border-on-error" : ""}`}
+                                      onChange={(selectedOption: any) => onSelectCustodian(selectedOption)}
+                                      placeholder="Search Custodian"
+                                      isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.label != "Change Request for New Addition") || formData?.Status == "Rework"}
+                                    />
+                                  </div>
+
                                 </div>
                               </div>
                               <div className="col-lg-4">
@@ -2961,14 +3023,20 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 <div className="mb-3">
                                   <label htmlFor="DocumentCode" className="form-label">Amendment Type:<span className="text-danger1">*</span></label>
                                   {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={Amendtype}
-                                    value={selectedOptionAmend}
-                                    name="Amendment Type"
-                                    className={`${(!ValidSubmit && amendmenterr) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectAmend(selectedOption)}
-                                    placeholder="Search" isDisabled={InputDisabled && formData?.Status != "Rework"}
-                                  />
+                                  <div
+                                    title={selectedOptionAmend?.label || "Select a Amendment type"}
+                                    style={{ width: "100%" }}
+                                  >
+                                    <Select
+                                      options={Amendtype}
+                                      value={selectedOptionAmend}
+                                      name="Amendment Type"
+                                      className={`${(!ValidSubmit && amendmenterr) ? "border-on-error" : ""}`}
+                                      onChange={(selectedOption: any) => onSelectAmend(selectedOption)}
+                                      placeholder="Search" isDisabled={InputDisabled && formData?.Status != "Rework"}
+                                    />
+                                  </div>
+
                                 </div>
                               </div>
                               <div className="col-lg-4">
@@ -2976,14 +3044,20 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 <div className="mb-3">
                                   <label htmlFor="DocumentCode" className="form-label">Classification:<span className="text-danger1">*</span></label>
                                   {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                  <Select
-                                    options={Classificationopt}
-                                    value={selectedOptionClass}
-                                    name="Classification"
-                                    className={`${(!ValidSubmit && classificationerr) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectClassification(selectedOption)}
-                                    placeholder="Search Classification" isDisabled={InputDisabled && formData?.Status != "Rework"}
-                                  />
+                                  <div
+                                    title={selectedOptionClass?.label || "Select a classification"}
+                                    style={{ width: "100%" }}
+                                  >
+                                    <Select
+                                      options={Classificationopt}
+                                      value={selectedOptionClass}
+                                      name="Classification"
+                                      className={`${(!ValidSubmit && classificationerr) ? "border-on-error" : ""}`}
+                                      onChange={(selectedOption: any) => onSelectClassification(selectedOption)}
+                                      placeholder="Search Classification" isDisabled={InputDisabled && formData?.Status != "Rework"}
+                                    />
+                                  </div>
+
                                 </div>
                               </div>
                               <div className="col-lg-4">
@@ -2993,15 +3067,21 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   <label htmlFor="RequesterName" className="form-label">Template Type:<span className="text-danger1">*</span></label>
                                   {/* <input type="text" id="Name" name="department" className="form-control" value={formData.Department} disabled={true} />
    */}
-                                  <Select
-                                    options={TemplateTypeopt}
-                                    value={SelectedOptionTemplate}
-                                    name="Template Type"
-                                    className={`${(!ValidSubmit && templatetypeerr) ? "border-on-error" : ""}`}
-                                    onChange={(selectedOption: any) => onSelectTemplatetype(selectedOption)}
-                                    placeholder="Search Template type"
-                                    isDisabled={InputDisabled}
-                                  />
+                                  <div
+                                    title={SelectedOptionTemplate?.label || "Select a template type"}
+                                    style={{ width: "100%" }}
+                                  >
+                                    <Select
+                                      options={TemplateTypeopt}
+                                      value={SelectedOptionTemplate}
+                                      name="Template Type"
+                                      className={`${(!ValidSubmit && templatetypeerr) ? "border-on-error" : ""}`}
+                                      onChange={(selectedOption: any) => onSelectTemplatetype(selectedOption)}
+                                      placeholder="Search Template type"
+                                      isDisabled={InputDisabled}
+                                    />
+                                  </div>
+
                                 </div>
                               </div>
                               {console.log("FormItemIdFormItemIdFormItemId", FormItemId, modeValue, selectedOption, Attachmentarr, DocumentLink)}
@@ -3053,7 +3133,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   </div>
                                 </div>
                               }
-                              {console.log("ghghghghghghgh", showpreviousattachment, "jjjj", (showpreviousattachment || (((modeValue == "view" || modeValue == "approve" ||
+                              {console.log("ghghghghghghgh", showpreviousattachment, "jjjj", (showpreviousattachment && (((modeValue == "view" || modeValue == "approve" ||
                                 (selectedOptionReq?.label != "Change Request for New Addition" && selectedOption)) ||
                                 (modeValue == "edit" && formData?.Status == "Save as draft")) && DocumentLink && Attachmentarr.length == 0)))}
                               {(showpreviousattachment && selectedOptionReq?.label != "Change Request for New Addition" || (((modeValue == "view" || modeValue == "approve" ||
@@ -3140,7 +3220,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         className="indexdesign"
                                       >
                                         {index + 1}</div></td>
-                                      <td>
+                                      <td title ={row.description}>
                                         {/* <input type="text" id="simpleinput" disabled={InputDisabled && formData?.Status != "Rework"}
                                         value={row.description}
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -3163,7 +3243,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         />
 
                                       </td>
-                                      <td>
+                                      <td title ={row.reason}>
                                         {/* <input type="text" id="simpleinput" disabled={InputDisabled && formData?.Status != "Rework"}
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                         value={row.reason}
@@ -3438,7 +3518,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   {console.log("Attachmentarrnmnm doc link", DocumentLink, DocumentLink != null)}
                                   <tr >
                                     <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
-                                    <td>{DocumentLink != null && `${DocumentLink?.FileLeafRef}`}</td>
+                                    <td title={DocumentLink != null && `${DocumentLink?.FileLeafRef}`}>{DocumentLink != null && `${DocumentLink?.FileLeafRef}`}</td>
                                     <td style={{ textAlign: 'center' }}>
                                       {/* <span onClick={() => OpenFile(DocumentLink != null && DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                         <FontAwesomeIcon icon={faEye} /></span> */}
@@ -3447,7 +3527,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       <span onClick={() => OpenFile(DocumentLink != null && DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                         <FontAwesomeIcon icon={faDownload} /></span>
                                     </td>
-                                    <td>{DocumentLink && moment(DocumentLink?.Created).format("DD/MMM/YYYY")}</td>
+                                    <td title={DocumentLink && moment(DocumentLink?.Created).format("DD/MMM/YYYY")}>{DocumentLink && moment(DocumentLink?.Created).format("DD/MMM/YYYY")}</td>
                                     {/* <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
                                       <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFileAttachment(0, Attachmentarr)}></img>
                                     </td> */}
@@ -3474,7 +3554,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   <tr>
                                     <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
                                     <th>File Name</th>
-                                    {showButton &&
+                                    {/* {showButton && */}
+                                    {((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
+                                      || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload &&
                                       <th > File Link </th>
                                     }
                                     <th className='text-center'>Upload date</th>
@@ -3489,8 +3571,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   {Attachmentarr.length > 0 &&
                                     <tr >
                                       <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
-                                      <td>{Attachmentarr && Attachmentarr[0]?.FileName}</td>
-                                      {showButton &&
+                                      <td title={Attachmentarr && Attachmentarr[0]?.FileName}>{Attachmentarr && Attachmentarr[0]?.FileName}</td>
+                                      {/* {showButton && */}
+                                      {((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
+                                        || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload &&
                                         <td style={{ textAlign: 'center' }}>
                                           {/* <span onClick={() => OpenFile(Attachmentarr && Attachmentarr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                             <FontAwesomeIcon icon={faEye} /></span> */}
@@ -3500,7 +3584,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                             <FontAwesomeIcon icon={faDownload} /></span>
                                         </td>
                                       }
-                                      <td>{Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD/MMM/YYYY")}</td>
+                                      <td title={Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD/MMM/YYYY")}>{Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD/MMM/YYYY")}</td>
                                       {(modeValue == "edit" || modeValue == null || modeValue == ""
                                         || (modeValue == "approve" && formData?.Status == "Rework")) &&
                                         <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>

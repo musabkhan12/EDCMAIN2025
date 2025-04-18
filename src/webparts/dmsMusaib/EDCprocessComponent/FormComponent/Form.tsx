@@ -2419,23 +2419,7 @@ const FormContext = ({ props }: any) => {
                                     </div>
                                   </div>
                                 </div>
-                                <div className="col-lg-4">
-                                  <div className="mb-3">
-                                    <label htmlFor="memoNo" className="col-form-label">Revision Number<span className="text-danger1"> *</span></label>
-                                    <div className="">
-                                      <input
-                                        disabled
-                                        type="text"
-                                        className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
-
-                                        // className="form-control"
-                                        id="RevNo"
-                                        value={formData.RevisionNo}
-
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
+                                
                                 <div className="col-lg-4">
                                   <div className="mb-3">
                                     <label htmlFor="memoNo" className="col-form-label">Issue No<span className="text-danger1"> *</span></label>
@@ -2448,6 +2432,23 @@ const FormContext = ({ props }: any) => {
                                         // className="form-control"
                                         id="IssueNo"
                                         value={formData.IssueNo}
+
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="col-lg-4">
+                                  <div className="mb-3">
+                                    <label htmlFor="memoNo" className="col-form-label">Revision No<span className="text-danger1"> *</span></label>
+                                    <div className="">
+                                      <input
+                                        disabled
+                                        type="text"
+                                        className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+
+                                        // className="form-control"
+                                        id="RevNo"
+                                        value={formData.RevisionNo}
 
                                       />
                                     </div>
@@ -2750,16 +2751,15 @@ const FormContext = ({ props }: any) => {
                         <section className='card card-body mt-2'>
                           <fieldset>
                             <div className='row'>
-                              <div className='col-sm-6'>
+                              <div className='col-sm-4'>
                                 <h3 className='text-dark font-16 fw-bold mt-2 mb-3'>Recommendation</h3>
                               </div>
-
-                            </div>
-                            <div className="row mb-3">
-
-                              <div className='col-sm-6'>
-                                <h5 className="text-dark font-14 fw-bold mb-2">Select Recommendation type<span className="text-danger1"> *</span></h5>
-                                {RecommType.map((type, index) => (
+                              <div className='col-sm-8'>
+                                <div style={{display:'flex', justifyContent:'flex-end', paddingTop:'8px'}}>
+                              <h5 style={{textAlign:'right', margin:'5px 24px 0px 0px'}} className="text-dark font-14 fw-bold mb-2">Select Recommendation type<span className="text-danger1"> *</span></h5>
+                              <div className=''>
+                               
+                              {RecommType.map((type, index) => (
                                   <div key={index} className="form-check form-check-inline">
                                     <input
                                       className="form-check-input RecTypeClsErr"
@@ -2776,9 +2776,17 @@ const FormContext = ({ props }: any) => {
                                     </label>
                                   </div>
                                 ))}
+                             </div>
+                             </div>
+
                               </div>
-                              <div style={{ textAlign: 'right' }} className='col-sm-6 mt-2'>
-                                {!InputDisabled && formData.RecommendationTypeValue === "Table" && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-3' src={require("../../assets/plus.png")} onClick={handleAddRecommendationRow}></img>}
+
+                            </div>
+                            <div className="row mb-1">
+
+                              
+                              <div style={{ textAlign: 'right' }} className='col-sm-12 mt-0'>
+                                {!InputDisabled && formData.RecommendationTypeValue === "Table" && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-0' src={require("../../assets/plus.png")} onClick={handleAddRecommendationRow}></img>}
                               </div>
 
                             </div>
@@ -2856,7 +2864,7 @@ const FormContext = ({ props }: any) => {
                                   <label htmlFor="recommendationDetails" className="form-label">
                                     Recommendation Details <span className="text-danger1"> *</span>
                                   </label>
-                                  <textarea
+                                  <textarea style={{height:'80px'}}
                                     id="recommendationDetails"
                                     className="form-control"
                                     value={formData.recommendationDetails || ""}
@@ -2881,7 +2889,7 @@ const FormContext = ({ props }: any) => {
                                 <label htmlFor="recApp" className="form-label">
                                   Recommendation for Approval <span className="text-danger1"> *</span>
                                 </label>
-                                <textarea
+                                <textarea style={{height:'80px'}}
                                   id="recApp"
                                   className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                   value={formData.recommendationforApproval || ""}
@@ -3131,14 +3139,14 @@ const FormContext = ({ props }: any) => {
                           <div className="card-body">
                             <div className='row'>
                               <div className='col-sm-8'>
-                                <h4 className="text-dark font-16 fw-bold mb-3 ">Approval Hierarchy</h4>
+                                <h4 className="text-dark font-16 fw-bold mb-1">Approval Hierarchy</h4>
                                 <label>Define the approval hierarchy to ensure requests are routed to the appropriate approvers.
                                 </label>
                               </div>
                               <div className='col-sm-4'>
-                                <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
+                                <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "0px" }}>
                                   {!InputDisabled &&
-                                    <img style={{ width: '34px' }} src={require("../../assets/plus.png")} onClick={handleAddRow} className='' />
+                                    <img style={{ width: '30px' }} src={require("../../assets/plus.png")} onClick={handleAddRow} className='' />
                                   }
 
                                 </div>
@@ -3152,10 +3160,10 @@ const FormContext = ({ props }: any) => {
                                   <tr>
                                     <th style={{ minWidth: "35px", maxWidth: "35px" }}>S.No</th>
                                     <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Role<span className="text-danger1"> *</span></th>
-                                    <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level</th>
+                                    <th style={{ minWidth: '50px', maxWidth: '50px' }} >Level</th>
                                     <th>Approver name<span className="text-danger1"> *</span></th>
-                                    <th style={{ minWidth: '70px', maxWidth: '70px' }} >Approval criteria<span className="text-danger1"> *</span></th>
-                                    <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
+                                    <th style={{ minWidth: '80px', maxWidth: '80px' }} >Approval criteria<span className="text-danger1"> *</span></th>
+                                    <th style={{ minWidth: '50px', maxWidth: '50px' }}>Action</th>
                                   </tr>
                                 </thead>
                                 <tbody style={{ maxHeight: "8007px", overflow: 'inherit' }}>
@@ -3207,7 +3215,7 @@ const FormContext = ({ props }: any) => {
 
 
                                       </td>
-                                      <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
+                                      <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }}>
                                         {/* <label htmlFor="approvalType">Approval Type: </label> */}
                                         <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse HierarchyClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={InputDisabled} >
                                           <option value="">Select </option>
@@ -3215,7 +3223,7 @@ const FormContext = ({ props }: any) => {
                                           <option value="All">Everyone</option>
                                         </select>
                                       </td>
-                                      <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>
+                                      <td style={{ minWidth: '50px', maxWidth: '50px', overflow: 'inherit' }}>
 
                                         {/* {editID.CurrentUserRole === "OES" ?  */}
 

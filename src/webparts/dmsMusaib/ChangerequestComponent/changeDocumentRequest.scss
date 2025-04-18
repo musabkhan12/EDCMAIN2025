@@ -197,10 +197,27 @@ background-color: #ccc;
 .previewIcon {
     display: flex;
     align-items: center;
-    /* justify-content: end; */
     justify-content: space-between;
     width: 100%;
 }
+
+.previewIcon h4 {
+    margin: 0;
+    text-align: left;
+}
+
+.previewIcon span {
+    display: flex;
+    align-items: center;
+}
+
+.previewIcon .btn {
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .active4:after {
     content: "\2212";
 }

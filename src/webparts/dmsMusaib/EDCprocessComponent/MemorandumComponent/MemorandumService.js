@@ -477,7 +477,7 @@ export const getDocumentLinkByID = async (_sp, AttachmentIds) => {
 export const getGeneratedTemplateDoc = async (_sp, itemId) => {
   let results = [];
   // for (let itemId of AttachmentIds) {
-    await _sp.web.lists.getByTitle("AnnualAuditProgramGeneratedTemplateDoc").items
+    await _sp.web.lists.getByTitle("MemorandumGeneratedTemplateDoc").items
       .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
       .then((res) => {
         console.log(res, ' let arrs=[]');

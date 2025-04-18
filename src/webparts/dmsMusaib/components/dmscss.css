@@ -499,7 +499,7 @@ a:hover
 }
 /* Popup body: Spacing for the select and textarea */
 .share-popup-body {
-  margin-bottom: 20px;
+  margin-bottom: 20px; position: relative;
 }
  
 /* React select container */

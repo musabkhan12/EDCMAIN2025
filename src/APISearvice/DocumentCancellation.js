@@ -4,8 +4,8 @@ export const getAllDocumentCode = async (_sp) => {
   let sts = "Approved";
 
   await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`Status eq '${sts}'`)
-    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title")
-    .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department")
+    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId")
+    .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department")
     .orderBy("Modified", false)() // Order by Modified descending to get latest first
     .then((res) => {
       console.log(res);
@@ -270,7 +270,7 @@ export const getItemByID = async (_sp, id) => {
   let arrs = []
   let bannerimg = []
   await _sp.web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.getById(id)
-  .select("*,TemplateTypeId,Department/ID,Department/Department,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title,Location/Location,Custodian/Custodian,DocumentType/DocumentType,AmendmentType/AmendmentType,Classification/Classification").expand("Department,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")()
+  .select("*,TemplateTypeId,Department/ID,Department/Department,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title,Location/Location,Custodian/Custodian,DocumentType/DocumentType,AmendmentType/AmendmentType,Classification/Classification,TemplateType/TemplateTypeName").expand("TemplateType,Department,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")()
     .then((res) => {
       console.log(res, ' let arrs=[]');      
 
@@ -615,7 +615,7 @@ export const getGeneratedTemplateDoc = async (_sp, itemId) => {
   let results = [];
   // for (let itemId of AttachmentIds) {
     await _sp.web.lists.getByTitle("DocumentCancellationGeneratedTemplateDoc").items
-      .select("*,FileRef, FileLeafRef").filter(`ListItemId/ID eq ${itemId}`)()
+      .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
       .then((res) => {
         console.log(res, ' let arrs=[]');
         results = res;

@@ -587,7 +587,7 @@ const MemoContext = ({ props }: any) => {
 
         }
 
-        // setTemplateDoc(await getGeneratedTemplateDoc(sp, Number(formitemid)));
+        setTemplateDoc(await getGeneratedTemplateDoc(sp, Number(formitemid)));
 
         const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_Memo, setBannerById[0].ReferenceNumber)
 
@@ -1314,7 +1314,7 @@ const MemoContext = ({ props }: any) => {
               }, 100);
               // let url = window.location.href;
               // let baseUrl = url.split("#")[0];
-            }, 500);
+            }, 1000);
             // }
           }
 
@@ -1539,10 +1539,13 @@ const MemoContext = ({ props }: any) => {
             Swal.fire('Submitted successfully.', '', 'success');
             // sessionStorage.removeItem("bannerId")
             setTimeout(() => {
-              window.location.reload();
-              // window.history.back();
-            }, 500);
-            // }
+
+              window.history.back();
+              // window.location.reload();
+              setTimeout(() => {
+                location.reload();
+              }, 100);
+            }, 1000);
 
           }
         })
@@ -2047,8 +2050,12 @@ const MemoContext = ({ props }: any) => {
             Swal.fire('Saved successfully.', '', 'success');
             // sessionStorage.removeItem("bannerId")
             setTimeout(() => {
-              window.location.reload();
-              // window.history.back();
+
+              window.history.back();
+              // window.location.reload();
+              setTimeout(() => {
+                location.reload();
+              }, 100);
             }, 1000);
           }
         })
@@ -2304,16 +2311,19 @@ const MemoContext = ({ props }: any) => {
 
                         <div className="card">
                           <div className="card-body">
-                            <h4 className="text-dark font-16 fw-bold mb-3">Memorandum</h4>
-                            {TemplateDoc && TemplateDoc.length > 0 && <div className='btn btn-primary'
-                              onClick={() => OpenFile(TemplateDoc[0], "Open")}
+                            
+                            <div className="previewIcon">
+                              <h4 style={{ textAlign: 'left', margin: 'inherit' }} className="text-dark font-16 fw-bold mb-3">Memorandum</h4>
+                              {TemplateDoc && TemplateDoc.length > 0 && <div className='btn btn-primary'
+                                onClick={() => OpenFile(TemplateDoc[0], "Open")}
 
-                            >
+                              >
 
-                              <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} ></img>
-                              {/* <FontAwesomeIcon icon={faEye} /> */}
+                                <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} ></img>
+                                {/* <FontAwesomeIcon icon={faEye} /> */}
+                              </div>
+                              }
                             </div>
-                            }
 
 
                             <div className="row mb-3">
@@ -2423,23 +2433,7 @@ const MemoContext = ({ props }: any) => {
                                     </div>
                                   </div>
                                 </div>
-                                <div className="col-lg-4">
-                                  <div className="mb-3">
-                                    <label htmlFor="memoNo" className="col-form-label">Revision Number<span className="text-danger1"> *</span></label>
-                                    <div className="">
-                                      <input
-                                        disabled
-                                        type="text"
-                                        className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
-
-                                        // className="form-control"
-                                        id="RevNo"
-                                        value={formData.RevisionNo}
-
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
+                                
                                 <div className="col-lg-4">
                                   <div className="mb-3">
                                     <label htmlFor="memoNo" className="col-form-label">Issue No<span className="text-danger1"> *</span></label>
@@ -2452,6 +2446,23 @@ const MemoContext = ({ props }: any) => {
                                         // className="form-control"
                                         id="IssueNo"
                                         value={formData.IssueNo}
+
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="col-lg-4">
+                                  <div className="mb-3">
+                                    <label htmlFor="memoNo" className="col-form-label">Revision No<span className="text-danger1"> *</span></label>
+                                    <div className="">
+                                      <input
+                                        disabled
+                                        type="text"
+                                        className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+
+                                        // className="form-control"
+                                        id="RevNo"
+                                        value={formData.RevisionNo}
 
                                       />
                                     </div>
@@ -2742,7 +2753,7 @@ const MemoContext = ({ props }: any) => {
                                   </div>
                                 </div>
 
-                                <div className="col-lg-8 mb-3">
+                                <div className="col-lg-12 mb-3">
                                   <div className="mb-0">
                                     <label htmlFor="background" className="col-form-label">Background<span className="text-danger1"> *</span></label>
                                     <div>
@@ -2791,8 +2802,34 @@ const MemoContext = ({ props }: any) => {
                         <section className='card card-body mt-2'>
                           <fieldset>
                             <div className='row'>
-                              <div className='col-sm-6'>
+                              <div className='col-sm-4'>
                                 <h3 className='text-dark font-16 fw-bold mt-2 mb-3'>Recommendation</h3>
+                              </div>
+                              <div className='col-sm-8'>
+                                <div style={{display:'flex', justifyContent:'flex-end', paddingTop:'10px'}}>
+                              <h5 style={{textAlign:'right', margin:'5px 24px 0px 0px'}} className="text-dark font-14 fw-bold mb-2">Select Recommendation type<span className="text-danger1"> *</span></h5>
+                              <div className=''>
+                               
+                               {RecommType.map((type, index) => (
+                                 <div key={index} className="form-check form-check-inline">
+                                   <input
+                                     className="form-check-input RecTypeClsErr"
+                                     type="radio"
+                                     name="recommendationType"
+                                     id={`recommendationType_${type.Id}`}
+                                     value={type.Id}
+                                     disabled={InputDisabled}
+                                     onChange={(e) => setFormData({ ...formData, recommendationTypeId: Number(e.target.value), RecommendationTypeValue: type.RecommendationTypeValue })}
+                                     checked={formData.recommendationTypeId === type.Id}
+                                   />
+                                   <label className="form-check-label" htmlFor={`recommendationType_${type.Id}`}>
+                                     {type.RecommendationTypeValue}
+                                   </label>
+                                 </div>
+                               ))}
+                             </div>
+                             </div>
+
                               </div>
 
                             </div>
@@ -2821,35 +2858,16 @@ const MemoContext = ({ props }: any) => {
                                 ))}
                               </div>
                             </div> */}
-                            <div className="row mb-3">
+                            <div className="row mb-1">
 
-                              <div className='col-sm-6'>
-                                <h5 className="text-dark font-14 fw-bold mb-2">Select Recommendation type<span className="text-danger1"> *</span></h5>
-                                {RecommType.map((type, index) => (
-                                  <div key={index} className="form-check form-check-inline">
-                                    <input
-                                      className="form-check-input RecTypeClsErr"
-                                      type="radio"
-                                      name="recommendationType"
-                                      id={`recommendationType_${type.Id}`}
-                                      value={type.Id}
-                                      disabled={InputDisabled}
-                                      onChange={(e) => setFormData({ ...formData, recommendationTypeId: Number(e.target.value), RecommendationTypeValue: type.RecommendationTypeValue })}
-                                      checked={formData.recommendationTypeId === type.Id}
-                                    />
-                                    <label className="form-check-label" htmlFor={`recommendationType_${type.Id}`}>
-                                      {type.RecommendationTypeValue}
-                                    </label>
-                                  </div>
-                                ))}
-                              </div>
-                              <div style={{ textAlign: 'right' }} className='col-sm-6 mt-2'>
-                                {!InputDisabled && formData.RecommendationTypeValue === "Table" && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-3' src={require("../../assets/plus.png")} onClick={handleAddRecommendationRow}></img>}
+                            
+                              <div style={{ textAlign: 'right' }} className='col-sm-12 mt-1'>
+                                {!InputDisabled && formData.RecommendationTypeValue === "Table" && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-0' src={require("../../assets/plus.png")} onClick={handleAddRecommendationRow}></img>}
                               </div>
 
                             </div>
                             {formData.RecommendationTypeValue === "Table" ? (
-                              <table id="tabRec" className='mtbalenew overhi'>
+                              <table id="tabRec" className='mtbalenew overhi mb-3'>
                                 <thead>
                                   <tr><th style={{ minWidth: '190px', maxWidth: '190px' }}>Section<span className="text-danger1"> *</span></th>
                                     <th>Date<span className="text-danger1"> *</span></th>
@@ -2922,7 +2940,7 @@ const MemoContext = ({ props }: any) => {
                                   <label htmlFor="recommendationDetails" className="form-label">
                                     Recommendation Details <span className="text-danger1"> *</span>
                                   </label>
-                                  <textarea
+                                  <textarea style={{height:'80px'}}
                                     id="recommendationDetails"
                                     className="form-control"
                                     value={formData.recommendationDetails || ""}
@@ -2947,11 +2965,11 @@ const MemoContext = ({ props }: any) => {
                                 <label htmlFor="recApp" className="form-label">
                                   Recommendation for Approval <span className="text-danger1"> *</span>
                                 </label>
-                                <textarea
+                                <textarea style={{height:'80px'}}
                                   id="recApp"
                                   className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                   value={formData.recommendationforApproval || ""}
-                                  onChange={(e:any) => {
+                                  onChange={(e: any) => {
                                     setFormData((prevState) => ({
                                       ...prevState,
                                       recommendationforApproval: e.target.value,
@@ -3100,14 +3118,14 @@ const MemoContext = ({ props }: any) => {
                           <div className="card-body">
                             <div className='row'>
                               <div className='col-sm-8'>
-                                <h4 className="text-dark font-16 fw-bold mb-3 ">Approval Hierarchy</h4>
+                                <h4 className="text-dark font-16 fw-bold mb-1 ">Approval Hierarchy</h4>
                                 <label>Define the approval hierarchy to ensure requests are routed to the appropriate approvers.
                                 </label>
                               </div>
                               <div className='col-sm-4'>
-                                <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
+                                <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "0px" }}>
                                   {!InputDisabled &&
-                                    <img style={{ width: '34px' }} src={require("../../assets/plus.png")} onClick={handleAddRow} className='' />
+                                    <img style={{ width: '30px' }} src={require("../../assets/plus.png")} onClick={handleAddRow} className='' />
                                   }
 
                                 </div>

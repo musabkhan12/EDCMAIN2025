@@ -251,7 +251,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                 <tr>
                                     <th style={{ minWidth: '40px', textAlign:'center', maxWidth: '40px' }}>
                                        
-                                        <div style={{ width: '100%', height: '78px', clear: 'both', display:'flex', justifyContent:'start', textAlign
+                                        <div style={{ width: '100%', height: '80px', clear: 'both', display:'flex', justifyContent:'start', textAlign
                                             :'center'
                                          }} className='pb-3'> S.No</div>
                                     </th>
@@ -286,7 +286,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                         </th>
                                     ))}
                                     <th style={{ minWidth: '60px', textAlign:'center', maxWidth: '60px' }}>
-                                        <div style={{ width: '100%', height: '78px',  display:'flex', justifyContent:'start', textAlign
+                                        <div style={{ width: '100%', height: '80px',  display:'flex', justifyContent:'start', textAlign
                                             :'center' }} className='pb-3'>Action</div>
 
                                     </th>

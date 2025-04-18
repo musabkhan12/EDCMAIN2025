@@ -67,7 +67,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     selectedTextDiv.style.display = 'none';
 
     const [Loading, setLoading] = React.useState(false);
-      const [TemplateDoc, setTemplateDoc] = React.useState<any>([]);
+    const [TemplateDoc, setTemplateDoc] = React.useState<any>([]);
     const [FormLoading, setFormLoading] = React.useState(false);
     const [FormItemId, setFormItemId] = React.useState(null);
     const [editID, setEditID] = React.useState(null);
@@ -101,6 +101,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         RequesterName: "",
         RequesterDesignation: "",
         Department: null,
+        DepartmentName: "",
         RequestDate: "",
         RequestDateNew: "",
         IssueDate: "",
@@ -131,7 +132,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         ChangeRequestID: 0,
         AttachmentId: [],
         AttachmentJson: "",
-        TemplateTypeId:0,
+        TemplateTypeId: 0,
+        TemplateTypeValue: "",
 
 
 
@@ -260,13 +262,13 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             AmendmentTypeId: item.AmendmentTypeId,
             RequestTypeId: ReqId,
             ClassificationId: item.ClassificationId,
-            // ChangeRequestTypeId: item.ChangeRequestTypeId,
-            ChangeRequestTypeId: RequestTypeId,
+            ChangeRequestTypeId: item.ChangeRequestTypeId,
+            // ChangeRequestTypeId: RequestTypeId,
             SubmiitedDate: item.SubmiitedDate,
             SubmitStatus: item.SubmitStatus,
             DocumentTypeId: item.DocumentTypeId,
-            Department: item.DepartmentId||null,
-            // Department: item.Department.Department||"",
+            Department: item.DepartmentId || null,
+            DepartmentName: item.Department?.Department||"",
             AttachmentId: item.AttachmentId,
             AttachmentJson: item.AttachmentJson,
 
@@ -275,7 +277,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             AmendmentType: item.AmendmentType.AmendmentType,
             Classification: item.Classification.Classification,
             DocumentType: item.DocumentType.DocumentType,
-            TemplateTypeId:item.TemplateTypeId,
+            TemplateTypeId: item.TemplateTypeId,
+            TemplateTypeValue: item.TemplateType?.TemplateTypeName||"",
+
 
         }));
 
@@ -377,7 +381,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     RequesterNameId: setBannerById[0].RequesterNameId,
                     RequesterDesignation: setBannerById[0].RequesterDesignation,
                     // Department: setBannerById[0].Department.Department||"",
-                    Department: setBannerById[0].DepartmentId||null,
+                    Department: setBannerById[0].DepartmentId || null,
+                    DepartmentName: setBannerById[0].Department?.Department||"",
                     RequestDate: setBannerById[0].RequestDate,
                     RequestDateNew: new Date(setBannerById[0].RequestDate).toLocaleDateString("en-GB", {
                         day: "2-digit",
@@ -418,8 +423,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     AmendmentType: setBannerById[0].AmendmentType.AmendmentType,
                     Classification: setBannerById[0].Classification.Classification,
                     DocumentType: setBannerById[0].DocumentType.DocumentType,
-                    TemplateTypeId:setBannerById[0].TemplateTypeId,
-
+                    TemplateTypeId: setBannerById[0].TemplateTypeId,
+                    TemplateTypeValue: setBannerById[0].TemplateType?.TemplateTypeName||"",
 
                 }
 
@@ -452,8 +457,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     SubmitStatus: setBannerById[0].SubmitStatus,
                     DocumentCode: setBannerById[0].DocumentCode,
                     DocumentTypeId: setBannerById[0].DocumentTypeId,
-                    // Department: setBannerById[0].Department.Department||"",
-                    Department: setBannerById[0].DepartmentId||null,
+                    DepartmentName: setBannerById[0].Department?.Department||"",
+                    Department: setBannerById[0].DepartmentId || null,
                     AttachmentId: setBannerById[0].AttachmentId,
                     AttachmentJson: setBannerById[0].AttachmentJson,
 
@@ -462,7 +467,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     AmendmentType: setBannerById[0].AmendmentType.AmendmentType,
                     Classification: setBannerById[0].Classification.Classification,
                     DocumentType: setBannerById[0].DocumentType.DocumentType,
-                    TemplateTypeId:setBannerById[0].TemplateTypeId
+                    TemplateTypeId: setBannerById[0].TemplateTypeId,
+                    TemplateTypeValue: setBannerById[0].TemplateType?.TemplateTypeName||"",
 
                     // Format as YYYY-MM-DD
                 }));
@@ -524,6 +530,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             DocumentCode: selectedList.value,
             DocumentTypeId: selectedList.DocumentTypeId,
             Department: selectedList.Department,
+            DepartmentName: selectedList.DepartmentName||"",
             AttachmentId: selectedList.AttachmentId,
             AttachmentJson: selectedList.AttachmentJson,
 
@@ -532,7 +539,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             AmendmentType: selectedList.AmendmentType,
             Classification: selectedList.Classification,
             DocumentType: selectedList.DocumentType,
-            TemplateTypeId:selectedList.TemplateTypeId,
+            TemplateTypeId: selectedList.TemplateTypeId,
+            TemplateTypeValue: selectedList.TemplateTypeValue||"",
             // Format as YYYY-MM-DD
         }));
         setSelectedOption(selectedList);
@@ -1964,8 +1972,17 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
                                                                     <div className="mb-3">
+                                                                        <label htmlFor="Department" className="form-label">Department</label>
+                                                                        <input type="text" id="Department" name="DepartmentName" className="form-control" title={formData.DepartmentName} value={formData.DepartmentName} disabled={true} />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="col-lg-4">
+
+
+                                                                    <div className="mb-3">
                                                                         <label htmlFor="RequesterDesignation" className="form-label">Designation</label>
-                                                                        <input type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" value={formData.RequesterDesignation} disabled={true} />
+                                                                        <input type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" title={formData.RequesterDesignation}  value={formData.RequesterDesignation} disabled={true} />
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
@@ -2016,28 +2033,18 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.ReferenceNumber} />
                                                                     </div>
                                                                 </div>
-
                                                                 <div className="col-lg-4">
 
                                                                     <div className="mb-3">
-                                                                        <label htmlFor="example-email" className="form-label">Amendment Type</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.AmendmentType} />
+                                                                        <label htmlFor="example-email" className="form-label">Document Type</label>
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.DocumentType} value={formData.DocumentType} />
                                                                     </div>
                                                                 </div>
-
-                                                                <div className="col-lg-4">
-
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="example-email" className="form-label">Classification</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.Classification} />
-                                                                    </div>
-                                                                </div>
-
                                                                 <div className="col-lg-4">
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Location</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.Location} />
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder=""title={formData.Location} value={formData.Location} />
                                                                     </div>
                                                                 </div>
 
@@ -2045,15 +2052,31 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Custodian</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.Custodian} />
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Custodian}value={formData.Custodian} />
                                                                     </div>
                                                                 </div>
 
                                                                 <div className="col-lg-4">
 
                                                                     <div className="mb-3">
-                                                                        <label htmlFor="example-email" className="form-label">Document Type</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.DocumentType} />
+                                                                        <label htmlFor="example-email" className="form-label">Amendment Type</label>
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.AmendmentType} value={formData.AmendmentType} />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="col-lg-4">
+
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="example-email" className="form-label">Classification</label>
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder=""title={formData.Classification} value={formData.Classification} />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="col-lg-4">
+
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="example-email" className="form-label">Template Type</label>
+                                                                        <input disabled type="text" id="templateid" name="example-email" className="form-control" placeholder="" title={formData.TemplateTypeValue} value={formData.TemplateTypeValue} />
                                                                     </div>
                                                                 </div>
 
@@ -2075,7 +2098,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         <div className='d-flex justify-content-between'>
                                                                             <div>
                                                                                 <label htmlFor="bannerImage" className="form-label">
-                                                                                    Documents Attached
+                                                                             Attachment
                                                                                 </label>
                                                                             </div>
                                                                             <div>
@@ -2612,8 +2635,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                     <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
                                                                                     <td title={DocumentLink?.FileLeafRef}>{DocumentLink?.FileLeafRef}</td>
                                                                                     <td style={{ textAlign: 'center',minWidth: '50px', maxWidth: '50px' }} >
-                                                                                        {/* <span onClick={() => OpenFile(DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                        <FontAwesomeIcon icon={faDownload} /></span> */}
+                                                                                        <span onClick={() => OpenFile(DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                        <FontAwesomeIcon icon={faDownload} /></span>
                                                                                         <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span> </td>
                                                                                     <td style={{ minWidth: '70px', maxWidth: '70px' }}>{DocumentLink.Created
                                                                                         ? new Intl.DateTimeFormat('en-GB', {

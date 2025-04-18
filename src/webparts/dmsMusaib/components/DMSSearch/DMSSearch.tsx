@@ -2252,7 +2252,7 @@ const ArgPoc = ({ props }: any) => {
     //       console.log(currentfolderpath, "currentfolderpath");
     //       console.log(searchQueryPath, "currentfolderpath");
     //         const searchQuery:SearchQueryInit = {
-    //              //Querytext:`${searchText} AND Path:"https://edcadae.sharepoint.com${currentfolderpath}"`,
+    //              //Querytext:`${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
     //             Querytext:`${searchText} AND Path:"${searchQueryPath}"`,
     //             // Querytext: `"${searchText}"`,
     //             RowLimit: 500,
@@ -2377,7 +2377,7 @@ const ArgPoc = ({ props }: any) => {
     try {
 
       // const searchQuery: SearchQueryInit = {
-      //   //Querytext:`${searchText} AND Path:"https://edcadae.sharepoint.com${currentfolderpath}"`,
+      //   //Querytext:`${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
       //   // Querytext: `${searchText} IsDocument:True Path:"${(searhcpath) ? searhcpath : searchQueryPath}"`,
 
       //   Querytext:"",
@@ -2431,7 +2431,7 @@ const ArgPoc = ({ props }: any) => {
       console.log(currentfolderpath, "currentfolderpath");
       console.log(searchQueryPath, "currentfolderpath");
       const searchQuery: SearchQueryInit = {
-        //Querytext:`${searchText} AND Path:"https://edcadae.sharepoint.com${currentfolderpath}"`,
+        //Querytext:`${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
         Querytext: `${searchText} IsDocument:True Path:"${searchQueryPath}"`,
         // Querytext: `"${searchText}"`,
         RowLimit: 5000,
@@ -3329,7 +3329,7 @@ const ArgPoc = ({ props }: any) => {
   <div id="userDropdown" class="user-dropdown" style="
     display: none;
     position: absolute;
-    width: 29.8%;
+    width: 100%;
     max-height: 150px;
     overflow-y: auto;
     background-color: white;
@@ -5723,7 +5723,7 @@ const ArgPoc = ({ props }: any) => {
   <div id="userDropdown" class="user-dropdown" style="
     display: none;
     position: absolute;
-    width: 29.8%;
+    width: 100%;
     max-height: 150px;
     overflow-y: auto;
     background-color: white;

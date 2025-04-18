@@ -199,6 +199,20 @@ export const getDataRoles = async (_sp) => {
     }
     return resultArr;
   };
+  export const updateItem3 = async (itemData, _sp, id) => {
+    let resultArr = []
+    try {
+      const newItem = await _sp.web.lists.getByTitle('AnnualAuditPlanAuditCriteriaList').items.getById(id).update(itemData);
+      console.log('Item added successfully:', newItem);
+      resultArr = newItem
+      // Perform any necessary actions after successful addition
+    } catch (error) {
+      console.log('Error adding item:', error);
+      // Handle errors appropriately
+      resultArr = null
+    }
+    return resultArr;
+  };
 
   export const getAllAuditType = async (_sp) => {
  
@@ -235,7 +249,27 @@ export const getDataRoles = async (_sp) => {
    
       console.log('Item added successfully:', newItem);
       // Swal.fire('Item added successfully', '', 'success');
-  
+ 
+      resultArr = newItem
+      // Perform any necessary actions after successful addition
+    } catch (error) {
+      console.log('Error adding item:', error);
+      // Handle errors appropriately
+      resultArr = null
+      Swal.fire(' Cancelled', '', 'error')
+    }
+    return resultArr;
+  };
+
+  export const addItem3 = async (itemData, _sp) => {
+   
+    let resultArr = []
+    try {
+      const newItem = await _sp.web.lists.getByTitle('AnnualAuditPlanAuditCriteriaList').items.add(itemData);
+   
+      console.log('Item added successfully:', newItem);
+      // Swal.fire('Item added successfully', '', 'success');
+ 
       resultArr = newItem
       // Perform any necessary actions after successful addition
     } catch (error) {
@@ -345,6 +379,18 @@ export const getDataRoles = async (_sp) => {
     let arr = []
     let sampleDataArray = []
     arr = await sp.web.lists.getByTitle("AnnualAuditPlanRecommendationList").items.select("*,AnnualAuditPlanID/ID,Auditor/ID,Auditor/Title").expand("AnnualAuditPlanID,Auditor").filter(`AnnualAuditPlanID/ID eq ${AuditID}`).getAll();
+    // .then((res) => {
+    //   arr = res
+    //   console.log(arr, 'arr');
+    // })
+    return arr
+  }
+
+  export const getItemByID3 = async (sp, AuditID) => {
+    debugger
+    let arr = []
+    let sampleDataArray = []
+    arr = await sp.web.lists.getByTitle("AnnualAuditPlanAuditCriteriaList").items.select("*,AnnualAuditPlanID/ID,Auditor/ID,Auditor/Title,Location/ID,Location/Location").expand("Location,AnnualAuditPlanID,Auditor").filter(`AnnualAuditPlanID/ID eq ${AuditID}`).getAll();
     // .then((res) => {
     //   arr = res
     //   console.log(arr, 'arr');
@@ -481,11 +527,11 @@ export const getRecommendationTypes= async (_sp) =>{
 export const getGeneratedTemplateDoc = async (_sp, itemId) => {
   let results = [];
   // for (let itemId of AttachmentIds) {
-    await _sp.web.lists.getByTitle("AnnualAuditProgramGeneratedTemplateDoc").items
+    await _sp.web.lists.getByTitle("AnnualAuditPlanGeneratedTemplateDoc").items
       .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
       .then((res) => {
         console.log(res, ' let arrs=[]');
-        results.push(res);
+        results = res;
       })
       .catch((error) => {
         console.log("Error fetching data: ", error);

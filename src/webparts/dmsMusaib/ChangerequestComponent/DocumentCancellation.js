@@ -5,6 +5,7 @@ export const getAllDocumentCode = async (_sp) => {
   await _sp.web.lists.getByTitle("ChangeRequestList").items
     .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title")
     .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")
+    .filter("Status eq 'Approved'")
     .orderBy("Modified", false)() // Order by Modified descending to get latest first
     .then((res) => {
       console.log(res);
@@ -476,7 +477,7 @@ export const getItemByIDCR = async (_sp, id) => {
   let bannerimg = []
 
   await _sp.web.lists.getByTitle("ChangeRequestList").items.getById(id)
-    .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title").expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")()
+    .select("*,Location/ID,Custodian/ID,RequestType/ID,RequestType/RequestType,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title").expand("DocumentType,RequestType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")()
     .then((res) => {
       console.log(res, ' let arrs=[]');
 

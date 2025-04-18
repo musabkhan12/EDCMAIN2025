@@ -187,7 +187,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
         <div id="cardCollpase4" className="collapse show">
 
-          <h3 className="header-title text-dark font-16 mb-0">Audit History</h3>
+          <h3 className=" text-dark font-16 fw-bold mb-1">Audit History</h3>
           <p className="font-14 mb-3 text-muted">Below table describes the status of approval at various level </p>
 
           {console.log("AuditHistoryRows", AuditHistoryRows)}
@@ -210,25 +210,25 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                 <tr>
 
-                  <th style={{ minWidth: '40px', maxWidth: '40px' }}>
+                  <th style={{ minWidth: '50px', maxWidth: '50px' }}>
 
                     S.No.
 
                   </th>
 
-                  <th style={{ minWidth: '50px', maxWidth: '50px' }}>
+                  <th style={{ minWidth: '60px', maxWidth: '60px' }}>
 
                     Level
 
                   </th>
 
-                  <th style={{ minWidth: '70px', maxWidth: '70px' }}>
+                  <th style={{ minWidth: '80px', maxWidth: '80px' }}>
 
                     Assigned To
 
                   </th>
 
-                  {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request" || props.ContentType == "Annual Audit Plan" || props.ContentType == "Annual Audit Report"|| props.ContentType == "Memorandum") &&<th style={{ minWidth: '70px', maxWidth: '70px' }}>
+                  {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request" || props.ContentType == "Annual Audit Plan" || props.ContentType == "Annual Audit Report"|| props.ContentType == "Memorandum") &&<th style={{ minWidth: '100px', maxWidth: '100px' }}>
 
 
                    Assigned To Role
@@ -236,7 +236,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                   </th>
         }
 
-                  <th style={{ minWidth: '70px', maxWidth: '70px' }}>
+                  <th style={{ minWidth: '90px', maxWidth: '90px' }}>
 
                     Requester Name
 
@@ -246,7 +246,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                     Role
 
                   </th> */}
-                  <th style={{ minWidth: '70px', maxWidth: '70px' }}>
+                  <th style={{ minWidth: '90px', maxWidth: '90px' }}>
 
                     Requested Date
 
@@ -265,7 +265,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                   </th>
 
 
-                  <th style={{ minWidth: '70px', maxWidth: '70px' }}>
+                  <th style={{ minWidth: '80px', maxWidth: '80px' }}>
 
                     Remarks
 
@@ -312,7 +312,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                       <tr>
 
-                        <td style={{ minWidth: '40px', maxWidth: '40px' }}> {index + 1}</td>
+                        <td style={{ minWidth: '50px', maxWidth: '50px' }}> {index + 1}</td>
 
 
                         <td title= {
@@ -329,7 +329,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                                       : `Level ${row.Level}`
                                   : `Level ${row.Level}`
                                 : ""
-                          } style={{ minWidth: '50px', maxWidth: '50px' }}>
+                          } style={{ minWidth: '60px', maxWidth: '60px' }}>
                           {
                             row.LevelId !== undefined && row.LevelId !== null
                               ? row.LevelId === 0
@@ -350,16 +350,16 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
 
 
-                        <td title={row.Approver ? row.Approver.Title : row.AssignedTo.Title} style={{ minWidth: '70px', maxWidth: '70px' }}> {row.Approver ? row.Approver.Title : row.AssignedTo.Title}</td>
+                        <td title={row.Approver ? row.Approver.Title : row.AssignedTo.Title} style={{ minWidth: '80px', maxWidth: '80px' }}> {row.Approver ? row.Approver.Title : row.AssignedTo.Title}</td>
 
                         {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request" || props.ContentType == "Annual Audit Plan" || props.ContentType == "Annual Audit Report"|| props.ContentType == "Memorandum") &&
-                          <td title={row.CurrentUserRole || row.ActionTakenRole.Role || ""} style={{ minWidth: '70px', maxWidth: '70px' }}>{row.CurrentUserRole ||row.ActionTakenRole.Role ||""}</td>
+                          <td title={row.CurrentUserRole || row.ActionTakenRole.Role || ""} style={{ minWidth: '100px', maxWidth: '100px' }}>{row.CurrentUserRole ||row.ActionTakenRole.Role ||""}</td>
                         }
 
-                        <td title={row.Requester ? row.Requester.Title : row.RequesterName.Title} style={{ minWidth: '70px', maxWidth: '70px' }}> {row.Requester ? row.Requester.Title : row.RequesterName.Title}</td>
+                        <td title={row.Requester ? row.Requester.Title : row.RequesterName.Title} style={{ minWidth: '90px', maxWidth: '90px' }}> {row.Requester ? row.Requester.Title : row.RequesterName.Title}</td>
                         {/* <td style={{ minWidth: '70px', maxWidth: '70px' }}> {row.ActionTakenRole ? row.ActionTakenRole.Role : row.ActionTakenRole.Role}</td> */}
                         {/* <td  style={{ minWidth: '70px', maxWidth: '70px' }}> {(new Date(row.Created)).toLocaleString()}</td> */}
-                        <td title={`${new Intl.DateTimeFormat('en-GB', {
+                        <td style={{ minWidth: '90px', maxWidth: '90px' }} title={`${new Intl.DateTimeFormat('en-GB', {
                           day: '2-digit',
                           month: 'short',
                           year: 'numeric'
@@ -388,7 +388,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                         </td>
 
                         {/* <td style={{ minWidth: '70px', maxWidth: '70px' }}>{(row.Status != 'Pending') ? ((new Date(row.Modified)).toLocaleString()) : ""}</td> */}
-                        <td title={row.Status !== 'Pending'
+                        <td style={{ minWidth: '70px', maxWidth: '70px' }} title={row.Status !== 'Pending'
                           ? `${new Intl.DateTimeFormat('en-GB', {
                             day: '2-digit',
                             month: 'short',
@@ -414,7 +414,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                         </td>
 
 
-                        <td style={{ minWidth: '70px', maxWidth: '70px', cursor: 'pointer' }} title={row.Remark}> {row.Remark}</td>
+                        <td style={{ minWidth: '80px', maxWidth: '80px', cursor: 'pointer' }} title={row.Remark}> {row.Remark}</td>
 
                         <td title={row.Status} style={{ minWidth: '90px', maxWidth: '90px', cursor: 'pointer' }}> <div className="">{row.Status}</div> </td>
 
