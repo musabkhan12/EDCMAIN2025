@@ -59,9 +59,9 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         arrrr[i] = arrrr[i].replace("TMP", "RRF");
       }
     }
-    console.log("props.currentItem",props.currentItem);
+    console.log("props.currentItem", props.currentItem);
     let test = arrrr.join('.');
-    let testRev = currentchangerequest[0].RequestType?.RequestType == "Change in Existing Content" && RevisionNumber != null ? Number(RevisionNumber) + 1 : Number(RevisionNumber);
+    let testRev = currentchangerequest[0].RequestType?.RequestType == "Change in Existing Content" && RevisionNumber != null ? Number(RevisionNumber) : Number(RevisionNumber);
     console.log("arrrr", arrrr, test);
     if (props.currentItem.Maxlevel == props.currentItem.Level) {
       if ((props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One") {
@@ -86,9 +86,9 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
         ActionTakenById: currentUser.Id,
         ActionTakenOn: new Date().toISOString(),
-        ContentTitle: ((props.currentItem.LevelType == "All" && allprocessitems.length == 1) || 
-        props.currentItem.LevelType == "One" ) && Status == 'Approved'
-        ? test : currentReferenceNo
+        ContentTitle: ((props.currentItem.LevelType == "All" && allprocessitems.length == 1) ||
+          props.currentItem.LevelType == "One") && Status == 'Approved'
+          ? test : currentReferenceNo
       };
 
       postPayload2 = {
@@ -104,11 +104,22 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         Status: Status,
         ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
       };
-      postPayloadapp1 = {
-        // Status: Status,
-        RevisionNumber:(props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? testRev : RevisionNumber,
-        ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
-      };
+      if (currentchangerequest[0].RequestType?.RequestType == "Change in Existing Content") {
+        postPayloadapp1 = {
+          IssueDate: new Date().toISOString(),
+          RevisionDate: new Date().toISOString(),
+          RevisionNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? testRev : RevisionNumber,
+          ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
+        };
+      } else {
+        postPayloadapp1 = {
+          // Status: Status,
+          IssueDate: new Date().toISOString(),
+          RevisionNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? testRev : RevisionNumber,
+          ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
+        };
+      }
+
     }
     else {
       postPayload = {
@@ -164,7 +175,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
             //   await updateItemChangeRequestList(postPayload2, sp, Number(props.currentItem.ListItemId))
             // props.ContentType == "Change Request"
 
-          } 
+          }
           else if (Status == 'Approved') {
             postResult2 = await updateItemChangeRequestList(postPayloadapp1, sp, Number(props.currentItem.ListItemId))
           }
@@ -180,11 +191,11 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         }
 
         //if (postResult) {
-          Swal.fire(resultmessage, '', 'success').then(async (result) => {
-            if (result.isConfirmed) {
-              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
-            }
-          });
+        Swal.fire(resultmessage, '', 'success').then(async (result) => {
+          if (result.isConfirmed) {
+            window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+          }
+        });
         // Swal.fire(resultmessage, '', 'success');
         // setTimeout(() => {
 

@@ -23,16 +23,17 @@ import { FormSubmissionMode } from '../../../Shared/Interfaces';
 import { decryptId } from '../../../APISearvice/CryptoService';
 import { WorkflowAction } from '../../../CustomJSComponents/WorkflowAction/WorkflowAction';
 import { WorkflowAuditHistory } from '../../../CustomJSComponents/WorkflowAuditHistory/WorkflowAuditHistory';
-import { CONTENTTYPE_AuditReport, LIST_TITLE_AuditReport, SITE_URL, Tenant_URL } from '../../../Shared/Constants';
+import { CONTENTTYPE_AuditReport, CONTENTTYPE_AuditReportTemp, LIST_TITLE_AuditReport, SITE_URL, Tenant_URL } from '../../../Shared/Constants';
 import { PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
-import { addAllProcessItem, addItem, addItem2, getAllApprovedAuditplan, getAllAuditType, getAllDepartment, getAllDepartment1, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDocumentLinkByIDPlan, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getItemfromChecklistMaster, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles } from './AuditReportService';
+import { addAllProcessItem, addItem, addItem2, getAllApprovedAuditplan, getAllAuditType, getAllDepartment, getAllDepartment1, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDocumentLinkByIDPlan, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDocCR, getItemByID, getItemByID2, getItemfromChecklistMaster, getLatestChangeRequestTemplateType, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles } from './AuditReportService';
 import { TextField } from '@fluentui/react';
 import { isMac } from 'office-ui-fabric-react';
+import moment from 'moment';
 
 // let myloader = '../../'
 let newfileupload: any
@@ -86,6 +87,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [AuditPlanType, setAuditPlanType] = React.useState([]);
     const [editForm, setEditForm] = React.useState(false);
     const [modeValue, setmode] = React.useState("");
+    const [showviewdownload, setshowviewdownload] = React.useState(true);
     const [currentUserDept, setcurrentUserDept] = React.useState("");
     const [selectUserDept, setselectUserDept] = React.useState(null);
     const [selectAuditplan, setselectAuditplan] = React.useState(null);
@@ -109,7 +111,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [attachmenterr, setattachmenterr] = React.useState(false);
     const [sharewitherr, setsharewitherr] = React.useState(false);
     const [approvedauditplanerr, setapprovedauditplanerr] = React.useState(false);
-
+    const [TemplateDoc, setTemplateDoc] = React.useState<any>([]);
     //error end
     const [formData, setFormData] = React.useState({
         approvedauditplanId: 0,
@@ -118,6 +120,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
         documentCode: "",
         issueNo: "",
         revisionNo: "",
+        Status: "",
+        revisionDate: null,
+        issueDate: null,
         referenceNo: "",
         documentLink: "",
         attachment: null,
@@ -191,7 +196,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
             MainComponentURl: `${SITE_URL}/SitePages/EDCMAIN.aspx`,
         },
         {
-            ChildComponent: "Audit Checklist and Report",
+            ChildComponent: "IMS Audit Checklist and Report",
             ChildComponentURl: `${SITE_URL}/SitePages/EDCMAIN.aspx#/AnnualAuditReport`,
         },
     ];
@@ -224,9 +229,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
             value: item.ID,
             label: item.MemoNumber,
             ApprovedAuditPlanId: item.ID,
-            IssueNumber: item.IssueNumber,
+            //IssueNumber: item.IssueNumber,
             ReferenceNumber: item.ReferenceNumber,
-            RevisionNumber: item.RevisionNumber,
+            //RevisionNumber: item.RevisionNumber,
             SubmiitedDate: item.SubmiitedDate,
             SubmitStatus: item.SubmitStatus,
             MemoNumber: item.MemoNumber,
@@ -308,7 +313,21 @@ const AnnualAuditReportContext = ({ props }: any) => {
             fromEmail: Currusers?.Email,
 
         }));
-
+        let ChangeRequestTemplateType = await getLatestChangeRequestTemplateType(sp, CONTENTTYPE_AuditReportTemp);
+        debugger
+        if (ChangeRequestTemplateType.length > 0) {
+            const template = ChangeRequestTemplateType[0];
+            console.log("template", template);
+            setFormData(prevData => ({
+                ...prevData,
+                documentCode: template.DocumentCode || "",
+                revisionNo: template.RevisionNumber,
+                issueNo: template.IssueNumber,
+                referenceNo: template.ReferenceNumber || "",
+                revisionDate: template.RevisionDate == null ? null : new Date(template.RevisionDate).toLocaleDateString("en-CA"),
+                issueDate: template.IssueDate == null ? null : new Date(template.IssueDate).toLocaleDateString("en-CA"),
+            }));
+        }
 
 
         let formitemid;
@@ -379,6 +398,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     deptId: setBannerById[0].DepartmentId,
                     issueNo: setBannerById[0].IssueNumber,
                     revisionNo: setBannerById[0].RevisionNumber,
+                    revisionDate: setBannerById[0].RevisionDate == null ? null : new Date(setBannerById[0].RevisionDate).toLocaleDateString("en-CA") || null,
+                    issueDate: setBannerById[0].IssueDate == null ? null : new Date(setBannerById[0].IssueDate).toLocaleDateString("en-CA") || null,
                     date: new Date(setBannerById[0].Date).toLocaleDateString("en-CA"),
                     approvedauditplanId: setBannerById[0].ApprovedAuditPlanId,
                     documentcode: setBannerById[0].DocumentCode,
@@ -386,12 +407,13 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     AnnualAuditPlanDocumentLinkId: setBannerById[0].AnnualAuditPlanDocumentLinkId,
                     SubmiitedDate: setBannerById[0].SubmiitedDate,
                     submitstatus: setBannerById[0].SubmitStatus,
+                    Status: setBannerById[0].Status,
                     documentname: setBannerById[0].DocumentName,
                     isrework: setBannerById[0].IsRework,
                     attachmentIds: setBannerById[0].AttachmentId || null,
                     attachmentJson: setBannerById[0].AttachmentJson || null
                 }));
-                setdoccode(setBannerById[0].DocumentCode);
+                setdoccode(setBannerById[0].Title);
                 debugger
                 setselectUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentId));
                 const selectedauditplan = options.filter((cust: { value: any; }) => cust.value === setBannerById[0].ApprovedAuditPlanId) || null;
@@ -405,6 +427,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     setFilesArr1([...FilesArr1, ...arrn]);
 
                 }
+                setTemplateDoc(await getGeneratedTemplateDocCR(sp, Number(formitemid)));
                 if (setBannerById[0].AnnualAuditPlanDocumentLinkId.length > 0) {
                     let arrn = await getDocumentLinkByIDPlan(sp, setBannerById[0].AnnualAuditPlanDocumentLinkId);
                     //let arraynew: any[];
@@ -581,14 +604,14 @@ const AnnualAuditReportContext = ({ props }: any) => {
             setLoading(true);
             setFormData(prevData => ({
                 ...prevData,
-                issueNo: selectedList.IssueNumber != "" || selectedList.IssueNumber != null ? selectedList.IssueNumber : 0,
-                referenceNo: selectedList.ReferenceNumber != "" || selectedList.ReferenceNumber != null ? selectedList.ReferenceNumber : 0,
-                revisionNo: selectedList.RevisionNumber != "" || selectedList.RevisionNumber != null ? selectedList.RevisionNumber : 0,
+                //issueNo: selectedList.IssueNumber != "" || selectedList.IssueNumber != null ? selectedList.IssueNumber : 0,
+                //referenceNo: selectedList.ReferenceNumber != "" || selectedList.ReferenceNumber != null ? selectedList.ReferenceNumber : 0,
+                //revisionNo: selectedList.RevisionNumber != "" || selectedList.RevisionNumber != null ? selectedList.RevisionNumber : 0,
                 deptId: selectedList.DepartmentId,
                 attachmentIds: selectedList.AttachmentId,
                 attachmentJson: selectedList.AttachmentJson,
                 ApprovedAuditPlanId: selectedList.ID,
-                documentCode: selectedList.MemoNumber
+                //documentCode: selectedList.MemoNumber
                 // Format as YYYY-MM-DD
             }));
             setSelectedOption(selectedList);
@@ -943,17 +966,20 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
 
-                            // MemoNumber:,
+                            MemoNumber: doccode,
                             // MemoSerialNumber:,
                             // IssueNumber:,
                             // RevisionNumber:,
+                            Title: doccode,
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.deptId,
                             Date: formData.date,
                             DocumentCode: formData.documentCode,
                             IssueNumber: Number(formData.issueNo),
                             RevisionNumber: Number(formData.revisionNo),
-                            ReferenceNumber: Number(formData.referenceNo),
+                            ReferenceNumber: formData.referenceNo,
+                            RevisionDate: formData.revisionDate == null ? null : new Date(formData.revisionDate).toLocaleDateString("en-CA"),
+                            IssueDate: formData.issueDate == null ? null : new Date(formData.issueDate).toLocaleDateString("en-CA"),
                             //DocumentLink: "",
                             AnnualAuditPlanDocumentLinkId: formData.attachmentIds,
                             SubmiitedDate: new Date().toLocaleDateString("en-CA"),
@@ -1036,7 +1062,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                 let arr2 = {
                                     Title: currentUser.Title,
-                                    // ContentTitle: selectedOption.ReferenceNumber,
+
 
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role,
@@ -1049,7 +1075,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                     // MainListID: String(editItemID),
                                     MainListID: String(editItemID),
-                                    // RequestId: selectedOption.DocumentCode,
+                                    ContentTitle: formData.referenceNo,
+                                    RequestId: doccode,
                                     // RequestId:String(editID.Id),
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
@@ -1210,14 +1237,17 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         }
 
                         let arr = {
-
+                            MemoNumber: doccode,
+                            Title: doccode,
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.deptId,
                             Date: formData.date,
                             DocumentCode: formData.documentCode,
                             IssueNumber: Number(formData.issueNo),
                             RevisionNumber: Number(formData.revisionNo),
-                            ReferenceNumber: Number(formData.referenceNo),
+                            ReferenceNumber: formData.referenceNo,
+                            RevisionDate: formData.revisionDate == null ? null : new Date(formData.revisionDate).toLocaleDateString("en-CA"),
+                            IssueDate: formData.issueDate == null ? null : new Date(formData.issueDate).toLocaleDateString("en-CA"),
                             //DocumentLink: "",
                             AnnualAuditPlanDocumentLinkId: formData.attachmentIds,
                             SubmiitedDate: new Date().toLocaleDateString("en-CA"),
@@ -1297,7 +1327,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 let arr2 = {
                                     Title: currentUser.Title,
                                     // ContentTitle: selectedOption.ReferenceNumber,
-
+                                    ContentTitle: formData.referenceNo,
+                                    RequestId: doccode,
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role,
                                     Level: Number(item.level),
@@ -1429,7 +1460,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             DocumentCode: formData.documentCode,
                             IssueNumber: Number(formData.issueNo),
                             RevisionNumber: Number(formData.revisionNo),
-                            ReferenceNumber: Number(formData.referenceNo),
+                            ReferenceNumber: formData.referenceNo,
+                            RevisionDate: formData.revisionDate == null ? null : new Date(formData.revisionDate).toLocaleDateString("en-CA"),
+                            IssueDate: formData.issueDate == null ? null : new Date(formData.issueDate).toLocaleDateString("en-CA"),
+                            MemoNumber: doccode,
+                            Title: doccode,
                             //DocumentLink: "",
                             AnnualAuditPlanDocumentLinkId: formData.attachmentIds,
                             SubmiitedDate: new Date().toLocaleDateString("en-CA"),
@@ -1508,7 +1543,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             let arr2 = {
                                 Title: currentUser.Title,
                                 // ContentTitle: selectedOption.ReferenceNumber,
-
+                                ContentTitle: formData.referenceNo,
+                                RequestId: doccode,
                                 MainListNameId: ListNameId,
                                 ApproverRoleId: item.role || 0,
                                 Level: Number(item.level),
@@ -1687,13 +1723,17 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             // MemoSerialNumber:,
                             // IssueNumber:,
                             // RevisionNumber:,
+                            MemoNumber: doccode,
+                            Title: doccode,
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.deptId,
                             Date: formData.date,
                             DocumentCode: formData.documentCode,
                             IssueNumber: Number(formData.issueNo),
                             RevisionNumber: Number(formData.revisionNo),
-                            ReferenceNumber: Number(formData.referenceNo),
+                            ReferenceNumber: formData.referenceNo,
+                            RevisionDate: formData.revisionDate == null ? null : new Date(formData.revisionDate).toLocaleDateString("en-CA"),
+                            IssueDate: formData.issueDate == null ? null : new Date(formData.issueDate).toLocaleDateString("en-CA"),
                             //DocumentLink: "",
                             AnnualAuditPlanDocumentLinkId: formData.attachmentIds,
                             SubmiitedDate: new Date().toLocaleDateString("en-CA"),
@@ -1769,7 +1809,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 let arr2 = {
                                     Title: currentUser.Title,
                                     // ContentTitle: selectedOption.ReferenceNumber,
-
+                                    ContentTitle: formData.referenceNo,
+                                    RequestId: doccode,
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role ? item.role : 0,
                                     Level: Number(item.level),
@@ -1837,6 +1878,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
     const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>, libraryName: string, docLib: string) => {
         event.preventDefault();
+        setshowviewdownload(false);
         const allowedTypes = [
             "image/jpeg",
             "image/png",
@@ -1943,6 +1985,19 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                     <div className="card-body">
                                                         {/* <h4 className="text-dark font-16 fw-bold mb-3">Memo Details</h4>
  */}
+                                                        <div className="previewIcon">
+                                                            <h4 style={{ textAlign: 'left' }} className="text-dark font-16 fw-bold mb-3">Requested By</h4>
+
+                                                            {TemplateDoc && TemplateDoc.length > 0 && (
+                                                                <span
+                                                                    onClick={() => OpenFile(TemplateDoc[0], "Open")}
+                                                                    style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                                                                >
+                                                                    <div className="btn btn-primary">
+                                                                        <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../assets/noun-download-5006210.png")} ></img></div>
+                                                                </span>
+                                                            )}
+                                                        </div>
 
                                                         <div style={{ clear: "both" }}></div>
 
@@ -2005,7 +2060,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 className={`form-control ${(!ValidSubmit && dateerr) ? "border-on-error" : ""}${(!ValidDraft && dateerr) ? "border-on-error" : ""}`}
                                                                                 // className="form-control"
                                                                                 id="date"
-                                                                                value={formData.date}
+                                                                                value={formData.date == "" || formData.date == null ? "" : moment(formData.issueDate).format("DD-MM-YYYY")}
                                                                                 onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value).toLocaleDateString("en-CA") })}
                                                                                 disabled={InputDisabled}
                                                                             />
@@ -2013,7 +2068,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
 
-                                                                {console.log("doccodedoccodedoccode", doccode)}
+                                                                {console.log("doccodedoccodedoccode", formData, doccode)}
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="memoNo" className="col-form-label">Memo Code<span className="text-danger1"> *</span></label>
@@ -2033,6 +2088,23 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 </div>
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
+                                                                        <label htmlFor="memoNo" className="col-form-label">Document Code<span className="text-danger1"> *</span></label>
+                                                                        <div className="">
+                                                                            <input
+                                                                                disabled
+                                                                                type="text"
+                                                                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+
+                                                                                // className="form-control"
+                                                                                id="docCode"
+                                                                                value={formData.documentCode}
+
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
                                                                         <label htmlFor="issueNo" className="col-form-label">Issue No<span className="text-danger1"> *</span></label>
                                                                         <div >
                                                                             <input
@@ -2042,13 +2114,28 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 // className="form-control"
                                                                                 id="issueNo"
                                                                                 value={formData.issueNo}
-                                                                                onChange={(e) => setFormData({ ...formData, issueNo: e.target.value })}
+                                                                                //onChange={(e) => setFormData({ ...formData, issueNo: e.target.value })}
                                                                                 disabled={true}
                                                                             />
                                                                         </div>
                                                                     </div>
                                                                 </div>
-
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="issuedate" className="col-form-label">Issue Date<span className="text-danger1"> *</span></label>
+                                                                        <div>
+                                                                            <input
+                                                                                disabled
+                                                                                type="text"
+                                                                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                // className="form-control"
+                                                                                id="issuedate"
+                                                                                value={formData.issueDate == null ? "" : moment(formData.issueDate).format("DD-MM-YYYY")}
+                                                                            //onChange={(e) => setFormData({ ...formData, revisionNo: e.target.value })}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="revisionNo" className="col-form-label">Revision No<span className="text-danger1"> *</span></label>
@@ -2060,7 +2147,23 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 // className="form-control"
                                                                                 id="revisionNo"
                                                                                 value={formData.revisionNo}
-                                                                                onChange={(e) => setFormData({ ...formData, revisionNo: e.target.value })}
+                                                                            //onChange={(e) => setFormData({ ...formData, revisionNo: e.target.value })}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="revisiondate" className="col-form-label">Revision Date<span className="text-danger1"> *</span></label>
+                                                                        <div>
+                                                                            <input
+                                                                                disabled
+                                                                                type="text"
+                                                                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                // className="form-control"
+                                                                                id="revisionNo"
+                                                                                value={formData.revisionDate == null ? "" : moment(formData.revisionDate).format("DD-MM-YYYY")}
+                                                                            //onChange={(e) => setFormData({ ...formData, revisionNo: e.target.value })}
                                                                             />
                                                                         </div>
                                                                     </div>
@@ -2081,7 +2184,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                {console.log("documentlinkkkkkkk", DocumentLink)}
+                                                                {console.log("documentlinkkkkkkk", DocumentLink, FilesArrDoclink)}
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="DocumentCode" className="form-label">Previous Document:</label>
@@ -2470,9 +2573,16 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 <tr>
                                                                     <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
                                                                     <th>File Name</th>
+                                                                    {((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
+                                                                        || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload &&
+                                                                        <th > File Link </th>
+                                                                    }
                                                                     {/* <th>File Link</th> */}
                                                                     <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th>
-                                                                    {!InputDisabled && <th className='text-center'>Action</th>}
+                                                                    {(modeValue == "edit" || modeValue == null || modeValue == ""
+                                                                        || (modeValue == "approve" && formData?.Status == "Rework")) &&
+                                                                        <th style={{ textAlign: 'center' }}> Action </th>
+                                                                    }
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -2481,17 +2591,15 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         <tr>
                                                                             <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
                                                                             <td title={row.name || row.FileLeafRef}>{row.name || row.FileLeafRef}</td>
-                                                                            {/* <td style={{ textAlign: 'center' }} >
-                                                                                       
-                                                                                        <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span>
-                                                                                         </td> */}
-                                                                            {/* <td>{DocumentLink.Created
-                                                                                        ? new Intl.DateTimeFormat('en-GB', {
-                                                                                            day: '2-digit',
-                                                                                            month: 'short',
-                                                                                            year: 'numeric'
-                                                                                        }).format(new Date(DocumentLink.Created)).replace(/ /g, "/")
-                                                                                        : ""}</td> */}
+                                                                            {((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
+                                                                                || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload &&
+                                                                                <td style={{ textAlign: 'center' }}>
+                                                                                    <span onClick={() => OpenFile(FilesArr && FilesArr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                        <FontAwesomeIcon icon={faEye} /></span>
+                                                                                    <span onClick={() => OpenFile(FilesArr && FilesArr[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                        <FontAwesomeIcon icon={faDownload} /></span>
+                                                                                </td>
+                                                                            }
                                                                             <td style={{ minWidth: '50px', maxWidth: '50px' }}>{row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
                                                                                 day: "2-digit",
                                                                                 month: "short",
@@ -2502,15 +2610,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 year: "numeric"
                                                                             }).replace(/ /g, "/")}</td>
 
-                                                                            {!InputDisabled && <td style={{ textAlign: 'center' }}> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>}
-                                                                            {(InputDisabled || !InputDisabled) &&
-                                                                                <td style={{ textAlign: 'center' }}>
-                                                                                    <span onClick={() => OpenFile(FilesArr && FilesArr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                        <FontAwesomeIcon icon={faEye} /></span>
-                                                                                    <span onClick={() => OpenFile(FilesArr && FilesArr[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                        <FontAwesomeIcon icon={faDownload} /></span>
-                                                                                </td>
-                                                                            }
+                                                                            {(modeValue == "edit" || modeValue == null || modeValue == ""
+                                                                                || (modeValue == "approve" && formData?.Status == "Rework")) && <td style={{ textAlign: 'center' }}> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>}
+
 
                                                                         </tr>
                                                                     ))
@@ -2544,9 +2646,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 <tr>
                                                                     <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
                                                                     <th>File Name</th>
-                                                                    {/* <th>File Link</th> */}
+                                                                    <th>File Link</th>
                                                                     <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th>
-                                                                    {!InputDisabled && <th className='text-center'>Action</th>}
+                                                                    {/* {(InputDisabled || !InputDisabled) && <th className='text-center'>Action</th>} */}
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -2566,6 +2668,14 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                             year: 'numeric'
                                                                                         }).format(new Date(DocumentLink.Created)).replace(/ /g, "/")
                                                                                         : ""}</td> */}
+
+                                                                            <td style={{ textAlign: 'center' }}>
+                                                                                <span onClick={() => OpenFile(FilesArrDoclink && FilesArrDoclink[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                    <FontAwesomeIcon icon={faEye} /></span>
+                                                                                <span onClick={() => OpenFile(FilesArrDoclink && FilesArrDoclink[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                    <FontAwesomeIcon icon={faDownload} /></span>
+                                                                            </td>
+
                                                                             <td style={{ minWidth: '50px', maxWidth: '50px' }}>{row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
                                                                                 day: "2-digit",
                                                                                 month: "short",
@@ -2576,15 +2686,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 year: "numeric"
                                                                             }).replace(/ /g, "/")}</td>
 
-                                                                            {!InputDisabled && <td style={{ textAlign: 'center' }}> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>}
-                                                                            {(InputDisabled || !InputDisabled) &&
-                                                                                <td style={{ textAlign: 'center' }}>
-                                                                                    <span onClick={() => OpenFile(FilesArrDoclink && FilesArrDoclink[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                        <FontAwesomeIcon icon={faEye} /></span>
-                                                                                    <span onClick={() => OpenFile(FilesArrDoclink && FilesArrDoclink[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                        <FontAwesomeIcon icon={faDownload} /></span>
-                                                                                </td>
-                                                                            }
+                                                                            {/* {!InputDisabled && <td style={{ textAlign: 'center' }}> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>} */}
+
 
 
                                                                         </tr>

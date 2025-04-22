@@ -523,4 +523,29 @@ export const getLatestChangeRequestTemplateType= async (_sp,List) =>{
   // console.log(arr, 'arr');
   return arr;
 }
+export const getAllClassificationMaster = async (_sp) => {
+  let arr = [];
+
+  await _sp.web.lists.getByTitle("ClassificationMaster").items
+    .select("*,Author/ID,Author/Title")
+    .expand("Author")
+    .orderBy("Modified", false)() // Order by Modified descending to get latest first
+    .then((res) => {
+      console.log(res);
+
+      // Filter only latest entry for each unique DocumentCode
+      const latestDocuments = res.reduce((acc, item) => {
+        if (!acc[item.Classification]) {
+          acc[item.Classification] = item;
+        }
+        return acc;
+      }, {});
+
+      arr = Object.values(latestDocuments);
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  return arr;
+};
 

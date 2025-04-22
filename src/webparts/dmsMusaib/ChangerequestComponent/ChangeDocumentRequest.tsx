@@ -494,8 +494,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         }
         let arr = {
 
-          RequesterName: setBannerById[0].RequesterName,
-          RequesterNameId: setBannerById[0].RequesterNameId,
+          RequesterName: setBannerById[0].Title,
+          //RequesterNameId: setBannerById[0].RequesterNameId,
           RequesterDesignation: setBannerById[0].RequesterDesignation,
           DepartmentId: setBannerById[0].DepartmentId,
           TemplateTypeId: setBannerById[0].TemplateTypeId,
@@ -579,7 +579,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           TemplateTypeId: setBannerById[0].TemplateTypeId,
           AttachmentId: setBannerById[0].AttachmentId,
           AttachmentJson: setBannerById[0].AttachmentJson,
-          Status: setBannerById[0].Status
+          Status: setBannerById[0].Status,
+          RequesterName: setBannerById[0].Title,
+          //RequesterNameId: setBannerById[0].RequesterNameId,
+          RequesterDesignation: setBannerById[0].RequesterDesignation,
           // Format as YYYY-MM-DD
         }));
 
@@ -668,7 +671,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         DocumentCode: selectedList.value,
         DocumentTypeId: selectedList.DocumentTypeId,
         DepartmentId: selectedList.DepartmentId,
-        //TemplateTypeId:selectedList.TemplateTypeId,
+        TemplateTypeId:selectedList.TemplateTypeId,
         AttachmentId: selectedList.AttachmentId,
         AttachmentJson: selectedList.AttachmentJson
         // Format as YYYY-MM-DD
@@ -1275,7 +1278,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       } else {
         issueno = (Number(selectedOption.IssueNumber) + 1).toString();
         serialno = selectedOption.SerialNumber;
-        revisionno = Number(selectedOption.RevisionNumber).toString();
+        revisionno = (Number(selectedOption.RevisionNumber)+1).toString();
         setissueNo(issueno);
         setserialNo(serialno);
         setrevisionNo(revisionno);
@@ -1331,13 +1334,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               DepartmentId: formData.DepartmentId,
               TemplateTypeId: formData.TemplateTypeId,
               RequestDate: new Date(formData.RequestDate).toISOString(),
-              IssueDate: new Date(formData.IssueDate).toISOString(),
+              //IssueDate: new Date(formData.IssueDate).toISOString(),
               LocationId: formData.LocationId,
               CustodianId: formData.CustodianId,
               SerialNumber: Number(serialno),
               IssueNumber: Number(issueno),
               RevisionNumber: Number(revisionno),
-              RevisionDate: formData.RevisionDate,
+              //RevisionDate: formData.RevisionDate,
               DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption.DocumentCode,
               ReferenceNumber: referencecode,
               RequestTypeId: formData.RequestTypeId,
@@ -1477,7 +1480,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               IssueNumber: Number(issueno),
               RevisionNumber: Number(revisionno),
               //RevisionNumber: selectedOption.RevisionNumber,
-              RevisionDate: new Date().toISOString(),
+              //RevisionDate: new Date().toISOString(),
               DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption.DocumentCode,
               ReferenceNumber: referencecode,
               AmendmentTypeId: formData.AmendmentTypeId,
@@ -1595,6 +1598,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     scrollToTop();
     let url = window.location.href.split('/sites/')[0];
     console.log("topp draft", editItemID, cancellReason);
+    let currentReferenceNo = selectedOption.ReferenceNumber ;
+    let arrrr = currentReferenceNo.split('.')
+    for (let i = 0; i < arrrr.length; i++) {
+      if (arrrr[i].includes("RRF")) {
+        arrrr[i] = arrrr[i].replace("RRF", "TMP");
+      }
+    }
+    console.log("props.currentItem",props.currentItem);
+    let test = arrrr.join('.');
     if (await validateForm(FormSubmissionMode.DRAFT)) {
       if (editForm) {
         Swal.fire({
@@ -1649,7 +1661,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               IssueNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption.IssueNumber) : null,
               RevisionNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption.RevisionNumber) : null,
               DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? "" : selectedOption && selectedOption.DocumentCode,
-              ReferenceNumber: selectedOptionReq.label == "Change in Existing Content" ? selectedOption && selectedOption.ReferenceNumber : "",
+              ReferenceNumber: selectedOptionReq.label == "Change in Existing Content" ? test : "",
               AmendmentTypeId: formData.AmendmentTypeId,
               RequestTypeId: formData.RequestTypeId,
               ClassificationId: formData.ClassificationId,
@@ -1802,7 +1814,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               IssueNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption.IssueNumber) : null,
               RevisionNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption.RevisionNumber) : null,
               DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? "" : selectedOption && selectedOption.DocumentCode,
-              ReferenceNumber: selectedOptionReq.label == "Change in Existing Content" ? selectedOption && selectedOption.ReferenceNumber : "",
+              ReferenceNumber: selectedOptionReq.label == "Change in Existing Content" ? test : "",
               RequestTypeId: formData.RequestTypeId,
               AmendmentTypeId: formData.AmendmentTypeId,
               ClassificationId: formData.ClassificationId,
@@ -2241,13 +2253,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               DepartmentId: formData.DepartmentId,
               TemplateTypeId: formData.TemplateTypeId,
               RequestDate: formData.RequestDate,
-              IssueDate: formData.IssueDate,
+              //IssueDate: formData.IssueDate,
               LocationId: selectedOption.LocationId,
               CustodianId: selectedOption.CustodianId,
               SerialNumber: selectedOption.SerialNumber,
               IssueNumber: selectedOption.IssueNumber,
               RevisionNumber: selectedOption.RevisionNumber,
-              RevisionDate: selectedOption.RevisionDate,
+              //RevisionDate: selectedOption.RevisionDate,
               DocumentCode: selectedOption.value,
               ReferenceNumber: selectedOption.ReferenceNumber,
               AmendmentTypeId: selectedOption.AmendmentTypeId,
@@ -2373,7 +2385,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               SerialNumber: selectedOption.SerialNumber,
               IssueNumber: selectedOption.IssueNumber,
               RevisionNumber: selectedOption.RevisionNumber,
-              RevisionDate: selectedOption.RevisionDate,
+              //RevisionDate: selectedOption.RevisionDate,
               DocumentCode: selectedOption.value,
               ReferenceNumber: selectedOption.ReferenceNumber,
               AmendmentTypeId: selectedOption.AmendmentTypeId,

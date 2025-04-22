@@ -1,5 +1,35 @@
 import Swal from 'sweetalert2';
-
+export const getLatestChangeRequestTemplateType = async (_sp, List) => {
+  let arr = [];
+  // var List ="Annual Audit Program"
+  // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
+  // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
+  await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`TemplateType/TemplateTypeName eq '${List}' and Status eq 'Approved'`).orderBy("ID", false).top(1)()
+    .then((res) => {
+      arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  // console.log(arr, 'arr');
+  return arr;
+}
+export const getGeneratedTemplateDocCR = async (_sp, itemId) => {
+  let results = [];
+  // for (let itemId of AttachmentIds) {
+    await _sp.web.lists.getByTitle("AnnualAuditReportCheckListGeneratedTemplateDoc").items
+      .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
+      .then((res) => {
+        console.log(res, ' let arrs=[]');
+        results = res;
+      })
+      .catch((error) => {
+        console.log("Error fetching data: ", error);
+      });
+  // }
+  console.log(results, 'results');
+  return results;
+}
 export const getAllApprovedAuditplan = async (_sp) => {
   let arr = [];
 

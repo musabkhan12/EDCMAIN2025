@@ -70,18 +70,22 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
         console.log("Editing item:", item);
 
         if (item.ProcessName === 'Non Conformity') {
-            // alert(item.SubmitStatus + "submit status");
-            //alert(item.SubmitStatus + "submit status");
-
+            // 1
             //const actionType = item.SubmitStatus === "No" ? "edit" : "view";
-            const actionType = item.SubmitStatus === "No" ? "edit" : "view";
+            // 2
+            // const actionType = item.SubmitStatus === "No" ? "edit" : "view";
+            // const newPath = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId || ""}`;
+            // window.location.hash = newPath;
+            // this.setState({ process: item.ProcessName, showform: true });
+            // 3
+            const actionType = item.SubmitStatus === "No" ? "edit"
+                : (item.SubmitStatus === "Yes" && item.Status === "Rework" ? "edit" : "view");
+
             const newPath = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId || ""}`;
 
-            // Set URL before state update
             window.location.hash = newPath;
-            // alert(newPath + "new path");
-            // Update state and ensure UI updates before navigation
             this.setState({ process: item.ProcessName, showform: true });
+
         } else {
             // alert("else Non Conformity");
             this.setState({ showform: true, process: item.ProcessName });
@@ -187,8 +191,18 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 //     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId}`;
                 // } else 
                 if (item.SubmitStatus == "Yes") {
-                    let actionType = "view";
-                    path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
+                    // let actionType = "view";
+                    // path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
+                    // 1
+                    // let actionType = "view";
+                    // path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
+                    if (item.Status == "Rework") {
+                        let actionType = "edit";
+                        path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
+                    } else {
+                        let actionType = "view";
+                        path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
+                    }
                 } else if (item.SubmitStatus == "No") {
                     let actionType = "edit";
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
@@ -206,8 +220,18 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     </td>
                     <td title={item?.RequestId} style={{ minWidth: '90px', maxWidth: '90px' }}>{item?.RequestId}</td>
                     <td title={item.Title} style={{ minWidth: '90px', maxWidth: '90px' }}>{item.Title}</td>
-                    <td title={item?.ProcessName === "Annual Audit Plan" ? "Audit Plan" : item?.ProcessName} style={{ minWidth: '90px', maxWidth: '90px' }}>
-                        {item?.ProcessName === "Annual Audit Plan" ? "Audit Plan" : item?.ProcessName}
+                    <td title={item?.ProcessName === "Annual Audit Plan"
+                        ? "IMS Audit Plan"
+                        : item?.ProcessName === "Annual Audit Program"
+                            ? "IMS Annual Audit Program"
+                            : item?.ProcessName} style={{ minWidth: '90px', maxWidth: '90px' }}>
+                        {item?.ProcessName === "Annual Audit Plan"
+                            ? "IMS Audit Plan"
+                            : item?.ProcessName === "Annual Audit Program"
+                                ? "IMS Annual Audit Program"
+                                : item?.ProcessName === "Annual Audit Report"
+                                ? "IMS Audit Checklist and Report"
+                                : item?.ProcessName}
                     </td>
                     <td title={item.ReqName} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.ReqName}</td>
                     <td title={moment(item.ReqDt).format("DD-MMM-YYYY")} style={{ minWidth: '90px', maxWidth: '90px' }}>{moment(item.ReqDt).format("DD-MMM-YYYY")}</td>
@@ -249,16 +273,17 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         <table id="tabAllItems" className='mtbalenew'>
                             <thead>
                                 <tr>
-                                    <th style={{ minWidth: '40px', textAlign:'center', maxWidth: '40px' }}>
-                                       
-                                        <div style={{ width: '100%', height: '80px', clear: 'both', display:'flex', justifyContent:'start', textAlign
-                                            :'center'
-                                         }} className='pb-3'> S.No</div>
+                                    <th style={{ minWidth: '40px', textAlign: 'center', maxWidth: '40px' }}>
+
+                                        <div style={{
+                                            width: '100%', height: '80px', clear: 'both', display: 'flex', justifyContent: 'start', textAlign
+                                                : 'center'
+                                        }} className='pb-3'> S.No</div>
                                     </th>
                                     {['RequestId', 'Title', 'ProcessName', 'ReqName', 'ReqDt', 'Status'].map(column => (
-                                        <th key={column} style={{ minWidth: '90px',textAlign:'center', maxWidth: '90px' }}>
+                                        <th key={column} style={{ minWidth: '90px', textAlign: 'center', maxWidth: '90px' }}>
                                             <div>
-                                                <div onClick={() => this.handleSort(column)} style={{ cursor: 'pointer', display: 'flex', height:'35px' }}>
+                                                <div onClick={() => this.handleSort(column)} style={{ cursor: 'pointer', display: 'flex', height: '35px' }}>
                                                     {/* {column} */}
                                                     {column === 'ProcessName'
                                                         ? 'Process Name'
@@ -285,9 +310,11 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                             </div>
                                         </th>
                                     ))}
-                                    <th style={{ minWidth: '60px', textAlign:'center', maxWidth: '60px' }}>
-                                        <div style={{ width: '100%', height: '80px',  display:'flex', justifyContent:'start', textAlign
-                                            :'center' }} className='pb-3'>Action</div>
+                                    <th style={{ minWidth: '60px', textAlign: 'center', maxWidth: '60px' }}>
+                                        <div style={{
+                                            width: '100%', height: '80px', display: 'flex', justifyContent: 'start', textAlign
+                                                : 'center'
+                                        }} className='pb-3'>Action</div>
 
                                     </th>
                                 </tr>
@@ -540,7 +567,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 else {
 
                     allItems.push({
-                        RequestId: "",
+                        RequestId: itm.Title,
                         Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
                         ProcessName: "Annual Audit Report",
                         ReqName: itm.Author ? itm.Author.Title : '',
@@ -556,7 +583,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             else {
 
                 allItems.push({
-                    RequestId: "",
+                    RequestId: itm.Title,
                     Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
                     ProcessName: "Annual Audit Report",
                     ReqName: itm.Author ? itm.Author.Title : '',

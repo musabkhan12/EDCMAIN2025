@@ -30,7 +30,7 @@ import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
-import { addAllProcessItem, addItem, addItem2, getLatestChangeRequestTemplateType, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getAuditTypes, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles, getRecommendationTypes, getGeneratedTemplateDoc } from './MemorandumService';
+import { addAllProcessItem, addItem, addItem2, getLatestChangeRequestTemplateType, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getAuditTypes, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles, getRecommendationTypes, getGeneratedTemplateDoc, getAllClassificationMaster } from './MemorandumService';
 import { TextField } from '@fluentui/react';
 import { Icon } from '@fluentui/react/lib/Icon';
 import { Tooltip } from 'react-tooltip';
@@ -96,6 +96,8 @@ const MemoContext = ({ props }: any) => {
   const [RecommType, setRecommType] = React.useState([]);
   const [DocumentLink, setDocumentLink] = React.useState(null);
   const [DraftApprovalItem, setDraftApprovalItem] = React.useState(null);
+  const [Classificationopt, setClassificationopt] = React.useState<any>([]);
+
   // const [cancellReason, setcancellReason] = React.useState([{ id: 0, description: "", reason: "" }]);
   // const [RecommendRows, setRecommendRows] = React.useState([]);
   const [tooltipText, settooltipText] = React.useState("");
@@ -143,7 +145,10 @@ const MemoContext = ({ props }: any) => {
     RevisionNo: null,
     IssueNo: null,
     RevisionDate: null,
-    IssueDate: null
+    IssueDate: null,
+    changeReqListID: null,
+    classificationValue: null,
+    classificationId: 0,
 
   });
   const [selectCCUsers, setSelectCCUsers] = React.useState([]);
@@ -347,6 +352,14 @@ const MemoContext = ({ props }: any) => {
     setauditTypes(allAuditTypes);
     const recommendationTypes = await getRecommendationTypes(sp);
     setRecommType(recommendationTypes);
+    var ClassificationArr = await getAllClassificationMaster(sp);
+    ClassificationArr.sort((a, b) => a.Classification.localeCompare(b.Classification));
+    const optionsclassification = ClassificationArr.map((item: any) => ({
+      value: item.ID,
+      label: item.Classification,
+      itemId: item.ID
+    }));
+    setClassificationopt(optionsclassification);
 
     if (formMode == "") {
 
@@ -491,6 +504,7 @@ const MemoContext = ({ props }: any) => {
 
         // const valuesOnly = selectedOptions.map((option: any) => option.value);
         // setFormData({ ...formData, [fieldName]: valuesOnly });
+        let ClassificationVal = optionsclassification.filter((docType: { value: any; }) => docType.value === setBannerById[0].ClassificationId) || null;
 
         setFormData(prevData => ({
           ...prevData,
@@ -531,14 +545,13 @@ const MemoContext = ({ props }: any) => {
           IssueNo: setBannerById[0].IssueNumber || null,
           RevisionDate: setBannerById[0].RevisionDate || null,
           IssueDate: setBannerById[0].IssueDate || null,
+          classificationId: setBannerById[0].ClassificationId,
+          classificationValue: ClassificationVal,
           // attachmentJson: setBannerById[0].AttachmentJson || null
         }));
 
-        if (setBannerById[0].AuditProgramTypeId) {
-          const selectedAuditType = allAuditTypes.find((type: any) => type.Id === setBannerById[0].AuditProgramTypeId);
-          const auditTypeTitle = selectedAuditType ? selectedAuditType.Title : '';
-          setAuditTypeOption(selectedAuditType ? selectedAuditType.Title : '');
-        }
+
+        // setClassificationopt( optionsclassification.filter((docType: { value: any; }) => docType.value === setBannerById[0].ClassificationId) || null);
 
 
 
@@ -650,13 +663,16 @@ const MemoContext = ({ props }: any) => {
       const template = ChangeRequestTemplateType[0];
       setFormData((prevFormData) => ({
         ...prevFormData,
+        changeReqListID: template.ID,
         DocCode: template.DocumentCode || "",
-        RevisionNo: template.RevisionNumber || null,
-        IssueNo: template.IssueNumber || null,
+        RevisionNo: template.RevisionNumber,
+        IssueNo: template.IssueNumber,
         RevisionDate: template.RevisionDate || null,
         IssueDate: template.IssueDate || null,
       }));
     }
+
+    
 
     //}
     //#endregion
@@ -665,18 +681,18 @@ const MemoContext = ({ props }: any) => {
   };
 
 
-  const handleAuditTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedAuditType = auditTypes.find(type => type.Id === Number(e.target.value));
-    const auditTypeTitle = selectedAuditType ? selectedAuditType.Title : '';
+  // const handleAuditTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  //   const selectedAuditType = auditTypes.find(type => type.Id === Number(e.target.value));
+  //   const auditTypeTitle = selectedAuditType ? selectedAuditType.Title : '';
 
-    setFormData(prevFormData => ({
-      ...prevFormData,
-      auditTypesId: Number(e.target.value),
-      Year: auditTypeTitle === 'Monthly' ? 0 : prevFormData.Year,  // Clear Year if Monthly is selected
-      MonthName: auditTypeTitle === 'Annual' ? '' : prevFormData.MonthName  // Clear MonthName if Annual is selected
-    }));
-    setAuditTypeOption(selectedAuditType ? selectedAuditType.Title : '');
-  };
+  //   setFormData(prevFormData => ({
+  //     ...prevFormData,
+  //     auditTypesId: Number(e.target.value),
+  //     Year: auditTypeTitle === 'Monthly' ? 0 : prevFormData.Year,  // Clear Year if Monthly is selected
+  //     MonthName: auditTypeTitle === 'Annual' ? '' : prevFormData.MonthName  // Clear MonthName if Annual is selected
+  //   }));
+  //   setAuditTypeOption(selectedAuditType ? selectedAuditType.Title : '');
+  // };
 
 
   const onSelectApprovers = (selectedOptions: any, lvl: number) => {
@@ -798,10 +814,12 @@ const MemoContext = ({ props }: any) => {
       RecommendationTypeValue,
       DocCode,
       RevisionNo,
-      IssueNo } = formData;
+      IssueNo,
+    classificationValue,
+  classificationId } = formData;
     // Find the selected audit type
-    const selectedAuditType = auditTypes.find(type => type.Id === auditTypesId);
-    const auditTypeTitle = selectedAuditType ? selectedAuditType.Title : '';
+    // const selectedAuditType = auditTypes.find(type => type.Id === auditTypesId);
+    // const auditTypeTitle = selectedAuditType ? selectedAuditType.Title : '';
 
     let valid = true;
     let validraft = true;
@@ -829,6 +847,10 @@ const MemoContext = ({ props }: any) => {
     if (fmode == FormSubmissionMode.SUBMIT) {
       if (!deptId) {
         document.getElementById("DeptID")?.classList.add("border-on-error");
+        valid = false;
+      }
+      if (!classificationId) {
+        document.getElementById("Classification")?.classList.add("border-on-error");
         valid = false;
       }
       if (!from) {
@@ -879,12 +901,12 @@ const MemoContext = ({ props }: any) => {
         valid = false;
       }
 
-      if (!formData.IssueNo) {
+      if (formData.IssueNo == null || formData.IssueNo == undefined || formData.IssueNo === "") {
         document.getElementById("IssueNo")?.classList.add("border-on-error");
         valid = false;
       }
 
-      if (!formData.RevisionNo) {
+      if (formData.RevisionNo == null || formData.RevisionNo == undefined || formData.RevisionNo === "") {
         document.getElementById("RevNo")?.classList.add("border-on-error");
         valid = false;
       }
@@ -1101,6 +1123,7 @@ const MemoContext = ({ props }: any) => {
             let arr = {
               Title: formData.subject,
               MemoNumber: formData.memoNo,
+              ClassificationId: formData.classificationId,
               // MemoSerialNumber:formData.memoSerialNo,
               // IssueNumber:,
               // RevisionNumber:,
@@ -1134,6 +1157,7 @@ const MemoContext = ({ props }: any) => {
 
 
               AttachmentId: attachmentIds || [],
+              ChangeRequestIDId: formData.changeReqListID,
               // AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
 
@@ -1381,6 +1405,8 @@ const MemoContext = ({ props }: any) => {
               Title: formData.subject,
               MemoNumber: formData.memoNo,
               MemoSerialNumber: formData.memoSerialNo,
+              ClassificationId: formData.classificationId,
+              
               // IssueNumber:,
               // RevisionNumber:,
               AuditTypeId: formData.auditProgramTypeId,
@@ -1418,6 +1444,7 @@ const MemoContext = ({ props }: any) => {
 
 
               AttachmentId: attachmentIds || [],
+              ChangeRequestIDId: formData.changeReqListID,
               // AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
 
@@ -1617,6 +1644,7 @@ const MemoContext = ({ props }: any) => {
             let arr = {
               Title: formData.subject,
               MemoNumber: formData.memoNo,
+              ClassificationId: formData.classificationId,
               // MemoSerialNumber:formData.memoSerialNo,
               // IssueNumber:,
               // RevisionNumber:,
@@ -1655,6 +1683,7 @@ const MemoContext = ({ props }: any) => {
 
 
               AttachmentId: attachmentIds || [],
+              ChangeRequestIDId: formData.changeReqListID,
               // AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
 
@@ -1900,6 +1929,7 @@ const MemoContext = ({ props }: any) => {
               Title: formData.subject,
               MemoNumber: formData.memoNo,
               MemoSerialNumber: formData.memoSerialNo,
+              ClassificationId: formData.classificationId,
               // IssueNumber:,
               // RevisionNumber:,
               AuditTypeId: formData.auditProgramTypeId,
@@ -1937,6 +1967,7 @@ const MemoContext = ({ props }: any) => {
               IssueNumber: formData.IssueNo,
 
               AttachmentId: attachmentIds || [],
+              ChangeRequestIDId: formData.changeReqListID,
               // AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
 
@@ -2311,7 +2342,7 @@ const MemoContext = ({ props }: any) => {
 
                         <div className="card">
                           <div className="card-body">
-                            
+
                             <div className="previewIcon">
                               <h4 style={{ textAlign: 'left', margin: 'inherit' }} className="text-dark font-16 fw-bold mb-3">Memorandum</h4>
                               {TemplateDoc && TemplateDoc.length > 0 && <div className='btn btn-primary'
@@ -2433,7 +2464,7 @@ const MemoContext = ({ props }: any) => {
                                     </div>
                                   </div>
                                 </div>
-                                
+
                                 <div className="col-lg-4">
                                   <div className="mb-3">
                                     <label htmlFor="memoNo" className="col-form-label">Issue No<span className="text-danger1"> *</span></label>
@@ -2715,6 +2746,35 @@ const MemoContext = ({ props }: any) => {
                                     </div>
                                   </div>
                                 </div>
+                                <div className="col-lg-4">
+
+                                  <div className="mb-3">
+                                    <label htmlFor="DocumentCode" className=" col-form-label">Classification:<span className="text-danger1">*</span></label>
+                                    {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                                    <div
+                                      // title={selectedOptionClass?.label || "Select a classification"}
+                                      style={{ width: "100%" }}
+                                    >
+                                      <Select
+                                        options={Classificationopt}
+                                        value={formData.classificationValue}
+                                        name="Classification"
+                                        id="Classification"
+                                        className={`${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                        onChange={(selectedOption: any) => {
+                                          setFormData({
+                                            ...formData,
+                                            classificationValue: selectedOption,
+                                            classificationId: selectedOption.value,
+                                          });
+                                        }}
+                                        // onChange={(selectedOption: any) => onSelectClassification(selectedOption)}
+                                        placeholder="Select Classification" isDisabled={InputDisabled}
+                                      />
+                                    </div>
+
+                                  </div>
+                                </div>
 
 
                                 <div className="col-lg-4">
@@ -2806,29 +2866,29 @@ const MemoContext = ({ props }: any) => {
                                 <h3 className='text-dark font-16 fw-bold mt-2 mb-3'>Recommendation</h3>
                               </div>
                               <div className='col-sm-8'>
-                                <div style={{display:'flex', justifyContent:'flex-end', paddingTop:'10px'}}>
-                              <h5 style={{textAlign:'right', margin:'5px 24px 0px 0px'}} className="text-dark font-14 fw-bold mb-2">Select Recommendation type<span className="text-danger1"> *</span></h5>
-                              <div className=''>
-                               
-                               {RecommType.map((type, index) => (
-                                 <div key={index} className="form-check form-check-inline">
-                                   <input
-                                     className="form-check-input RecTypeClsErr"
-                                     type="radio"
-                                     name="recommendationType"
-                                     id={`recommendationType_${type.Id}`}
-                                     value={type.Id}
-                                     disabled={InputDisabled}
-                                     onChange={(e) => setFormData({ ...formData, recommendationTypeId: Number(e.target.value), RecommendationTypeValue: type.RecommendationTypeValue })}
-                                     checked={formData.recommendationTypeId === type.Id}
-                                   />
-                                   <label className="form-check-label" htmlFor={`recommendationType_${type.Id}`}>
-                                     {type.RecommendationTypeValue}
-                                   </label>
-                                 </div>
-                               ))}
-                             </div>
-                             </div>
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '10px' }}>
+                                  <h5 style={{ textAlign: 'right', margin: '5px 24px 0px 0px' }} className="text-dark font-14 fw-bold mb-2">Select Recommendation type<span className="text-danger1"> *</span></h5>
+                                  <div className=''>
+
+                                    {RecommType.map((type, index) => (
+                                      <div key={index} className="form-check form-check-inline">
+                                        <input
+                                          className="form-check-input RecTypeClsErr"
+                                          type="radio"
+                                          name="recommendationType"
+                                          id={`recommendationType_${type.Id}`}
+                                          value={type.Id}
+                                          disabled={InputDisabled}
+                                          onChange={(e) => setFormData({ ...formData, recommendationTypeId: Number(e.target.value), RecommendationTypeValue: type.RecommendationTypeValue })}
+                                          checked={formData.recommendationTypeId === type.Id}
+                                        />
+                                        <label className="form-check-label" htmlFor={`recommendationType_${type.Id}`}>
+                                          {type.RecommendationTypeValue}
+                                        </label>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
 
                               </div>
 
@@ -2860,7 +2920,7 @@ const MemoContext = ({ props }: any) => {
                             </div> */}
                             <div className="row mb-1">
 
-                            
+
                               <div style={{ textAlign: 'right' }} className='col-sm-12 mt-1'>
                                 {!InputDisabled && formData.RecommendationTypeValue === "Table" && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-0' src={require("../../assets/plus.png")} onClick={handleAddRecommendationRow}></img>}
                               </div>
@@ -2940,7 +3000,7 @@ const MemoContext = ({ props }: any) => {
                                   <label htmlFor="recommendationDetails" className="form-label">
                                     Recommendation Details <span className="text-danger1"> *</span>
                                   </label>
-                                  <textarea style={{height:'80px'}}
+                                  <textarea style={{ height: '80px' }}
                                     id="recommendationDetails"
                                     className="form-control"
                                     value={formData.recommendationDetails || ""}
@@ -2965,7 +3025,7 @@ const MemoContext = ({ props }: any) => {
                                 <label htmlFor="recApp" className="form-label">
                                   Recommendation for Approval <span className="text-danger1"> *</span>
                                 </label>
-                                <textarea style={{height:'80px'}}
+                                <textarea style={{ height: '80px' }}
                                   id="recApp"
                                   className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                   value={formData.recommendationforApproval || ""}

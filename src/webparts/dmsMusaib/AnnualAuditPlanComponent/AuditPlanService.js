@@ -30,7 +30,11 @@ export const getDataRoles = async (_sp) => {
     .select("*,RecommendationType/RecommendationTypeValue,Author/ID,Author/Title,AuditPlanType/AuditPlanType,AuditPlanType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Department,ToDepartments/DepartmentCode").expand("RecommendationType,ToDepartments,CCDepartments,Author,AuditPlanType,To,Cc,From")()
       .then((res) => {
         
-        console.log(res, ' let arrs=[]');      
+        // const options = res.map((item: any) => ({
+        //   value: item.DocumentCode,
+        //   label: item.DocumentCode,
+        
+        // }));      
   
          arr.push(res)
         // arr = res;
@@ -377,8 +381,12 @@ export const getDataRoles = async (_sp) => {
   export const getItemByID2 = async (sp, AuditID) => {
     debugger
     let arr = []
-    let sampleDataArray = []
-    arr = await sp.web.lists.getByTitle("AnnualAuditPlanRecommendationList").items.select("*,AnnualAuditPlanID/ID,Auditor/ID,Auditor/Title").expand("AnnualAuditPlanID,Auditor").filter(`AnnualAuditPlanID/ID eq ${AuditID}`).getAll();
+    let sampleDataArray = [];
+    // var listname = "AnnualAuditPlanRecommendationList";
+    var listname = "MemorandumRecommendationList"
+    arr = await sp.web.lists.getByTitle(`${listname}`).items.select("*,Memorandum/ID,Auditor/ID,Auditor/Title").expand("Memorandum,Auditor").filter(`Memorandum/ID eq ${AuditID}`).getAll();
+
+    // arr = await sp.web.lists.getByTitle(`${listname}`).items.select("*,AnnualAuditPlanID/ID,Auditor/ID,Auditor/Title").expand("AnnualAuditPlanID,Auditor").filter(`AnnualAuditPlanID/ID eq ${AuditID}`).getAll();
     // .then((res) => {
     //   arr = res
     //   console.log(arr, 'arr');
@@ -498,7 +506,7 @@ export const getLatestChangeRequestTemplateType= async (_sp,List) =>{
   // var List ="Annual Audit Program"
   // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
   // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
-  await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`TemplateType/TemplateTypeName eq '${List}' and Status eq 'Approved'`).orderBy("ID", false).top(1)()
+  await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`TemplateType/TemplateTypeValue eq '${List}' and Status eq 'Approved'`).orderBy("ID", false).top(1)()
     .then((res) => {
       arr = res;
     })
@@ -540,4 +548,32 @@ export const getGeneratedTemplateDoc = async (_sp, itemId) => {
   console.log(results, 'results');
   return results;
 }
+
+export const getAllMemoNumberList = async (_sp) => {
+  let arr = [];
+  let sts = "Approved";
+
+  await _sp.web.lists.getByTitle("Memorandum").items.filter(`Status eq '${sts}'`)
+    .select("*,Department/ID,Department/Department,From/ID,From/Title,From/EMail,AuditType/Title,AuditType/ID,To/ID,To/Title,Cc/ID,Cc/Title,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Department,ToDepartments/DepartmentCode,RecommendationType/RecommendationTypeValue,RecommendationType/ID")
+    .expand("From,Department,AuditType,To,Cc,CCDepartments,ToDepartments,RecommendationType")
+    .orderBy("Modified", false)() // Order by Modified descending to get latest first
+    .then((res) => {
+      console.log(res);
+
+      // Filter only latest entry for each unique DocumentCode
+      // const latestDocuments = res.reduce((acc, item) => {
+      //   if (!acc[item.DocumentCode]) {
+      //     acc[item.DocumentCode] = item;
+      //   }
+      //   return acc;
+      // }, {});
+
+      // arr = Object.values(latestDocuments);
+      arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  return arr;
+};
 
