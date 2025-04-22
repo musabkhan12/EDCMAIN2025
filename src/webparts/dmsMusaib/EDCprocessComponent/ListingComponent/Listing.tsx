@@ -224,14 +224,16 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         ? "IMS Audit Plan"
                         : item?.ProcessName === "Annual Audit Program"
                             ? "IMS Annual Audit Program"
-                            : item?.ProcessName} style={{ minWidth: '90px', maxWidth: '90px' }}>
+                            : item?.ProcessName === "Annual Audit Report"
+                                ? "IMS Audit Checklist and Report"
+                                : item?.ProcessName} style={{ minWidth: '90px', maxWidth: '90px' }}>
                         {item?.ProcessName === "Annual Audit Plan"
                             ? "IMS Audit Plan"
                             : item?.ProcessName === "Annual Audit Program"
                                 ? "IMS Annual Audit Program"
                                 : item?.ProcessName === "Annual Audit Report"
-                                ? "IMS Audit Checklist and Report"
-                                : item?.ProcessName}
+                                    ? "IMS Audit Checklist and Report"
+                                    : item?.ProcessName}
                     </td>
                     <td title={item.ReqName} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.ReqName}</td>
                     <td title={moment(item.ReqDt).format("DD-MMM-YYYY")} style={{ minWidth: '90px', maxWidth: '90px' }}>{moment(item.ReqDt).format("DD-MMM-YYYY")}</td>

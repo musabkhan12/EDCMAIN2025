@@ -15,12 +15,13 @@ export const getLatestChangeRequestTemplateType = async (_sp, List) => {
   return arr;
 }
 export const getGeneratedTemplateDocCR = async (_sp, itemId) => {
+  debugger
   let results = [];
   // for (let itemId of AttachmentIds) {
     await _sp.web.lists.getByTitle("AnnualAuditReportCheckListGeneratedTemplateDoc").items
       .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
       .then((res) => {
-        console.log(res, ' let arrs=[]');
+        console.log(res, 'tem let arrs=[]');
         results = res;
       })
       .catch((error) => {

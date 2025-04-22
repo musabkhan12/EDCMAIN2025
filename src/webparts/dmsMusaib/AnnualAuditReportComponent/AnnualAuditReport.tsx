@@ -1874,7 +1874,14 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
     }
 
+    const formatToDDMMYYYY = (dateInput: string | number | Date) => {
+        const date = new Date(dateInput);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // months are zero-indexed
+        const year = date.getFullYear();
 
+        return `${day}-${month}-${year}`;
+    }
 
     const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>, libraryName: string, docLib: string) => {
         event.preventDefault();
@@ -2060,10 +2067,32 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 className={`form-control ${(!ValidSubmit && dateerr) ? "border-on-error" : ""}${(!ValidDraft && dateerr) ? "border-on-error" : ""}`}
                                                                                 // className="form-control"
                                                                                 id="date"
-                                                                                value={formData.date == "" || formData.date == null ? "" : moment(formData.issueDate).format("DD-MM-YYYY")}
+                                                                                value={formData.date}
                                                                                 onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value).toLocaleDateString("en-CA") })}
                                                                                 disabled={InputDisabled}
                                                                             />
+                                                                             {/* {(modeValue === "" || modeValue === "edit" || InputDisabled != true) ||
+                                                                             (modeValue == "approve" && formData?.Status == "Rework") ?
+                                                                                <input
+                                                                                    type="date"
+                                                                                    className={`form-control ${(!ValidSubmit && dateerr) ? "border-on-error" : ""}${(!ValidDraft && dateerr) ? "border-on-error" : ""}`}
+                                                                                    // className="form-control"
+                                                                                    id="date"
+                                                                                    value={formData.date}
+                                                                                    onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value).toLocaleDateString("en-CA") })}
+                                                                                    disabled={InputDisabled}
+                                                                                />
+                                                                                :
+                                                                                <input
+                                                                                    type="text"
+                                                                                    className={`form-control ${(!ValidSubmit && dateerr) ? "border-on-error" : ""}${(!ValidDraft && dateerr) ? "border-on-error" : ""}`}
+                                                                                    // className="form-control"
+                                                                                    id="date"
+                                                                                    value={new Date(formData.date).toLocaleDateString("en-GB")  }
+                                                                                    //onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value).toLocaleDateString("en-CA") })}
+                                                                                    disabled={true}
+                                                                                />
+                                                                            } */}
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -2130,7 +2159,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                                                                 // className="form-control"
                                                                                 id="issuedate"
-                                                                                value={formData.issueDate == null ? "" : moment(formData.issueDate).format("DD-MM-YYYY")}
+                                                                                value={formData.issueDate == null ? "" : moment(formData.issueDate).format("MM/DD/YYYY")}
                                                                             //onChange={(e) => setFormData({ ...formData, revisionNo: e.target.value })}
                                                                             />
                                                                         </div>
@@ -2162,7 +2191,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                                                                 // className="form-control"
                                                                                 id="revisionNo"
-                                                                                value={formData.revisionDate == null ? "" : moment(formData.revisionDate).format("DD-MM-YYYY")}
+                                                                                value={formData.revisionDate == null ? "" : moment(formData.revisionDate).format("MM/DD/YYYY")}
                                                                             //onChange={(e) => setFormData({ ...formData, revisionNo: e.target.value })}
                                                                             />
                                                                         </div>
