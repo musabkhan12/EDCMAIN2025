@@ -88,8 +88,8 @@ export const getItemByID = async (_sp, id) => {
   let bannerimg = []
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("AnnualAuditReportList").items.getById(id)
-    .select("*,Author/ID,Author/Title,ApprovedAuditPlan/MemoNumber,ApprovedAuditPlan/ID,Department/ID,Department/Department,AnnualAuditPlanDocumentLink/ID,Attachment/ID").expand("Author,Department,ApprovedAuditPlan,AnnualAuditPlanDocumentLink,Attachment")()
-    .then((res) => {
+  .select("*,Author/ID,Author/Title,ApprovedAuditPlan/MemoNumber,ApprovedAuditPlan/ID,Department/ID,Department/Department,AnnualAuditPlanDocumentLink/ID,Attachment/ID,Sharewith/Title,Sharewith/ID").expand("Author,Department,ApprovedAuditPlan,AnnualAuditPlanDocumentLink,Attachment,Sharewith")()
+  .then((res) => {
       console.log(res, ' let arrs=[]');
 
       arr.push(res)

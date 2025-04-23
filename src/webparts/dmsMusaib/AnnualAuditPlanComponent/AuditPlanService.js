@@ -315,7 +315,7 @@ export const getDataRoles = async (_sp) => {
   
         //  arr =(res[0].Id)
         // arr = res;
-        reqId=res[0].Id
+        reqId=res[0]
       })
       .catch((error) => {
         console.log("Error fetching data: ", error);
@@ -577,3 +577,63 @@ export const getAllMemoNumberList = async (_sp) => {
   return arr;
 };
 
+export const addMemoNumber = async (itemData, _sp) => {
+   
+  let resultArr = []
+  try {
+    const newItem = await _sp.web.lists.getByTitle('MemoNumberLogic').items.add(itemData);
+ 
+    // console.log('Item added successfully:', newItem);
+    // Swal.fire('Item added successfully', '', 'success');
+
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+    Swal.fire(' Cancelled', '', 'error')
+  }
+  return resultArr;
+};
+
+export const updateMemoNumber = async (itemData, _sp,id) => {
+   
+  let resultArr = []
+    try {
+      const newItem = await _sp.web.lists.getByTitle('MemoNumberLogic').items.getById(id).update(itemData);
+      console.log('Item added successfully:', newItem);
+      resultArr = newItem
+      // Perform any necessary actions after successful addition
+    } catch (error) {
+      console.log('Error adding item:', error);
+      // Handle errors appropriately
+      resultArr = null
+    }
+    return resultArr;
+};
+export const getAllClassificationMaster = async (_sp) => {
+  let arr = [];
+
+  await _sp.web.lists.getByTitle("ClassificationMaster").items
+    .select("*,Author/ID,Author/Title")
+    .expand("Author")
+    .orderBy("Modified", false)() // Order by Modified descending to get latest first
+    .then((res) => {
+      console.log(res);
+
+      // Filter only latest entry for each unique DocumentCode
+      const latestDocuments = res.reduce((acc, item) => {
+        if (!acc[item.Classification]) {
+          acc[item.Classification] = item;
+        }
+        return acc;
+      }, {});
+
+      arr = Object.values(latestDocuments);
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  return arr;
+};

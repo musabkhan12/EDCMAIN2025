@@ -30,12 +30,14 @@ import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
-import { addAllProcessItem, addItem, addItem2, addItem3, getAllAuditType, getAllDepartment, getAllMemoNumberList, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDoc, getItemByID, getItemByID2, getItemByID3, getLatestChangeRequestTemplateType, getListNameID, getRecommendationTypes, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, updateItem3, uploadAllFiles } from './AuditPlanService';
+import { addAllProcessItem, addItem, addItem2, addItem3, addMemoNumber, getAllAuditType, getAllClassificationMaster, getAllDepartment, getAllMemoNumberList, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDoc, getItemByID, getItemByID2, getItemByID3, getLatestChangeRequestTemplateType, getListNameID, getRecommendationTypes, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, updateItem3, updateMemoNumber, uploadAllFiles } from './AuditPlanService';
 import { TextField } from '@fluentui/react';
 import { Icon } from '@fluentui/react/lib/Icon';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
 import { Attachment } from '@pnp/sp/attachments';
+import { DatePicker } from 'office-ui-fabric-react';
+import moment from 'moment';
 
 // let myloader = '../../'
 let newfileupload: any
@@ -90,12 +92,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     const [ValidForwardTo, setValidForwardTo] = React.useState(true);
     const [RequesterRoleId, setRequesterRoleId] = React.useState(null);
     const [RequestTypeId, setRequestTypeId] = React.useState(null);
-    const [FormNameId, setFormNameId] = React.useState(null);
+    const [FormNameId, setFormNameVal] = React.useState(null);
     const [AuditPlanType, setAuditPlanType] = React.useState([]);
     const [editForm, setEditForm] = React.useState(false);
     const [modeValue, setmode] = React.useState("");
     const [currentUserDept, setcurrentUserDept] = React.useState("");
-    const [selectUserDept, setselectUserDept] = React.useState([]);
+    const [selectUserDept, setselectUserDept] = React.useState(null);
     const [selectUserDeptTo, setselectUserDeptTo] = React.useState([]);
     const [selectUserDeptCC, setselectUserDeptCC] = React.useState(null);
     const [AllDept, setAllDept] = React.useState([]);
@@ -103,8 +105,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     const [LocationOpt, setLocationOpt] = React.useState<any>([]);
     const [DraftApprovalItem, setDraftApprovalItem] = React.useState(null);
     const [RecommType, setRecommType] = React.useState([]);
-    // const [cancellReason, setcancellReason] = React.useState([{ id: 0, description: "", reason: "" }]);
-    // const [RecommendRows, setRecommendRows] = React.useState([]);
+   const [Classificationopt, setClassificationopt] = React.useState<any>([]);
     const [tooltipText, settooltipText] = React.useState("");
     const [tooltipText1, settooltipText1] = React.useState("");
     const [showModal, setShowModal] = React.useState(false);
@@ -112,6 +113,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         // infoCheck: false,
         // signCheck: false,
         // approvalCheck: false,
+        MemoListId: 0,
         memoNo: null,
         MemoId: 0,
         memoSerialNo: 0,
@@ -149,6 +151,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         RevisionDate: null,
         IssueDate: null,
         changeReqListID: 0,
+        classificationValue: null,
+        classificationId: 0,
 
     });
     const [selectCCUsers, setSelectCCUsers] = React.useState([]);
@@ -174,8 +178,33 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         // setFormData({ ...formData, [fieldName]: selectedOptions.value });
     };
 
-    const handleDepartmentChange = (selectedOption: any) => {
+    const handleDepartmentChange = async (selectedOption: any) => {
         setselectUserDept(selectedOption);
+        let memo: number = 0;
+        let memoId: number = 0;
+
+        const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${selectedOption.value}`).orderBy("SerialNumber", false).top(1)();
+        if (listItems.length > 0) {
+            // if (modeValue == "") {
+                memo = listItems[0].SerialNumber ? listItems[0].SerialNumber + 1 : 1;
+                memoId = listItems[0].Id;
+            // }
+            // else {
+            //     memo = listItems[0].SerialNumber;
+            //     memoId = listItems[0].Id;
+
+            // }
+
+        } else {
+            memo = 1;
+            memoId = 0;
+
+        }
+        const formattedMemoSerialNo = memo < 10
+            ? `00${memo}`
+            : memo < 100
+                ? `0${memo}`
+                : memo;
         // const formattedMemoSerialNo = formData.memoSerialNo < 10
         //     ? `00${formData.memoSerialNo}`
         //     : formData.memoSerialNo < 100
@@ -183,8 +212,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         //         : formData.memoSerialNo;
         setFormData({
             ...formData,
+            MemoListId: memoId,
+            memoSerialNo: memo,
             deptId: selectedOption.value,
-            // memoNo: `${selectedOption.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+            memoNo: `${selectedOption.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
         });
 
         if (selectedOption) {
@@ -392,6 +423,14 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             setmode("");
             formMode = "";
         }
+        if (formMode == "") {
+            setFormData(prevFormData => ({
+                ...prevFormData,
+                date: new Date().toLocaleDateString("en-CA"),
+
+            }));
+        }
+
 
 
         if (path1.includes("/view/") || path1.includes("/approve/")) {
@@ -408,6 +447,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             setshowForwardapproval(true)
         }
         let memo: number = 0;
+        let memoId: number = 0;
         let filteredDeptArrayTo: any[] = [];
         let filteredDeptArrayCC: any[] = [];
 
@@ -419,126 +459,155 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         setselectUserDept(setAllDept1.filter(user => user.label === UserDept));
         const recommendationTypes = await getRecommendationTypes(sp);
         setRecommType(recommendationTypes);
-        const AllMemoNumber = await getAllMemoNumberList(sp);
-        const formattedMemoNumbers = AllMemoNumber.map((memo: any) => ({
-            label: memo.MemoNumber,
-            value: memo.Id,
-            ID: memo.ID,
-            // DocumentCode: memo.DocumentCode,
-            // IssueNumber: memo.IssueNumber,
-            // RevisionNumber: memo.RevisionNumber,
-            Background: memo.Background,
-            Subject: memo.Subject,
-            Issues: memo.Issues,
-            // RevisionDate: memo.RevisionDate || null,
-            // IssueDate: memo.IssueDate || null,
-            AttachmentId: memo.AttachmentId || null,
-            From: memo.From,
-            To: memo.To,
-            CC: memo.CC,
-            AuditType: memo.AuditType,
-            AuditTypeId: memo.AuditTypeId,
-            Date: new Date(memo.Date).toLocaleDateString("en-CA"),
-            ToId: memo.ToId || [],
-            CcId: memo.CcId || [],
-            ToDepartmentsId: memo.ToDepartmentsId || [],
-            CCDepartmentsId: memo.CCDepartmentsId || [],
-            ToDepartments: memo.ToDepartments || [],
-            CCDepartments: memo.CCDepartments || [],
-            Department: memo.Department,
-            DepartmentId: memo.DepartmentId,
-            RecommendedforApproval: memo.RecommendedforApproval,
-            RecommendationType: memo.RecommendationType,
-            RecommendationDetails: memo.RecommendationDetails || "",
-            RecommendationTypeId: memo.RecommendationTypeId || 0,
-           
+        var ClassificationArr = await getAllClassificationMaster(sp);
+            ClassificationArr.sort((a, b) => a.Classification.localeCompare(b.Classification));
+            const optionsclassification = ClassificationArr.map((item: any) => ({
+              value: item.ID,
+              label: item.Classification,
+              itemId: item.ID
+            }));
+            setClassificationopt(optionsclassification);
+        // const AllMemoNumber = await getAllMemoNumberList(sp);
+        // const formattedMemoNumbers = AllMemoNumber.map((memo: any) => ({
+        //     label: memo.MemoNumber,
+        //     value: memo.Id,
+        //     ID: memo.ID,
+        //     // DocumentCode: memo.DocumentCode,
+        //     // IssueNumber: memo.IssueNumber,
+        //     // RevisionNumber: memo.RevisionNumber,
+        //     Background: memo.Background,
+        //     Subject: memo.Subject,
+        //     Issues: memo.Issues,
+        //     // RevisionDate: memo.RevisionDate || null,
+        //     // IssueDate: memo.IssueDate || null,
+        //     AttachmentId: memo.AttachmentId || null,
+        //     From: memo.From,
+        //     To: memo.To,
+        //     CC: memo.CC,
+        //     AuditType: memo.AuditType,
+        //     AuditTypeId: memo.AuditTypeId,
+        //     Date: new Date(memo.Date).toLocaleDateString("en-CA"),
+        //     ToId: memo.ToId || [],
+        //     CcId: memo.CcId || [],
+        //     ToDepartmentsId: memo.ToDepartmentsId || [],
+        //     CCDepartmentsId: memo.CCDepartmentsId || [],
+        //     ToDepartments: memo.ToDepartments || [],
+        //     CCDepartments: memo.CCDepartments || [],
+        //     Department: memo.Department,
+        //     DepartmentId: memo.DepartmentId,
+        //     RecommendedforApproval: memo.RecommendedforApproval,
+        //     RecommendationType: memo.RecommendationType,
+        //     RecommendationDetails: memo.RecommendationDetails || "",
+        //     RecommendationTypeId: memo.RecommendationTypeId || 0,
 
 
 
 
 
-        }));
-        setMemoNumDrpdown(formattedMemoNumbers);
-        // if (formMode == "") {
+
+        // }));
+        // setMemoNumDrpdown(formattedMemoNumbers);
+        if (formMode == "") {
 
 
 
-        //     // if (recommendationTypes.length > 0) {
-        //     //     const defaultRecommendationType = recommendationTypes.find(type => type.RecommendationTypeValue === "Table");
-        //     //     if (defaultRecommendationType) {
-        //     //         setFormData(prevFormData => ({
-        //     //             ...prevFormData,
-        //     //             RecommendationTypeValue: "Table",
-        //     //             recommendationTypeId: defaultRecommendationType.Id
-        //     //         }));
-        //     //     }
-        //     // }
+            if (recommendationTypes.length > 0) {
+                const defaultRecommendationType = recommendationTypes.find(type => type.RecommendationTypeValue === "Table");
+                if (defaultRecommendationType) {
+                    setFormData(prevFormData => ({
+                        ...prevFormData,
+                        RecommendationTypeValue: "Table",
+                        recommendationTypeId: defaultRecommendationType.Id
+                    }));
+                }
+            }
 
-        //     // const AllMemoNumber = await getAllMemoNumberList(sp);
-        //     // const formattedMemoNumbers = AllMemoNumber.map((memo: any) => ({
-        //     //     label: memo.MemoNumber,
-        //     //     value: memo.Id,
-        //     //     ID: memo.ID,
-        //     //     DocumentCode: memo.DocumentCode,
-        //     //     IssueNumber: memo.IssueNumber,
-        //     //     RevisionNumber: memo.RevisionNumber,
-        //     //     Background: memo.Background,
-        //     //     Subject: memo.Subject,
-        //     //     Issues: memo.Issues,
-        //     //     RevisionDate: memo.RevisionDate || null,
-        //     //     IssueDate: memo.IssueDate || null,
-        //     //     AttachmentId: memo.AttachmentId || null,
-        //     //     From: memo.From,
-        //     //     To: memo.To,
-        //     //     CC: memo.CC,
-        //     //     AuditType: memo.AuditType,
-        //     //     AuditTypeId: memo.AuditTypeId,
-        //     //     Date: new Date(memo.Date).toLocaleDateString("en-CA"),
-        //     //     ToId: memo.ToId || [],
-        //     //     CcId: memo.CcId || [],
-        //     //     ToDepartmentsId: memo.ToDepartmentsId || [],
-        //     //     CCDepartmentsId: memo.CCDepartmentsId || [],
-        //     //     ToDepartments: memo.ToDepartments || [],
-        //     //     CCDepartments: memo.CCDepartments || [],
-        //     //     Department: memo.Department,
-        //     //     DepartmentId: memo.DepartmentId,
-        //     //     RecommendedforApproval: memo.RecommendedforApproval,
-        //     //     RecommendationType: memo.RecommendationType,
-        //     //     RecommendationDetails: memo.RecommendationDetails || "",
-        //     //     RecommendationTypeId: memo.RecommendationTypeId || 0,
-
-
+            // const AllMemoNumber = await getAllMemoNumberList(sp);
+            // const formattedMemoNumbers = AllMemoNumber.map((memo: any) => ({
+            //     label: memo.MemoNumber,
+            //     value: memo.Id,
+            //     ID: memo.ID,
+            //     DocumentCode: memo.DocumentCode,
+            //     IssueNumber: memo.IssueNumber,
+            //     RevisionNumber: memo.RevisionNumber,
+            //     Background: memo.Background,
+            //     Subject: memo.Subject,
+            //     Issues: memo.Issues,
+            //     RevisionDate: memo.RevisionDate || null,
+            //     IssueDate: memo.IssueDate || null,
+            //     AttachmentId: memo.AttachmentId || null,
+            //     From: memo.From,
+            //     To: memo.To,
+            //     CC: memo.CC,
+            //     AuditType: memo.AuditType,
+            //     AuditTypeId: memo.AuditTypeId,
+            //     Date: new Date(memo.Date).toLocaleDateString("en-CA"),
+            //     ToId: memo.ToId || [],
+            //     CcId: memo.CcId || [],
+            //     ToDepartmentsId: memo.ToDepartmentsId || [],
+            //     CCDepartmentsId: memo.CCDepartmentsId || [],
+            //     ToDepartments: memo.ToDepartments || [],
+            //     CCDepartments: memo.CCDepartments || [],
+            //     Department: memo.Department,
+            //     DepartmentId: memo.DepartmentId,
+            //     RecommendedforApproval: memo.RecommendedforApproval,
+            //     RecommendationType: memo.RecommendationType,
+            //     RecommendationDetails: memo.RecommendationDetails || "",
+            //     RecommendationTypeId: memo.RecommendationTypeId || 0,
 
 
 
-        //     // }));
-        //     // setMemoNumDrpdown(formattedMemoNumbers);
 
-        //     // const listItems = await sp.web.lists.getByTitle("AnnualAuditPlanList").items.orderBy("MemoSerialNumber", false).top(1)();
-        //     // if (listItems.length > 0) {
-        //     //     memo = listItems[0].MemoSerialNumber ? listItems[0].MemoSerialNumber + 1 : 1;
 
-        //     // } else {
-        //     //     memo = 1;
+            // }));
+            // setMemoNumDrpdown(formattedMemoNumbers);
 
-        //     // }
-        //     // const formattedMemoSerialNo = memo < 10
-        //     //     ? `00${memo}`
-        //     //     : memo < 100
-        //     //         ? `0${memo}`
-        //     //         : memo;
+            // const listItems = await sp.web.lists.getByTitle("AnnualAuditPlanList").items.orderBy("MemoSerialNumber", false).top(1)();
+            // if (listItems.length > 0) {
+            //     memo = listItems[0].MemoSerialNumber ? listItems[0].MemoSerialNumber + 1 : 1;
 
-        //     // setFormData((prevFormData) => ({
-        //     //     ...prevFormData,
-        //     //     memoSerialNo: memo,
-        //     //     deptId: setAllDept1.filter(user => user.label === UserDept)[0]?.value || 0,
-        //     //     // memoNo: `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-        //     //     memoNo: setAllDept1.filter(user => user.label === UserDept)[0]
-        //     //         ? `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-        //     //         : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-        //     // }));
+            // } else {
+            //     memo = 1;
 
-        // }
+            // }
+
+            const onloadDeptId = setAllDept1.filter((user: any) => user.label === UserDept)[0]?.value || 0;
+
+            const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).top(1)();
+            if (listItems.length > 0) {
+                if (modeValue == "") {
+                    memo = listItems[0].SerialNumber ? listItems[0].SerialNumber + 1 : 1;
+                    memoId = listItems[0].Id;
+                }
+                else {
+                    memo = listItems[0].SerialNumber;
+                    memoId = listItems[0].Id;
+
+                }
+
+            } else {
+                memo = 1;
+                memoId = 0;
+
+            }
+            const formattedMemoSerialNo = memo < 10
+                ? `00${memo}`
+                : memo < 100
+                    ? `0${memo}`
+                    : memo;
+
+            setFormData((prevFormData) => ({
+                ...prevFormData,
+                MemoListId: memoId,
+                memoSerialNo: memo,
+                deptId: onloadDeptId,
+                // memoNo: `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+                memoNo: setAllDept1.filter(user => user.label === UserDept)[0]
+                    ? `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+                    : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+            }));
+
+        }
 
         const AllUserRoles = await getDataRoles(sp);
         const setRolesValue = AllUserRoles.map((item: any) => ({
@@ -561,12 +630,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
         setRows1(Selectedoptions);
 
-        // setFormData(prevData => ({
-        //     ...prevData,
-        //     from: Currusers?.Id || 0,
-        //     fromEmail: Currusers?.Email,
+        setFormData(prevData => ({
+            ...prevData,
+            from: Currusers?.Id || 0,
+            fromEmail: Currusers?.Email,
 
-        // }));
+        }));
 
 
 
@@ -623,21 +692,51 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
             if (setBannerById.length > 0) {
                 debugger
+                let varmemoNum = "";
                 setEditForm(true);
                 setMainEditItem(setBannerById[0]);
                 setBannerById[0].label = setBannerById[0].MemoNumber;
                 setBannerById[0].value = setBannerById[0].MemorandumIDId;
+                if (formMode == "edit") {
+                    const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${setBannerById[0]?.DepartmentId}`).orderBy("SerialNumber", false).top(1)();
+                    if (listItems.length > 0) {
+                        if (listItems[0].SerialNumber > setBannerById[0].MemoSerialNumber) {
+                            memo = listItems[0].SerialNumber + 1;
+                        }
+                        else {
+                            memo = setBannerById[0].MemoSerialNumber;
+                        }
+                        // memoId = listItems[0].Id;  
 
-                // const valuesOnly = selectedOptions.map((option: any) => option.value);
-                // setFormData({ ...formData, [fieldName]: valuesOnly });
+                    } else {
+                        memo = setBannerById[0].MemoSerialNumber;
+                        // memoId= 0;
+
+                    }
+                    const formattedMemoSerialNo = memo < 10
+                        ? `00${memo}`
+                        : memo < 100
+                            ? `0${memo}`
+                            : memo;
+                    varmemoNum = `${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`;
+                }
+                else {
+                    varmemoNum = setBannerById[0].MemoNumber;
+                    memo = setBannerById[0].MemoSerialNumber;
+                }
+
+                let ClassificationVal = optionsclassification.filter((docType: { value: any; }) => docType.value === setBannerById[0].ClassificationId) || null;
 
                 setFormData(prevData => ({
                     ...prevData,
                     // label: setBannerById[0].MemoNumber,
                     // value: setBannerById[0].MemorandumIDId,
+                    // MemoListId: memoId,
                     MemoId: setBannerById[0].MemorandumIDId,
-                    memoNo: setBannerById[0],
-                    memoSerialNo: setBannerById[0].MemoSerialNumber,
+                    // memoNo: setBannerById[0],
+                    // memoSerialNo: setBannerById[0].MemoSerialNumber,
+                    memoNo: varmemoNum,
+                    memoSerialNo: memo,
                     deptId: setBannerById[0].DepartmentId,
                     // issueNo: "",
                     // revisionNo: "",
@@ -671,9 +770,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     IssueNo: setBannerById[0].IssueNumber,
                     RevisionDate: setBannerById[0].RevisionDate || null,
                     IssueDate: setBannerById[0].IssueDate || null,
+                    classificationId: setBannerById[0].ClassificationId,
+          classificationValue: ClassificationVal?.[0] || null,
                 }));
 
-                setselectUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentId));
+                setselectUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentId)?.[0] || null);
 
                 setselectUserDeptCC(setBannerById[0].CCDepartments?.map((obj: any) => {
                     const filteredDept = setAllDept1.find((dept: any) => dept.value === obj.ID);
@@ -752,10 +853,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         endTime: "",
                         auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
                     }));
-                    // if (setBannerById[0].RecommendationType?.RecommendationTypeValue == "Table") {
-                    setRecommendationRows(initialRows);
-                    // }
-                    // setRecommendationRowsEdit(initialRows);
+                    if (setBannerById[0].RecommendationType?.RecommendationTypeValue == "Table") {
+                        setRecommendationRows(initialRows);
+                    }
+                    setRecommendationRowsEdit(initialRows);
 
 
                 }
@@ -795,8 +896,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         }
         setFormLoading(false);
 
-        // setRequesterRoleId(await getRequesterID(sp))
-        setFormNameId(await getFormNameID(sp, CONTENTTYPE_AuditPlan))
+
+        setFormNameVal(await getFormNameID(sp, CONTENTTYPE_AuditPlan))
         setListNameId(await getListNameID(sp, LIST_TITLE_AuditPlan))
         createTooltipContent(filteredDeptArrayCC);
         createTooltipContentTo(filteredDeptArrayTo);
@@ -941,6 +1042,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             DocCode,
             RevisionNo,
             IssueNo,
+            classificationValue,
+      classificationId
         } = formData;
         // const { description } = richTextValues;
         let valid = true;
@@ -966,6 +1069,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 document.getElementById("DeptID")?.classList.add("border-on-error");
                 valid = false;
             }
+            if (!classificationId) {
+                document.getElementById("Classification")?.classList.add("border-on-error");
+                valid = false;
+            }
             if (!from) {
                 document.getElementById("fromEmail")?.classList.add("border-on-error");
                 valid = false;
@@ -988,10 +1095,20 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             }
             if (!date) {
                 document.getElementById("date")?.classList.add("border-on-error");
+                Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
+                    if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "" || element.textContent?.trim() === "")) {
+                      element.classList.add("border-on-error");
+                    }
+                  });
                 valid = false;
             }
             if (date == "Invalid Date") {
                 document.getElementById("date")?.classList.add("border-on-error");
+                Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
+                    if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "" || element.textContent?.trim() === "")) {
+                      element.classList.add("border-on-error");
+                    }
+                  });
                 valid = false;
             }
             if (!background) {
@@ -1052,6 +1169,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
 
                     });
+
+                    Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
+                        if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "" || element.textContent?.trim() === "")) {
+                          element.classList.add("border-on-error");
+                        }
+                      });
                 }
             }
             else if (formData.RecommendationTypeValue === "TextBox") {
@@ -1241,8 +1364,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                             MemorandumIDId: formData.MemoId,
 
-                            MemoNumber: formData.memoNo.label,
-                            // MemoSerialNumber:formData.memoSerialNo,
+                            // MemoNumber: formData.memoNo.label,
+                            MemoNumber: formData.memoNo,
+                            MemoSerialNumber:formData.memoSerialNo,
                             // IssueNumber:,
                             // RevisionNumber:,
                             AuditPlanTypeId: formData.auditPlanTypeId,
@@ -1280,6 +1404,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             IssueDate: formData.IssueDate,
                             IssueNumber: formData.IssueNo,
                             ChangeRequestIDId: formData.changeReqListID,
+                            ClassificationId: formData.classificationId,
 
 
                         }
@@ -1362,13 +1487,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                     // MainListID: String(editItemID),
                                     MainListID: String(editItemID),
-                                    // RequestId: formData.memoNo,
-                                    RequestId: String(formData.memoNo.label),
+                                    RequestId: formData.memoNo,
+                                    // RequestId: String(formData.memoNo.label),
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
                                     RequesterRoleId: RequesterRoleId,
                                     ProcessName: "Annual Audit Plan",
-                                    FormNameId: FormNameId,
+                                    FormNameId: FormNameId.Id,
                                     ApprovalType: "Approval",
                                     // IsApprovalGenerated: "No"
                                     // RedirectionLink:,
@@ -1497,9 +1622,28 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             const postId = postResult?.data?.ID;
 
                         }
+                        else {
+                            if (modeValue != "approve") {
+                                let arry = {
+                                    DepartmentId: formData.deptId,
+                                    SerialNumber: formData.memoSerialNo,
+                                    ProcessName: FormNameId.FormName
 
+                                }
+                                // if (formData.MemoListId) {
+                                //     const postResults = await updateMemoNumber(arry, sp, formData.MemoListId);
+                                //     const postIds = postResults?.data?.ID;
 
-                        let boolval = false;
+                                // }
+                                // else {
+                                const postResults = await addMemoNumber(arry, sp);
+                                const postIds = postResults?.data?.ID;
+
+                                // }
+
+                            }
+
+                        }
 
                         // if (boolval == true) {
                         setLoading(false);
@@ -1579,9 +1723,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                         let arr = {
 
-                            MemoNumber: formData.memoNo.label,
+                            // MemoNumber: formData.memoNo.label,
+                            MemoNumber: formData.memoNo,
                             MemorandumIDId: formData.MemoId,
-                            // MemoSerialNumber: formData.memoSerialNo,
+                            MemoSerialNumber: formData.memoSerialNo,
                             // IssueNumber:,
                             // RevisionNumber:,
                             AuditPlanTypeId: formData.auditPlanTypeId,
@@ -1614,7 +1759,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             IssueDate: formData.IssueDate,
                             IssueNumber: formData.IssueNo,
                             ChangeRequestIDId: formData.changeReqListID,
-
+                            ClassificationId: formData.classificationId,
                             AttachmentId: attachmentIds || [],
                             AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
@@ -1698,13 +1843,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                     // MainListID: String(editItemID),
                                     MainListID: String(postId),
-                                    // RequestId: formData.memoNo,
-                                    RequestId: String(formData.memoNo.label),
+                                    RequestId: formData.memoNo,
+                                    // RequestId: String(formData.memoNo.label),
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
                                     RequesterRoleId: RequesterRoleId,
                                     ProcessName: "Annual Audit Plan",
-                                    FormNameId: FormNameId,
+                                    FormNameId: FormNameId.Id,
                                     ApprovalType: "Approval",
                                     IsApprovalGenerated: "No"
                                     // RedirectionLink:,
@@ -1725,6 +1870,26 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             }
 
                         }
+
+                        let arry = {
+                            DepartmentId: formData.deptId,
+                            SerialNumber: formData.memoSerialNo,
+                            ProcessName: FormNameId.FormName
+                            // ActionTakenRoleId: formData.RequesterDesignation,
+                            // Status: "Approved",
+                            // Remark: remark,
+
+                        }
+                        // if (formData.MemoListId) {
+                        //     const postResults = await updateMemoNumber(arry, sp, formData.MemoListId);
+                        //     const postIds = postResult?.data?.ID;
+
+                        // }
+                        // else {
+                        const postResults = await addMemoNumber(arry, sp);
+                        const postIds = postResult?.data?.ID;
+
+                        // }
 
                         for (const cov of coverageAuditCriteria) {
 
@@ -1834,10 +1999,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
-                            MemorandumIDId: formData.MemoId,
+                            // MemorandumIDId: formData.MemoId,
 
-                            MemoNumber: formData.memoNo.label,
-                            // MemoSerialNumber:formData.memoSerialNo,
+                            // MemoNumber: formData.memoNo.label,
+                            MemoNumber: formData.memoNo,
+                            MemoSerialNumber: formData.memoSerialNo,
                             // IssueNumber:,
                             // RevisionNumber:,
                             AuditPlanTypeId: formData.auditPlanTypeId,
@@ -1870,7 +2036,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             IssueDate: formData.IssueDate,
                             IssueNumber: formData.IssueNo,
                             ChangeRequestIDId: formData.changeReqListID,
-
+                            ClassificationId: formData.classificationId,
                             AttachmentId: attachmentIds || [],
                             AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
@@ -1955,13 +2121,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                 // MainListID: String(editItemID),
                                 MainListID: String(editItemID),
-                                // RequestId: formData.memoNo,
-                                RequestId: String(formData.memoNo.label),
+                                RequestId: formData.memoNo,
+                                // RequestId: String(formData.memoNo.label),
                                 RequesterNameId: currentUser.Id,
                                 RequestedDate: new Date().toLocaleDateString("en-CA"),
                                 RequesterRoleId: RequesterRoleId,
                                 ProcessName: "Annual Audit Plan",
-                                FormNameId: FormNameId,
+                                FormNameId: FormNameId.Id,
                                 ApprovalType: "Approval",
                                 // IsApprovalGenerated: "No"
                                 // RedirectionLink:,
@@ -2172,8 +2338,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                         let arr = {
                             MemorandumIDId: formData.MemoId,
-                            MemoNumber: formData.memoNo.label,
-                            // MemoSerialNumber: formData.memoSerialNo,
+                            // MemoNumber: formData.memoNo.label,
+                            MemoNumber: formData.memoNo,
+                            MemoSerialNumber: formData.memoSerialNo,
                             // IssueNumber:,
                             // RevisionNumber:,
                             AuditPlanTypeId: formData.auditPlanTypeId,
@@ -2206,7 +2373,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             IssueDate: formData.IssueDate,
                             IssueNumber: formData.IssueNo,
                             ChangeRequestIDId: formData.changeReqListID,
-
+                            ClassificationId: formData.classificationId,
                             AttachmentId: attachmentIds || [],
                             AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
@@ -2283,13 +2450,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                     // MainListID: String(editItemID),
                                     MainListID: String(postId),
-                                    // RequestId: formData.memoNo,
-                                    RequestId: String(formData.memoNo.label),
+                                    RequestId: formData.memoNo,
+                                    // RequestId: String(formData.memoNo.label),
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
                                     RequesterRoleId: RequesterRoleId,
                                     ProcessName: "Annual Audit Plan",
-                                    FormNameId: FormNameId,
+                                    FormNameId: FormNameId.Id,
                                     ApprovalType: "Approval",
                                     IsApprovalGenerated: "No"
                                     // RedirectionLink:,
@@ -2732,7 +2899,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                             {AuditPlanType.map((row, index) => (<div className="col-lg-3">
                                                                 <div className="mb-2">
                                                                     <div className="form-check">
-                                                                        <input type="checkbox" className={`form-check-input auditPlanType ${(!ValidSubmit) ? "border-on-error" : ""}`} id={`auditPlanType_${row.Id}`} disabled={true} checked={formData.auditPlanTypeId.includes(row.Id)}
+                                                                        <input type="checkbox" className={`form-check-input auditPlanType ${(!ValidSubmit) ? "border-on-error" : ""}`} id={`auditPlanType_${row.Id}`} disabled={InputDisabled} checked={formData.auditPlanTypeId.includes(row.Id)}
                                                                             onChange={(e) => {
                                                                                 setFormData((prevState) => {
                                                                                     const isChecked = e.target.checked;
@@ -2806,18 +2973,6 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                         <label htmlFor="memoNo" className=" col-form-label">Memo No<span className="text-danger1"> *</span></label>
                                                                         <div className="">
                                                                             {/* <Select
-                                                                                
-                                                                                className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                                                                id="memoNo"
-                                                                                name="memoNo"
-                                                                                value={formData.memoNo}
-                                                                                onChange={(e:any) => setFormData({ ...formData, memoNo: e.target.value, MemoId: parseInt(e.target.value, 10) })}
-                                                                                options={MemoNumDrpdown}
-                                                                                placeholder="Select Memo No"
-                                                                                isDisabled={InputDisabled}
-
-                                                                            /> */}
-                                                                            <Select
                                                                                 options={MemoNumDrpdown}
                                                                                 isDisabled={InputDisabled}
                                                                                 value={formData.memoNo}
@@ -2829,8 +2984,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 isclearable={true}
                                                                                 // onChange={(e:any) => setFormData({ ...formData, memoNo: e.target.value, MemoId: parseInt(e.target.value, 10) })}
                                                                                 placeholder="Select Memo No"
-                                                                            />
-                                                                            {/* <input
+                                                                            /> */}
+                                                                            <input
                                                                                 disabled
                                                                                 type="text"
                                                                                 className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -2839,7 +2994,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 id="memoNo"
                                                                                 value={formData.memoNo}
                                                                                 onChange={(e) => setFormData({ ...formData, memoNo: e.target.value })}
-                                                                            /> */}
+                                                                            />
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -2902,11 +3057,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="Department" className="col-form-label">From Department<span className="text-danger1"> *</span></label>
-                                                                        <div className="">
+                                                                        <div title={selectUserDept?.label || "Select Department"}>
                                                                             <Select
                                                                                 // options={AllDept}
                                                                                 options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
-                                                                                isDisabled={true}
+                                                                                isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false)}
                                                                                 value={selectUserDept}
 
                                                                                 name="deptId"
@@ -2935,7 +3090,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 // className="form-control"
                                                                                 id="fromEmail"
                                                                                 value={formData.fromEmail}
-                                                                                disabled={true}
+                                                                                disabled={InputDisabled}
                                                                                 title={formData.fromEmail}
                                                                             // onChange={(e) => setFormData({ ...formData, from: e.target.value })}
                                                                             />
@@ -2975,17 +3130,16 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 // options={AllDept}
                                                                                 options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
 
-                                                                                isDisabled={true}
+                                                                                isDisabled={InputDisabled}
                                                                                 value={selectUserDeptTo}
                                                                                 isMulti
                                                                                 name="to"
                                                                                 id="ToDept"
                                                                                 className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                                                                // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
-                                                                                // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
-                                                                                // onChange={handleDepartmentChange}
+
                                                                                 onChange={(selectedOptions: any) => handleDepartmentChangeTo(selectedOptions)}
                                                                                 placeholder="Select"
+                                                                                title={selectUserDeptTo?.map((dept: any) => dept.label).join(", ") || "Select Department"}
                                                                             />
                                                                             {/* <Select
                                                                                 options={rows1}
@@ -3037,7 +3191,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 // options={AllDept}
                                                                                 options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
 
-                                                                                isDisabled={true}
+                                                                                isDisabled={InputDisabled}
                                                                                 isMulti
                                                                                 value={selectUserDeptCC}
                                                                                 name="CC"
@@ -3049,6 +3203,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 onChange={(selectedOptions: any) => handleDepartmentChangeCC(selectedOptions)}
                                                                                 // onChange={(selectedOptions: any) => setFormData({ ...formData, CC: selectedOptions })}
                                                                                 placeholder="Select"
+                                                                                title={selectUserDeptCC?.map((dept: any) => dept.label).join(", ") || "Select Department"}
 
                                                                             />
                                                                             {/* <Select
@@ -3080,7 +3235,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 id="issueNo"
                                                                                 value={formData.issueNo}
                                                                                 onChange={(e) => setFormData({ ...formData, issueNo: e.target.value })}
-                                                                                disabled={true}
+                                                                                disabled={InputDisabled}
                                                                             />
                                                                         </div>
                                                                     </div>
@@ -3119,7 +3274,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                         document.getElementById("subject")?.classList.remove("border-on-error");
                                                                                     }
                                                                                 }}
-                                                                                disabled={true}
+                                                                                disabled={InputDisabled}
                                                                             />
                                                                         </div>
                                                                     </div>
@@ -3132,7 +3287,23 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                         <label htmlFor="date" className="col-form-label">Date<span className="text-danger1"> *</span></label>
                                                                         <div className="">
 
-                                                                            <input
+                                                                            <DatePicker id="date"
+                                                                                value={
+                                                                                    formData?.date
+                                                                                        ? new Date(moment(formData?.date).format('YYYY-MM-DD'))
+                                                                                        : null
+                                                                                }
+                                                                                onSelectDate={(date: Date | null) => {
+                                                                                    setFormData({ ...formData, date: new Date(date).toLocaleDateString("en-CA") });
+                                                                                    // setFormData({ ...formData, date: moment(date).format('DD/MMM/YYYY') });
+                                                                                }}
+                                                                                // maxDate={new Date()}
+                                                                                minDate={new Date()}
+                                                                                disabled={InputDisabled}
+                                                                                formatDate={(date: any) => moment(date).format('DD/MMM/YYYY')}
+                                                                            />
+
+                                                                            {/* <input
                                                                                 type="date"
                                                                                 className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}${(!ValidDraft) ? "border-on-error" : ""}`}
                                                                                 // className="form-control"
@@ -3145,13 +3316,42 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                         document.getElementById("date")?.classList.remove("border-on-error");
                                                                                     }
                                                                                 }}
-                                                                                disabled={true}
+                                                                                disabled={InputDisabled}
+                                                                            /> */}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="col-lg-4">
+
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="DocumentCode" className=" col-form-label">Classification<span className="text-danger1">*</span></label>
+                                                                        {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                                                                        <div
+                                                                            title={formData.classificationValue?.label || "Select a classification"}
+                                                                            style={{ width: "100%" }}
+                                                                        >
+                                                                            <Select
+                                                                                options={Classificationopt}
+                                                                                value={formData.classificationValue}
+                                                                                name="Classification"
+                                                                                id="Classification"
+                                                                                className={`${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                onChange={(selectedOption: any) => {
+                                                                                    setFormData({
+                                                                                        ...formData,
+                                                                                        classificationValue: selectedOption,
+                                                                                        classificationId: selectedOption.value,
+                                                                                    });
+                                                                                }}
+                                                                                placeholder="Select Classification"
+                                                                                isDisabled={InputDisabled}
                                                                             />
                                                                         </div>
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="col-lg-8">
+                                                                <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="background" className="col-form-label">Background<span className="text-danger1"> *</span></label>
                                                                         <div className="">
@@ -3166,7 +3366,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                         document.getElementById("background")?.classList.remove("border-on-error");
                                                                                     }
                                                                                 }}
-                                                                                disabled={true}
+                                                                                disabled={InputDisabled}
                                                                             ></textarea>
                                                                         </div>
                                                                     </div>
@@ -3189,7 +3389,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     }
 
                                                                                 }}
-                                                                                disabled={true}
+                                                                                disabled={InputDisabled}
                                                                             ></textarea>
                                                                         </div>
                                                                     </div>
@@ -3218,7 +3418,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     name="recommendationType"
                                                                                     id={`recommendationType_${type.Id}`}
                                                                                     value={type.Id}
-                                                                                    disabled={true}
+                                                                                    disabled={InputDisabled}
                                                                                     onChange={(e) => setFormData({ ...formData, recommendationTypeId: Number(e.target.value), RecommendationTypeValue: type.RecommendationTypeValue })}
                                                                                     checked={formData.recommendationTypeId === type.Id}
                                                                                 />
@@ -3269,19 +3469,41 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     value={row.section}
                                                                                     title={row.section}
                                                                                     onChange={(e) => handleRecommendationChange(index, 'section', e.target.value)}
-                                                                                    disabled={true}
+                                                                                    disabled={InputDisabled}
                                                                                 />
                                                                             </td>
-                                                                            <td>
-                                                                                <input
+                                                                            <td title={
+                                                                                row?.date
+                                                                                    ? moment(row?.date).format('DD/MMM/YYYY')
+                                                                                    : "Select a date"
+                                                                            }>
+
+                                                                                <DatePicker
+                                                                                    value={
+                                                                                        row?.date
+                                                                                            ? new Date(moment(row?.date).format('YYYY-MM-DD'))
+                                                                                            : null
+                                                                                    }
+                                                                                    onSelectDate={(date: Date | null) => {
+                                                                                        if (date) {
+                                                                                            const formattedDate = new Date(date).toLocaleDateString("en-CA"); // Format as "yyyy-MM-dd"
+                                                                                            handleRecommendationChange(index, 'date', formattedDate); // Pass formatted date to handleRecommendationChange
+                                                                                        }
+                                                                                    }}
+                                                                                    // maxDate={new Date()}
+                                                                                    minDate={new Date()}
+                                                                                    disabled={InputDisabled}
+                                                                                    formatDate={(date: any) => moment(date).format('DD/MMM/YYYY')}
+                                                                                />
+                                                                                {/* <input
                                                                                     type="date"
                                                                                     className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                     // className="form-control"
                                                                                     value={row.date}
                                                                                     title={row.date}
                                                                                     onChange={(e) => handleRecommendationChange(index, 'date', e.target.value)}
-                                                                                    disabled={true}
-                                                                                />
+                                                                                    disabled={InputDisabled}
+                                                                                /> */}
                                                                             </td>
                                                                             <td>
                                                                                 <input
@@ -3291,7 +3513,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     value={row.startTime}
                                                                                     title={row.startTime}
                                                                                     onChange={(e) => handleRecommendationChange(index, 'startTime', e.target.value)}
-                                                                                    disabled={true}
+                                                                                    disabled={InputDisabled}
                                                                                 />
 
                                                                             </td>
@@ -3304,7 +3526,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     value={row.auditor}
                                                                                     onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
                                                                                     placeholder="Select"
-                                                                                    isDisabled={true}
+                                                                                    isDisabled={InputDisabled}
+                                                                                    title={row.auditor?.label || "Select Auditor"} // Added title tooltip
                                                                                 />
                                                                             </td>
                                                                             {/* {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '70px', maxWidth: '70px' }}>
@@ -3331,7 +3554,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                         onChange={(e) =>
                                                                             setFormData({ ...formData, recommendationDetails: e.target.value })
                                                                         }
-                                                                        disabled={true}
+                                                                        disabled={InputDisabled}
                                                                         placeholder="Enter recommendation details here"
                                                                     ></textarea>
                                                                 </div>
@@ -3361,7 +3584,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                             document.getElementById("recApp")?.classList.remove("border-on-error");
                                                                         }
                                                                     }}
-                                                                    disabled={true}
+                                                                    disabled={InputDisabled}
                                                                     placeholder="Enter recommendation for approval"
                                                                 ></textarea>
 
@@ -3555,8 +3778,30 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                     {coverageAuditCriteria.map((row, index) => (
                                                                         <tr key={index}>
-                                                                            <td style={{ overflow: "inherit" }}>
-                                                                                <input style={{ paddingLeft: '2px', paddingRight: '0px' }}
+                                                                            <td style={{ overflow: "inherit" }} title={
+                                                                                row?.date
+                                                                                    ? moment(row?.date).format('DD/MMM/YYYY')
+                                                                                    : "Select a date"
+                                                                            }>
+
+                                                                                <DatePicker
+                                                                                    value={
+                                                                                        row?.date
+                                                                                            ? new Date(moment(row?.date).format('YYYY-MM-DD'))
+                                                                                            : null
+                                                                                    }
+                                                                                    onSelectDate={(date: Date | null) => {
+                                                                                        if (date) {
+                                                                                            const formattedDate = new Date(date).toLocaleDateString("en-CA"); // Format as "yyyy-MM-dd"
+                                                                                            handleCoverageRow(index, 'date', formattedDate); // Pass formatted date to handleRecommendationChange
+                                                                                        }
+                                                                                    }}
+                                                                                    // maxDate={new Date()}
+                                                                                    minDate={new Date()}
+                                                                                    disabled={InputDisabled}
+                                                                                    formatDate={(date: any) => moment(date).format('DD/MMM/YYYY')}
+                                                                                />
+                                                                                {/* <input style={{ paddingLeft: '2px', paddingRight: '0px' }}
                                                                                     type="date"
                                                                                     className={`form-control  ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                     // className="form-control"
@@ -3564,7 +3809,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     title={row.date}
                                                                                     onChange={(e) => handleCoverageRow(index, 'date', e.target.value)}
                                                                                     disabled={InputDisabled}
-                                                                                />
+                                                                                /> */}
                                                                             </td>
                                                                             <td style={{ overflow: "inherit" }}>
                                                                                 <input style={{ paddingLeft: '2px', paddingRight: '0px' }}
@@ -3594,7 +3839,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     // isMulti
                                                                                     className={` ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                     value={row.Location}
-                                                                                    title={row.Location?.label}
+                                                                                    title={row.Location?.label || "Select Location"} // Added title tooltip
                                                                                     onChange={(selectedOptions: any) => handleCoverageRow(index, 'Location', selectedOptions)}
                                                                                     placeholder="Select"
                                                                                     isDisabled={InputDisabled}
@@ -3608,7 +3853,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     // isMulti
                                                                                     className={` ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                     value={row.auditor}
-                                                                                    title={row.auditor?.label}
+                                                                                    title={row.auditor?.label || "Select Auditor"} // Added title tooltip
                                                                                     onChange={(selectedOptions: any) => handleCoverageRow(index, 'auditor', selectedOptions)}
                                                                                     placeholder="Select"
                                                                                     isDisabled={InputDisabled}
@@ -3711,13 +3956,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 <select
                                                                                     // className="form-select"
                                                                                     className={`form-select HierarchyClsErr newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
-
-                                                                                    onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={InputDisabled}>
-
+                                                                                    onChange={(e) => onSelectRole(e, row.level)}
+                                                                                    value={row.role}
+                                                                                    disabled={InputDisabled}
+                                                                                    title={UserRoles.find((role: any) => role.value === row.role)?.label || "Select Role"} // Added title tooltip
+                                                                                >
                                                                                     <option value="" selected>Select Role</option>
-                                                                                    {/* {UserRoles.map((role: any, index: number) => (
-                                                                                    <option key={index} value={role.value}>{role.label}</option>
-                                                                                ))} */}
                                                                                     {UserRoles.filter((role: any) =>
                                                                                         !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
                                                                                     ).map((role: any, idx: number) => (
@@ -3738,10 +3982,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     value={row.approvers}
                                                                                     name="Approvers"
                                                                                     className={`newse HierarchyClsErr ${(!ValidForwardTo) ? "border-on-error" : ""}`}
-                                                                                    // onChange={(selectedOption: any) => onSelect(selectedOption)}
                                                                                     onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
                                                                                     placeholder="Enter Approver Name"
                                                                                     isDisabled={InputDisabled}
+                                                                                    title={row.approvers.map((approver: any) => approver.label).join(", ") || "Enter Approver Name"} // Added title tooltip
                                                                                 />
 
 
@@ -3749,7 +3993,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                             </td>
                                                                             <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }}>
                                                                                 {/* <label htmlFor="approvalType">Approval Type: </label> */}
-                                                                                <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse HierarchyClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={InputDisabled} >
+                                                                                <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse HierarchyClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={InputDisabled} title={row.approvalType || "Select Approval Criteria"}>
                                                                                     <option value="">Select </option>
                                                                                     <option value="One">Anyone</option>
                                                                                     <option value="All">Everyone</option>

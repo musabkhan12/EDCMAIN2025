@@ -112,6 +112,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [sharewitherr, setsharewitherr] = React.useState(false);
     const [approvedauditplanerr, setapprovedauditplanerr] = React.useState(false);
     const [TemplateDoc, setTemplateDoc] = React.useState<any>([]);
+    const [sharewithusers, setSharewithusers] = React.useState([]);
     //error end
     const [formData, setFormData] = React.useState({
         approvedauditplanId: 0,
@@ -196,12 +197,13 @@ const AnnualAuditReportContext = ({ props }: any) => {
             MainComponentURl: `${SITE_URL}/SitePages/EDCMAIN.aspx`,
         },
         {
-            ChildComponent: "IMS Audit Checklist and Report",
+            ChildComponent: "IMS Audit Report and Checklist",
             ChildComponentURl: `${SITE_URL}/SitePages/EDCMAIN.aspx#/AnnualAuditReport`,
         },
     ];
     const [forwardToArrEdit, setForwardToArrEdit] = React.useState<ForwardTo[]>([]);
     const [selectedUsers, setSelectedUsers] = React.useState<any[]>([]);
+
     // const [remark, setRemark] = React.useState("");
 
     // Function to handle People Picker selection
@@ -413,6 +415,13 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     attachmentIds: setBannerById[0].AttachmentId || null,
                     attachmentJson: setBannerById[0].AttachmentJson || null
                 }));
+                let sharewithuser = setBannerById[0].Sharewith?.map((approver: any) => ({
+                    value: approver.ID,
+                    label: approver.Title,
+                    UserName: approver.Title,
+                    //UserEmail: approver.EMail
+                })) || [];
+                setSharewithusers(sharewithuser);
                 setdoccode(setBannerById[0].Title);
                 debugger
                 setselectUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentId));
@@ -515,7 +524,18 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
     };
 
+    const onSelectsharewith = (selectedOptions: any) => {
+        const newSelections = selectedOptions || [];
+        const allOptions = [...sharewithusers, ...newSelections];
 
+        const uniqueOptions = allOptions.filter(
+            (option, index, self) =>
+                index === self.findIndex((o) => o.value === option.value)
+        );
+
+        setSharewithusers(uniqueOptions);
+
+    };
     const onSelectApprovers = (selectedOptions: any, lvl: number) => {
         setForwardToArr((prev) =>
             prev.map((row) =>
@@ -729,7 +749,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
             //     //Swal.fire('Error', 'Entity is required!', 'error');
             //     valid = false;
             // }
-
+            if (!sharewithusers || sharewithusers.length === 0) {
+                setsharewitherr(true);
+            }
             if (!recommendationRows.length) {
                 validRec = false;
             }
@@ -817,9 +839,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     if (!row.auditorcomments || row.auditorcomments.trim() === "") {
                         rowError.auditorcomments = true;
                     }
-                    if (!row.sharewith || row.sharewith.length === 0) {
-                        rowError.sharewith = true;
-                    }
+                    // if (!row.sharewith || row.sharewith.length === 0) {
+                    //     rowError.sharewith = true;
+                    // }
 
                     // If there are errors in this row, store them
                     if (Object.keys(rowError).length > 0) {
@@ -962,7 +984,13 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                             }
                         }
-
+                        debugger
+                        const sharewithIds: any[] = [];
+                        sharewithusers.forEach((user: any) => {
+                            if (user?.value) {
+                                sharewithIds.push(user.value);
+                            }
+                        });
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
 
@@ -987,6 +1015,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             Status: "Pending",
                             DocumentName: DocumentName,
                             IsRework: "No",
+                            SharewithId: sharewithIds,
                             AttachmentId: attachmentIds || [],
                             AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
@@ -1235,7 +1264,13 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                             }
                         }
-
+                        debugger
+                        const sharewithIds: any[] = [];
+                        sharewithusers.forEach((user: any) => {
+                            if (user?.value) {
+                                sharewithIds.push(user.value);
+                            }
+                        });
                         let arr = {
                             MemoNumber: doccode,
                             Title: doccode,
@@ -1256,7 +1291,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             DocumentName: DocumentName,
                             IsRework: "No",
                             AttachmentId: attachmentIds || [],
-                            AttachmentJson: JSON.stringify(bannerImageArray) || ""
+                            AttachmentJson: JSON.stringify(bannerImageArray) || "",
+                            SharewithId: sharewithIds
 
 
                         }
@@ -1451,7 +1487,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                             }
                         }
-
+                        const sharewithIds: any[] = [];
+                        sharewithusers.forEach((user: any) => {
+                            if (user?.value) {
+                                sharewithIds.push(user.value);
+                            }
+                        });
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
                             ApprovedAuditPlanId: selectAuditplan.ID,
@@ -1473,7 +1514,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             DocumentName: DocumentName,
                             IsRework: "No",
                             AttachmentId: attachmentIds || [],
-                            AttachmentJson: JSON.stringify(bannerImageArray) || ""
+                            AttachmentJson: JSON.stringify(bannerImageArray) || "",
+                            SharewithId: sharewithIds
                         }
                         const postResult = await updateItem(arr, sp, editItemID);
                         const postId = postResult?.data?.ID;
@@ -1716,7 +1758,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                             }
                         }
-
+                        const sharewithIds: any[] = [];
+                        sharewithusers.forEach((user: any) => {
+                            if (user?.value) {
+                                sharewithIds.push(user.value);
+                            }
+                        });
                         let arr = {
 
                             // MemoNumber:,
@@ -1742,8 +1789,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             DocumentName: DocumentName,
                             IsRework: "No",
                             AttachmentId: attachmentIds || [],
-                            AttachmentJson: JSON.stringify(bannerImageArray) || ""
-
+                            AttachmentJson: JSON.stringify(bannerImageArray) || "",
+                            SharewithId: sharewithIds
 
                         }
                         // console.log(postPayload);
@@ -2012,7 +2059,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                             <div className="row">
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
-                                                                        <label htmlFor="DocumentCode" className="col-form-label">Approved Audit Plan:<span className="text-danger1">*</span>
+                                                                        <label htmlFor="DocumentCode" className="col-form-label">Approved Memo No./Audit Plan:<span className="text-danger1">*</span>
                                                                         </label>
                                                                         <div
                                                                             title={selectedOption?.label || "Select a audit plan"}
@@ -2071,7 +2118,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value).toLocaleDateString("en-CA") })}
                                                                                 disabled={InputDisabled}
                                                                             />
-                                                                             {/* {(modeValue === "" || modeValue === "edit" || InputDisabled != true) ||
+                                                                            {/* {(modeValue === "" || modeValue === "edit" || InputDisabled != true) ||
                                                                              (modeValue == "approve" && formData?.Status == "Rework") ?
                                                                                 <input
                                                                                     type="date"
@@ -2149,7 +2196,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div className="col-lg-4">
+                                                                {/* <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="issuedate" className="col-form-label">Issue Date<span className="text-danger1"> *</span></label>
                                                                         <div>
@@ -2164,7 +2211,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                             />
                                                                         </div>
                                                                     </div>
-                                                                </div>
+                                                                </div>*/}
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="revisionNo" className="col-form-label">Revision No<span className="text-danger1"> *</span></label>
@@ -2181,6 +2228,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         </div>
                                                                     </div>
                                                                 </div>
+                                                                {/*}
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="revisiondate" className="col-form-label">Revision Date<span className="text-danger1"> *</span></label>
@@ -2196,7 +2244,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                             />
                                                                         </div>
                                                                     </div>
-                                                                </div>
+                                                                </div> 
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="revisionNo" className="col-form-label">Reference No<span className="text-danger1"> *</span></label>
@@ -2209,6 +2257,24 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 id="referenceNo"
                                                                                 value={formData.referenceNo}
                                                                                 onChange={(e) => setFormData({ ...formData, referenceNo: e.target.value })}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>*/}
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="revisionNo" className="col-form-label">Share With<span className="text-danger1"> *</span></label>
+                                                                        <div >
+                                                                            <Select
+                                                                                options={rows1}
+                                                                                isMulti
+                                                                                value={sharewithusers}
+                                                                                name="share with"
+                                                                                className={`newse ${(!ValidSubmit && sharewitherr) ? "border-on-error" : ""}`}
+                                                                                // onChange={(selectedOption: any) => onSelect(selectedOption)}
+                                                                                onChange={(selectedOptions: any) => onSelectsharewith(selectedOptions)}
+                                                                                placeholder="Enter Share with"
+                                                                                isDisabled={InputDisabled}
                                                                             />
                                                                         </div>
                                                                     </div>
@@ -2291,7 +2357,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         <th >Auditor’s
                                                                             Comments<span className="text-danger1"> *</span></th>
                                                                         <th>Time<span className="text-danger1"> *</span></th>
-                                                                        <th>Share with<span className="text-danger1"> *</span></th>
+                                                                        {/* <th>Share with<span className="text-danger1"> *</span></th> */}
 
                                                                         {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th>Action</th>}
                                                                     </tr>
@@ -2331,17 +2397,24 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 />
                                                                             </td>
                                                                             <td title={row?.inquiries ? row?.inquiries : row?.inquiries}>
-                                                                                <input
-                                                                                    type="text"
+                                                                                <textarea
+                                                                                    id="simpleinput"
                                                                                     className={`form-control ${(RowErrors[index]?.inquiries) ? "border-on-error" : ""}`}
                                                                                     // className="form-control"
                                                                                     value={row.inquiries}
                                                                                     onChange={(e) => handleRecommendationChange(index, 'inquiries', e.target.value)}
                                                                                     disabled={InputDisabled}
                                                                                 />
+                                                                                {/* <input
+                                                                                    type="text"
+                                                                                    className={`form-control ${(RowErrors[index]?.inquiries) ? "border-on-error" : ""}`}
+                                                                                    // className="form-control"
+                                                                                    value={row.inquiries}
+                                                                                    onChange={(e) => handleRecommendationChange(index, 'inquiries', e.target.value)}
+                                                                                    disabled={InputDisabled}
+                                                                                /> */}
                                                                             </td>
                                                                             <td title={row?.auditorcomments ? row?.auditorcomments : row?.auditorcomments}>
-
                                                                                 <textarea
                                                                                     id="simpleinput"
                                                                                     className={`form-control ${(RowErrors[index]?.auditorcomments) ? "border-on-error" : ""}`}
@@ -2361,7 +2434,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     disabled={InputDisabled}
                                                                                 />
                                                                             </td>
-                                                                            <td title={row?.sharewith ? row?.sharewith : row?.sharewith}>
+                                                                            {/* <td title={row?.sharewith ? row?.sharewith : row?.sharewith}>
                                                                                 <Select
                                                                                     options={rows1}
                                                                                     // isMulti
@@ -2371,7 +2444,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     placeholder="Select"
                                                                                     isDisabled={InputDisabled}
                                                                                 />
-                                                                            </td>
+                                                                            </td> */}
                                                                             {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td>
                                                                                 <img src={require("../assets/del.png")} onClick={() => handleDeleteRecommendationRow(index)} />
 
@@ -2393,7 +2466,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                         <div className='row'>
                                                             <div className='col-sm-8'>
                                                                 <h4 className="text-dark font-16 fw-bold mb-3 ">Approval Hierarchy</h4>
-
+                                                                <label>Define the approval hierarchy to ensure requests are routed to the appropriate approvers.
+                                                                </label>
                                                             </div>
                                                             <div className='col-sm-4'>
                                                                 <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
@@ -2463,9 +2537,6 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     placeholder="Enter Approver Name"
                                                                                     isDisabled={InputDisabled}
                                                                                 />
-
-
-
                                                                             </td>
                                                                             <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
                                                                                 {/* <label htmlFor="approvalType">Approval Type: </label> */}

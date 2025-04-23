@@ -11132,7 +11132,7 @@ const ArgPoc = ({ props }: any) => {
         case 'Annual Audit Program':
           setDynamicContent('Annual Audit Program');
           break;
-        case 'Audit Checklist and Report':
+        case 'IMS Audit Report and Checklist':
           setDynamicContent('Annual Audit Report');
           break;
         case 'Non Conformity':

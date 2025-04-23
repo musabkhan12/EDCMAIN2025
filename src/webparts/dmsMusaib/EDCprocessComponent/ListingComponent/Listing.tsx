@@ -225,14 +225,14 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         : item?.ProcessName === "Annual Audit Program"
                             ? "IMS Annual Audit Program"
                             : item?.ProcessName === "Annual Audit Report"
-                                ? "IMS Audit Checklist and Report"
+                                ? "IMS Audit Report and Checklist"
                                 : item?.ProcessName} style={{ minWidth: '90px', maxWidth: '90px' }}>
                         {item?.ProcessName === "Annual Audit Plan"
                             ? "IMS Audit Plan"
                             : item?.ProcessName === "Annual Audit Program"
                                 ? "IMS Annual Audit Program"
                                 : item?.ProcessName === "Annual Audit Report"
-                                    ? "IMS Audit Checklist and Report"
+                                    ? "IMS Audit Report and Checklist"
                                     : item?.ProcessName}
                     </td>
                     <td title={item.ReqName} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.ReqName}</td>

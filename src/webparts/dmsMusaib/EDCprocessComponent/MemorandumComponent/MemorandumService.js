@@ -303,7 +303,7 @@ export const getDataRoles = async (_sp) => {
  
         //  arr =(res[0].Id)
         // arr = res;
-        reqId=res[0].Id
+        reqId=res[0]
       })
       .catch((error) => {
         console.log("Error fetching data: ", error);
@@ -549,3 +549,39 @@ export const getAllClassificationMaster = async (_sp) => {
   return arr;
 };
 
+
+export const addMemoNumber = async (itemData, _sp) => {
+   
+  let resultArr = []
+  try {
+    const newItem = await _sp.web.lists.getByTitle('MemoNumberLogic').items.add(itemData);
+ 
+    // console.log('Item added successfully:', newItem);
+    // Swal.fire('Item added successfully', '', 'success');
+
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+    Swal.fire(' Cancelled', '', 'error')
+  }
+  return resultArr;
+};
+
+export const updateMemoNumber = async (itemData, _sp,id) => {
+   
+  let resultArr = []
+    try {
+      const newItem = await _sp.web.lists.getByTitle('MemoNumberLogic').items.getById(id).update(itemData);
+      console.log('Item added successfully:', newItem);
+      resultArr = newItem
+      // Perform any necessary actions after successful addition
+    } catch (error) {
+      console.log('Error adding item:', error);
+      // Handle errors appropriately
+      resultArr = null
+    }
+    return resultArr;
+};

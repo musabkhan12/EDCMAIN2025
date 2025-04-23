@@ -30,12 +30,21 @@ import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
-import { addAllProcessItem, addItem, addItem2, getLatestChangeRequestTemplateType, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getAuditTypes, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles, getRecommendationTypes, getGeneratedTemplateDoc, getAllClassificationMaster } from './MemorandumService';
-import { TextField } from '@fluentui/react';
+import { addAllProcessItem, addItem, addItem2, getLatestChangeRequestTemplateType, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getAuditTypes, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles, getRecommendationTypes, getGeneratedTemplateDoc, getAllClassificationMaster, addMemoNumber, updateMemoNumber } from './MemorandumService';
+import { IDatePickerStyles, TextField } from '@fluentui/react';
 import { Icon } from '@fluentui/react/lib/Icon';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
+import moment from 'moment';
+import { DatePicker } from 'office-ui-fabric-react';
 
+
+const datePickerErrorStyles: Partial<IDatePickerStyles> = {
+  root: {
+    backgroundColor: '#ffe6e6 !important',
+    borderColor: 'red !important',
+  },
+};
 
 // let myloader = '../../'
 let newfileupload: any
@@ -84,12 +93,12 @@ const MemoContext = ({ props }: any) => {
   const [ValidForwardTo, setValidForwardTo] = React.useState(true);
   const [RequesterRoleId, setRequesterRoleId] = React.useState(null);
   const [RequestTypeId, setRequestTypeId] = React.useState(null);
-  const [FormNameId, setFormNameId] = React.useState(null);
+  const [FormNameId, setFormNameVal] = React.useState(null);
   const [AuditProgramType, setAuditProgramType] = React.useState([]);
   const [editForm, setEditForm] = React.useState(false);
   const [modeValue, setmode] = React.useState("");
   const [currentUserDept, setcurrentUserDept] = React.useState("");
-  const [selectUserDept, setselectUserDept] = React.useState([]);
+  const [selectUserDept, setselectUserDept] = React.useState(null);
   const [selectUserDeptTo, setselectUserDeptTo] = React.useState([]);
   const [selectUserDeptCC, setselectUserDeptCC] = React.useState(null);
   const [AllDept, setAllDept] = React.useState([]);
@@ -108,6 +117,7 @@ const MemoContext = ({ props }: any) => {
     // infoCheck: false,
     // signCheck: false,
     // approvalCheck: false,
+    MemoListId: 0,
     memoNo: "",
     memoSerialNo: 0,
     deptId: 0,
@@ -174,15 +184,42 @@ const MemoContext = ({ props }: any) => {
     // setFormData({ ...formData, [fieldName]: selectedOptions.value });
   };
 
-  const handleDepartmentChange = (selectedOption: any) => {
+  const handleDepartmentChange = async (selectedOption: any) => {
     setselectUserDept(selectedOption);
-    const formattedMemoSerialNo = formData.memoSerialNo < 10
-      ? `00${formData.memoSerialNo}`
-      : formData.memoSerialNo < 100
-        ? `0${formData.memoSerialNo}`
-        : formData.memoSerialNo;
+    let memo: number = 0;
+    let memoId: number = 0;
+   
+    const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${selectedOption.value}`).orderBy("SerialNumber", false).top(1)();
+    if (listItems.length > 0) {
+      if(modeValue ==""){
+        memo = listItems[0].SerialNumber ? listItems[0].SerialNumber + 1 : 1;
+        memoId = listItems[0].Id;
+      }
+      else{
+        memo = listItems[0].SerialNumber;
+        memoId = listItems[0].Id;
+
+      }    
+
+    } else {
+      memo = 1;
+      memoId= 0;
+
+    }
+    // const formattedMemoSerialNo = formData.memoSerialNo < 10
+    //   ? `00${formData.memoSerialNo}`
+    //   : formData.memoSerialNo < 100
+    //     ? `0${formData.memoSerialNo}`
+    //     : formData.memoSerialNo;
+    const formattedMemoSerialNo = memo < 10
+      ? `00${memo}`
+      : memo < 100
+        ? `0${memo}`
+        : memo;
     setFormData({
       ...formData,
+      MemoListId:memoId,
+      memoSerialNo: memo,
       deptId: selectedOption.value,
       memoNo: `${selectedOption.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
     });
@@ -301,10 +338,7 @@ const MemoContext = ({ props }: any) => {
     setSelectedUsers(items);
   };
 
-  const ApiCallFunc = async () => {
-    setAuditProgramType(await getAllAuditType(sp));
-
-    setAllDept(await getAllDepartment(sp));
+  const ApiCallFunc = async () => {    
     var setAllDept1 = await getAllDepartment(sp);
 
 
@@ -339,17 +373,17 @@ const MemoContext = ({ props }: any) => {
       setshowForwardapproval(true)
     }
     let memo: number = 0;
+    let memoId: number = 0;
     let filteredDeptArrayTo: any[] = [];
     let filteredDeptArrayCC: any[] = [];
 
     const Currusers: any = await getCurrentUser(sp, siteUrl);
-    setCurrentUser(await getCurrentUser(sp, siteUrl));
+    setCurrentUser(Currusers);
     const userProfile = await sp.profiles.myProperties();
-    setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
     const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
+    // setcurrentUserDept(UserDept);
     setselectUserDept(setAllDept1.filter((user: any) => user.label === UserDept));
-    var allAuditTypes = await getAuditTypes(sp);
-    setauditTypes(allAuditTypes);
+   
     const recommendationTypes = await getRecommendationTypes(sp);
     setRecommType(recommendationTypes);
     var ClassificationArr = await getAllClassificationMaster(sp);
@@ -369,33 +403,41 @@ const MemoContext = ({ props }: any) => {
         if (defaultRecommendationType) {
           setFormData(prevFormData => ({
             ...prevFormData,
+            date: new Date().toLocaleDateString("en-CA"),
             RecommendationTypeValue: "Table",
             recommendationTypeId: defaultRecommendationType.Id
           }));
         }
       }
 
-      const listItems = await sp.web.lists.getByTitle("Memorandum").items.orderBy("MemoSerialNumber", false).top(1)();
-      if (listItems.length > 0) {
-        memo = listItems[0].MemoSerialNumber ? listItems[0].MemoSerialNumber + 1 : 1;
-        // if (memo < 999) {
-        //     memo = ("0000" + memo).slice(-3);
-        // }
-        // setFormData((prevData) => ({ ...prevData, memoSerialNo: memo }));
+      // const listItems = await sp.web.lists.getByTitle("Memorandum").items.orderBy("MemoSerialNumber", false).top(1)();
+      // if (listItems.length > 0) {
+      //   memo = listItems[0].MemoSerialNumber ? listItems[0].MemoSerialNumber + 1 : 1;
 
+      // } else {
+      //   memo = 1;
 
-        // setFormData({
-        //     ...formData,
-        //     memoSerialNo:memo
-        // });
-      } else {
-        memo = 1;
-        // setFormData((prevData) => ({ ...prevData, memoSerialNo: memo }));
-        // setFormData({
-        //     ...formData,
-        //     memoSerialNo: memo
-        // });
+      // }
+   
+    const onloadDeptId = setAllDept1.filter((user: any) => user.label === UserDept)[0]?.value || 0;
+   
+    const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
+    if (listItems.length > 0) {
+      if(modeValue ==""){
+        memo = listItems[0].SerialNumber ? listItems[0].SerialNumber + 1 : 1;
+        memoId = listItems[0].Id;
       }
+      else{
+        memo = listItems[0].SerialNumber;
+        memoId = listItems[0].Id;
+
+      }    
+
+    } else {
+      memo = 1;
+      memoId= 0;
+
+    }
       const formattedMemoSerialNo = memo < 10
         ? `00${memo}`
         : memo < 100
@@ -404,8 +446,9 @@ const MemoContext = ({ props }: any) => {
 
       setFormData((prevFormData) => ({
         ...prevFormData,
+        MemoListId:memoId,
         memoSerialNo: memo,
-        deptId: setAllDept1.filter((user: any) => user.label === UserDept)[0]?.value || 0,
+        deptId: onloadDeptId,
         memoNo: setAllDept1.filter((user: any) => user.label === UserDept)[0]
           ? `${setAllDept1.filter((user: any) => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
           : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
@@ -454,36 +497,16 @@ const MemoContext = ({ props }: any) => {
       setFormItemId(Number(iDs))
     }
     else {
-      // const path = window.location.href;
-      // const segments = path.split('/').filter(Boolean); // Remove empty elements
-
-      // // Check if "edit" or "view" exists in the URL
-      // const paramIndex = segments.findIndex(seg => seg === "edit" || seg === "view" || seg === "approve");
-
-
-      if (paramIndex !== -1 && segments[paramIndex + 1]) {
+       if (paramIndex !== -1 && segments[paramIndex + 1]) {
         setmode(segments[paramIndex])
         // mode = segments[paramIndex]; // Will be "edit" or "view"
         formitemid = segments[paramIndex + 1]; // Get the ID
         if (segments[paramIndex + 2] !== undefined) {
-          // var ProcessListItem={
-          //     Status:"",
-          //     Level:0,
-          //     CurrentUserRole:"",
-
-          // }
-
-          //  ProcessListItem =await getApprovalByID(sp, Number(segments[paramIndex + 2]),CONTENTTYPE_DocumentCancel);
-          // setInputDisabled((ProcessListItem.Status == "Pending" || ProcessListItem?.Status === "Save as draft") && ProcessListItem.Level === 0 && ProcessListItem.CurrentUserRole !=="OES")
-          setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_Memo));
+             setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_Memo));
           // var ProcessItemId: any = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditPlan);
           setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_Memo));
         }
-        // else {
-
-        //     setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditPlan))
-
-        // }
+       
       }
 
       setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_Memo))
@@ -498,18 +521,54 @@ const MemoContext = ({ props }: any) => {
 
       if (setBannerById.length > 0) {
         debugger
+        let varmemoNum ="";
         setEditForm(true);
         setMainEditItem(setBannerById[0]);
-
-
-        // const valuesOnly = selectedOptions.map((option: any) => option.value);
-        // setFormData({ ...formData, [fieldName]: valuesOnly });
+        if(formMode =="edit"){
+        const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${setBannerById[0]?.DepartmentId}`).orderBy("SerialNumber", false).top(1)();
+        if (listItems.length > 0) {
+            if (listItems[0].SerialNumber >= setBannerById[0].MemoSerialNumber) {
+            memo = listItems[0].SerialNumber + 1;
+            }
+            else{
+              memo = setBannerById[0].MemoSerialNumber;
+            }
+            // memoId = listItems[0].Id;  
+   
+        } else {
+          memo = setBannerById[0].MemoSerialNumber;
+          // memoId= 0;
+   
+        }
+          const formattedMemoSerialNo = memo < 10
+            ? `00${memo}`
+            : memo < 100
+              ? `0${memo}`
+              : memo;
+            varmemoNum  =`${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`;
+      }
+      else{
+        varmemoNum  = setBannerById[0].MemoNumber;
+        memo = setBannerById[0].MemoSerialNumber;
+      }
+          // setFormData((prevFormData) => ({
+          //   ...prevFormData,
+          //   MemoListId:memoId,
+          //   memoSerialNo: memo,
+          //   deptId: onloadDeptId,
+          //   memoNo: setAllDept1.filter((user: any) => user.label === UserDept)[0]
+          //     ? `${setAllDept1.filter((user: any) => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+          //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+          // }));
         let ClassificationVal = optionsclassification.filter((docType: { value: any; }) => docType.value === setBannerById[0].ClassificationId) || null;
 
         setFormData(prevData => ({
           ...prevData,
-          memoNo: setBannerById[0].MemoNumber,
-          memoSerialNo: setBannerById[0].MemoSerialNumber,
+          MemoListId:memoId,
+          // memoNo: setBannerById[0].MemoNumber,
+          // memoSerialNo: setBannerById[0].MemoSerialNumber,
+          memoNo: varmemoNum,
+          memoSerialNo: memo,
           deptId: setBannerById[0].DepartmentId,
           // issueNo: "",
           // revisionNo: "",
@@ -541,12 +600,12 @@ const MemoContext = ({ props }: any) => {
           RecommendationTypeValue: setBannerById[0].RecommendationType?.RecommendationTypeValue || "",
           recommendationDetails: setBannerById[0].RecommendationDetails || "",
           DocCode: setBannerById[0].DocumentCode || "",
-          RevisionNo: setBannerById[0].RevisionNumber || null,
-          IssueNo: setBannerById[0].IssueNumber || null,
+          RevisionNo: setBannerById[0].RevisionNumber ,
+          IssueNo: setBannerById[0].IssueNumber,
           RevisionDate: setBannerById[0].RevisionDate || null,
           IssueDate: setBannerById[0].IssueDate || null,
           classificationId: setBannerById[0].ClassificationId,
-          classificationValue: ClassificationVal,
+          classificationValue: ClassificationVal?.[0]|| null,
           // attachmentJson: setBannerById[0].AttachmentJson || null
         }));
 
@@ -555,7 +614,7 @@ const MemoContext = ({ props }: any) => {
 
 
 
-        setselectUserDept(setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId));
+        setselectUserDept(setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)?.[0]|| null);
 
         setselectUserDeptCC(setBannerById[0].CCDepartments?.map((obj: any) => {
           const filteredDept = setAllDept1.find((dept: any) => dept.value === obj.ID);
@@ -641,22 +700,28 @@ const MemoContext = ({ props }: any) => {
           setRecommendationRowsEdit(initialRows);
 
         }
-        // else{
-        //   setRecommendationRows([...recommendationRows, { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null }]);
-
-        // }
       }
     }
     setFormLoading(false);
-
-    // setRequesterRoleId(await getRequesterID(sp))
-
-    setFormNameId(await getFormNameID(sp, CONTENTTYPE_Memo))
-    setListNameId(await getListNameID(sp, LIST_TITLE_Memo))
+    // setRequesterRoleId(await getRequesterID(sp))  
+   
     createTooltipContent(filteredDeptArrayCC);
-    createTooltipContentTo(filteredDeptArrayTo)
+    createTooltipContentTo(filteredDeptArrayTo);
+
+    //}
+    //#endregion
 
 
+  };
+
+  const OnLoadCallFunc = async () => {
+    setAllDept(await getAllDepartment(sp));
+    setAuditProgramType(await getAllAuditType(sp));
+    var allAuditTypes = await getAuditTypes(sp);
+    setauditTypes(allAuditTypes);
+    setListNameId(await getListNameID(sp, LIST_TITLE_Memo));
+    const FormNameMaster = await getFormNameID(sp, CONTENTTYPE_Memo)
+    setFormNameVal(FormNameMaster)
     let ChangeRequestTemplateType = await getLatestChangeRequestTemplateType(sp, CONTENTTYPE_Memo);
 
     if (ChangeRequestTemplateType.length > 0) {
@@ -672,13 +737,7 @@ const MemoContext = ({ props }: any) => {
       }));
     }
 
-    
-
-    //}
-    //#endregion
-
-
-  };
+  }
 
 
   // const handleAuditTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -734,7 +793,7 @@ const MemoContext = ({ props }: any) => {
   React.useEffect(() => {
 
     ApiCallFunc();
-    // getMemoNumber();
+    OnLoadCallFunc()
 
   }, [useHide]);
 
@@ -849,6 +908,10 @@ const MemoContext = ({ props }: any) => {
         document.getElementById("DeptID")?.classList.add("border-on-error");
         valid = false;
       }
+      if (!memoNo) {
+        document.getElementById("memoNo")?.classList.add("border-on-error");
+        valid = false;
+      }
       if (!classificationId) {
         document.getElementById("Classification")?.classList.add("border-on-error");
         valid = false;
@@ -875,10 +938,20 @@ const MemoContext = ({ props }: any) => {
       }
       if (!date) {
         document.getElementById("date")?.classList.add("border-on-error");
+        Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
+          if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "" || element.textContent?.trim() === "")) {
+            element.classList.add("border-on-error");
+          }
+        });
         valid = false;
       }
       if (date == "Invalid Date") {
         document.getElementById("date")?.classList.add("border-on-error");
+        Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
+          if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "" || element.textContent?.trim() === "")) {
+            element.classList.add("border-on-error");
+          }
+        });
         valid = false;
       }
       if (!background) {
@@ -929,7 +1002,7 @@ const MemoContext = ({ props }: any) => {
           validRec = false;
 
           Array.from(document.getElementsByClassName("recommendClsErr")).forEach((element: Element) => {
-            if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "")) {
+            if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "" || element.textContent?.trim() === "")) {
               element.classList.add("border-on-error");
             }
             else if (element.tagName === "INPUT" && (element as HTMLInputElement).value.trim() === "") {
@@ -937,6 +1010,13 @@ const MemoContext = ({ props }: any) => {
             }
 
 
+
+          });
+
+          Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
+            if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "" || element.textContent?.trim() === "")) {
+              element.classList.add("border-on-error");
+            }
           });
         }
 
@@ -1250,7 +1330,7 @@ const MemoContext = ({ props }: any) => {
                   RequestedDate: new Date().toLocaleDateString("en-CA"),
                   RequesterRoleId: RequesterRoleId,
                   ProcessName: "Memorandum",
-                  FormNameId: FormNameId,
+                  FormNameId: FormNameId.Id,
                   ApprovalType: "Approval",
                   // IsApprovalGenerated: "No"
                   RedirectionLink: "Memorandum/approve/" + editItemID,
@@ -1321,9 +1401,31 @@ const MemoContext = ({ props }: any) => {
               const postId = postResult?.data?.ID;
 
             }
+            else{
+              if(modeValue !="approve"){
+                let arry = {
+                  DepartmentId:formData.deptId ,
+                  SerialNumber: formData.memoSerialNo,
+                  ProcessName : FormNameId.FormName,
+   
+                }
+                // if(formData.MemoListId){
+                //   const postResults = await updateMemoNumber(arry, sp,formData.MemoListId);
+                // const postIds = postResults?.data?.ID;
+   
+                // }
+                // else{
+                  const postResults = await addMemoNumber(arry, sp);
+                const postIds = postResults?.data?.ID;
+   
+                // }
+
+              }
+             
+            }
 
 
-            let boolval = false;
+           
 
             // if (boolval == true) {
             setLoading(false);
@@ -1534,7 +1636,7 @@ const MemoContext = ({ props }: any) => {
                   RequestedDate: new Date().toLocaleDateString("en-CA"),
                   RequesterRoleId: RequesterRoleId,
                   ProcessName: "Memorandum",
-                  FormNameId: FormNameId,
+                  FormNameId: FormNameId.Id,
                   ApprovalType: "Approval",
                   IsApprovalGenerated: "No",
                   RedirectionLink: "Memorandum/approve/" + postId,
@@ -1557,9 +1659,24 @@ const MemoContext = ({ props }: any) => {
             }
 
 
+            let arry = {
+              DepartmentId:formData.deptId ,
+              SerialNumber: formData.memoSerialNo,
+              ProcessName : FormNameId.FormName,
 
+            }
+            // if(formData.MemoListId){
+            //   const postResults = await updateMemoNumber(arry, sp,formData.MemoListId);
+            // const postIds = postResult?.data?.ID;
 
-            let boolval;
+            // }
+            // else{
+              const postResults = await addMemoNumber(arry, sp);
+            const postIds = postResult?.data?.ID;
+
+            // }
+           
+           
 
             // if (boolval == true) {
             setLoading(false);
@@ -1773,7 +1890,7 @@ const MemoContext = ({ props }: any) => {
                 RequestedDate: new Date().toLocaleDateString("en-CA"),
                 RequesterRoleId: RequesterRoleId,
                 ProcessName: "Memorandum",
-                FormNameId: FormNameId,
+                FormNameId: FormNameId.Id,
                 ApprovalType: "Approval",
                 // IsApprovalGenerated: "No"
                 RedirectionLink: "Memorandum/approve/" + editItemID,
@@ -2050,7 +2167,7 @@ const MemoContext = ({ props }: any) => {
                   RequestedDate: new Date().toLocaleDateString("en-CA"),
                   RequesterRoleId: RequesterRoleId,
                   ProcessName: "Memorandum",
-                  FormNameId: FormNameId,
+                  FormNameId: FormNameId.Id,
                   ApprovalType: "Approval",
                   IsApprovalGenerated: "No",
                   RedirectionLink: "Memorandum/approve/" + postId,
@@ -2442,6 +2559,7 @@ const MemoContext = ({ props }: any) => {
                                         // className="form-control"
                                         id="memoNo"
                                         value={formData.memoNo}
+                                        title={formData.memoNo}
                                         onChange={(e) => setFormData({ ...formData, memoNo: e.target.value })}
                                       />
                                     </div>
@@ -2459,6 +2577,7 @@ const MemoContext = ({ props }: any) => {
                                         // className="form-control"
                                         id="docCode"
                                         value={formData.DocCode}
+                                        title={formData.DocCode}
 
                                       />
                                     </div>
@@ -2477,6 +2596,7 @@ const MemoContext = ({ props }: any) => {
                                         // className="form-control"
                                         id="IssueNo"
                                         value={formData.IssueNo}
+                                        title={formData.IssueNo}
 
                                       />
                                     </div>
@@ -2494,7 +2614,7 @@ const MemoContext = ({ props }: any) => {
                                         // className="form-control"
                                         id="RevNo"
                                         value={formData.RevisionNo}
-
+                                        title={formData.RevisionNo}
                                       />
                                     </div>
                                   </div>
@@ -2502,21 +2622,23 @@ const MemoContext = ({ props }: any) => {
                                 <div className="col-lg-4">
                                   <div className="mb-3">
                                     <label htmlFor="Department" className="col-form-label">From Department<span className="text-danger1"> *</span></label>
-                                    <div>
+                                    <div 
+                                      title={selectUserDept?.label || "Select Department"}>
                                       <Select
-                                        // options={AllDept}
-                                        options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                      // options={AllDept}
+                                      options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
 
-                                        isDisabled={InputDisabled}
-                                        value={selectUserDept}
-                                        name="deptId"
-                                        id="DeptID"
-                                        className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""} ${(!ValidDraft) ? "border-on-error" : ""}`}
-                                        // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
-                                        // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
-                                        // onChange={handleDepartmentChange}
-                                        onChange={(selectedOptions: any) => handleDepartmentChange(selectedOptions)}
-                                        placeholder="Select Department"
+                                      isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false)}
+                                      value={selectUserDept}
+                                      
+                                      name="deptId"
+                                      id="DeptID"
+                                      className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""} ${(!ValidDraft) ? "border-on-error" : ""}`}
+                                      // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
+                                      // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
+                                      // onChange={handleDepartmentChange}
+                                      onChange={(selectedOptions: any) => handleDepartmentChange(selectedOptions)}
+                                      placeholder="Select Department"
                                       />
                                     </div>
                                   </div>
@@ -2535,6 +2657,7 @@ const MemoContext = ({ props }: any) => {
                                         // className="form-control"
                                         id="fromEmail"
                                         value={formData.fromEmail}
+                                        title={formData.fromEmail}
                                         disabled={true}
                                       // onChange={(e) => setFormData({ ...formData, from: e.target.value })}
                                       />
@@ -2569,7 +2692,8 @@ const MemoContext = ({ props }: any) => {
                                         }}
                                       />
                                       <span className="text-danger1"> *</span></label>
-                                    <div >
+                                    <div
+                                      title={selectUserDeptTo?.map((dept: any) => dept.label).join(", ") || "Select Departments"}>
                                       <Select
                                         // options={AllDept}
                                         options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
@@ -2631,7 +2755,7 @@ const MemoContext = ({ props }: any) => {
                                         }}
                                       />
                                       <span className="text-danger1"> *</span></label>
-                                    <div >
+                                    <div title={selectUserDeptCC?.map((dept: any) => dept.label).join(", ") || "Select Departments"}>
                                       <Select
                                         // options={AllDept}
                                         options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
@@ -2642,11 +2766,9 @@ const MemoContext = ({ props }: any) => {
                                         name="CC"
                                         id="CCDept"
                                         className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                        // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
-                                        // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
-                                        // onChange={handleDepartmentChange}
+
                                         onChange={(selectedOptions: any) => handleDepartmentChangeCC(selectedOptions)}
-                                        // onChange={(selectedOptions: any) => setFormData({ ...formData, CC: selectedOptions })}
+
                                         placeholder="Select"
 
                                       />
@@ -2711,6 +2833,7 @@ const MemoContext = ({ props }: any) => {
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                         id="subject"
                                         value={formData.subject}
+                                        title={formData.subject}
                                         onChange={(e) => {
                                           setFormData({ ...formData, subject: e.target.value });
                                           if (e.target.value) {
@@ -2727,14 +2850,53 @@ const MemoContext = ({ props }: any) => {
                                 <div className="col-lg-4">
                                   <div className="mb-3">
                                     <label htmlFor="date" className=" col-form-label">Date<span className="text-danger1"> *</span></label>
-                                    <div className="">
+                                    <div title={
+                                      formData?.date
+                                        ? moment(formData?.date).format('DD/MMM/YYYY')
+                                        : "Select a request date"
+                                    }>
 
-                                      <input
+                                      <DatePicker id="date"
+                                        value={
+                                          formData?.date
+                                            ? new Date(moment(formData?.date).format('YYYY-MM-DD'))
+                                            : null
+                                        }
+                                        onSelectDate={(date: Date | null) => {
+                                          setFormData({ ...formData, date: new Date(date).toLocaleDateString("en-CA") });
+                                          // setFormData({ ...formData, date: moment(date).format('DD/MMM/YYYY') });
+                                        }}
+                                        // maxDate={new Date()}
+                                        minDate={new Date()}
+                                        disabled={InputDisabled}
+                                        formatDate={(date: any) => moment(date).format('DD/MMM/YYYY')}
+                                      />
+
+                                      {/* <input
+                                        type="date"
+                                        className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}${(!ValidDraft) ? "border-on-error" : ""}`}
+                                        id="date"
+                                        value={formData.date ? new Date(formData.date).toISOString().split("T")[0] : ""}
+                                        title={formData.date ? new Date(formData.date).toLocaleDateString("en-GB", {
+                                          day: "2-digit",
+                                          month: "short",
+                                          year: "numeric"
+                                        }).replace(/ /g, "/") : ""}
+                                        onChange={(e) => {
+                                          setFormData({ ...formData, date: new Date(e.target.value).toISOString().split("T")[0] });
+                                          if (e.target.value) {
+                                            document.getElementById("date")?.classList.remove("border-on-error");
+                                          }
+                                        }}
+                                        disabled={InputDisabled}
+                                      /> */}
+                                      {/* <input
                                         type="date"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}${(!ValidDraft) ? "border-on-error" : ""}`}
                                         // className="form-control"
                                         id="date"
                                         value={formData.date}
+                                        title={formData.date}
                                         onChange={(e) => {
                                           setFormData({ ...formData, date: new Date(e.target.value).toLocaleDateString("en-CA") });
                                           if (e.target.value) {
@@ -2742,22 +2904,23 @@ const MemoContext = ({ props }: any) => {
                                           }
                                         }}
                                         disabled={InputDisabled}
-                                      />
+                                      /> */}
                                     </div>
                                   </div>
                                 </div>
                                 <div className="col-lg-4">
 
                                   <div className="mb-3">
-                                    <label htmlFor="DocumentCode" className=" col-form-label">Classification:<span className="text-danger1">*</span></label>
+                                    <label htmlFor="DocumentCode" className=" col-form-label">Classification<span className="text-danger1">*</span></label>
                                     {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
                                     <div
-                                      // title={selectedOptionClass?.label || "Select a classification"}
+                                      title={formData.classificationValue?.label || "Select a classification"}
                                       style={{ width: "100%" }}
                                     >
                                       <Select
                                         options={Classificationopt}
                                         value={formData.classificationValue}
+                                        
                                         name="Classification"
                                         id="Classification"
                                         className={`${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -2768,8 +2931,8 @@ const MemoContext = ({ props }: any) => {
                                             classificationId: selectedOption.value,
                                           });
                                         }}
-                                        // onChange={(selectedOption: any) => onSelectClassification(selectedOption)}
-                                        placeholder="Select Classification" isDisabled={InputDisabled}
+                                        placeholder="Select Classification"
+                                        isDisabled={InputDisabled}
                                       />
                                     </div>
 
@@ -2821,6 +2984,7 @@ const MemoContext = ({ props }: any) => {
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                         id="background"
                                         value={formData.background}
+                                        title={formData.background}
                                         onChange={(e) => {
                                           setFormData({ ...formData, background: e.target.value });
                                           if (e.target.value) {
@@ -2842,6 +3006,7 @@ const MemoContext = ({ props }: any) => {
                                         // className="form-control"
                                         id="issues"
                                         value={formData.issues}
+                                        title={formData.issues}
                                         onChange={(e) => {
                                           setFormData({ ...formData, issues: e.target.value });
                                           if (e.target.value) {
@@ -2947,19 +3112,61 @@ const MemoContext = ({ props }: any) => {
                                           className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                           // className="form-control"
                                           value={row.section}
+                                          title={row.section}
                                           onChange={(e) => handleRecommendationChange(index, 'section', e.target.value)}
                                           disabled={InputDisabled}
                                         />
                                       </td>
-                                      <td>
-                                        <input
+                                      <td title={
+                                        row?.date
+                                          ? moment(row?.date).format('DD/MMM/YYYY')
+                                          : "Select a date"
+                                      }>
+                                        <DatePicker
+                                        value={
+                                          row?.date
+                                            ? new Date(moment(row?.date).format('YYYY-MM-DD'))
+                                            : null
+                                        }
+                                        onSelectDate={(date: Date | null) => {
+                                          if (date) {
+                                            const formattedDate = new Date(date).toLocaleDateString("en-CA"); // Format as "yyyy-MM-dd"
+                                            handleRecommendationChange(index, 'date', formattedDate); // Pass formatted date to handleRecommendationChange
+                                          }
+                                        }}
+                                        // maxDate={new Date()}
+                                        minDate={new Date()}
+                                        disabled={InputDisabled}
+                                        formatDate={(date: any) => moment(date).format('DD/MMM/YYYY')}
+                                      />
+                                        {/* <input
                                           type="date"
-                                          className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                          className={`form-control recommendClsErr`}
+                                          value={
+                                            row?.date
+                                              ? moment(row?.date, "YYYY/MM/DD").format("YYYY-MM-DD") // Format for input value
+                                              : ""
+                                          }
+                                          title={
+                                            row?.date
+                                              ? moment(row?.date, "YYYY/MM/DD").format("DD/MMM/YYYY") // Display as "22/Apr/2025" in tooltip
+                                              : "Select a date"
+                                          }
+                                          onChange={(e) => {
+                                            const formattedDate = moment(e.target.value, "YYYY-MM-DD").format("YYYY/MM/DD"); // Save as "2025/04/22"
+                                            handleRecommendationChange(index, "date", formattedDate);
+                                          }}
+                                          disabled={InputDisabled}
+                                        /> */}
+                                        {/* <input
+                                          type="date"
+                                          className={`form-control recommendClsErr`}
                                           // className="form-control"
                                           value={row.date}
+                                          title={row.date}
                                           onChange={(e) => handleRecommendationChange(index, 'date', e.target.value)}
                                           disabled={InputDisabled}
-                                        />
+                                        /> */}
                                       </td>
                                       <td>
                                         <input
@@ -2967,6 +3174,7 @@ const MemoContext = ({ props }: any) => {
                                           className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                           // className="form-control"
                                           value={row.startTime}
+                                          title={row.startTime}
                                           onChange={(e) => handleRecommendationChange(index, 'startTime', e.target.value)}
                                           disabled={InputDisabled}
                                         />
@@ -2982,6 +3190,7 @@ const MemoContext = ({ props }: any) => {
                                           onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
                                           placeholder="Select"
                                           isDisabled={InputDisabled}
+                                          title={row.auditor?.label || "Select an auditor"}
                                         />
                                       </td>
                                       {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '70px', maxWidth: '70px' }}>
@@ -3004,6 +3213,7 @@ const MemoContext = ({ props }: any) => {
                                     id="recommendationDetails"
                                     className="form-control"
                                     value={formData.recommendationDetails || ""}
+                                    title={formData.recommendationDetails || "Enter recommendation details"}
                                     onChange={(e) =>
                                       setFormData({ ...formData, recommendationDetails: e.target.value })
                                     }
@@ -3029,6 +3239,7 @@ const MemoContext = ({ props }: any) => {
                                   id="recApp"
                                   className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                   value={formData.recommendationforApproval || ""}
+                                  title={formData.recommendationforApproval || "Enter here..."}
                                   onChange={(e: any) => {
                                     setFormData((prevState) => ({
                                       ...prevState,
@@ -3218,13 +3429,10 @@ const MemoContext = ({ props }: any) => {
                                         <select
                                           // className="form-select"
                                           className={`form-select HierarchyClsErr newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
-
-                                          onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={InputDisabled}>
-
+                                          onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={InputDisabled}
+                                          title={row.role ? UserRoles.find((role: any) => role.value === row.role)?.label : "Select Role"}
+                                        >
                                           <option value="" selected>Select Role</option>
-                                          {/* {UserRoles.map((role: any, index: number) => (
-                                                                                    <option key={index} value={role.value}>{role.label}</option>
-                                                                                ))} */}
                                           {UserRoles.filter((role: any) =>
                                             !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
                                           ).map((role: any, idx: number) => (
@@ -3245,18 +3453,19 @@ const MemoContext = ({ props }: any) => {
                                           value={row.approvers}
                                           name="Approvers"
                                           className={`newse HierarchyClsErr ${(!ValidForwardTo) ? "border-on-error" : ""}`}
-                                          // onChange={(selectedOption: any) => onSelect(selectedOption)}
                                           onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
                                           placeholder="Enter Approver Name"
                                           isDisabled={InputDisabled}
+                                          title={row.approvers.map((approver: any) => approver.label).join(", ") || "Enter Approver Name"}
                                         />
 
 
 
                                       </td>
                                       <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
-                                        {/* <label htmlFor="approvalType">Approval Type: </label> */}
-                                        <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse HierarchyClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={InputDisabled} >
+                                        <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse HierarchyClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={InputDisabled}
+                                          title={row.approvalType ? (row.approvalType === "One" ? "Anyone" : "Everyone") : "Select Approval Type"}
+                                        >
                                           <option value="">Select </option>
                                           <option value="One">Anyone</option>
                                           <option value="All">Everyone</option>
