@@ -1104,7 +1104,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                     // MainListID: String(editItemID),
                                     MainListID: String(editItemID),
-                                    ContentTitle: formData.referenceNo,
+                                    ContentTitle: formData.documentCode,
                                     RequestId: doccode,
                                     // RequestId:String(editID.Id),
                                     RequesterNameId: currentUser.Id,
@@ -1363,7 +1363,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 let arr2 = {
                                     Title: currentUser.Title,
                                     // ContentTitle: selectedOption.ReferenceNumber,
-                                    ContentTitle: formData.referenceNo,
+                                    ContentTitle: formData.documentCode,
                                     RequestId: doccode,
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role,
@@ -1585,7 +1585,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             let arr2 = {
                                 Title: currentUser.Title,
                                 // ContentTitle: selectedOption.ReferenceNumber,
-                                ContentTitle: formData.referenceNo,
+                                ContentTitle: formData.documentCode,
                                 RequestId: doccode,
                                 MainListNameId: ListNameId,
                                 ApproverRoleId: item.role || 0,
@@ -1856,7 +1856,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 let arr2 = {
                                     Title: currentUser.Title,
                                     // ContentTitle: selectedOption.ReferenceNumber,
-                                    ContentTitle: formData.referenceNo,
+                                    ContentTitle: formData.documentCode,
                                     RequestId: doccode,
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role ? item.role : 0,
@@ -2261,24 +2261,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         </div>
                                                                     </div>
                                                                 </div>*/}
-                                                                <div className="col-lg-4">
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="revisionNo" className="col-form-label">Share With<span className="text-danger1"> *</span></label>
-                                                                        <div >
-                                                                            <Select
-                                                                                options={rows1}
-                                                                                isMulti
-                                                                                value={sharewithusers}
-                                                                                name="share with"
-                                                                                className={`newse ${(!ValidSubmit && sharewitherr) ? "border-on-error" : ""}`}
-                                                                                // onChange={(selectedOption: any) => onSelect(selectedOption)}
-                                                                                onChange={(selectedOptions: any) => onSelectsharewith(selectedOptions)}
-                                                                                placeholder="Enter Share with"
-                                                                                isDisabled={InputDisabled}
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
+                                                               
                                                                 {console.log("documentlinkkkkkkk", DocumentLink, FilesArrDoclink)}
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
@@ -2331,6 +2314,24 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                                     </div>
                                                                 </div>
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="revisionNo" className="col-form-label">Share With<span className="text-danger1"> *</span></label>
+                                                                        <div >
+                                                                            <Select
+                                                                                options={rows1}
+                                                                                isMulti
+                                                                                value={sharewithusers}
+                                                                                name="share with"
+                                                                                className={`newse ${(!ValidSubmit && sharewitherr) ? "border-on-error" : ""}`}
+                                                                                // onChange={(selectedOption: any) => onSelect(selectedOption)}
+                                                                                onChange={(selectedOptions: any) => onSelectsharewith(selectedOptions)}
+                                                                                placeholder="Enter Share with"
+                                                                                isDisabled={InputDisabled}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </form>
                                                     </div>
@@ -2356,10 +2357,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         <th colSpan={2}>Inquiries<span className="text-danger1"> *</span></th>
                                                                         <th >Auditor’s
                                                                             Comments<span className="text-danger1"> *</span></th>
-                                                                        <th>Time<span className="text-danger1"> *</span></th>
+                                                                        <th style={{ minWidth: '116px', maxWidth: '116px' }} >Time<span className="text-danger1"> *</span></th>
                                                                         {/* <th>Share with<span className="text-danger1"> *</span></th> */}
 
-                                                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th>Action</th>}
+                                                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: '60px', maxWidth: '60px' }} >Action</th>}
                                                                     </tr>
                                                                 </thead>
 
@@ -2424,7 +2425,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     disabled={InputDisabled}
                                                                                 />
                                                                             </td>
-                                                                            <td title={row?.time ? row?.time : row?.time}>
+                                                                            <td style={{ minWidth: '116px', maxWidth: '116px' }}  title={row?.time ? row?.time : row?.time}>
                                                                                 <input
                                                                                     type="time"
                                                                                     className={`form-control ${(RowErrors[index]?.time) ? "border-on-error" : ""}`}
@@ -2445,7 +2446,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     isDisabled={InputDisabled}
                                                                                 />
                                                                             </td> */}
-                                                                            {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td>
+                                                                            {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '60px', maxWidth: '60px' }} >
                                                                                 <img src={require("../assets/del.png")} onClick={() => handleDeleteRecommendationRow(index)} />
 
                                                                             </td>
@@ -2484,18 +2485,18 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                             <table style={{ overflow: 'inherit' }} className="mtbalenew  table-centered table-nowrap table-borderless mb-0 overhi" id="myTabl">
                                                                 <thead >
                                                                     <tr>
-                                                                        <th style={{ minWidth: "35px", maxWidth: "35px" }}>S.No</th>
+                                                                        <th style={{ minWidth: "30px", maxWidth: "30px" }}>S.No</th>
                                                                         <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Role<span className="text-danger1"> *</span></th>
-                                                                        <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level</th>
+                                                                        <th style={{ minWidth: '40px', maxWidth: '40px' }} >Level</th>
                                                                         <th>Approver name<span className="text-danger1"> *</span></th>
                                                                         <th style={{ minWidth: '70px', maxWidth: '70px' }} >Approval criteria<span className="text-danger1"> *</span></th>
-                                                                        <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
+                                                                        <th style={{ minWidth: '40px', maxWidth: '40px' }}>Action</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody style={{ maxHeight: "8007px", overflow: 'inherit' }}>
                                                                     {forwardToArr.map((row, index) => (
                                                                         <tr>
-                                                                            <td style={{ minWidth: "35px", maxWidth: "35px", overflow: 'inherit' }}> <div
+                                                                            <td style={{ minWidth: "30px", maxWidth: "30px", overflow: 'inherit' }}> <div
                                                                                 style={{ marginLeft: "5px" }}
                                                                                 className="indexdesign"
                                                                             >
@@ -2523,7 +2524,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 </select>
 
                                                                             </td>
-                                                                            <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>Level {index + 1}</td>
+                                                                            <td style={{ minWidth: '40px', maxWidth: '40px', overflow: 'inherit' }}>Level {index + 1}</td>
                                                                             <td style={{ overflow: 'inherit' }}>
 
                                                                                 <Select
@@ -2546,7 +2547,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     <option value="All">Everyone</option>
                                                                                 </select>
                                                                             </td>
-                                                                            <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>
+                                                                            <td style={{ minWidth: '40px', maxWidth: '40px', overflow: 'inherit' }}>
 
                                                                                 {/* {editID.CurrentUserRole === "OES" ?  */}
 

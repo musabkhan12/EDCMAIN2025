@@ -23,7 +23,12 @@ import { Checkbox } from '@fluentui/react';
 import Swal from 'sweetalert2';
 import moment from 'moment';
 import CustomBreadcrumb from '../ChangerequestComponent/CustomBreadcrumb/CustomBreadcrumb';
-
+//import { CONTENTTYPE_NonComformity } from '../../../Shared/Constants';
+import { getLatestChangeRequestTemplateType } from '../AnnualAuditReportComponent/AuditReportService';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
+import "./nonconformity.scss";
+import { CONTENTTYPE_NonComformity } from '../ChangerequestComponent/Constants';
 
 const datePickerErrorStyles: Partial<IDatePickerStyles> = {
   root: {
@@ -47,6 +52,13 @@ export class IState {
   departmentCode: string;
   serialNo: number;
   criteria: string;
+  revisionNo: any;
+  issueNo: any;
+  ncrNo: string;
+  documentCode: string;
+  revisionDate: any;
+  issueDate: any;
+  referenceNo: string;
   closeOutStatus: string;
   categoryCheckOption: IDropdownOption[];
   categoryValueIsCheck: number[];
@@ -84,6 +96,13 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       departmentCode: "",
       serialNo: 0,
       criteria: "",
+      revisionNo: "",
+      issueNo: "",
+      ncrNo: "",
+      documentCode: "",
+      revisionDate: null,
+      referenceNo: "",
+      issueDate: null,
       closeOutStatus: "",
       categoryCheckOption: [],
       categoryValueIsCheck: [],
@@ -218,6 +237,37 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
   public async componentDidMount() {
     await this.getDepartment();
     await this.getFiles();
+    await this.getchnagerequestdetails();
+    await this.getDepartment();
+  }
+
+  public async getchnagerequestdetails() {
+    const sp = spfi().using(SPFx(this.props.context));
+    let ChangeRequestTemplateType = await getLatestChangeRequestTemplateType(sp, CONTENTTYPE_NonComformity);
+    debugger
+    if (ChangeRequestTemplateType.length > 0) {
+      const template = ChangeRequestTemplateType[0];
+      console.log("template", template);
+      this.setState(prevData => ({
+        ...prevData,
+        documentCode: template.DocumentCode || "",
+        revisionNo: template.RevisionNumber,
+        issueNo: template.IssueNumber,
+        referenceNo: template.ReferenceNumber || "",
+        revisionDate: template.RevisionDate == null ? null : new Date(template.RevisionDate).toLocaleDateString("en-CA"),
+        issueDate: template.IssueDate == null ? null : new Date(template.IssueDate).toLocaleDateString("en-CA"),
+      }));
+    } else {
+      this.setState(prevData => ({
+        ...prevData,
+        documentCode: "",
+        revisionNo: "",
+        issueNo: "",
+        referenceNo: "",
+        revisionDate: "",
+        issueDate: "",
+      }));
+    }
   }
 
   public async getFiles() {
@@ -228,7 +278,15 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
         var obJFiles: any[] = [];
         let fCount: number = 0;
         upFiles.forEach(function (item: any) {
-          obJFiles.push({ "Name": item.File.Name, "type": "old", "Id": item.Id, "Uploaded": new Date(item.Modified).getDate() + "/" + new Date(item.Modified).getMonth() + "/" + new Date(item.Modified).getFullYear(), "Path": item.EncodedAbsUrl })
+          obJFiles.push({
+            "Name": item.File.Name,
+            "type": "old",
+            "Id": item.Id,
+            "FileRef": item.FileRef,
+            "FileLeafRef": item.FileLeafRef,
+            "Uploaded": item.Modified,
+            "Path": item.EncodedAbsUrl
+          })
         })
         fCount = upFiles.length;
         this.setState({ exFiles: obJFiles, fileCount: fCount });
@@ -252,6 +310,21 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     }
   }
 
+  // private getCurrentUser = async (sp, siteUrl) => {
+  //   let arr = []
+  //   await _sp.web.currentUser()
+  //     .then(async (res) => {
+  //       console.log(res);
+  //       arr = res;
+  //       const ProfilePic = `${siteUrl}/_layouts/15/userphoto.aspx?size=M&accountname=${res.Email}`
+  //       //await getUserProfilePicture(res.Id,_sp)
+  //     })
+  //     .catch((error) => {
+  //       console.log("Error fetching data: ", error);
+  //     });
+  //   return arr;
+  // }
+
   public async getDepartment() {
     const sp = spfi().using(SPFx(this.props.context));
     try {
@@ -265,6 +338,11 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
         data: { departmentCode: item.DepartmentCode },
       }));
       this.setState({ departmentOption: options });
+      //const Currusers: any = await this.getCurrentUser(sp, this.state.siteurl);
+      const userProfile = await sp.profiles.myProperties();
+      const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
+      const selectedOption = options.find(user => user.text === UserDept);
+      this.setState({ department: selectedOption?.key });
       await this.getCategory();
     } catch (e) {
       console.error(e);
@@ -314,63 +392,158 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       console.error(e);
     }
   }
+  // public validateFormSubmit = (): boolean => {
+  //   let errors: { [key: string]: string } = {};
+  //   if (!this.state.department) errors.department = "Department is required";
+  //   if (!this.state.criteria) errors.criteria = "Criteria is required";
+  //   if (!this.state.closeOutStatus) errors.closeOutStatus = "Close Out Status is required";
+  //   if (this.state.categoryValueIsCheck.length == 0) {
+  //     Swal.fire({ title: "Please select at least one category!" });
+  //     document.querySelectorAll("#categoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
+  //       el.classList.add(styles.errCh);
+  //     });
+  //   }
+  //   else {
+  //     document.querySelectorAll("#categoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
+  //       el.classList.remove(styles.errCh);
+  //     });
+  //   }
+  //   if (this.state.subCategoryIsCheck.length == 0) {
+  //     Swal.fire({ title: "Please select at least one Sub category!" });
+  //     document.querySelectorAll("#SubCategoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
+  //       el.classList.add(styles.errCh);
+  //     });
+  //   }
+  //   else {
+  //     document.querySelectorAll("#SubCategoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
+  //       el.classList.remove(styles.errCh);
+  //     });
+  //   }
+  //   if (this.state.locationValueIsCheck.length == 0) {
+  //     Swal.fire({ title: "Please select at least one location!" });
+  //     document.querySelectorAll("#locationCheckbox .ms-Checkbox-checkbox").forEach((el) => {
+  //       el.classList.add(styles.errCh);
+  //     });
+  //   }
+  //   else {
+  //     document.querySelectorAll("#locationCheckbox .ms-Checkbox-checkbox").forEach((el) => {
+  //       el.classList.remove(styles.errCh);
+  //     });
+  //   }
+  //   if (!this.state.assignTo) errors.assignTo = "AssignTo is required";
+  //   if (!this.state.dueDate) errors.dueDate = "dueDate is required";
+  //   if (!this.state.fileCount && this.state.exFiles.length == 0) {
+  //     errors.Attchments = "Attachments are required";
+  //   }
+  //   if (!this.state.problemDescription) errors.problemDescription = "Problem Description is required";
+  //   this.setState({ errors });
+  //   return Object.keys(errors).length === 0;
+  // };
   public validateFormSubmit = (): boolean => {
     let errors: { [key: string]: string } = {};
-    if (!this.state.department) errors.department = "Department is required";
-    if (!this.state.criteria) errors.criteria = "Criteria is required";
-    if (!this.state.closeOutStatus) errors.closeOutStatus = "Close Out Status is required";
+    let isValid = true;
+
+    if (!this.state.department) {
+      errors.department = "Department is required";
+      isValid = false;
+    }
+    if (!this.state.criteria) {
+      errors.criteria = "Criteria is required";
+      isValid = false;
+    }
+    if (!this.state.closeOutStatus) {
+      errors.closeOutStatus = "Close Out Status is required";
+      isValid = false;
+    }
+
+    // Validate Category
     if (this.state.categoryValueIsCheck.length == 0) {
-      Swal.fire({ title: "Please select at least one category!" });
+      errors.category = "At least one Category is required";
+      isValid = false;
       document.querySelectorAll("#categoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
         el.classList.add(styles.errCh);
       });
-    }
-    else {
+    } else {
       document.querySelectorAll("#categoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
         el.classList.remove(styles.errCh);
       });
     }
+
+    // Validate SubCategory
     if (this.state.subCategoryIsCheck.length == 0) {
-      Swal.fire({ title: "Please select at least one Sub category!" });
+      errors.subCategory = "At least one Sub Category is required";
+      isValid = false;
       document.querySelectorAll("#SubCategoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
         el.classList.add(styles.errCh);
       });
-    }
-    else {
+    } else {
       document.querySelectorAll("#SubCategoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
         el.classList.remove(styles.errCh);
       });
     }
+
+    // Validate Location
     if (this.state.locationValueIsCheck.length == 0) {
-      Swal.fire({ title: "Please select at least one location!" });
+      errors.location = "At least one Location is required";
+      isValid = false;
       document.querySelectorAll("#locationCheckbox .ms-Checkbox-checkbox").forEach((el) => {
         el.classList.add(styles.errCh);
       });
-    }
-    else {
+    } else {
       document.querySelectorAll("#locationCheckbox .ms-Checkbox-checkbox").forEach((el) => {
         el.classList.remove(styles.errCh);
       });
     }
-    if (!this.state.assignTo) errors.assignTo = "AssignTo is required";
-    if (!this.state.dueDate) errors.dueDate = "dueDate is required";
-    if (!this.state.fileCount && this.state.exFiles.length == 0) {
-      errors.Attchments = "Attachments are required";
+
+    if (!this.state.assignTo) {
+      errors.assignTo = "AssignTo is required";
+      isValid = false;
+      document.querySelectorAll("#AssigntoPeoplepicker .ms-BasePicker-text").forEach((el) => {
+        el.classList.add(styles.errCh);
+      });
+    } else {
+      document.querySelectorAll("#AssigntoPeoplepicker .ms-BasePicker-text").forEach((el) => {
+        el.classList.remove(styles.errCh);
+      });
     }
-    if (!this.state.problemDescription) errors.problemDescription = "Problem Description is required";
+    if (!this.state.dueDate) {
+      errors.dueDate = "Due Date is required";
+      isValid = false;
+    }
+    // if (!this.state.fileCount && this.state.exFiles.length == 0) {
+    //   errors.Attchments = "Attachments are required";
+    //   isValid = false;
+    //   document.querySelectorAll("#newfile").forEach((el) => {
+    //     el.classList.remove(styles.errCh);
+    //   });
+
+    // } else {
+    //   document.querySelectorAll("#newfile").forEach((el) => {
+    //     el.classList.remove(styles.errCh);
+    //   });
+    // }
+    if (!this.state.problemDescription) {
+      errors.problemDescription = "Problem Description is required";
+      isValid = false;
+    }
+
     this.setState({ errors });
-    return Object.keys(errors).length === 0;
+
+    if (!isValid) {
+      Swal.fire('Please fill all the mandatory fields.');
+    }
+
+    return isValid;
   };
-  
-public validateFormDraft = (): boolean => {
+  public validateFormDraft = (): boolean => {
     let errors: { [key: string]: string } = {};
-  
+
     // Allow Save as Draft if at least department is selected
     if (!this.state.department) {
       errors.department = "Department is required";
       Swal.fire('Please select a Department.');
     }
-  
+
     // You can skip checking other fields if department is selected
     this.setState({ errors });
     return Object.keys(errors).length === 0 || (this.state.department && Object.keys(errors).length === 1 && errors.hasOwnProperty("department") === false);
@@ -491,6 +664,7 @@ public validateFormDraft = (): boolean => {
     let firstAssignedToSubmitStatus = "";
     let serialNumber: any;
     let documentCode = "";
+    let ncrnumber = "";
 
     if (_submitStatus == "submit") {
       substatus = "Yes";
@@ -500,7 +674,8 @@ public validateFormDraft = (): boolean => {
       mText = "submit";
       cText = "Submitted";
       serialNumber = this.state.serialNo;
-      documentCode = 'NC/' + this.state.departmentCode + "/" + moment(new Date()).format("MM") + "/" + this.state.serialNo;
+      ncrnumber = 'NC/' + this.state.departmentCode + "/" + moment(new Date()).format("MM") + "/" + this.state.serialNo;
+      //documentCode = 'NC/' + this.state.departmentCode + "/" + moment(new Date()).format("MM") + "/" + this.state.serialNo;
     }
     else {
       substatus = "No";
@@ -510,10 +685,13 @@ public validateFormDraft = (): boolean => {
       mText = "save";
       cText = "Saved";
       serialNumber = 0;
+      ncrnumber = "";
       documentCode = "";
     }
     const { context } = this.props;
     const sp = spfi().using(SPFx(this.props.context));
+    let IssueNumber = this.state.issueNo !== "" ? Number(this.state.issueNo) : null;
+    let RevisionNumber = this.state.revisionNo !== "" ? Number(this.state.revisionNo) : null;
     Swal.fire({
       title: "Do you want to " + mText + " this request?",
       showCancelButton: true,
@@ -522,6 +700,13 @@ public validateFormDraft = (): boolean => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         await sp.web.lists.getByTitle("NonConformityList").items.add({
+          NCRNo: ncrnumber,
+          DocumentCode: this.state.documentCode,
+          IssueNumber: this.state.issueNo !== "" ? Number(this.state.issueNo) : null,
+          RevisionNumber: this.state.revisionNo !== "" ? Number(this.state.revisionNo) : null,
+          IssueDate: this.state.issueDate || null,
+          RevisionDate: this.state.revisionDate || null,
+          ReferenceNumber: this.state.referenceNo,
           DepartmentId: this.state.department || null,
           Criteria: this.state.criteria,
           CloseOutStatus: this.state.closeOutStatus,
@@ -539,7 +724,7 @@ public validateFormDraft = (): boolean => {
           FirstAssignedToSubmitStatus: firstAssignedToSubmitStatus,
           Status: "Pending",
           SerialNumber: serialNumber,
-          DocumentCode: documentCode,
+          //DocumentCode: documentCode,
         }).then((i: any) => {
 
           if (this.state.fileDeleteId.length > 0) {
@@ -580,17 +765,24 @@ public validateFormDraft = (): boolean => {
       msGraphClientFactory: this.props.context.msGraphClientFactory,
       spHttpClient: this.props.context.spHttpClient
     };
+    document.querySelectorAll("#AssigntoPeoplepicker .ms-BasePicker-text").forEach((el) => {
+      el.classList.add(styles.peoplepickerstyle);
+    });
     var fileData = this.state.copyFil.map((item: any, i: number) => {
       return (
-        <tr style={{ display: 'table', width: '100%' }}>
+        <tr>
+          <td>{i + 1}</td>
           <td>
             {item.name}
           </td>
-          <td></td>
-          <td>{new Date().getDate() + "/" + new Date().getMonth() + "/" + new Date().getFullYear()}</td>
-          <td>
-            <button type="button" onClick={(e) => this.removeFiles(i)}>Delete</button>
+          {/* <td></td> */}
+          <td title={moment(item.Uploaded).format("DD/MMM/YYYY")}>{moment(item.Uploaded).format("DD/MMM/YYYY")}</td>
+          <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
+            <img src={require("../assets/del.png")} className='' onClick={() => this.removeFiles(i)}></img>
           </td>
+          {/* <td>
+            <button type="button" onClick={(e) => this.removeFiles(i)}>Delete</button>
+          </td> */}
         </tr>
       )
 
@@ -607,9 +799,10 @@ public validateFormDraft = (): boolean => {
           <td>
             {item.Uploaded}
           </td>
-          <td>
-            <button type="button" onClick={(e) => this.toBeDeleted(i)} >Delete</button>
+          <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
+            <img src={require("../assets/del.png")} className='' onClick={() => this.toBeDeleted(i)}></img>
           </td>
+
         </tr>
       )
     });
@@ -629,6 +822,43 @@ public validateFormDraft = (): boolean => {
             </div>
             <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
               <div className="form-group col-md-4">
+                <TextField label="NCR No:" name='NCRNo' required value={this.state.ncrNo} disabled={true} onChange={this.handleChange}
+
+                // styles={{
+                //   fieldGroup: {
+                //     backgroundColor: this.state.errors.ncrno ? "#ffcccb" : "white",
+                //   },
+                // }}
+                />
+              </div>
+              <div className="form-group col-md-4">
+                <TextField label="Document Code:" name='DocumentCode' required value={this.state.documentCode} disabled={true} onChange={this.handleChange}
+                  styles={{
+                    fieldGroup: {
+                      backgroundColor: this.state.errors.documentcode ? "#ffcccb" : "white",
+                    },
+                  }}
+                />
+              </div>
+              <div className="form-group col-md-4">
+                <TextField label="Issue Number:" name='IssueNumber' required value={this.state.issueNo + ""} disabled={true} onChange={this.handleChange}
+                  styles={{
+                    fieldGroup: {
+                      backgroundColor: this.state.errors.issuenumber ? "#ffcccb" : "white",
+                    },
+                  }}
+                />
+              </div>
+              <div className="form-group col-md-4">
+                <TextField label="Revision Number:" name='RevisionNumber' required value={this.state.revisionNo + ""} disabled={true} onChange={this.handleChange}
+                  styles={{
+                    fieldGroup: {
+                      backgroundColor: this.state.errors.revisionnumber ? "#ffcccb" : "white",
+                    },
+                  }}
+                />
+              </div>
+              <div className="form-group col-md-4">
                 <Dropdown
                   required
                   placeholder="Department"
@@ -637,29 +867,37 @@ public validateFormDraft = (): boolean => {
                   defaultSelectedKey={this.state.department}
                   selectedKey={this.state.department}
                   onChange={this.changeDepartment}
-                  styles={{
-                    title: {
-                      backgroundColor: this.state.errors.department ? "#ffcccb" : "white", // Light red when error
-                    },
-                  }}
+                  className={this.state.errors?.department ? 'dropdown-error' : ''}
+                // styles={{
+                //   title: {
+                //     backgroundColor: this.state.errors.department ? "#ffcccb" : "white", // Light red when error
+                //   },
+                // }}
                 />
               </div>
-              <div className="form-group col-md-4">
+              <div className="col-md-4">
                 <TextField label="Criteria:" name='criteria' required value={this.state.criteria} onChange={this.handleChange}
-                  styles={{
-                    fieldGroup: {
-                      backgroundColor: this.state.errors.criteria ? "#ffcccb" : "white",
-                    },
-                  }}
+                  className={this.state.errors?.criteria ? 'textfield-error' : ''}
+                // styles={{
+                //   fieldGroup: {
+                //     border: this.state.errors?.criteria ? '1px solid red !important' : undefined,
+                //     backgroundColor: this.state.errors?.criteria ? '#ffcccb !important' : 'white',
+                //   },
+                //   field: {
+                //     backgroundColor: this.state.errors?.criteria ? '#ffcccb' : 'white',
+                //   },
+                // }}
                 />
+
               </div>
               <div className="form-group col-md-4">
                 <TextField label="Close Out Status:" name='closeOutStatus' required value={this.state.closeOutStatus} onChange={this.handleChange}
-                  styles={{
-                    fieldGroup: {
-                      backgroundColor: this.state.errors.closeOutStatus ? "#ffcccb" : "white",
-                    },
-                  }}
+                  className={this.state.errors?.closeOutStatus ? 'textfield-error' : ''}
+                // styles={{
+                //   fieldGroup: {
+                //     backgroundColor: this.state.errors.closeOutStatus ? "#ffcccb" : "white",
+                //   },
+                // }}
                 />
               </div>
             </div>
@@ -691,7 +929,9 @@ public validateFormDraft = (): boolean => {
                 {this.state.locationCheckOption.map((item: any) => {
                   return (
                     <div style={{ margin: "2px", padding: "3px" }}>
-                      <Checkbox label={item.text} onChange={this._handleCheckboxChange("locationValueIsCheck", item.key as number)}
+                      <Checkbox label={item.text}
+                        onChange={this._handleCheckboxChange("locationValueIsCheck", item.key as number)}
+                        className={this.state.errors?.criteria ? 'textfield-error' : ''}
                       />
                     </div>
                   );
@@ -700,7 +940,7 @@ public validateFormDraft = (): boolean => {
               </div>
             </div>
             <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
-              <div className="form-group col-md-4">
+              <div className="form-group col-md-4" id="AssigntoPeoplepicker">
                 <PeoplePicker
                   context={peoplePickerContext}
                   titleText="Assigned To:"
@@ -729,22 +969,33 @@ public validateFormDraft = (): boolean => {
                   placeholder="Select a Due Date"
                   value={this.state.dueDate}
                   onSelectDate={(date: Date) => this.setState({ dueDate: date })}
-                  styles={this.state.errors.dueDate ? datePickerErrorStyles : {}}
+                  //styles={this.state.errors.dueDate ? datePickerErrorStyles : {}}
+                  className={this.state.errors?.dueDate ? 'textfield-error' : ''}
                 />
               </div>
               <div style={{ position: 'relative' }} className="col-lg-4 mt-1">
-                <label htmlFor="Attchments" style={{ marginRight: "10px" }}>Attachments <span className={styles.textdanger}>*</span></label>
+                <label htmlFor="Attchments" style={{ marginRight: "10px" }}>Attachments </label>
 
-                <input className="form-control" type="file" name="myFile" onChange={(e) => this.handleFileChange(e, this)} id="newfile" multiple
-                  style={{
-                    backgroundColor: this.state.errors.Attchments ? "#ffcccb" : "white",
-                  }} />
-                <span onClick={this._OpenModal} className='newpo'>{this.state.fileCount}</span>
-                {this.state.showDialog && <div id="myModal" className={styles.modal}>
+                <input
+                  className="form-control"
+                  type="file" name="myFile" onChange={(e) => this.handleFileChange(e, this)} id="newfile" multiple
+                  // style={{
+                  //   backgroundColor: this.state.errors.Attchments ? "#ffcccb" : "white",
+                  //   borderColor: this.state.errors.Attchments ? 'red' : '#dee2e6'
+                  // }}
+                //className={`form-control ${this.state.errors?.Attachments} ? 'textfield-error' : ''`}
+                />
+                {this.state.fileCount > 0 ?
+                  (<span style={{ fontSize: '0.875rem' }} onClick={this._OpenModal} className='newpo'>
+                    <FontAwesomeIcon icon={faPaperclip} /> {this.state.fileCount} {this.state.fileCount > 0 ? "files" : "file"} Attached
+                  </span>) : ""
+                }
+
+                {/* {this.state.showDialog && <div id="myModal" className={styles.modal}>
                   <div className={styles.modalcontent}>
                     <span><b>Attachment Details</b></span>
                     <br />
-                    <span>Below are the attachment details for the Initiative</span>
+                    <span>Below are the attachment details for Non Comfirmity</span>
                     <span className={styles.close} onClick={e => this._CloseModal()}>&times;</span>
                     <table className='mtbalenew'>
                       <thead>
@@ -758,7 +1009,36 @@ public validateFormDraft = (): boolean => {
                       {upFiles}{fileData}
                     </table>
                   </div>
-                </div>}
+                </div>} */}
+                {this.state.showDialog && (
+                  <div id="myModal" className={styles.modal}>
+                    <div className={styles.modalcontent}>
+                      {/* Close button */}
+                      <span className={styles.close} onClick={() => this._CloseModal()}>&times;</span>
+
+                      {/* Modal title and subtitle */}
+                      <h4 className="font-16 text-dark fw-bold mb-1">Attachment Details</h4>
+                      <p className="text-muted font-14 mb-3 fw-400">Below are the attachment details for Non Conformity</p>
+
+                      {/* Table */}
+                      <table className={styles.mtbalenew}>
+                        <thead>
+                          <tr>
+                            <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                            <th>File Name</th>
+                            {/* <th>File Link</th> */}
+                            <th style={{ minWidth: '100px' }} className="text-center">Upload Date</th>
+                            <th className="text-center">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody >
+                          {upFiles}
+                          {fileData}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row mb-3'>
@@ -770,11 +1050,12 @@ public validateFormDraft = (): boolean => {
                   multiline rows={5}
                   onChange={this.handleChange}
                   //errorMessage={this.state.errors.problemDescription}
-                  styles={{
-                    fieldGroup: {
-                      backgroundColor: this.state.errors.problemDescription ? "#ffcccb" : "white", // Red tint for errors
-                    },
-                  }}
+                  className={this.state.errors?.problemDescription ? 'textfield-error' : ''}
+                // styles={{
+                //   fieldGroup: {
+                //     backgroundColor: this.state.errors.problemDescription ? "#ffcccb" : "white", // Red tint for errors
+                //   },
+                // }}
                 />
               </div>
             </div>
@@ -791,6 +1072,7 @@ public validateFormDraft = (): boolean => {
             </div>
           </form>
         </div>
+
       </section>
     );
   }

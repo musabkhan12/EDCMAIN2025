@@ -19,12 +19,20 @@ import "@pnp/sp/presets/all";
 import { Checkbox } from '@fluentui/react';
 import Swal from 'sweetalert2';
 import CustomBreadcrumb from '../ChangerequestComponent/CustomBreadcrumb/CustomBreadcrumb';
+import moment from 'moment';
 
 export class IViewState {
   mainItemId?: any | null;
   viewDepartmentOption: IDropdownOption[];
   viewDepartment: string | number;
   viewCriteria: string;
+  viewncrNo: string;
+  viewreferencenumber: String;
+  viewissueNo: any;
+  TemplateDoc: any[];
+  viewrevisionNo: any;
+  viewissueDate: any;
+  viewRevisionDate: any;
   viewCloseOutStatus: string;
   viewCategoryCheckOption: IDropdownOption[];
   viewCategoryValueIsCheck: number[];
@@ -104,11 +112,20 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
 
   constructor(props: IAuditPlanProps) {
     super(props);
+    const selectedTextDiv = document.getElementById('selectedText');
+    selectedTextDiv.style.display = 'none';
     this.state = {
       mainItemId: props.edItm || null,
       viewDepartmentOption: [],
       viewDepartment: "",
       viewCriteria: "",
+      viewncrNo: "",
+      viewreferencenumber: "",
+      viewissueNo: "",
+      viewrevisionNo: "",
+      viewissueDate: null,
+      viewRevisionDate: null,
+      TemplateDoc: [],
       viewCloseOutStatus: "",
       viewCategoryCheckOption: [],
       viewCategoryValueIsCheck: [],
@@ -281,6 +298,11 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
     };
 
   public async componentDidMount() {
+    const selectedTextDiv = document.getElementById('selectedText');
+    if (selectedTextDiv) {
+      selectedTextDiv.style.display = 'none';
+    }
+    await this.getGeneratedTemplateDocNC()
     await this.getDepartment();
     await this.getListData();
     await this.getProcessApprovalList();
@@ -290,18 +312,44 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
     await this.getFormName();
     await this.getFiles();
   }
+  public async getGeneratedTemplateDocNC() {
+    debugger
+    const _sp = spfi().using(SPFx(this.props.context));
+    let results: any = [];
+    // for (let itemId of AttachmentIds) {
 
+    await _sp.web.lists.getByTitle("NonConformityGeneratedTemplateDoc").items
+      .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${this.state.mainItemId}`)()
+      .then((res) => {
+        console.log(res, 'tem let arrs=[]');
+        results = res;
+        this.setState({ TemplateDoc: res })
+      })
+      .catch((error) => {
+        console.log("Error fetching data: ", error);
+      });
+    // }
+    console.log(results, 'results');
+    return results;
+  }
   public async getListData() {
     const sp = spfi().using(SPFx(this.props.context));
     try {
       const Items: any = await sp.web.lists.getByTitle("NonConformityList").items.getById(this.state.mainItemId)
         .select("*, Category/Id, Category/Title, SubCategory/Id, Location/Id, Location/Title, SubCategory/Title, AssignedTo/Id, AssignedTo/Title, DelegateTo/Id, DelegateTo/Title, AnalyzedBy/Id, AnalyzedBy/Title, ReviewedBy/Id, ReviewedBy/Title, PersonAssigned/Id, PersonAssigned/Title")
         .expand("Category, SubCategory, Location, AssignedTo, DelegateTo, AnalyzedBy, ReviewedBy, PersonAssigned")();
-      console.log(Items);
+      console.log("Items1", Items);
       this.setState({
         ncItemId: Items.Id,
         viewDepartment: Items.DepartmentId,
         viewCriteria: Items.Criteria,
+        viewncrNo: Items.NCRNo,
+        viewreferencenumber: Items.ReferenceNumber,
+        viewissueNo: Items.IssueNumber,
+        viewrevisionNo: Items.RevisionNumber,
+        viewissueDate: Items.IssueDate,
+        viewRevisionDate: Items.RevisionDate,
+        viewDocumentCode: Items.DocumentCode,
         viewCloseOutStatus: Items.CloseOutStatus,
         viewCategoryValueIsCheck: Items.Category ? Items.Category.map((cat: any) => cat.Id) : [],
         viewSubCategoryValueIsCheck: Items.SubCategory ? Items.SubCategory.map((sub: any) => sub.Id) : [],
@@ -454,7 +502,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
   }
   private async getFormName() {
     const sp = spfi().using(SPFx(this.props.context));
-    const listItems = await sp.web.lists.getByTitle("FormNameMaster").items.filter("FormName eq 'NonConformityList'")();
+    const listItems = await sp.web.lists.getByTitle("FormNameMaster").items.filter("FormName eq 'Non Conformity'")();
     this.setState({ formNameId: listItems[0].Id })
 
   }
@@ -642,7 +690,30 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
     });
 
   }
+  private OpenFile = (obj: any, sts: string) => {
+    debugger
+    let url = this.props.context.pageContext.web.absoluteUrl;
+    let tenanturl = url.match(/^https:\/\/[^\/]+/)[0];
+    console.log("obbbj", obj)
+    const fileUrl = `${tenanturl}${obj.FileRef}`;
 
+    if (sts == "Open") {
+      if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
+
+        window.open(`${this.props.context.pageContext.web.absoluteUrl}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=default`, "_blank");
+      } else {
+        window.open(fileUrl, "_blank"); // Open PDF and other files normally
+      }
+
+    } else if (sts == "Download") {
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.setAttribute("download", obj.FileLeafRef); // Suggests a filename for download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  }
   public render(): React.ReactElement<IAuditPlanProps> {
     const peoplePickerContext: IPeoplePickerContext = {
       absoluteUrl: this.props.context.pageContext.web.absoluteUrl,
@@ -715,25 +786,65 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
             {item.Level}
           </td>
-          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
+          <td title={item.AssignedTo} style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.AssignedTo}
           </td>
-          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
+          <td title={item.RequesterName} style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.RequesterName}
           </td>
-          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
-            {new Date(item.RequestedDate).getDate() + "/" + new Date(item.RequestedDate).getMonth() + "/" + new Date(item.RequestedDate).getFullYear()}
+          <td title={item.Status !== 'test'
+            ? `${new Intl.DateTimeFormat('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric'
+            }).format(new Date(item.RequestedDate)).replace(/ /g, "-")} ${new Date(item.RequestedDate).toLocaleTimeString('en-GB', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            })}`
+            : ""}>
+           {item.Status !== 'test'
+            ? `${new Intl.DateTimeFormat('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric'
+            }).format(new Date(item.RequestedDate)).replace(/ /g, "-")} ${new Date(item.RequestedDate).toLocaleTimeString('en-GB', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            })}`
+            : ""}
           </td>
-          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
+          <td title={item.ActionTakenBy} style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.ActionTakenBy}
           </td>
-          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
-            {new Date(item.ActionTakenOn).getDate() + "/" + new Date(item.ActionTakenOn).getMonth() + "/" + new Date(item.ActionTakenOn).getFullYear()}
+          <td title={item.Status !== 'Pending'
+            ? `${new Intl.DateTimeFormat('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric'
+            }).format(new Date(item.ActionTakenOn)).replace(/ /g, "-")} ${new Date(item.ActionTakenOn).toLocaleTimeString('en-GB', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            })}`
+            : ""}>
+            {item.Status !== 'Pending'
+            ? `${new Intl.DateTimeFormat('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric'
+            }).format(new Date(item.ActionTakenOn)).replace(/ /g, "-")} ${new Date(item.ActionTakenOn).toLocaleTimeString('en-GB', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            })}`
+            : ""}
           </td>
-          <td style={{ minWidth: '90px', maxWidth: '90px' }}>
+          <td title={item.Remarks} style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.Remarks}
           </td>
-          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
+          <td title={item.Status} style={{ minWidth: '70px', maxWidth: '70px' }}>
             {item.Status}
           </td>
         </tr>
@@ -753,10 +864,42 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
             <fieldset>
               <form>
                 {/* Start save as draft */}
-                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row">
-                  <div className="form-group col-md-12"><h3 style={{ textAlign: 'left' }} className='text-dark text-left font-16 fw-bold mb-3'>Problem Details</h3></div>
+                <div className="previewIcon">
+                  <h4 style={{ textAlign: 'left' }} className="text-dark font-16 fw-bold mb-3">Problem Details</h4>
+                  {this.state.TemplateDoc && this.state.TemplateDoc.length > 0 && (
+                    <span
+                      onClick={() => this.OpenFile(this.state.TemplateDoc[0], "Open")}
+                      style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                    >
+                      <div className="btn btn-primary">
+                        <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../assets/noun-download-5006210.png")} ></img></div>
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
+                  <div className="form-group col-md-4">
+                    <TextField label="NCR No:" name='viewncrNo' required value={this.state.viewncrNo} disabled={true} onChange={this.handleChange}
+
+                    />
+                  </div>
+                  <div className="form-group col-md-4">
+                    <TextField label="Document Code:" name='viewDocumentCode' required value={this.state.viewDocumentCode} disabled={true} onChange={this.handleChange}
+
+                    />
+                  </div>
+                  <div className="form-group col-md-4">
+                    <TextField label="Issue Number:" name='viewIssueNo' required value={this.state.viewissueNo + ""} disabled={true} onChange={this.handleChange}
+
+                    />
+                  </div>
                 </div>
                 <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
+                  <div className="form-group col-md-4">
+                    <TextField label="Revision Number:" name='viewRevisionNo' required value={this.state.viewrevisionNo + ""} disabled={true} onChange={this.handleChange}
+
+                    />
+                  </div>
                   <div className="form-group col-md-4">
                     <Dropdown
                       required
@@ -769,7 +912,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                     />
                   </div>
                   <div className="form-group col-md-4">
-                    <TextField label="Criteria:" disabled={this.state.disable} name='editCriteria' required value={this.state.viewCriteria} onChange={this.handleChange}
+                    <TextField label="Criteria:" disabled={this.state.disable} name='viewCriteria' required value={this.state.viewCriteria} onChange={this.handleChange}
                     />
                   </div>
                   <div className="form-group col-md-4">
@@ -841,7 +984,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                     />
                   </div>
                   <div style={{ position: 'relative' }} className="col-lg-4">
-                    <label htmlFor="Attchments">Attchments <span className="text-danger">*</span></label>
+                    <label htmlFor="Attachments">Attachments <span className="text-danger">*</span></label>
                     <input disabled={this.state.disable} className="form-control" type="file" name="myFile" onChange={(e) => this.handleFileChange(e, this)} id="newfile" multiple />
                     <span onClick={this._OpenModal} className='newpo'>{this.state.fileCount}</span>
                     <table>

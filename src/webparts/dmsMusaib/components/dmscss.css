@@ -7,6 +7,8 @@
   display: inline-flex;
   padding-left: 0px;
 }
+.newclasstabls{    overflow-x: auto;
+  width: 827px;}
 .mainsidebardms{
   width: 19%;
   float: left;
@@ -1006,18 +1008,32 @@ text-align: center;
 @media(max-width:1920px)
 {
   .sharedFile{padding-left: 75px;}
+  .newclasstabls{   
+    width: 1170px;}
 }
 @media(max-width:1800px)
 {
   .sharedFile{padding-left: 65px;}
+  .newclasstabls{   
+    width: 1080px;}
 }
 @media(max-width:1600px)
 {
   .sharedFile{padding-left: 60px;}
+  .newclasstabls{   
+    width: 930px;}
 }
 @media(max-width:1440px)
 {
   .sharedFile{padding-left: 54px;}
+  .newclasstabls{   
+    width: 807px;}
+}
+@media(max-width:1280px)
+{
+  
+  .newclasstabls{   
+    width: 710px;}
 }
 @media(max-width:640px){
   .mtbalenew{overflow: auto;}
@@ -1046,3 +1062,16 @@ input:not([type])[disabled]{
     appearance: auto;
   }
 }
+
+
+.scroll-container {
+  overflow-x: auto;
+  position: relative;
+}
+
+.cont-scroll-mtb td {
+  overflow: visible !important;
+  position: relative;
+}
+.scroll-container select,.scroll-container input{padding: 6px;}
+.scroll-container .form-select{    background-position: right;}

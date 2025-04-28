@@ -2176,7 +2176,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         <th style={{ minWidth: "30px", maxWidth: "30px" }}>S.No</th>
                                                                         <th>Description<span className="text-danger1"> *</span></th>
                                                                         <th>Reason for Cancellation<span className="text-danger1"> *</span></th>
-                                                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: "80px", maxWidth: "80px" }}>Action</th>}
+                                                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: "40px", maxWidth: "40px" }}>Action</th>}
                                                                     </tr>
 
                                                                 </thead>
@@ -2224,7 +2224,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 {/* <input type="text"
                                                                         /> */}
                                                                             </td>
-                                                                            {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "80px", maxWidth: "80px", textAlign: 'center' }}>
+                                                                            {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "40px", maxWidth: "40px", textAlign: 'center' }}>
                                                                                 {/* <img src={require("../../../CustomAsset/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img> */}
                                                                                 <img src={require("../../assets/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img>
 

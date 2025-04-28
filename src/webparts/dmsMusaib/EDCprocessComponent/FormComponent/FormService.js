@@ -303,7 +303,7 @@ export const getDataRoles = async (_sp) => {
  
         //  arr =(res[0].Id)
         // arr = res;
-        reqId=res[0].Id
+        reqId=res[0]
       })
       .catch((error) => {
         console.log("Error fetching data: ", error);
@@ -369,11 +369,11 @@ export const getDataRoles = async (_sp) => {
   export const getItemByID2 = async (sp, AuditID) => {
     debugger
     let arr = []
-     // var listname = "AnnualAuditPlanRecommendationList";
-     var listname = "MemorandumRecommendationList"
-     arr = await sp.web.lists.getByTitle(`${listname}`).items.select("*,Memorandum/ID,Auditor/ID,Auditor/Title").expand("Memorandum,Auditor").filter(`Memorandum/ID eq ${AuditID}`).getAll();
+    //  var listname = "AnnualAuditPlanRecommendationList";
+    //  var listname = "MemorandumRecommendationList"
+    //  arr = await sp.web.lists.getByTitle(`${listname}`).items.select("*,Memorandum/ID,Auditor/ID,Auditor/Title").expand("Memorandum,Auditor").filter(`Memorandum/ID eq ${AuditID}`).getAll();
  
-    // arr = await sp.web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.select("*,AnnualAuditProgram/ID,Auditor/ID,Auditor/Title").expand("AnnualAuditProgram,Auditor").filter(`AnnualAuditProgram/ID eq ${AuditID}`).getAll();
+    arr = await sp.web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.select("*,AnnualAuditProgram/ID,Auditor/ID,Auditor/Title").expand("AnnualAuditProgram,Auditor").filter(`AnnualAuditProgram/ID eq ${AuditID}`).getAll();
     // .then((res) => {
     //   arr = res
     //   console.log(arr, 'arr');
@@ -553,3 +553,104 @@ export const getAllMemoNumberList = async (_sp) => {
     });
   return arr;
 };
+export const getAllClassificationMaster = async (_sp) => {
+  let arr = [];
+
+  await _sp.web.lists.getByTitle("ClassificationMaster").items
+    .select("*,Author/ID,Author/Title")
+    .expand("Author")
+    .orderBy("Modified", false)() // Order by Modified descending to get latest first
+    .then((res) => {
+      console.log(res);
+
+      // Filter only latest entry for each unique DocumentCode
+      const latestDocuments = res.reduce((acc, item) => {
+        if (!acc[item.Classification]) {
+          acc[item.Classification] = item;
+        }
+        return acc;
+      }, {});
+
+      arr = Object.values(latestDocuments);
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  return arr;
+};
+export const addMemoNumber = async (itemData, _sp) => {
+   
+  let resultArr = []
+  try {
+    const newItem = await _sp.web.lists.getByTitle('MemoNumberLogic').items.add(itemData);
+ 
+    // console.log('Item added successfully:', newItem);
+    // Swal.fire('Item added successfully', '', 'success');
+
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+    Swal.fire(' Cancelled', '', 'error')
+  }
+  return resultArr;
+};
+
+
+export const addYearlyList = async (itemData, _sp) => {
+   
+  let resultArr = []
+  try {
+    const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgramYearlyList').items.add(itemData);
+ 
+    console.log('Item added successfully:', newItem);
+    // Swal.fire('Item added successfully', '', 'success');
+
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+    Swal.fire(' Cancelled', '', 'error')
+  }
+  return resultArr;
+};
+
+export const UpdatYearlyList = async (itemData, _sp,id) => {
+   
+  let resultArr = []
+  try {
+
+    const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgramYearlyList').items.getById(id).update(itemData);
+    // console.log('Item  successfully:', newItem);
+    resultArr = newItem
+   
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+    Swal.fire(' Cancelled', '', 'error')
+  }
+  return resultArr;
+};
+
+
+export const getYearlyItemByID = async (sp, AuditID) => {
+  debugger
+  let arr = []
+  //  var listname = "AnnualAuditPlanRecommendationList";
+  //  var listname = "MemorandumRecommendationList"
+  //  arr = await sp.web.lists.getByTitle(`${listname}`).items.select("*,Memorandum/ID,Auditor/ID,Auditor/Title").expand("Memorandum,Auditor").filter(`Memorandum/ID eq ${AuditID}`).getAll();
+
+  arr = await sp.web.lists.getByTitle("AnnualAuditProgramYearlyList").items.select("*,Department/Department,Department/ID,AnnualAuditProgramID/ID,Auditor/ID,Auditor/Title").expand("Department,AnnualAuditProgramID,Auditor").filter(`AnnualAuditProgramID/ID eq ${AuditID}`).getAll();
+  // .then((res) => {
+  //   arr = res
+  //   console.log(arr, 'arr');
+  // })
+  return arr
+}
+
+

@@ -218,8 +218,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     <td style={{ minWidth: '40px', maxWidth: '40px' }}>
                         <div style={{ marginLeft: '5px' }} className='indexdesign'>{i + 1}</div>
                     </td>
-                    <td title={item?.RequestId} style={{ minWidth: '90px', maxWidth: '90px' }}>{item?.RequestId}</td>
-                    <td title={item.Title} style={{ minWidth: '90px', maxWidth: '90px' }}>{item.Title}</td>
+                    <td title={item?.RequestId} style={{ minWidth: '90px', maxWidth: '90px' }}>{item.ProcessName == "Non Conformity" ? item?.NCRNo : item?.RequestId}</td>
+                    <td title={item.Title} style={{ minWidth: '90px', maxWidth: '90px' }}>{item.ProcessName == "Non Conformity" ? item?.ProblemDescription : item.Title}</td>
                     <td title={item?.ProcessName === "Annual Audit Plan"
                         ? "IMS Audit Plan"
                         : item?.ProcessName === "Annual Audit Program"
@@ -237,7 +237,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     </td>
                     <td title={item.ReqName} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.ReqName}</td>
                     <td title={moment(item.ReqDt).format("DD-MMM-YYYY")} style={{ minWidth: '90px', maxWidth: '90px' }}>{moment(item.ReqDt).format("DD-MMM-YYYY")}</td>
-                    <td title={item.Status} style={{ minWidth: '90px', maxWidth: '90px' }}>{item.Status}</td>
+                    <td title={item.SubmitStatus == "No" ? "Save as Draft" : item.Status} style={{ minWidth: '90px', maxWidth: '90px' }}>{item.SubmitStatus == "No" ? "Save as Draft" : item.Status}</td>
                     <td style={{ minWidth: '60px', maxWidth: '60px' }}>
                         <a href={path} onClick={() => this.editItem(item)}>
                             {/* <a  onClick={() => this.editItem(item)}> */}
@@ -552,7 +552,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
                         allItems.push({
                             RequestId: "",
-                            Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
+                            Title: itm.DocumentCode ? itm.DocumentCode : "",
                             ProcessName: "Annual Audit Report",
                             ReqName: itm.Author ? itm.Author.Title : '',
                             ReqDt: new Date(itm.Created),
@@ -570,7 +570,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
                     allItems.push({
                         RequestId: itm.Title,
-                        Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
+                        Title: itm.DocumentCode ? itm.DocumentCode : "",
                         ProcessName: "Annual Audit Report",
                         ReqName: itm.Author ? itm.Author.Title : '',
                         ReqDt: new Date(itm.Created),
@@ -586,7 +586,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
                 allItems.push({
                     RequestId: itm.Title,
-                    Title: itm.ReferenceNumber ? itm.ReferenceNumber : "",
+                    Title: itm.DocumentCode ? itm.DocumentCode : "",
                     ProcessName: "Annual Audit Report",
                     ReqName: itm.Author ? itm.Author.Title : '',
                     ReqDt: new Date(itm.Created),
@@ -600,7 +600,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
         });
 
-        const nonconfirmity = await spfi(this._sp).web.lists.getByTitle('NonConformityList').items.select('Id, DocumentCode ,Author/Title , Status , Created', 'SubmitStatus').expand('Author').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
+        const nonconfirmity = await spfi(this._sp).web.lists.getByTitle('NonConformityList').items.select('Id, DocumentCode ,Author/Title , Status , Created,ProblemDescription , SubmitStatus , NCRNo').expand('Author').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
         console.log(nonconfirmity, "nonconfirmity")
         for (const item of nonconfirmity) {
             // alert (item.DocumentCode + "item.DocumentCode" )
@@ -613,9 +613,11 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             }
             allItems.push({
                 // RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " ":item.DocumentCode,
-                RequestId: Doccode,
+                RequestId:  item.NCRNo,
+                NCRNo: item.NCRNo,
                 // Title: item.DocumentCode == "" || item.DocumentCode == null?" ":item.DocumentCode,
-                Title: Doccode,
+                Title: item.ProblemDescription,
+                ProblemDescription: item.ProblemDescription,
                 ProcessName: "Non Conformity",
                 ReqName: item.Author?.Title || '',
                 // ReqDt: item.Created ? moment(item.Created).format("DD-MMM-YYYY") : '',

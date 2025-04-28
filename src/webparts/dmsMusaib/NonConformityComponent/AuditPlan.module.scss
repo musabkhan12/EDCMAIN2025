@@ -10,6 +10,7 @@
     font-family: $ms-font-family-fallbacks;
   }
 }
+
 // .newaddid .auditPlan1 {
 //   overflow: inherit;
 //   padding: 1em 0em;
@@ -45,78 +46,180 @@
 }
 
 .error-border {
-  border: 1px solid #ffcccb !important;
-  background-color: #ffcccb !important;
+  border: 1px solid red !important;
+  background-color: #ffe6e6 !important;
   /* Light red */
 }
 
 .width {
   width: 30px;
 }
-.errCh{
-  outline:1px solid #ffcccb;
-  background-color: #ffcccb;
-}
 
+.errCh {
+  border: 1px solid red !important;
+  background-color: #ffe6e6;
+}
+.peoplepickerstyle {
+  height:40px !important
+}
 .sec {
   border: 1px solid;
   border-radius: 7px;
   margin-top: 1rem;
   padding: 1rem;
 }
-.modal {
-  display: block; /* Hidden by default */
-  position: fixed; /* Stay in place */
-  z-index: 1; /* Sit on top */
-  left: 0;
-  top: 0;
-  width: 100%; /* Full width */
-  height: 100%; /* Full height */
-  overflow: auto; /* Enable scroll if needed */
-  background-color: rgb(0,0,0); /* Fallback color */
-  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-}
-.modalcontent {
-  background-color: #fefefe;
-  margin: 15% auto; /* 15% from the top and centered */
-  padding: 20px;
-  border: 1px solid #888;
-  width: 80%; /* Could be more or less, depending on screen size */
-}
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-}
 
-.close:hover,
-.close:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer;
-}
-.textdanger{
+// .modal {
+//   display: block; /* Hidden by default */
+//   position: fixed; /* Stay in place */
+//   z-index: 1; /* Sit on top */
+//   left: 0;
+//   top: 0;
+//   width: 100%; /* Full width */
+//   height: 100%; /* Full height */
+//   overflow: auto; /* Enable scroll if needed */
+//   background-color: rgb(0,0,0); /* Fallback color */
+//   background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+// }
+// .modalcontent {
+//   background-color: #fefefe;
+//   margin: 15% auto; /* 15% from the top and centered */
+//   padding: 20px;
+//   border: 1px solid #888;
+//   width: 80%; /* Could be more or less, depending on screen size */
+// }
+// .close {
+//   color: #aaa;
+//   float: right;
+//   font-size: 28px;
+//   font-weight: bold;
+// }
+
+// .close:hover,
+// .close:focus {
+//   color: black;
+//   text-decoration: none;
+//   cursor: pointer;
+// }
+.textdanger {
   color: #7c0909;
 }
-.newpo{
+
+.newpo {
   position: absolute;
   right: 9px;
   top: 0;
   color: blue;
-  cursor: pointer; 
+  cursor: pointer;
 }
-#approvalSection textarea{width: 100%;}
-.librarydata .page-title{text-align: left;    margin-top: -57px}
-.newcssbtn .ms-Button--primary + .newcssbtn .ms-Button--primary{background: #ffc107 !important; border-color: #ffc107 !important; color: #000 !important;}
-.newcssbtn .ms-Button--primary + .newcssbtn .ms-Button--primary + .newcssbtn .ms-Button--primary{background: #d3d4d5 !important; border-color: #d3d4d5 !important; color: #000 !important;}
+
+#approvalSection textarea {
+  width: 100%;
+}
+
+.librarydata .page-title {
+  text-align: left;
+  margin-top: -57px
+}
+
+.newcssbtn .ms-Button--primary+.newcssbtn .ms-Button--primary {
+  background: #ffc107 !important;
+  border-color: #ffc107 !important;
+  color: #000 !important;
+}
+
+.newcssbtn .ms-Button--primary+.newcssbtn .ms-Button--primary+.newcssbtn .ms-Button--primary {
+  background: #d3d4d5 !important;
+  border-color: #d3d4d5 !important;
+  color: #000 !important;
+}
 
 
 //  priyanshu add this for colour 
-input[type=text]{background-color: rgba(255, 255, 255, 0)}
-#TextField6{
+input[type=text] {
+  background-color: rgba(255, 255, 255, 0)
+}
+
+#TextField6 {
   background-color: rgba(255, 255, 255, 0) !important;
 }
-#TextField1{
+
+#TextField1 {
   background-color: rgba(255, 255, 255, 0) !important;
+}
+
+/* modal.module.scss or your CSS file */
+
+.modal {
+  display: block;
+  /* Show modal */
+  position: fixed;
+  z-index: 1050;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+  /* Dark transparent background */
+}
+
+.modalcontent {
+  position: relative;
+  background-color: #fff;
+  margin: 5% auto;
+  padding: 1.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  width: 80%;
+  max-width: 900px;
+  border-radius: 0.3rem;
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: #000;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.close:hover,
+.close:focus {
+  color: #dc3545;
+}
+
+.mtbalenew {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.mtbalenew th,
+.mtbalenew td {
+  padding: 0.75rem;
+  text-align: left;
+  border: 1px solid #dee2e6;
+  vertical-align: middle;
+}
+
+.mtbalenew thead {
+  background-color: #eef6f7;
+}
+
+/* Optional: fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

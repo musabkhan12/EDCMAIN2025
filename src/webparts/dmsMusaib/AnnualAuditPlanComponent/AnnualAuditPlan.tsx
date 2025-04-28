@@ -23,7 +23,7 @@ import { FormSubmissionMode } from '../../../Shared/Interfaces';
 import { decryptId } from '../../../APISearvice/CryptoService';
 import { WorkflowAction } from '../../../CustomJSComponents/WorkflowAction/WorkflowAction';
 import { WorkflowAuditHistory } from '../../../CustomJSComponents/WorkflowAuditHistory/WorkflowAuditHistory';
-import { CONTENTTYPE_AuditPlan, CONTENTTYPE_AuditPlanTemp, LIST_AuditPlan, LIST_TITLE_AuditPlan, SITE_URL, Tenant_URL } from '../../../Shared/Constants';
+import { CONTENTTYPE_AuditPlan, CONTENTTYPE_AuditPlanTemp, CONTENTTYPE_Memo, LIST_AuditPlan, LIST_TITLE_AuditPlan, SITE_URL, Tenant_URL } from '../../../Shared/Constants';
 import { PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
@@ -153,6 +153,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         changeReqListID: 0,
         classificationValue: null,
         classificationId: 0,
+
+        MDocumentCode: "",
+        MIssueNumber: null,
+        MRevisionNumber: null,
+        MRevisionDate: "",
+        MIssueDate: "",
 
     });
     const [selectCCUsers, setSelectCCUsers] = React.useState([]);
@@ -840,7 +846,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                 }
 
-                const rowData: any[] = await getItemByID2(sp, Number(setBannerById[0].MemorandumIDId)) //baseUrl
+                const rowData: any[] = await getItemByID2(sp, Number(setBannerById[0].ID)) //baseUrl
 
                 if (rowData.length > 0) {
                     const initialRows = rowData.map((item: any) => ({
@@ -920,6 +926,23 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         }
 
 
+        let ChangeRequestMemoTemplateType = await getLatestChangeRequestTemplateType(sp, CONTENTTYPE_Memo);
+
+        if (ChangeRequestMemoTemplateType.length > 0) {
+            const template = ChangeRequestMemoTemplateType[0];
+            setFormData((prevFormData) => ({
+                ...prevFormData,
+
+                MDocumentCode: template.DocumentCode || "",
+                MRevisionNumber: template.RevisionNumber,
+                MIssueNumber: template.IssueNumber,
+                MRevisionDate: new Date(template.RevisionDate).toLocaleDateString("en-CA") || null,
+                MIssueDate: new Date(template.IssueDate).toLocaleDateString("en-CA") || null,
+
+            }));
+        }
+
+
         //}
         //#endregion
 
@@ -968,6 +991,17 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
         ApiCallFunc();
         // getMemoNumber();
+        const handleScroll = () => {
+            // Close the dropdown on scroll
+            document.activeElement && (document.activeElement as HTMLElement).blur();
+          };
+        
+          const container = document.querySelector('.scroll-container');
+          container?.addEventListener('scroll', handleScroll);
+        
+          return () => {
+            container?.removeEventListener('scroll', handleScroll);
+          };
 
     }, [useHide]);
 
@@ -1244,22 +1278,22 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
         }
         else {
-            if (!memoNo) {
-                document.getElementById("memoNo")?.classList.add("border-on-error");
+            // if (!memoNo) {
+            //     document.getElementById("memoNo")?.classList.add("border-on-error");
+            //     validraft = false;
+            // }
+            if (!date) {
+                document.getElementById("date")?.classList.add("border-on-error");
                 validraft = false;
             }
-            // if (!date) {
-            //     document.getElementById("date")?.classList.add("border-on-error");
-            //     validraft = false;
-            // }
-            // if (date == "Invalid Date") {
-            //     document.getElementById("date")?.classList.add("border-on-error");
-            //     validraft = false;
-            // }
-            // if (!deptId) {
-            //     document.getElementById("DeptID")?.classList.add("border-on-error");
-            //     validraft = false;
-            // }
+            if (date == "Invalid Date") {
+                document.getElementById("date")?.classList.add("border-on-error");
+                validraft = false;
+            }
+            if (!deptId) {
+                document.getElementById("DeptID")?.classList.add("border-on-error");
+                validraft = false;
+            }
             // else if (selectedOption == null || !selectedOption.value) {
             //     //Swal.fire('Error', 'Entity is required!', 'error');
             //     valid = false;
@@ -1405,6 +1439,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             IssueNumber: formData.IssueNo,
                             ChangeRequestIDId: formData.changeReqListID,
                             ClassificationId: formData.classificationId,
+
+                            // MDocumentCode: formData.MDocumentCode,
+                            // MRevisionNumber: formData.MRevisionNumber,
+                            // MIssueNumber: formData.MIssueNumber,
+                            // MRevisionDate: formData.MRevisionDate,
+                            // MIssueDate:formData.MIssueDate
 
 
                         }
@@ -1761,7 +1801,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             ChangeRequestIDId: formData.changeReqListID,
                             ClassificationId: formData.classificationId,
                             AttachmentId: attachmentIds || [],
-                            AttachmentJson: JSON.stringify(bannerImageArray) || ""
+                            AttachmentJson: JSON.stringify(bannerImageArray) || "",
+
+                            MDocumentCode: formData.MDocumentCode,
+                            MRevisionNumber: formData.MRevisionNumber,
+                            MIssueNumber: formData.MIssueNumber,
+                            MRevisionDate: formData.MRevisionDate,
+                            MIssueDate:formData.MIssueDate
 
 
                         }
@@ -2038,7 +2084,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             ChangeRequestIDId: formData.changeReqListID,
                             ClassificationId: formData.classificationId,
                             AttachmentId: attachmentIds || [],
-                            AttachmentJson: JSON.stringify(bannerImageArray) || ""
+                            AttachmentJson: JSON.stringify(bannerImageArray) || "",
+
+                            // MDocumentCode: formData.MDocumentCode,
+                            // MRevisionNumber: formData.MRevisionNumber,
+                            // MIssueNumber: formData.MIssueNumber,
+                            // MRevisionDate: formData.MRevisionDate,
+                            // MIssueDate:formData.MIssueDate
 
 
                         }
@@ -2375,7 +2427,16 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             ChangeRequestIDId: formData.changeReqListID,
                             ClassificationId: formData.classificationId,
                             AttachmentId: attachmentIds || [],
-                            AttachmentJson: JSON.stringify(bannerImageArray) || ""
+                            AttachmentJson: JSON.stringify(bannerImageArray) || "",
+
+
+
+
+                            MDocumentCode: formData.MDocumentCode,
+                            MRevisionNumber: formData.MRevisionNumber,
+                            MIssueNumber: formData.MIssueNumber,
+                            MRevisionDate: formData.MRevisionDate,
+                            MIssueDate:formData.MIssueDate
 
 
                         }
@@ -3350,8 +3411,43 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-
                                                                 <div className="col-lg-4">
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="attachment" className="col-form-label">Attachment</label>
+                                                                    <div className="">
+
+                                                                        <div>
+                                                                            <input
+                                                                                type="file"
+                                                                                // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                className="form-control"
+                                                                                id="attachment"
+                                                                                accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                                                                onChange={(e) => onFileChange(e, "Gallery", "AnnualAuditPlanDocs")}
+                                                                                // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
+                                                                                disabled={InputDisabled}
+                                                                                multiple
+                                                                            />
+
+                                                                        </div>
+
+                                                                        <div>
+                                                                            {FilesArr.length > 0 ?
+                                                                                (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
+                                                                                    <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
+                                                                                </a>) : ""
+
+                                                                            }
+                                                                        </div>
+
+
+
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>
+
+                                                                <div className="col-lg-12">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="background" className="col-form-label">Background<span className="text-danger1"> *</span></label>
                                                                         <div className="">
@@ -3434,7 +3530,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                         </div>
 
-                                                        {/* <div className="row mb-1">
+                                                        <div className="row mb-1">
                                                             <div className="col-sm-12">
 
 
@@ -3443,7 +3539,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 {!InputDisabled && formData.RecommendationTypeValue === "Table" && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-0' src={require("../assets/plus.png")} onClick={handleAddRecommendationRow}></img>}
 
                                                             </div>
-                                                        </div> */}
+                                                        </div>
 
 
                                                         {formData.RecommendationTypeValue === "Table" ? (
@@ -3453,7 +3549,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                         <th>Date<span className="text-danger1"> *</span></th>
                                                                         <th colSpan={2}>Time<span className="text-danger1"> *</span></th>
                                                                         <th>Auditor<span className="text-danger1"> *</span></th>
-                                                                        {/* {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>} */}
+                                                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>}
                                                                     </tr>
                                                                 </thead>
 
@@ -3530,11 +3626,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     title={row.auditor?.label || "Select Auditor"} // Added title tooltip
                                                                                 />
                                                                             </td>
-                                                                            {/* {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '70px', maxWidth: '70px' }}>
+                                                                            {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                                                                 <img src={require("../assets/del.png")} onClick={() => handleDeleteRecommendationRow(index)} />
 
                                                                             </td>
-                                                                            } */}
+                                                                            }
                                                                         </tr>
                                                                     ))}
                                                                 </tbody>
@@ -3681,7 +3777,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 </div>
                                                             </div>
 
-                                                            <div className="col-lg-6">
+                                                            <div className="col-lg-12">
                                                                 <div className="mb-3">
                                                                     <label htmlFor="criteria" className="form-label">Criteria<span className="text-danger1"> *</span></label>
                                                                     <textarea
@@ -3701,41 +3797,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 </div>
                                                             </div>
 
-                                                            <div className="col-lg-6">
-                                                                <div className="mb-3">
-                                                                    <label htmlFor="attachment" className="col-form-label">Attachment</label>
-                                                                    <div className="">
-
-                                                                        <div>
-                                                                            <input
-                                                                                type="file"
-                                                                                // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                                                                className="form-control"
-                                                                                id="attachment"
-                                                                                accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                                                                                onChange={(e) => onFileChange(e, "Gallery", "AnnualAuditPlanDocs")}
-                                                                                // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
-                                                                                disabled={InputDisabled}
-                                                                                multiple
-                                                                            />
-
-                                                                        </div>
-
-                                                                        <div>
-                                                                            {FilesArr.length > 0 ?
-                                                                                (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
-                                                                                    <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
-                                                                                </a>) : ""
-
-                                                                            }
-                                                                        </div>
-
-
-
-                                                                    </div>
-
-                                                                </div>
-                                                            </div>
+                                                           
 
 
                                                         </div>
@@ -3750,8 +3812,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                             <div className='col-sm-6'>
                                                                 <h3 className='text-dark font-16 fw-bold mb-3'>Coverage Of The Audit Criteria</h3>
                                                             </div>
-                                                            <div style={{ textAlign: 'right' }} className='col-sm-6 mt-2'>
-                                                                {!InputDisabled && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-3' src={require("../assets/plus.png")} onClick={handleAddCoverageRow}></img>}
+                                                            <div style={{ textAlign: 'right' }} className='col-sm-6 mt-0'>
+                                                                {!InputDisabled && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-0' src={require("../assets/plus.png")} onClick={handleAddCoverageRow}></img>}
 
                                                             </div>
 
@@ -3761,15 +3823,15 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
 
                                                         {/* {formData.RecommendationTypeValue === "Table" ? ( */}
-                                                        <div style={{ display: 'grid' }}>
-                                                            <table id="tabCov" className='mtbalenew overhi mb-3'>
+                                                        <div style={{ display: 'grid' }} className='newclasstabls scroll-container'>
+                                                        <table id="tabCov" className='mtbalenew overhi mb-3 cont-scroll-mtb'>
                                                                 <thead>
-                                                                    <tr><th>Date<span className="text-danger1"> *</span></th>
-                                                                        <th colSpan={2}>Time<span className="text-danger1"> *</span></th>
-                                                                        <th style={{ minWidth: '150px', maxWidth: '150px' }}>Process/Activity<span className="text-danger1"> *</span></th>
-                                                                        <th>Location<span className="text-danger1"> *</span></th>
-                                                                        <th>Auditor<span className="text-danger1"> *</span></th>
-                                                                        <th>Standard & Clauses<span className="text-danger1"> *</span></th>
+                                                                    <tr><th style={{ minWidth: '140px', maxWidth: '140px' }}>Date<span className="text-danger1"> *</span></th>
+                                                                        <th style={{ minWidth: '140px', maxWidth: '140px' }} colSpan={2}>Time<span className="text-danger1"> *</span></th>
+                                                                        <th style={{ minWidth: '260px', maxWidth: '260px' }}>Process/Activity<span className="text-danger1"> *</span></th>
+                                                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>Location<span className="text-danger1"> *</span></th>
+                                                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>Auditor<span className="text-danger1"> *</span></th>
+                                                                        <th style={{ minWidth: '260px', maxWidth: '260px' }}>Standard & Clauses<span className="text-danger1"> *</span></th>
                                                                         {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>}
                                                                     </tr>
                                                                 </thead>
@@ -3778,7 +3840,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                     {coverageAuditCriteria.map((row, index) => (
                                                                         <tr key={index}>
-                                                                            <td style={{ overflow: "inherit" }} title={
+                                                                            <td style={{ overflow: "inherit", minWidth: '140px', maxWidth: '140px' }} title={
                                                                                 row?.date
                                                                                     ? moment(row?.date).format('DD/MMM/YYYY')
                                                                                     : "Select a date"
@@ -3811,7 +3873,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     disabled={InputDisabled}
                                                                                 /> */}
                                                                             </td>
-                                                                            <td style={{ overflow: "inherit" }}>
+                                                                            <td style={{ overflow: "inherit", minWidth: '140px', maxWidth: '140px' }}>
                                                                                 <input style={{ paddingLeft: '2px', paddingRight: '0px' }}
                                                                                     type="time"
                                                                                     className={`form-control  ${(!ValidDRecomm) ? "border-on-error" : ""}`}
@@ -3823,7 +3885,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 />
 
                                                                             </td>
-                                                                            <td style={{ minWidth: '150px', maxWidth: '150px', overflow: "inherit" }}>
+                                                                            <td style={{ minWidth: '260px', maxWidth: '260px', overflow: "inherit" }}>
                                                                                 <textarea
                                                                                     className={`form-control  ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                     value={row.ProcessActivity}
@@ -3833,7 +3895,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 ></textarea>
                                                                             </td>
 
-                                                                            <td style={{ overflow: "inherit" }}>
+                                                                            <td style={{ overflow: "inherit" ,minWidth: '200px', maxWidth: '200px'}}>
                                                                                 <Select
                                                                                     options={LocationOpt}
                                                                                     // isMulti
@@ -3843,11 +3905,28 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     onChange={(selectedOptions: any) => handleCoverageRow(index, 'Location', selectedOptions)}
                                                                                     placeholder="Select"
                                                                                     isDisabled={InputDisabled}
+
+                                                                                    menuPortalTarget={document.body}
+                                                                                    // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
+                                                                                    styles={{
+                                                                                      menu: (base:any) => ({
+                                                                                        ...base,
+                                                                                        position: 'absolute',
+                                                                                        zIndex: 9,
+                                                                                        top: '100%',
+                                                                                        left: 0,
+                                                                                      }),
+                                                                                      container: (base:any) => ({
+                                                                                        ...base,
+                                                                                        zIndex: 0,
+                                                                                        position: 'relative'
+                                                                                      }),
+                                                                                    }}
                                                                                 />
                                                                             </td>
 
 
-                                                                            <td style={{ overflow: "inherit" }}>
+                                                                            <td style={{ overflow: "inherit" ,minWidth: '200px', maxWidth: '200px' }}>
                                                                                 <Select
                                                                                     options={rows1}
                                                                                     // isMulti
@@ -3857,10 +3936,26 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     onChange={(selectedOptions: any) => handleCoverageRow(index, 'auditor', selectedOptions)}
                                                                                     placeholder="Select"
                                                                                     isDisabled={InputDisabled}
+                                                                                    menuPortalTarget={document.body}
+                                                                                    // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
+                                                                                    styles={{
+                                                                                      menu: (base:any) => ({
+                                                                                        ...base,
+                                                                                        position: 'absolute',
+                                                                                        zIndex: 9,
+                                                                                        top: '100%',
+                                                                                        left: 0,
+                                                                                      }),
+                                                                                      container: (base:any) => ({
+                                                                                        ...base,
+                                                                                        zIndex: 0,
+                                                                                        position: 'relative'
+                                                                                      }),
+                                                                                    }}
                                                                                 />
                                                                             </td>
 
-                                                                            <td style={{ overflow: "inherit" }}>
+                                                                            <td style={{ minWidth: '260px', maxWidth: '260px', overflow: "inherit" }}>
                                                                                 <textarea
                                                                                     className={`form-control  ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                     value={row.StandardClauses}
@@ -3921,9 +4016,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 </label>
                                                             </div>
                                                             <div className='col-sm-4'>
-                                                                <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
+                                                                <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right"}}>
                                                                     {!InputDisabled &&
-                                                                        <img style={{ width: '34px' }} src={require("../assets/plus.png")} onClick={handleAddRow} className='' />
+                                                                        <img style={{ width: '30px' }} src={require("../assets/plus.png")} onClick={handleAddRow} className='' />
                                                                     }
 
                                                                 </div>
@@ -3935,18 +4030,18 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                             <table style={{ overflow: 'inherit' }} className="mtbalenew  table-centered table-nowrap table-borderless mb-0 overhi" id="myTabl">
                                                                 <thead >
                                                                     <tr>
-                                                                        <th style={{ minWidth: "35px", maxWidth: "35px" }}>S.No</th>
+                                                                        <th style={{ minWidth: "30px", maxWidth: "30px" }}>S.No</th>
                                                                         <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Role<span className="text-danger1"> *</span></th>
-                                                                        <th style={{ minWidth: '50px', maxWidth: '50px' }} >Level</th>
+                                                                        <th style={{ minWidth: '40px', maxWidth: '40px' }} >Level</th>
                                                                         <th>Approver name<span className="text-danger1"> *</span></th>
                                                                         <th style={{ minWidth: '80px', maxWidth: '80px' }} >Approval criteria<span className="text-danger1"> *</span></th>
-                                                                        <th style={{ minWidth: '50px', maxWidth: '50px' }}>Action</th>
+                                                                        <th style={{ minWidth: '40px', maxWidth: '40px' }}>Action</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody style={{ maxHeight: "8007px", overflow: 'inherit' }}>
                                                                     {forwardToArr.map((row, index) => (
                                                                         <tr>
-                                                                            <td style={{ minWidth: "35px", maxWidth: "35px", overflow: 'inherit' }}> <div
+                                                                            <td style={{ minWidth: "30px", maxWidth: "30px", overflow: 'inherit' }}> <div
                                                                                 style={{ marginLeft: "5px" }}
                                                                                 className="indexdesign"
                                                                             >
@@ -3973,7 +4068,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 </select>
 
                                                                             </td>
-                                                                            <td style={{ minWidth: '50px', maxWidth: '50px', overflow: 'inherit' }}>Level {index + 1}</td>
+                                                                            <td style={{ minWidth: '40px', maxWidth: '40px', overflow: 'inherit' }}>Level {index + 1}</td>
                                                                             <td style={{ overflow: 'inherit' }}>
 
                                                                                 <Select
@@ -3999,7 +4094,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     <option value="All">Everyone</option>
                                                                                 </select>
                                                                             </td>
-                                                                            <td style={{ minWidth: '50px', maxWidth: '50px', overflow: 'inherit' }}>
+                                                                            <td style={{ minWidth: '40px', maxWidth: '40px', overflow: 'inherit' }}>
 
                                                                                 {/* {editID.CurrentUserRole === "OES" ?  */}
 

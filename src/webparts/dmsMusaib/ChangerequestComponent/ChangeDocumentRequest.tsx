@@ -3218,7 +3218,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     <th>Change Description<span className="text-danger1">*</span></th>
                                     <th>Reason for Change<span className="text-danger1">*</span></th>
                                     {(modeValue === "" || modeValue === "edit" || InputDisabled != true || (modeValue == "approve" && formData?.Status == "Rework")) &&
-                                      <th style={{ minWidth: "60px", maxWidth: "60px" }}>Action</th>
+                                      <th style={{ minWidth: "30px", maxWidth: "30px" }}>Action</th>
                                     }
                                   </tr>
 
@@ -3278,7 +3278,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         />
                                       </td>
                                       {(modeValue === "" || modeValue === "edit" || InputDisabled != true || (modeValue == "approve" && formData?.Status == "Rework")) &&
-                                        <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
+                                        <td style={{ minWidth: "30px", maxWidth: "30px", textAlign: 'center' }}>
                                           <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFile(index, cancellReason)}></img>
                                         </td>
                                       }
