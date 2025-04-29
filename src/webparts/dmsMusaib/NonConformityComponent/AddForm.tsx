@@ -649,7 +649,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
           icon: "success"
         }).then(() => {
           // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
-          window.location.reload();
+          window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/EDCDMS.aspx";
+          // window.location.reload();
         });
       }
     });
@@ -750,7 +751,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
           icon: "success"
         }).then(() => {
           // window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/NC.aspx#/listing";
-          window.location.reload();
+          window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/EDCDMS.aspx";
+          // window.location.reload();
         });
       }
     })

@@ -642,18 +642,19 @@ const ArgPoc = ({ props }: any) => {
     // console.log(currentUserEmailRef.current, "currentuser")
   }
 
-
   const fetchAndBuildTree2 = async () => {
     event.preventDefault()
     event.stopImmediatePropagation()
     event.stopPropagation()
     try {
+      const loader = document.getElementById("loader");
+      if (loader) loader.style.display = "block";
       //Old working code
-      //  Fetch data from EntityDivisionDepartmentMappingMasterList
+    //  Fetch data from EntityDivisionDepartmentMappingMasterList
       const entityItems = await sp.web.lists
         .getByTitle("EntityDivisionDepartmentMappingMasterList")
         .items.select(
-          "Entitylookup/Title, Entitylookup/SiteURL", "Entitylookup/SiteID", "Entitylookup/IsExternal",
+          "Entitylookup/Title, Entitylookup/SiteURL", "Entitylookup/SiteID" ,"Entitylookup/IsExternal" ,
           "Devisionlookup/Title",
           "Departmentlookup/Title",
           "Devisionlookup/Active",
@@ -661,46 +662,79 @@ const ArgPoc = ({ props }: any) => {
         )
         .expand("Entitylookup", "Devisionlookup", "Departmentlookup")
         .filter("Entitylookup/Active eq 'Yes'")();
-      console.log(entityItems, "entityItems 1")
-      const uniqueEntityMap = new Map();
-      const uniqueEntitiesWithAccess: any = [];
-
-      // Loop through each item and check permissions
-      for (const item of entityItems) {
-        const entityTitle = item.Entitylookup.Title;
-        try {
-          const subsiteWeb = await sp.site.openWebById(item.Entitylookup.SiteID);
-          const hasAccess = await subsiteWeb.web.currentUserHasPermissions(PermissionKind.ViewListItems);
-
-          if (hasAccess) {
-            // Add to uniqueEntitiesWithAccess only if user has access
-            uniqueEntityMap.set(entityTitle, item); // Store the item or any required data
-            uniqueEntitiesWithAccess.push(item);  // Add the item to the list of entities with access
-            console.log(`User has access to site: ${entityTitle}`, item);
-          } else {
-            console.log(`User does not have access to site: ${entityTitle}`);
+         console.log(entityItems, "entityItems 1")
+        const uniqueEntityMap = new Map();
+        const uniqueEntitiesWithAccess: any = [];
+        
+        // Loop through each item and check permissions
+        for (const item of entityItems) {
+          const entityTitle = item.Entitylookup.Title;
+          try {
+            const subsiteWeb = await sp.site.openWebById(item.Entitylookup.SiteID);
+            const hasAccess = await subsiteWeb.web.currentUserHasPermissions(PermissionKind.ViewListItems);
+        
+            if (hasAccess) {
+              // Add to uniqueEntitiesWithAccess only if user has access
+              uniqueEntityMap.set(entityTitle, item); // Store the item or any required data
+              uniqueEntitiesWithAccess.push(item);  // Add the item to the list of entities with access
+              console.log(`User has access to site: ${entityTitle}`, item);
+            } else {
+              console.log(`User does not have access to site: ${entityTitle}`);
+            }
+          } catch (error) {
+            console.error(`Error while checking access for site: ${entityTitle}`, error);
           }
-        } catch (error) {
-          console.error(`Error while checking access for site: ${entityTitle}`, error);
         }
-      }
-      console.log(uniqueEntityMap, "uniqueEntityMap ......")
-      console.log(uniqueEntitiesWithAccess, "uniqueEntitiesWithAccess");
+  console.log(uniqueEntityMap , "uniqueEntityMap ......")
+  console.log(uniqueEntitiesWithAccess , "uniqueEntitiesWithAccess");
       /// New Code 
 
+      // Loop through each item and check permissions
+      // for (const item of entityItems) {
+      //   const entityTitle = item.Entitylookup.Title;
+      //   try {
+      //     const subsiteWeb = await sp.site.openWebById(item.Entitylookup.SiteID);
+      //     const hasAccess = await subsiteWeb.web.currentUserHasPermissions(PermissionKind.ViewListItems);
 
       // Fetch data from DMSFolderMaster
-      const folderItems = await sp.web.lists
-        .getByTitle("DMSFolderMaster").items.filter("IsActive eq 1").select("*").getAll();
-      console.log("folderItems", folderItems);
+      // previously we use this and it was wroking fine but it was not getting more than 5k data
+      // const folderItems = await sp.web.lists
+      //   .getByTitle("DMSFolderMaster").items.filter("IsActive eq 1").select("*").getAll();
+      //  console.log("folderItems", folderItems);
 
       // const myButton = document.getElementById("mybutton");
       //      const createFileButton=document.getElementById("createFileButton");
       //      const createFileButton2=document.getElementById("createFileButton2");
       //            const createFolderButton=document.getElementById("createFolderButton");
       // Create a map to hold folder data by SiteTitle, Devision, Department
+
+      const pageSize = 500;
+      let allItems: any[] = [];
+      
+      let paged = await sp.web.lists
+        .getByTitle("DMSFolderMaster")
+        .items
+        .select(
+          "SiteTitle", "Devision", "Department", "DocumentLibraryName",
+          "FolderName", "ParentFolderId", "FolderPath", "IsRename",
+          "IsActive", "External", "ID", "ParentID"
+        )
+        .top(pageSize)
+        .getPaged();
+      
+      // ✅ Add first page before loop
+      allItems.push(...paged.results);
+      
+      while (paged.hasNext) {
+        paged = await paged.getNext();
+        allItems.push(...paged.results);
+      }
+      
+      const activeItems = allItems.filter(item => item.IsActive === true);
+      console.log("Total Items Fetched:", allItems.length); // should now show 5663
+
       const folderMap = new Map();
-      folderItems.forEach((folderItem) => {
+      activeItems.forEach((folderItem) => {
         const {
           SiteTitle,
           Devision,
@@ -711,11 +745,14 @@ const ArgPoc = ({ props }: any) => {
           FolderPath,
           IsRename,
           IsActive,
-          External
+          External,
+          ID,
+          ParentID
         } = folderItem;
         if (SiteTitle) {
-          const key = `${SiteTitle.trim()}::${Devision?.trim() || ""}::${Department?.trim() || ""
-            }`;
+          const key = `${SiteTitle.trim()}::${Devision?.trim() || ""}::${
+            Department?.trim() || ""
+          }`;
           if (!folderMap.has(key)) {
             folderMap.set(key, []);
           }
@@ -723,6 +760,8 @@ const ArgPoc = ({ props }: any) => {
             folderMap
               .get(key)
               .push({
+                ParentID,
+                ID,
                 IsRename,
                 FolderPath,
                 ParentFolderId,
@@ -740,7 +779,7 @@ const ArgPoc = ({ props }: any) => {
       // const entitiesMap = new Map();
       const entitiesMap: any = new Map();
 
-      uniqueEntitiesWithAccess.forEach((item: any) => {
+      uniqueEntitiesWithAccess.forEach((item:any) => {
         const entityTitle = item.Entitylookup.Title;
         const siteURL = item.Entitylookup.SiteURL;
         const siteID = item.Entitylookup.SiteID;
@@ -754,13 +793,13 @@ const ArgPoc = ({ props }: any) => {
             devisions: new Map(),
           });
         }
-
+      
         const entry = entitiesMap.get(entityTitle);
         const devisionTitle = item.Devisionlookup?.Title;
         const departmentTitle = item.Departmentlookup?.Title;
         const isDevisionActive = item.Devisionlookup?.Active === "Yes";
         const isDepartmentActive = item.Departmentlookup?.Active === "Yes";
-
+      
         if (devisionTitle && isDevisionActive) {
           if (!entry.devisions.has(devisionTitle)) {
             entry.devisions.set(devisionTitle, {
@@ -828,68 +867,68 @@ const ArgPoc = ({ props }: any) => {
         img.style.marginRight = "5px"; // Space between image and text
         return img;
       };
-      //     const createToggleButton = () => {
-      //     const link = document.createElement("a");
-      //     link.textContent = "+"; // Initial text
-      //     link.className="toggle-button"
-      //     link.style.cursor = "pointer";
-      //     link.style.textDecoration = "none";
+    //     const createToggleButton = () => {
+    //     const link = document.createElement("a");
+    //     link.textContent = "+"; // Initial text
+    //     link.className="toggle-button"
+    //     link.style.cursor = "pointer";
+    //     link.style.textDecoration = "none";
+        
+    //     link.addEventListener("click", (e) => {
+    //         e.preventDefault()
+    //         console.log("Button clicked +/-");
+    //         if (link.textContent === "+") {
+    //             link.textContent = "-"; // Change to minus when content is visible
+    //         } else if(link.textContent){
+    //             link.textContent = "+"; // Change to plus when content is hidden
+    //         }
+    //     });
+    
+    //     return link;
+    // };
+    const createToggleButton = () => {
+      const link = document.createElement("a");
+      link.id="toggle-plus/minus";
+      link.textContent = "+"; // Initial text
+      link.className="toggle-button"
+      link.style.cursor = "pointer";
+      link.style.textDecoration = "none";
+     
+      // Add background image
+      link.style.backgroundImage = `url('${require('../assets/Toggle-Button-plus-minus.png')}')`; 
+      link.style.backgroundRepeat = "no-repeat";
+      link.style.backgroundPosition = "center"; 
+      link.style.backgroundSize = "contain"; 
 
-      //     link.addEventListener("click", (e) => {
-      //         e.preventDefault()
-      //         console.log("Button clicked +/-");
-      //         if (link.textContent === "+") {
-      //             link.textContent = "-"; // Change to minus when content is visible
-      //         } else if(link.textContent){
-      //             link.textContent = "+"; // Change to plus when content is hidden
-      //         }
-      //     });
-
-      //     return link;
-      // };
-      const createToggleButton = () => {
-        const link = document.createElement("a");
-        link.id = "toggle-plus/minus";
-        link.textContent = "+"; // Initial text
-        link.className = "toggle-button"
-        link.style.cursor = "pointer";
-        link.style.textDecoration = "none";
-
-        // Add background image
-        link.style.backgroundImage = `url('${require('../assets/Toggle-Button-plus-minus.png')}')`;
-        link.style.backgroundRepeat = "no-repeat";
-        link.style.backgroundPosition = "center";
-        link.style.backgroundSize = "contain";
-
-        // Optionally adjust dimensions if needed
-        // link.style.width = "20px"; 
-        // link.style.height = "20px"; 
-        // link.style.display = "inline-block";
-        link.style.border = 'none';
-        link.style.borderRadius = '0px'
-        // link.addEventListener("click", (e) => {
-        //     e.preventDefault()
-        //     console.log("Button clicked +/-");
-        //     if (link.textContent === "+") {
-        //         link.textContent = "-"; // Change to minus when content is visible
-        //     } else if(link.textContent){
-        //         link.textContent = "+"; // Change to plus when content is hidden
-        //     }
-        // });
-
-        return link;
-      };
-      const createToggleButtonEntity = () => {
-        const link = document.createElement("a");
-        link.id = "toggle-plus/minus-Entity";
-        link.textContent = "+"; // Initial text
-        link.className = "toggle-button"
-        link.style.cursor = "pointer";
-        link.style.textDecoration = "none";
-
-        return link;
-      };
-      entitiesMap.forEach((value: any, entityTitle: any) => {
+      // Optionally adjust dimensions if needed
+      // link.style.width = "20px"; 
+      // link.style.height = "20px"; 
+      // link.style.display = "inline-block";
+      link.style.border='none';
+      link.style.borderRadius='0px'
+      // link.addEventListener("click", (e) => {
+      //     e.preventDefault()
+      //     console.log("Button clicked +/-");
+      //     if (link.textContent === "+") {
+      //         link.textContent = "-"; // Change to minus when content is visible
+      //     } else if(link.textContent){
+      //         link.textContent = "+"; // Change to plus when content is hidden
+      //     }
+      // });
+ 
+      return link;
+  };
+  const createToggleButtonEntity = () => {
+    const link = document.createElement("a");
+    link.id="toggle-plus/minus-Entity";
+    link.textContent = "+"; // Initial text
+    link.className="toggle-button"
+    link.style.cursor = "pointer";
+    link.style.textDecoration = "none";
+   
+    return link;
+};
+      entitiesMap.forEach((value:any, entityTitle:any) => {
         const titleElement = document.createElement("p");
 
         // titleElement.textContent = entityTitle;
@@ -899,11 +938,13 @@ const ArgPoc = ({ props }: any) => {
         //   "icons/entity-icon.png",
         //   "Entity Icon"
         // );
-        const toggleButton1 = createToggleButtonEntity();
+        const toggleButton1=createToggleButtonEntity();
         titleElement.appendChild(toggleButton1);
         titleElement.appendChild(document.createTextNode(entityTitle));
 
         if (container) {
+          const loader = document.getElementById("loader");
+          if (loader) loader.style.display = "none";
           container.appendChild(titleElement);
         } else {
           console.error("Container element not found");
@@ -922,8 +963,8 @@ const ArgPoc = ({ props }: any) => {
 
           // Iterate over document libraries and populate the map with unique DocumentLibraryNames
           documentLibraries.forEach((item: any) => {
-            console.log("item is external", item.External);
-
+              console.log("item is external",item.External);
+           
             if (!uniqueDocLibs.has(item.DocumentLibraryName)) {
               uniqueDocLibs.set(item.DocumentLibraryName, {
                 folders: [],
@@ -938,24 +979,24 @@ const ArgPoc = ({ props }: any) => {
           // Now render each unique DocumentLibraryName and its associated folders
           uniqueDocLibs.forEach((data, docLibName) => {
             const docLibElement = document.createElement("li");
-
+         
             // New code to check the Document library name is Rename or not start
-            const checkIsRename = data.folders.filter((item: any) =>
+            const checkIsRename = data.folders.filter((item:any) => 
               item.FolderName.length === 1 && item.FolderName[0] === null
             );
-            console.log("checkIsRename", checkIsRename);
-            let renameText = docLibName;
-            if (checkIsRename.length > 0) {
+            console.log("checkIsRename",checkIsRename);
+            let renameText=docLibName;
+            if(checkIsRename.length >0){
 
-
-              if (checkIsRename[0]?.IsRename !== null) {
-                renameText = checkIsRename[0]?.IsRename;
-              }
+            
+            if(checkIsRename[0]?.IsRename !== null){
+              renameText=checkIsRename[0]?.IsRename;
             }
+          }
             // End
             docLibElement.textContent = renameText;
             // docLibElement.textContent = docLibName;
-            console.log("Data of doclib/folder", data);
+            console.log("Data of doclib/folder",data);
             // Optionally display the FolderPath in the docLibElement
             const pathText = document.createElement("span");
             // pathText.textContent = ` (${data.folderPath})`; // Display FolderPath
@@ -971,37 +1012,37 @@ const ArgPoc = ({ props }: any) => {
             //   "Entity Icon"
             // );
             // docLibElement.appendChild(entityImage);
-            const toggleButton = createToggleButton();
+            const toggleButton=createToggleButton();
             docLibElement.appendChild(toggleButton);
             docLibElement.appendChild(folderList);
 
             // Handle click to toggle the visibility of the folder list
-            docLibElement.addEventListener("click", (event: any) => {
-              const createFileButton = document.getElementById("createFileButton");
+            docLibElement.addEventListener("click", (event:any) => {
+              const createFileButton =document.getElementById("createFileButton");
               event.preventDefault()
               event.stopPropagation();
-              if (toggleButton.textContent === "+") {
+              if(toggleButton.textContent === "+") {
                 toggleButton.textContent = "-";
-              } else if (toggleButton.textContent) {
+              }else if(toggleButton.textContent){
                 toggleButton.textContent = "+";
               }
-              if (data.isActive === false) {
+              if(data.isActive === false){
                 Swal.fire({
-                  icon: 'warning',
-                  title: 'Warning',
-                  text: 'We are setting up This Newly Created Folder Please Check after few Seconds',
-                  showConfirmButton: true,
-                  confirmButtonText: 'OK',
-                });
-              }
+                 icon: 'warning',
+                 title: 'Warning',
+                 text: 'We are setting up This Newly Created Folder Please Check after few Seconds',
+                 showConfirmButton: true,
+                 confirmButtonText: 'OK',   
+               });
+             }  
 
               // setShowMyrequButtons(false)
               // setShowMyfavButtons(false)
               // handleNavigation(value.entityTitle, null , null , docLibName , null )
               updateBreadcrumb(data.folderPath);
               toggleVisibility(folderList);
-              getdoclibdata(data.folderPath, value.siteID, docLibName);
-              IsExternal = data.External;
+              getdoclibdata(data.folderPath , value.siteID , docLibName);
+              IsExternal=data.External;
               currentfolderpath = data.folderPath
               currentDocumentLibrary = docLibName;
               currentEntityURL = value.siteURL;
@@ -1011,26 +1052,26 @@ const ArgPoc = ({ props }: any) => {
               currentDepartment = ''
               currentFolder = ''
               setcurrentSearchPath(RootsiteUrl + data.folderPath);
-              console.log(currentEntityURL, "currentEntityURL")
-              console.log(currentsiteID, "currentsiteID")
-              console.log(currentEntity, "currentEntity")
-              console.log(currentDocumentLibrary, "currentFolder")
-              console.log(currentfolderpath, "currentfolderpath")
-              console.log(currentDevision, "currentfolderpath")
-              console.log(currentDepartment, "currentfolderpath")
+              console.log(currentEntityURL , "currentEntityURL")
+              console.log(currentsiteID , "currentsiteID")
+              console.log(currentEntity , "currentEntity")
+              console.log(currentDocumentLibrary , "currentFolder")
+              console.log(currentfolderpath , "currentfolderpath")
+              console.log(currentDevision , "currentfolderpath")
+              console.log(currentDepartment , "currentfolderpath")
               //      createFileButton.style.display = "block";
               //      createFileButton2.style.display = "block";
               //       if(createFolderButton){
               //   createFolderButton.style.display="block"
               // }
-
+              
               // if(createFileButton){
               //   createFileButton.style.display = "block";
               // }
               // if(createFileButton2){
               //   createFileButton2.style.display = "block";
               // }
-
+                    
               // if (myButton) {
               //   myButton.textContent = `Create Folder under ${docLibName}`;
               // } else {
@@ -1040,7 +1081,7 @@ const ArgPoc = ({ props }: any) => {
 
             // Handle double-click to hide the folder list
             docLibElement.addEventListener("dblclick", (event) => {
-              IsExternal = data.External;
+              IsExternal=data.External;
               event.stopPropagation();
               toggleVisibility(folderList, false);
             });
@@ -1052,17 +1093,17 @@ const ArgPoc = ({ props }: any) => {
             ) => {
               data.folders.forEach((item: any) => {
                 const folderNamesArray = Array.isArray(item.FolderName)
-                  ? item.FolderName
-                  : [item.FolderName];
+                  ? [{ FolderName: item.FolderName[0], ID: item.ID }]
+                  :  [{ FolderName: item.FolderName, ID: item.ID }]
 
-                folderNamesArray.forEach((folderName: any) => {
-                  if (folderName && item.ParentFolderId === parentFolderId) {
+                folderNamesArray.forEach((ItemDetails: any) => {
+                  if (ItemDetails.FolderName && item.ParentID === parentFolderId) {
                     // Only display non-null folder names
                     const folderElement = document.createElement("li");
                     // New code to check the folder library name is Rename or not start
-                    let folderRenameText = folderName;
-                    if (item.IsRename !== null) {
-                      folderRenameText = item.IsRename
+                    let folderRenameText=ItemDetails.FolderName;
+                    if(item.IsRename !== null){
+                      folderRenameText=item.IsRename
                     }
                     // End
                     // folderElement.textContent = folderName;
@@ -1073,57 +1114,57 @@ const ArgPoc = ({ props }: any) => {
                     //   "Entity Icon"
                     // );
                     // folderElement.appendChild(entityImage);
-                    const toggleButton = createToggleButton();
+                    const toggleButton=createToggleButton();
                     folderElement.appendChild(toggleButton);
                     const subFolderList = document.createElement("ul");
                     subFolderList.style.display = "none";
                     subFolderList.style.width = "240px";
                     folderElement.appendChild(subFolderList);
 
-                    folderElement.addEventListener("click", (event: any) => {
-                      event.preventDefault();  // Prevent default action
-                      event.stopPropagation();  // Stop event bubbling
-                      console.log("Event listener triggered");
+                    folderElement.addEventListener("click", (event:any) => {
+                       event.preventDefault();  // Prevent default action
+                       event.stopPropagation();  // Stop event bubbling
+                       console.log("Event listener triggered");
                       currentEntityURL = value.siteURL;
                       currentsiteID = value.siteID
                       currentEntity = value.entityTitle
                       currentDocumentLibrary = docLibName;
-                      currentFolder = folderName;
+                      currentFolder  = ItemDetails.FolderName;
                       parentfolder = item.ParentFolderId;
                       currentfolderpath = item.FolderPath;
                       currentDevision = ''
                       currentDepartment = ''
                       setcurrentSearchPath(RootsiteUrl + data.folderPath);
-                      console.log(currentEntityURL, "currentEntityURL")
-                      console.log(currentsiteID, "currentsiteID")
-                      console.log(currentEntity, "currentEntity")
-                      console.log(currentDocumentLibrary, "currentDocumentLibrary")
-                      console.log(currentFolder, "currentFolder")
-                      console.log(parentfolder, "parentfolder")
-                      IsExternal = item.External;
-                      console.log(currentfolderpath, "currentfolderpath");
+                      console.log(currentEntityURL , "currentEntityURL")
+                      console.log(currentsiteID , "currentsiteID")
+                      console.log(currentEntity , "currentEntity")
+                      console.log(currentDocumentLibrary , "currentDocumentLibrary")
+                      console.log(currentFolder , "currentFolder")
+                      console.log(parentfolder , "parentfolder")
+                      IsExternal=item.External;
+                      console.log(currentfolderpath , "currentfolderpath");
                       // handleNavigation(value.entityTitle, null , null , docLibName , folderName )
                       updateBreadcrumb(item.FolderPath);
                       event.stopPropagation();
-                      getdoclibdata(item.FolderPath, currentsiteID, docLibName)
+                      getdoclibdata(item.FolderPath,currentsiteID ,docLibName )
                       // if (myButton) {
                       //   myButton.textContent = `Create Folder under ${folderName}`;
                       // } else {
                       //   console.error();
                       // }
-                      if (toggleButton.textContent === "+") {
+                      if(toggleButton.textContent === "+") {
                         toggleButton.textContent = "-";
-                      } else if (toggleButton.textContent) {
+                      }else if(toggleButton.textContent){
                         toggleButton.textContent = "+";
                       }
-
+        
                       toggleVisibility(subFolderList);
 
                       // Clear existing sub-folder list to avoid duplications
                       subFolderList.innerHTML = "";
 
                       // Recursively build the sub-folder structure
-                      buildFolderStructure(folderName, subFolderList);
+                      buildFolderStructure(ItemDetails.ID, subFolderList);
                     });
                   }
                 });
@@ -1153,12 +1194,12 @@ const ArgPoc = ({ props }: any) => {
           //   "Entity Icon"
           // );
           // devisionElement.appendChild(entityImage);
-          const toggleButton = createToggleButton();
+          const toggleButton=createToggleButton();
           devisionElement.appendChild(toggleButton);
           devisionElement.appendChild(docLibList);
 
           // Display unique DocumentLibraryName under Devision
-          console.log("devisionValue.docLibs", devisionValue.docLibs);
+          console.log("devisionValue.docLibs",devisionValue.docLibs);
           devisionValue.docLibs.forEach((docLibName: any) => {
             const docLibElement = document.createElement("li");
             docLibElement.textContent = docLibName;
@@ -1173,7 +1214,7 @@ const ArgPoc = ({ props }: any) => {
             const docLibKey = `${entityTitle.trim()}::${devisionTitle.trim()}::`;
             const docLibFolders = folderMap.get(docLibKey) || [];
             docLibFolders.forEach((folderItem: any) => {
-              console.log("Folder under divisions", folderItem);
+              console.log("Folder under divisions",folderItem);
               const folderElement = document.createElement("li");
               folderElement.textContent = folderItem.FolderName;
 
@@ -1191,7 +1232,7 @@ const ArgPoc = ({ props }: any) => {
               currentEntityURL = value.siteURL;
               currentEntity = value.entityTitle
               currentsiteID = value.siteID
-
+       
               console.log("currentEntityURL", currentEntityURL);
               console.log("currentEntity", currentEntity);
               console.log("currentsiteID", currentsiteID);
@@ -1202,9 +1243,9 @@ const ArgPoc = ({ props }: any) => {
               // } else {
               //   console.error();
               // }
-              if (toggleButton.textContent === "+") {
+              if(toggleButton.textContent === "+") {
                 toggleButton.textContent = "-";
-              } else if (toggleButton.textContent) {
+              }else if(toggleButton.textContent){
                 toggleButton.textContent = "+";
               }
               toggleVisibility(folderList);
@@ -1236,108 +1277,108 @@ const ArgPoc = ({ props }: any) => {
             //   "Entity Icon"
             // );
             // departmentElement.appendChild(entityImage);
-            const toggleButton = createToggleButton();
+            const toggleButton=createToggleButton();
             departmentElement.appendChild(toggleButton);
             departmentElement.appendChild(documentList);
 
             departmentElement.addEventListener("click", (event) => {
               currentEntityURL = value.siteURL;
-              currentsiteID = value.siteID
-              currentEntity = value.entityTitle;
-              currentDevision = devisionTitle;
-              currentDepartment = departmentTitle;
-              currentDocumentLibrary = ''
-              currentFolder = ''
-              currentfolderpath = ''
-              if (value.isExternal === "Yes") {
-                IsExternal = true;
-              } else {
-                IsExternal = false;
-              }
-              console.log("currentEntityURL", currentEntityURL);
-              console.log("currentsiteID", currentsiteID);
-              console.log("currentEntity", currentEntity);
-              console.log("currentDevision", currentDevision);
-              console.log("currentDepartment", currentDepartment);
-              const container = document.getElementById("files-container");
-              container.innerHTML = "";
-              // handleNavigation(value.entityTitle, devisionTitle , departmentTitle , null , null )
-              updateBreadcrumb(`${window.location.pathname.match(/\/sites\/[^\/]+/)[0]}/${currentEntity}`);
+                    currentsiteID = value.siteID
+                    currentEntity = value.entityTitle;
+                    currentDevision = devisionTitle;
+                    currentDepartment = departmentTitle;
+                    currentDocumentLibrary = ''
+                    currentFolder = ''
+                    currentfolderpath = ''
+                    if(value.isExternal === "Yes"){
+                      IsExternal=true;
+                    }else{
+                      IsExternal=false;
+                    }
+                  console.log("currentEntityURL", currentEntityURL);
+                  console.log("currentsiteID", currentsiteID);
+                  console.log("currentEntity", currentEntity);
+                  console.log("currentDevision", currentDevision);
+                  console.log("currentDepartment", currentDepartment);
+                  const container = document.getElementById("files-container");
+                  container.innerHTML = "";
+                  // handleNavigation(value.entityTitle, devisionTitle , departmentTitle , null , null )
+                  updateBreadcrumb(`${window.location.pathname.match(/\/sites\/[^\/]+/)[0]}/${currentEntity}`);
               event.stopPropagation();
               // if (myButton) {
               //   myButton.textContent = `Create Library under ${departmentTitle}`;
               // } else {
               //   console.error();
               // }
-              if (toggleButton.textContent === "+") {
+              if(toggleButton.textContent === "+") {
                 toggleButton.textContent = "-";
-              } else if (toggleButton.textContent) {
+              }else if(toggleButton.textContent){
                 toggleButton.textContent = "+";
               }
-              const checkPermission = async () => {
-                const CreateFolder = document.getElementById("CreateFolder")
-                const CreateRoot = document.getElementById("CreateFolder1")
-                const createFileButton = document.getElementById("createFileButton")
+              const checkPermission=async()=>{
+                const CreateFolder=document.getElementById("CreateFolder")
+                const CreateRoot=document.getElementById("CreateFolder1")
+                const createFileButton=document.getElementById("createFileButton")
                 try {
                   const currentUser = await sp.web.currentUser();
                   const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
                   const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
                   const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
                   const isMemberOfDeligation = userGroups.some(group => group.Title === `${currentEntity}_FolderDeligation`);
-                  console.log("isMemberOfDeligation", isMemberOfDeligation);
-                  console.log("isMemberOfSuperAdmin", isMemberOfSuperAdmin);
+                  console.log("isMemberOfDeligation",isMemberOfDeligation);
+                  console.log("isMemberOfSuperAdmin",isMemberOfSuperAdmin);
                   console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
                   // console.log(`User is a member of the group: ${currentEntity}_Admin`);
                   if (isMemberOfGroup || isMemberOfSuperAdmin) {
-                    IsFolderDeligationUser = false;
-                    console.log(`User is a member of the group: ${currentEntity}_Admin`);
-                    if (createFileButton) {
-                      createFileButton.style.display = "none";
-                    }
-                    if (CreateFolder) {
-                      CreateFolder.style.display = "block";
-                    }
-                    // if(CreateRoot){
-                    //   CreateRoot.style.display="none";
-                    // }
-                  } else if (isMemberOfDeligation) {
-                    IsFolderDeligationUser = true;
-                    console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
-                    if (createFileButton) {
-                      createFileButton.style.display = "none";
-                    }
-                    if (CreateFolder) {
-                      CreateFolder.style.display = "block";
-                    }
-                  } else {
-                    console.log(`User is not a member of the group: ${currentEntity}_Admin`);
-                    if (createFileButton) {
-                      createFileButton.style.display = "none";
-                    }
-                    if (CreateFolder) {
-                      CreateFolder.style.display = "none";
-                    }
-
-
+                    IsFolderDeligationUser=false;
+                  console.log(`User is a member of the group: ${currentEntity}_Admin`);
+                  if(createFileButton){
+                    createFileButton.style.display=  "none";
                   }
+                  if(CreateFolder){
+                    CreateFolder.style.display="block";
+                  }
+                  // if(CreateRoot){
+                  //   CreateRoot.style.display="none";
+                  // }
+                 }else if(isMemberOfDeligation){
+                    IsFolderDeligationUser=true;
+                    console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
+                    if(createFileButton){
+                      createFileButton.style.display=  "none";
+                    }
+                    if(CreateFolder){
+                      CreateFolder.style.display="block";
+                    }
+                 }else {
+                    console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+                    if(createFileButton){
+                      createFileButton.style.display="none";
+                    }
+                    if(CreateFolder){
+                      CreateFolder.style.display="none";
+                    }
+                  
+              
+                   }
                 } catch (error) {
                   console.log(`User is not a member of the group: ${currentEntity}_Admin`);
-                  if (createFileButton) {
-                    createFileButton.style.display = "none";
+                  if(createFileButton){
+                    createFileButton.style.display="none";
                   }
-                  if (CreateFolder) {
-                    CreateFolder.style.display = "none";
+                  if(CreateFolder){
+                    CreateFolder.style.display="none";
                   }
-
-
+              
+                 
                 }
-              }
-              checkPermission()
+                }
+                checkPermission()
               // Prevent toggling visibility before the list is populated
               if (documentList.innerHTML === "") {
                 const key = `${entityTitle.trim()}::${devisionTitle.trim()}::${departmentTitle.trim()}`;
                 const documentLibraries = folderMap.get(key) || [];
-                documentList.innerHTML = "";
+                documentList.innerHTML = ""; 
                 const uniqueDocLibs = new Map();
 
                 documentLibraries.forEach((item: any) => {
@@ -1345,7 +1386,7 @@ const ArgPoc = ({ props }: any) => {
                     uniqueDocLibs.set(item.DocumentLibraryName, {
                       folders: [],
                       folderPath: item.FolderPath, // Store FolderPath
-                      External: item.External
+                      External:item.External 
                     });
                   }
                   uniqueDocLibs
@@ -1354,7 +1395,7 @@ const ArgPoc = ({ props }: any) => {
                 });
 
                 uniqueDocLibs.forEach((data, docLibName) => {
-                  console.log(uniqueDocLibs, "uniqueDocLibs")
+                  console.log(uniqueDocLibs , "uniqueDocLibs")
                   const docLibElement = document.createElement("li");
                   docLibElement.textContent = docLibName;
 
@@ -1373,7 +1414,7 @@ const ArgPoc = ({ props }: any) => {
                   //   "Entity Icon"
                   // );
                   // docLibElement.appendChild(entityImage);
-                  const toggleButton = createToggleButton();
+                  const toggleButton=createToggleButton();
                   docLibElement.appendChild(toggleButton);
                   docLibElement.appendChild(folderList);
 
@@ -1386,21 +1427,21 @@ const ArgPoc = ({ props }: any) => {
                     currentDocumentLibrary = docLibName;
                     currentDepartment = departmentTitle;
                     currentfolderpath = data.folderPath,
-                      IsExternal = data.IsExternal
+                    IsExternal=data.IsExternal
                     setcurrentSearchPath(RootsiteUrl + data.folderPath);
-                    currentFolder = ''
-                    console.log(data, data, "data")
-                    console.log("currentEntityURL", currentEntityURL);
-                    console.log("currentsiteID", currentsiteID);
-                    console.log("currentEntity", currentEntity);
-                    console.log("currentDevision", currentDevision);
-                    console.log("currentDepartment", currentDepartment);
-                    console.log("currentDocumentLibrary", currentDocumentLibrary);
-                    console.log("currentfolderpath", currentfolderpath);
-                    console.log("parentfolder", parentfolder);
-                    getdoclibdata(data.folderPath, value.siteID, docLibName)
-                    // handleNavigation(value.entityTitle, devisionTitle , departmentTitle , docLibName , null )
-                    updateBreadcrumb(currentfolderpath);
+                    currentFolder =''
+                    console.log(data, data  ,"data")
+                  console.log("currentEntityURL", currentEntityURL);
+                  console.log("currentsiteID", currentsiteID);
+                  console.log("currentEntity", currentEntity);
+                  console.log("currentDevision", currentDevision);
+                  console.log("currentDepartment", currentDepartment);
+                  console.log("currentDocumentLibrary", currentDocumentLibrary);
+                  console.log("currentfolderpath", currentfolderpath);
+                  console.log("parentfolder", parentfolder);
+                  getdoclibdata(data.folderPath , value.siteID , docLibName)
+                  // handleNavigation(value.entityTitle, devisionTitle , departmentTitle , docLibName , null )
+                  updateBreadcrumb(currentfolderpath);
                     console.log(
                       "FolderPath for document library:",
                       data.folderPath
@@ -1415,15 +1456,15 @@ const ArgPoc = ({ props }: any) => {
                     // } else {
                     //   console.error();
                     // }
-                    if (toggleButton.textContent === "+") {
+                    if(toggleButton.textContent === "+") {
                       toggleButton.textContent = "-";
-                    } else if (toggleButton.textContent) {
+                    }else if(toggleButton.textContent){
                       toggleButton.textContent = "+";
                     }
                   });
 
                   docLibElement.addEventListener("dblclick", (event) => {
-                    IsExternal = data.IsExternal
+                    IsExternal=data.IsExternal
                     event.stopPropagation();
                     toggleVisibility(folderList, false);
                   });
@@ -1432,69 +1473,71 @@ const ArgPoc = ({ props }: any) => {
                     parentElement: any
                   ) => {
                     data.folders.forEach((item: any) => {
-
+                  
                       const folderNamesArray = Array.isArray(item.FolderName)
-                        ? item.FolderName
-                        : [item.FolderName];
+                      ? [{ FolderName: item.FolderName[0], ID: item.ID }]
+                      :  [{ FolderName: item.FolderName, ID: item.ID }]
 
-                      folderNamesArray.forEach((folderName: any) => {
-
+                      folderNamesArray.forEach((ItemDetails: any) => {
+            
                         if (
-                          folderName &&
-                          item.ParentFolderId === parentFolderId
+                          ItemDetails.FolderName &&
+                          item.ParentID === parentFolderId
                         ) {
                           const folderElement = document.createElement("li");
-                          folderElement.textContent = folderName;
+                          // folderElement.textContent = folderName;
+                          folderElement.textContent = ItemDetails.FolderName;
                           parentElement.appendChild(folderElement);
                           // const entityImage = createImageElement(
                           //   "icons/entity-icon.png",
                           //   "Entity Icon"
                           // );
                           // folderElement.appendChild(entityImage);
-                          const toggleButton = createToggleButton();
+                          const toggleButton=createToggleButton();
                           folderElement.appendChild(toggleButton);
                           const subFolderList = document.createElement("ul");
                           subFolderList.style.display = "none";
                           folderElement.appendChild(subFolderList);
 
                           folderElement.addEventListener("click", (event) => {
-
+                            
                             currentEntityURL = value.siteURL;
                             currentEntity = value.entityTitle;
                             currentsiteID = value.siteID
                             currentDevision = devisionTitle;
                             currentDepartment = departmentTitle;
                             currentDocumentLibrary = docLibName;
-                            currentFolder = folderName
-                            IsExternal = item.External
-                            console.log("currentEntityURL", currentEntityURL);
-                            console.log("currentEntity", currentEntity);
-                            console.log("currentsiteID", currentsiteID);
-                            console.log("currentDevision", currentDevision);
-                            console.log("currentDepartment", currentDepartment);
-                            console.log("currentDocumentLibrary", currentDocumentLibrary);
-                            console.log("currentfolderpath", item.FolderPath);
-                            getdoclibdata(item.FolderPath, currentsiteID, docLibName)
-                            // handleNavigation(value.entityTitle, devisionTitle , departmentTitle , docLibName , folderName )
-                            updateBreadcrumb(item.FolderPath);
-                            //      const createFileButton=document.getElementById("createFileButton")
-                            // createFileButton.style.display="block";
-                            //      const createFileButton2=document.getElementById("createFileButton")
-                            // createFileButton2.style.display="block";
-                            //   if (myButton) {
-                            //     myButton.textContent = `Create Folder under ${folderName}`;
-                            //   } else {
-                            //     console.error();
-                            //   }
-                            if (toggleButton.textContent === "+") {
-                              toggleButton.textContent = "-";
-                            } else if (toggleButton.textContent) {
-                              toggleButton.textContent = "+";
-                            }
+                            // currentFolder = folderName
+                            currentFolder = ItemDetails.FolderName;
+                            IsExternal=item.External
+                          console.log("currentEntityURL", currentEntityURL);
+                          console.log("currentEntity", currentEntity);
+                          console.log("currentsiteID", currentsiteID);
+                          console.log("currentDevision", currentDevision);
+                          console.log("currentDepartment", currentDepartment);
+                          console.log("currentDocumentLibrary", currentDocumentLibrary);
+                          console.log("currentfolderpath", item.FolderPath);
+                          getdoclibdata(item.FolderPath,currentsiteID , docLibName)
+                          // handleNavigation(value.entityTitle, devisionTitle , departmentTitle , docLibName , folderName )
+                          updateBreadcrumb(item.FolderPath);
+                          //      const createFileButton=document.getElementById("createFileButton")
+                          // createFileButton.style.display="block";
+                          //      const createFileButton2=document.getElementById("createFileButton")
+                          // createFileButton2.style.display="block";
+                          //   if (myButton) {
+                          //     myButton.textContent = `Create Folder under ${folderName}`;
+                          //   } else {
+                          //     console.error();
+                          //   }
+                          if(toggleButton.textContent === "+") {
+                            toggleButton.textContent = "-";
+                          }else if(toggleButton.textContent){
+                            toggleButton.textContent = "+";
+                          }
                             event.stopPropagation();
                             toggleVisibility(subFolderList);
                             subFolderList.innerHTML = "";
-                            buildFolderStructure(folderName, subFolderList);
+                            buildFolderStructure(ItemDetails.ID, subFolderList);
                           });
                         }
                       });
@@ -1508,10 +1551,10 @@ const ArgPoc = ({ props }: any) => {
             });
 
             departmentElement.addEventListener("dblclick", (event) => {
-              if (value.isExternal === "Yes") {
-                IsExternal = true;
-              } else {
-                IsExternal = false
+              if(value.isExternal === "Yes"){
+                IsExternal=true;
+              }else{
+                IsExternal=false
               }
               event.stopPropagation();
               toggleVisibility(documentList, false);
@@ -1529,7 +1572,7 @@ const ArgPoc = ({ props }: any) => {
             documentLibraries.forEach((item: any) => {
               const normalizedDocLibName =
                 item.DocumentLibraryName.trim().toLowerCase();
-              console.log("item of doclib under division", item);
+                console.log("item of doclib under division",item);
 
               if (!uniqueDocLibNames.has(normalizedDocLibName)) {
                 uniqueDocLibNames.add(normalizedDocLibName);
@@ -1547,7 +1590,7 @@ const ArgPoc = ({ props }: any) => {
                 // End
                 // docLibElement.textContent = renameText;
                 docLibElement.textContent = item.DocumentLibraryName;
-
+                
                 departmentList.appendChild(docLibElement);
 
                 const folderList = document.createElement("ul");
@@ -1557,19 +1600,19 @@ const ArgPoc = ({ props }: any) => {
                 //   "Entity Icon"
                 // );
                 // docLibElement.appendChild(entityImage);
-                const toggleButton = createToggleButton();
+                const toggleButton=createToggleButton();
                 docLibElement.appendChild(toggleButton);
                 docLibElement.appendChild(folderList);
 
                 docLibElement.addEventListener("click", (event) => {
-
+                
                   event.stopPropagation();
                   currentEntityURL = value.siteURL; // Use the SiteURL from entitiesMap
                   currentsiteID = value.siteID
                   currentEntity = value.entityTitle
                   currentDevision = devisionTitle;
                   currentDepartment = ''
-                  currentFolder = ''
+                  currentFolder=''
                   currentDocumentLibrary = item.DocumentLibraryName;
                   currentfolderpath = item.FolderPath;
                   value.isExternal
@@ -1581,9 +1624,9 @@ const ArgPoc = ({ props }: any) => {
                   console.log("currentDepartment", currentDepartment);
                   console.log("currentDocumentLibrary", currentDocumentLibrary);
                   console.log("currentfolderpath", currentfolderpath);
-                  getdoclibdata(item.FolderPath, value.siteID, item.DocumentLibraryName)
+                  getdoclibdata(item.FolderPath , value.siteID , item.DocumentLibraryName)
                   // handleNavigation(value.entityTitle , devisionTitle, null , item.DocumentLibraryName )
-                  updateBreadcrumb(item.FolderPath);
+                  updateBreadcrumb(item.FolderPath );
                   // const createFileButton=document.getElementById("createFileButton")
                   // createFileButton.style.display="block";
                   // const createFileButton2=document.getElementById("createFileButton2")
@@ -1593,9 +1636,9 @@ const ArgPoc = ({ props }: any) => {
                   // } else {
                   //   console.error();
                   // }
-                  if (toggleButton.textContent === "+") {
+                  if(toggleButton.textContent === "+") {
                     toggleButton.textContent = "-";
-                  } else if (toggleButton.textContent) {
+                  }else if(toggleButton.textContent){
                     toggleButton.textContent = "+";
                   }
                   toggleVisibility(folderList);
@@ -1615,7 +1658,7 @@ const ArgPoc = ({ props }: any) => {
                       return img;
                     };
                     documentLibraries.forEach((libItem: any) => {
-
+                    
                       if (
                         libItem.DocumentLibraryName.trim().toLowerCase() ===
                         normalizedDocLibName
@@ -1623,26 +1666,29 @@ const ArgPoc = ({ props }: any) => {
                         const folderNamesArray = Array.isArray(
                           libItem.FolderName
                         )
-                          ? libItem.FolderName
-                          : [libItem.FolderName];
+                          // ? libItem.FolderName
+                          // : [libItem.FolderName];
+                          ? [{ FolderName: libItem.FolderName[0], ID: libItem.ID }]
+                          :  [{ FolderName: libItem.FolderName, ID: libItem.ID }]
 
-                        folderNamesArray.forEach((folderName: any) => {
-
+                        folderNamesArray.forEach((ItemDetails: any) => {
+                         
                           if (
-                            folderName &&
-                            libItem.ParentFolderId === parentFolderId
+                            ItemDetails.FolderName  &&
+                            libItem.ParentID === parentFolderId
                           ) {
                             // Only display non-null folder names
                             const folderElement2 = document.createElement("li");
-                            folderElement2.textContent = folderName;
+                            folderElement2.textContent = ItemDetails.FolderName;
+                            // folderElement2.textContent = folderName;
                             parentElement.appendChild(folderElement2);
-                            const folderPath = libItem.FolderPath;
+                            const folderPath = libItem.FolderPath; 
                             // const entityImage = createImageElement(
                             //   "icons/entity-icon.png",
                             //   "Entity Icon"
                             // );
                             // folderElement2.appendChild(entityImage);
-                            const toggleButton = createToggleButton();
+                            const toggleButton=createToggleButton();
                             folderElement2.appendChild(toggleButton);
                             const subFolderList2 = document.createElement("ul");
                             subFolderList2.style.display = "none";
@@ -1651,11 +1697,12 @@ const ArgPoc = ({ props }: any) => {
                             // folderElement2.appendChild(entityImage);
                             // subFolderList2.appendChild(entityImage);
                             folderElement2.appendChild(toggleButton)
-                            subFolderList2.appendChild(toggleButton)
+                             // commented below line to show the folder imgage on the left side of the folder name (Line n0 1527)
+                            //  subFolderList2.appendChild(toggleButton)
                             folderElement2.appendChild(subFolderList2);
 
                             folderElement2.addEventListener(
-
+                              
                               "click",
                               (event) => {
                                 currentEntityURL = value.siteURL; // Use the SiteURL from entitiesMap
@@ -1664,15 +1711,16 @@ const ArgPoc = ({ props }: any) => {
                                 currentDevision = devisionTitle;
                                 currentDepartment = null
                                 currentDocumentLibrary = item.DocumentLibraryName;
-                                currentFolder = folderName
-                                currentDepartment = ''
+                                // currentFolder = folderName
+                                currentFolder = ItemDetails.FolderName
+                                currentDepartment=''
                                 currentFolder = folderPath
-                                IsExternal = item.External;
+                                IsExternal=item.External;
                                 // currentfolderpath = item.FolderPath;
                                 parentfolder = parentFolderId
                                 console.log("currentEntityURL", currentEntityURL);
                                 console.log("currentsiteID", currentsiteID);
-
+                                
                                 console.log("currentEntity", currentEntity);
                                 console.log("currentDevision", currentDevision);
                                 console.log("currentDepartment", currentDepartment);
@@ -1685,7 +1733,7 @@ const ArgPoc = ({ props }: any) => {
                                 event.stopPropagation();
                                 toggleVisibility(subFolderList2);
                                 console.log("enter ee");
-                                getdoclibdata(folderPath, currentsiteID, item.DocumentLibraryName)
+                                getdoclibdata(folderPath,currentsiteID, item.DocumentLibraryName)
                                 //   const createFileButton=document.getElementById("createFileButton")
                                 // createFileButton.style.display="block";
                                 //   const createFileButton2=document.getElementById("createFileButton")
@@ -1695,9 +1743,9 @@ const ArgPoc = ({ props }: any) => {
                                 // } else {
                                 //   console.error();
                                 // }
-                                if (toggleButton.textContent === "+") {
+                                if(toggleButton.textContent === "+") {
                                   toggleButton.textContent = "-";
-                                } else if (toggleButton.textContent) {
+                                }else if(toggleButton.textContent){
                                   toggleButton.textContent = "+";
                                 }
                                 // Clear existing sub-folder list to avoid duplications
@@ -1705,7 +1753,7 @@ const ArgPoc = ({ props }: any) => {
 
                                 // Recursively build the sub-folder structure
                                 buildFolderStructure(
-                                  folderName,
+                                  ItemDetails.ID,
                                   subFolderList2
                                 );
                               }
@@ -1730,9 +1778,9 @@ const ArgPoc = ({ props }: any) => {
 
           devisionElement.addEventListener("click", (event) => {
 
-            const breadcrumbElement = document.getElementById("breadcrumb");
-            if (breadcrumbElement) {
-              breadcrumbElement.style.display = "none";
+            const breadcrumbElement=document.getElementById("breadcrumb");
+            if(breadcrumbElement){
+              breadcrumbElement.style.display="none";
             }
             event.stopPropagation();
             currentDevision = devisionTitle;
@@ -1741,12 +1789,12 @@ const ArgPoc = ({ props }: any) => {
             currentsiteID = value.siteID
             currentDepartment = ''
             currentDocumentLibrary = ''
-            currentFolder = ''
+            currentFolder =''
             currentfolderpath = ''
-            if (value.isExternal === "Yes") {
-              IsExternal = true
-            } else {
-              IsExternal = false
+            if(value.isExternal === "Yes"){
+              IsExternal=true
+            }else{
+              IsExternal=false
             }
             console.log("currentEntityURL", currentEntityURL);
             console.log("currentsiteID", currentsiteID);
@@ -1759,252 +1807,252 @@ const ArgPoc = ({ props }: any) => {
             toggleVisibility(departmentList);
             // Toggle plus/minus icon
             devisionElement.classList.remove("expanded");
-            // const //createFileButton=document.getElementById("createFileButton")
-            // createFileButton.style.display="block";
+             // const //createFileButton=document.getElementById("createFileButton")
+           // createFileButton.style.display="block";
             // if (myButton) {
             //   myButton.textContent = `Create Library under ${devisionTitle}`;
             // } else {
             //   console.error();
             // }
-            if (toggleButton.textContent === "+") {
+            if(toggleButton.textContent === "+") {
               toggleButton.textContent = "-";
-            } else if (toggleButton.textContent) {
+            }else if(toggleButton.textContent){
               toggleButton.textContent = "+";
             }
-            const checkPermission = async () => {
-              const CreateFolder = document.getElementById("CreateFolder")
-              const CreateRoot = document.getElementById("CreateFolder1")
-              const createFileButton = document.getElementById("createFileButton")
-              try {
-                const currentUser = await sp.web.currentUser();
-                const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
-                const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
-                const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
-                const isMemberOfDeligation = userGroups.some(group => group.Title === `${currentEntity}_FolderDeligation`);
-                console.log("isMemberOfDeligation", isMemberOfDeligation);
-                console.log("isMemberOfSuperAdmin", isMemberOfSuperAdmin);
-                console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
-                // console.log(`User is a member of the group: ${currentEntity}_Admin`);
-                if (isMemberOfGroup || isMemberOfSuperAdmin) {
-                  IsFolderDeligationUser = false;
-                  console.log(`User is a member of the group: ${currentEntity}_Admin`);
-                  if (createFileButton) {
-                    createFileButton.style.display = "none";
-                  }
-                  if (CreateFolder) {
-                    CreateFolder.style.display = "block";
-                  }
-                  // if(CreateRoot){
-                  //   CreateRoot.style.display="none";
-                  // }
-                } else if (isMemberOfDeligation) {
-                  IsFolderDeligationUser = true;
-                  console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
-                  if (createFileButton) {
-                    createFileButton.style.display = "none";
-                  }
-                  if (CreateFolder) {
-                    CreateFolder.style.display = "block";
-                  }
-                } else {
-                  console.log(`User is not a member of the group: ${currentEntity}_Admin`);
-                  if (createFileButton) {
-                    createFileButton.style.display = "none";
-                  }
-                  if (CreateFolder) {
-                    CreateFolder.style.display = "none";
-                  }
-
-
-                }
-              } catch (error) {
-                console.log(`User is not a member of the group: ${currentEntity}_Admin`);
-                if (createFileButton) {
-                  createFileButton.style.display = "none";
-                }
-                if (CreateFolder) {
-                  CreateFolder.style.display = "none";
-                }
-
-
+            const checkPermission=async()=>{
+            const CreateFolder=document.getElementById("CreateFolder")
+            const CreateRoot=document.getElementById("CreateFolder1")
+            const createFileButton=document.getElementById("createFileButton")
+            try {
+              const currentUser = await sp.web.currentUser();
+              const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+              const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
+              const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
+              const isMemberOfDeligation = userGroups.some(group => group.Title === `${currentEntity}_FolderDeligation`);
+              console.log("isMemberOfDeligation",isMemberOfDeligation);
+              console.log("isMemberOfSuperAdmin",isMemberOfSuperAdmin);
+              console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
+              // console.log(`User is a member of the group: ${currentEntity}_Admin`);
+              if (isMemberOfGroup || isMemberOfSuperAdmin) {
+                IsFolderDeligationUser=false;
+              console.log(`User is a member of the group: ${currentEntity}_Admin`);
+              if(createFileButton){
+                createFileButton.style.display=  "none";
               }
+              if(CreateFolder){
+                CreateFolder.style.display="block";
+              }
+              // if(CreateRoot){
+              //   CreateRoot.style.display="none";
+              // }
+             }else if(isMemberOfDeligation){
+                IsFolderDeligationUser=true;
+                console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
+                if(createFileButton){
+                  createFileButton.style.display=  "none";
+                }
+                if(CreateFolder){
+                  CreateFolder.style.display="block";
+                }
+             }else {
+                console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+                if(createFileButton){
+                  createFileButton.style.display="none";
+                }
+                if(CreateFolder){
+                  CreateFolder.style.display="none";
+                }
+              
+          
+               }
+            } catch (error) {
+              console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+              if(createFileButton){
+                createFileButton.style.display="none";
+              }
+              if(CreateFolder){
+                CreateFolder.style.display="none";
+              }
+          
+             
+            }
             }
             checkPermission()
           });
 
           devisionElement.addEventListener("dblclick", (event) => {
-            if (value.isExternal === "Yes") {
-              IsExternal = true
-            } else {
-              IsExternal = false
+            if(value.isExternal === "Yes"){
+              IsExternal=true
+            }else{
+              IsExternal=false
             }
             event.stopPropagation();
             toggleVisibility(departmentList, false);
             // Toggle plus/minus icon
             devisionElement.classList.remove("expanded");
-            const checkPermission = async () => {
-              const CreateFolder = document.getElementById("CreateFolder")
-              const CreateRoot = document.getElementById("CreateFolder1")
-              const createFileButton = document.getElementById("createFileButton")
+            const checkPermission=async()=>{
+              const CreateFolder=document.getElementById("CreateFolder")
+              const CreateRoot=document.getElementById("CreateFolder1")
+              const createFileButton=document.getElementById("createFileButton")
               try {
                 const currentUser = await sp.web.currentUser();
                 const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
                 const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
                 const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
                 const isMemberOfDeligation = userGroups.some(group => group.Title === `${currentEntity}_FolderDeligation`);
-                console.log("isMemberOfDeligation", isMemberOfDeligation);
-                console.log("isMemberOfSuperAdmin", isMemberOfSuperAdmin);
+                console.log("isMemberOfDeligation",isMemberOfDeligation);
+                console.log("isMemberOfSuperAdmin",isMemberOfSuperAdmin);
                 console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
                 // console.log(`User is a member of the group: ${currentEntity}_Admin`);
                 if (isMemberOfGroup || isMemberOfSuperAdmin) {
-                  IsFolderDeligationUser = false;
-                  console.log(`User is a member of the group: ${currentEntity}_Admin`);
-                  if (createFileButton) {
-                    createFileButton.style.display = "none";
-                  }
-                  if (CreateFolder) {
-                    CreateFolder.style.display = "block";
-                  }
-                  // if(CreateRoot){
-                  //   CreateRoot.style.display="none";
-                  // }
-                } else if (isMemberOfDeligation) {
-                  IsFolderDeligationUser = true;
-                  console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
-                  if (createFileButton) {
-                    createFileButton.style.display = "none";
-                  }
-                  if (CreateFolder) {
-                    CreateFolder.style.display = "block";
-                  }
-                } else {
-                  console.log(`User is not a member of the group: ${currentEntity}_Admin`);
-                  if (createFileButton) {
-                    createFileButton.style.display = "none";
-                  }
-                  if (CreateFolder) {
-                    CreateFolder.style.display = "none";
-                  }
-
-
+                  IsFolderDeligationUser=false;
+                console.log(`User is a member of the group: ${currentEntity}_Admin`);
+                if(createFileButton){
+                  createFileButton.style.display=  "none";
                 }
+                if(CreateFolder){
+                  CreateFolder.style.display="block";
+                }
+                // if(CreateRoot){
+                //   CreateRoot.style.display="none";
+                // }
+               }else if(isMemberOfDeligation){
+                  IsFolderDeligationUser=true;
+                  console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
+                  if(createFileButton){
+                    createFileButton.style.display=  "none";
+                  }
+                  if(CreateFolder){
+                    CreateFolder.style.display="block";
+                  }
+               }else {
+                  console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+                  if(createFileButton){
+                    createFileButton.style.display="none";
+                  }
+                  if(CreateFolder){
+                    CreateFolder.style.display="none";
+                  }
+                
+            
+                 }
               } catch (error) {
                 console.log(`User is not a member of the group: ${currentEntity}_Admin`);
-                if (createFileButton) {
-                  createFileButton.style.display = "none";
+                if(createFileButton){
+                  createFileButton.style.display="none";
                 }
-                if (CreateFolder) {
-                  CreateFolder.style.display = "none";
+                if(CreateFolder){
+                  CreateFolder.style.display="none";
                 }
-
-
+            
+               
               }
-            }
-            checkPermission()
+              }
+              checkPermission()
           });
         });
 
-        let clickTimer: any;
-        titleElement.addEventListener("click", async (event) => {
-
-          if (entityclicktext !== '') {
-
-            const breadcrumbElement = document.getElementById("breadcrumb");
-            if (breadcrumbElement) {
-              breadcrumbElement.style.display = "block";
+        let clickTimer:any;
+        titleElement.addEventListener("click" , async (event)=>{
+        
+          if(entityclicktext !== ''){
+     
+            const breadcrumbElement=document.getElementById("breadcrumb");
+            if(breadcrumbElement){
+              breadcrumbElement.style.display="block";
               breadcrumbElement.textContent = entityclicktext;
             }
-          } else {
-
-            const breadcrumbElement = document.getElementById("breadcrumb");
-            if (breadcrumbElement) {
-              breadcrumbElement.style.display = "none";
+          }else{
+  
+            const breadcrumbElement=document.getElementById("breadcrumb");
+            if(breadcrumbElement){
+              breadcrumbElement.style.display="none";
             }
-
+           
           }
           // setdisplayuploadfileandcreatefolder(true)
 
           // new code added.
-          // toggle createfolder button based on the permission
-          // Get the users in the group
-          // const subsiteContext=await sp.site.openWebById(value.siteID);
-          // const usersFromAdmin = await subsiteContext.web.siteGroups.getByName(`${value.entityTitle}_Admin`).users();
-          // const usersFromInitiator=await subsiteContext.web.siteGroups.getByName(`${value.entityTitle}_Initiator`).users();
-          // console.log("usersFromAdmin",usersFromAdmin);
-          // console.log("usersFromInitiator",usersFromInitiator);
-          // const CreateFolder=document.getElementById("CreateFolder")
-          // const createFileButton=document.getElementById("createFileButton")
-          // try {
-          //   const currentUser = await sp.web.currentUser();
-          //   const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
-          //   const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
-          //   const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
-          //   console.log("isMemberOfSuperAdmin",isMemberOfSuperAdmin);
-          //   console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
-          //   // console.log(`User is a member of the group: ${currentEntity}_Admin`);
-          //   if (isMemberOfGroup || isMemberOfSuperAdmin) {
-          //   console.log(`User is a member of the group: ${currentEntity}_Admin`);
-          //   if(createFileButton){
-          //     createFileButton.style.display=  "none";
-          //   }
-          //   if(CreateFolder){
-          //     CreateFolder.style.display="block";
-          //   }
-          //  }else {
-          //     console.log(`User is not a member of the group: ${currentEntity}_Admin`);
-          //     if(createFileButton){
-          //       createFileButton.style.display="none";
-          //     }
-          //     if(CreateFolder){
-          //       CreateFolder.style.display="none";
-          //     }
-
-
-          //    }
-          // } catch (error) {
-          //   console.log(`User is not a member of the group: ${currentEntity}_Admin`);
-          //   if(createFileButton){
-          //     createFileButton.style.display="none";
-          //   }
-          //   if(CreateFolder){
-          //     CreateFolder.style.display="none";
-          //   }
-
-
-          // }
+                // toggle createfolder button based on the permission
+                // Get the users in the group
+                // const subsiteContext=await sp.site.openWebById(value.siteID);
+                // const usersFromAdmin = await subsiteContext.web.siteGroups.getByName(`${value.entityTitle}_Admin`).users();
+                // const usersFromInitiator=await subsiteContext.web.siteGroups.getByName(`${value.entityTitle}_Initiator`).users();
+                // console.log("usersFromAdmin",usersFromAdmin);
+                // console.log("usersFromInitiator",usersFromInitiator);
+                // const CreateFolder=document.getElementById("CreateFolder")
+                // const createFileButton=document.getElementById("createFileButton")
+                // try {
+                //   const currentUser = await sp.web.currentUser();
+                //   const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+                //   const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
+                //   const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
+                //   console.log("isMemberOfSuperAdmin",isMemberOfSuperAdmin);
+                //   console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
+                //   // console.log(`User is a member of the group: ${currentEntity}_Admin`);
+                //   if (isMemberOfGroup || isMemberOfSuperAdmin) {
+                //   console.log(`User is a member of the group: ${currentEntity}_Admin`);
+                //   if(createFileButton){
+                //     createFileButton.style.display=  "none";
+                //   }
+                //   if(CreateFolder){
+                //     CreateFolder.style.display="block";
+                //   }
+                //  }else {
+                //     console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+                //     if(createFileButton){
+                //       createFileButton.style.display="none";
+                //     }
+                //     if(CreateFolder){
+                //       CreateFolder.style.display="none";
+                //     }
+                  
+              
+                //    }
+                // } catch (error) {
+                //   console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+                //   if(createFileButton){
+                //     createFileButton.style.display="none";
+                //   }
+                //   if(CreateFolder){
+                //     CreateFolder.style.display="none";
+                //   }
+              
+                 
+                // }
         })
-        titleElement.addEventListener("click", async (event) => {
-          if (entityclicktext !== '') {
-
-            const breadcrumbElement = document.getElementById("breadcrumb");
-            if (breadcrumbElement) {
-              breadcrumbElement.style.display = "block";
+        titleElement.addEventListener("click", async(event) => {
+          if(entityclicktext !== ''){
+       
+            const breadcrumbElement=document.getElementById("breadcrumb");
+            if(breadcrumbElement){
+              breadcrumbElement.style.display="block";
               breadcrumbElement.textContent = entityclicktext;
             }
-          } else {
-
-            const breadcrumbElement = document.getElementById("breadcrumb");
-            if (breadcrumbElement) {
-              breadcrumbElement.style.display = "none";
+          }else{
+      
+            const breadcrumbElement=document.getElementById("breadcrumb");
+            if(breadcrumbElement){
+              breadcrumbElement.style.display="none";
             }
-
+           
           }
-
-
+       
+         
           setdisplayuploadfileandcreatefolder(true)
-
+  
           // Toggle +/- button
-          // const plusMinus = document.getElementById("toggle-plus/minus");
-          if (toggleButton1.textContent === "+") {
-            toggleButton1.textContent = "-";
-          } else if (toggleButton1.textContent) {
-            toggleButton1.textContent = "+";
-          }
-          const CreateFolder = document.getElementById("CreateFolder")
-          const CreateRoot = document.getElementById("CreateFolder1")
-          const createFileButton = document.getElementById("createFileButton")
-          const currentUser = await sp.web.currentUser();
-          const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+                // const plusMinus = document.getElementById("toggle-plus/minus");
+                if(toggleButton1.textContent === "+") {
+                  toggleButton1.textContent = "-";
+                }else if(toggleButton1.textContent){
+                  toggleButton1.textContent = "+";
+                }
+                const CreateFolder=document.getElementById("CreateFolder")
+                const CreateRoot=document.getElementById("CreateFolder1")
+                const createFileButton=document.getElementById("createFileButton")
+                const currentUser = await sp.web.currentUser();
+                const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
           // try {
           //   // const currentUser = await sp.web.currentUser();
           //   // const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
@@ -2029,8 +2077,8 @@ const ArgPoc = ({ props }: any) => {
           //     if(CreateFolder){
           //       CreateFolder.style.display="none";
           //     }
-
-
+            
+        
           //    }
           // } catch (error) {
           //   console.log(`User is not a member of the group: ${currentEntity}_Admin`);
@@ -2040,197 +2088,197 @@ const ArgPoc = ({ props }: any) => {
           //   if(CreateFolder){
           //     CreateFolder.style.display="none";
           //   }
-
-
+        
+           
           // }
-          event.stopPropagation();
-          // const createFileButton2 = document.getElementById("createFileButton2");
-          // Clear any existing timer
-          clearTimeout(clickTimer);
-
-          // Set a new timer
-          clickTimer = setTimeout(() => {
-            setlistorgriddata('');
-            currentEntity = value.entityTitle
-            currentEntityURL = value.siteURL;
-            currentsiteID = value.siteID;
-            currentDevision = ""
-            currentDepartment = ''
-            currentDocumentLibrary = ""
-            currentFolder = ""
-            currentfolderpath = ""
-            if (value.isExternal === "Yes") {
-              IsExternal = true
-            } else if (value.isExternal === "No") {
-              IsExternal = false
-            }
-            console.log(value.entityTitle, "value");
-            console.log(currentsiteID, "currentsiteID");
-            console.log("currentEntityURL", currentEntityURL);
-            setcurrentSearchPath(currentEntityURL);
-            mydata.push(value.siteURL);
-            console.log(mydata, "my mydata");
-            toggleVisibility(devisionList);
-            toggleVisibility(documentList);
-            const hidegidvewlistviewbutton = document.getElementById("hidegidvewlistviewbutton");
-            const hidegidvewlistviewbutton2 = document.getElementById("hidegidvewlistviewbutton2");
-            if (hidegidvewlistviewbutton) {
-              console.log("enter here .....................");
-              hidegidvewlistviewbutton.style.display = 'none';
-            }
-            if (hidegidvewlistviewbutton2) {
-              console.log("enter here .....................");
-              hidegidvewlistviewbutton2.style.display = 'none';
-            }
-            // handleNavigation(value.entityTitle, null, null, null, null);
-            // Toggle plus/minus icon
-            titleElement.classList.toggle("expanded");
-            console.log(value, "value");
+            event.stopPropagation();
+            // const createFileButton2 = document.getElementById("createFileButton2");
+            // Clear any existing timer
+            clearTimeout(clickTimer);
+        
+            // Set a new timer
+            clickTimer = setTimeout(() => {
+                setlistorgriddata('');
+                currentEntity= value.entityTitle
+                currentEntityURL = value.siteURL;
+                currentsiteID = value.siteID;
+                currentDevision=""
+            currentDepartment =''
+                currentDocumentLibrary=""
+                currentFolder=""
+                currentfolderpath=""
+                if(value.isExternal === "Yes"){
+                  IsExternal=true
+                }else if(value.isExternal === "No"){
+                  IsExternal=false
+                }
+                console.log(value.entityTitle, "value");
+                console.log(currentsiteID, "currentsiteID");
+                console.log("currentEntityURL", currentEntityURL);
+                setcurrentSearchPath(currentEntityURL);
+                mydata.push(value.siteURL);
+                console.log(mydata, "my mydata");
+                toggleVisibility(devisionList);
+                toggleVisibility(documentList);
+                const hidegidvewlistviewbutton = document.getElementById("hidegidvewlistviewbutton");
+                const hidegidvewlistviewbutton2 = document.getElementById("hidegidvewlistviewbutton2");
+                if (hidegidvewlistviewbutton) {
+                    console.log("enter here .....................");
+                    hidegidvewlistviewbutton.style.display = 'none';
+                }
+                if (hidegidvewlistviewbutton2) {
+                    console.log("enter here .....................");
+                    hidegidvewlistviewbutton2.style.display = 'none';
+                }
+                // handleNavigation(value.entityTitle, null, null, null, null);
+                // Toggle plus/minus icon
+                titleElement.classList.toggle("expanded");
+                console.log(value, "value");
+                try {
+                  // const currentUser = await sp.web.currentUser();
+                  // const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+                  const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
+                  const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
+                  const isMemberOfDeligation = userGroups.some(group => group.Title === `${currentEntity}_FolderDeligation`);
+                  console.log("isMemberOfDeligation",isMemberOfDeligation);
+                  console.log("isMemberOfSuperAdmin",isMemberOfSuperAdmin);
+                  console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
+                  // console.log(`User is a member of the group: ${currentEntity}_Admin`);
+                  if (isMemberOfGroup || isMemberOfSuperAdmin) {
+                    IsFolderDeligationUser=false;
+                  console.log(`User is a member of the group: ${currentEntity}_Admin`);
+                  if(createFileButton){
+                    createFileButton.style.display=  "none";
+                  }
+                  if(CreateFolder){
+                    CreateFolder.style.display="block";
+                  }
+                  // if(CreateRoot){
+                  //   CreateRoot.style.display="none";
+                  // }
+                 }else if(isMemberOfDeligation){
+                    IsFolderDeligationUser=true;
+                    console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
+                    if(createFileButton){
+                      createFileButton.style.display=  "none";
+                    }
+                    if(CreateFolder){
+                      CreateFolder.style.display="block";
+                    }
+                 }else {
+                    console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+                    if(createFileButton){
+                      createFileButton.style.display="none";
+                    }
+                    if(CreateFolder){
+                      CreateFolder.style.display="none";
+                    }
+                  
+              
+                   }
+                } catch (error) {
+                  console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+                  if(createFileButton){
+                    createFileButton.style.display="none";
+                  }
+                  if(CreateFolder){
+                    CreateFolder.style.display="none";
+                  }
+              
+                 
+                }
+                // const CreateFolder=document.getElementById("CreateFolder")
+                // const createFileButton=document.getElementById("createFileButton")
+                // if (createFolderButton) {
+                //     createFolderButton.style.display = "block";
+                // }
+                // if (createFileButton) {
+                //     createFileButton.style.display = "none";
+                // }
+                // if (CreateFolder) {
+                //   CreateFolder.style.display = "block";
+                // }
+                // if (myButton) {
+                //     myButton.textContent = `Create Library under ${entityTitle}`;
+                // } else {
+                //     console.error();
+                // }
+                // fetchData(currentEntityURL);
+            }, 300); // Adjust the delay as needed
+        });
+        
+        titleElement.addEventListener("dblclick", async (event) => {
+          const breadcrumbElement=document.getElementById("breadcrumb");
+          if(breadcrumbElement){
+            breadcrumbElement.style.display="none";
+          }
+          
+          setdisplayuploadfileandcreatefolder(true)
+            event.stopPropagation();
+            const CreateFolder=document.getElementById("CreateFolder")
+            const createFileButton=document.getElementById("createFileButton")
             try {
-              // const currentUser = await sp.web.currentUser();
-              // const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+              const currentUser = await sp.web.currentUser();
+              const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
               const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
               const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
               const isMemberOfDeligation = userGroups.some(group => group.Title === `${currentEntity}_FolderDeligation`);
-              console.log("isMemberOfDeligation", isMemberOfDeligation);
-              console.log("isMemberOfSuperAdmin", isMemberOfSuperAdmin);
+              console.log("isMemberOfSuperAdmin",isMemberOfSuperAdmin);
               console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
               // console.log(`User is a member of the group: ${currentEntity}_Admin`);
               if (isMemberOfGroup || isMemberOfSuperAdmin) {
-                IsFolderDeligationUser = false;
-                console.log(`User is a member of the group: ${currentEntity}_Admin`);
-                if (createFileButton) {
-                  createFileButton.style.display = "none";
-                }
-                if (CreateFolder) {
-                  CreateFolder.style.display = "block";
-                }
-                // if(CreateRoot){
-                //   CreateRoot.style.display="none";
-                // }
-              } else if (isMemberOfDeligation) {
-                IsFolderDeligationUser = true;
-                console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
-                if (createFileButton) {
-                  createFileButton.style.display = "none";
-                }
-                if (CreateFolder) {
-                  CreateFolder.style.display = "block";
-                }
-              } else {
-                console.log(`User is not a member of the group: ${currentEntity}_Admin`);
-                if (createFileButton) {
-                  createFileButton.style.display = "none";
-                }
-                if (CreateFolder) {
-                  CreateFolder.style.display = "none";
-                }
-
-
+                IsFolderDeligationUser=false;
+              console.log(`User is a member of the group: ${currentEntity}_Admin`);
+              if(createFileButton){
+                createFileButton.style.display=  "none";
               }
+              if(CreateFolder){
+                CreateFolder.style.display="block";
+              }
+             }else if(isMemberOfDeligation){
+              IsFolderDeligationUser=true;
+              console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
+              if(createFileButton){
+                createFileButton.style.display=  "none";
+              }
+              if(CreateFolder){
+                CreateFolder.style.display="block";
+              }
+           }else {
+                console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+                if(createFileButton){
+                  createFileButton.style.display="none";
+                }
+                if(CreateFolder){
+                  CreateFolder.style.display="none";
+                }
+              
+          
+               }
             } catch (error) {
               console.log(`User is not a member of the group: ${currentEntity}_Admin`);
-              if (createFileButton) {
-                createFileButton.style.display = "none";
+              if(createFileButton){
+                createFileButton.style.display="none";
               }
-              if (CreateFolder) {
-                CreateFolder.style.display = "none";
+              if(CreateFolder){
+                CreateFolder.style.display="none";
               }
-
-
+          
+             
             }
-            // const CreateFolder=document.getElementById("CreateFolder")
-            // const createFileButton=document.getElementById("createFileButton")
-            // if (createFolderButton) {
-            //     createFolderButton.style.display = "block";
-            // }
-            // if (createFileButton) {
-            //     createFileButton.style.display = "none";
-            // }
-            // if (CreateFolder) {
-            //   CreateFolder.style.display = "block";
-            // }
-            // if (myButton) {
-            //     myButton.textContent = `Create Library under ${entityTitle}`;
-            // } else {
-            //     console.error();
-            // }
-            // fetchData(currentEntityURL);
-          }, 300); // Adjust the delay as needed
-        });
-
-        titleElement.addEventListener("dblclick", async (event) => {
-          const breadcrumbElement = document.getElementById("breadcrumb");
-          if (breadcrumbElement) {
-            breadcrumbElement.style.display = "none";
-          }
-
-          setdisplayuploadfileandcreatefolder(true)
-          event.stopPropagation();
-          const CreateFolder = document.getElementById("CreateFolder")
-          const createFileButton = document.getElementById("createFileButton")
-          try {
-            const currentUser = await sp.web.currentUser();
-            const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
-            const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
-            const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
-            const isMemberOfDeligation = userGroups.some(group => group.Title === `${currentEntity}_FolderDeligation`);
-            console.log("isMemberOfSuperAdmin", isMemberOfSuperAdmin);
-            console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
-            // console.log(`User is a member of the group: ${currentEntity}_Admin`);
-            if (isMemberOfGroup || isMemberOfSuperAdmin) {
-              IsFolderDeligationUser = false;
-              console.log(`User is a member of the group: ${currentEntity}_Admin`);
-              if (createFileButton) {
-                createFileButton.style.display = "none";
-              }
-              if (CreateFolder) {
-                CreateFolder.style.display = "block";
-              }
-            } else if (isMemberOfDeligation) {
-              IsFolderDeligationUser = true;
-              console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
-              if (createFileButton) {
-                createFileButton.style.display = "none";
-              }
-              if (CreateFolder) {
-                CreateFolder.style.display = "block";
-              }
-            } else {
-              console.log(`User is not a member of the group: ${currentEntity}_Admin`);
-              if (createFileButton) {
-                createFileButton.style.display = "none";
-              }
-              if (CreateFolder) {
-                CreateFolder.style.display = "none";
-              }
-
-
+            if(value.isExternal === "Yes"){
+              IsExternal=true
+            }else if(value.isExternal === "No"){
+              IsExternal=false
             }
-          } catch (error) {
-            console.log(`User is not a member of the group: ${currentEntity}_Admin`);
-            if (createFileButton) {
-              createFileButton.style.display = "none";
-            }
-            if (CreateFolder) {
-              CreateFolder.style.display = "none";
-            }
-
-
-          }
-          if (value.isExternal === "Yes") {
-            IsExternal = true
-          } else if (value.isExternal === "No") {
-            IsExternal = false
-          }
-          // Clear the single click timer
-          clearTimeout(clickTimer);
-
-          setlistorgriddata('');
-          toggleVisibility(devisionList, false);
-          toggleVisibility(documentList, false);
-          // Toggle plus/minus icon
-          titleElement.classList.remove("expanded");
+            // Clear the single click timer
+            clearTimeout(clickTimer);
+        
+            setlistorgriddata('');
+            toggleVisibility(devisionList, false);
+            toggleVisibility(documentList, false);
+            // Toggle plus/minus icon
+            titleElement.classList.remove("expanded");
         });
       });
     } catch (error) {
@@ -2241,6 +2289,1604 @@ const ArgPoc = ({ props }: any) => {
     fetchNavItems();
     fetchAndBuildTree2();
   }, [])
+  // const fetchAndBuildTree2 = async () => {
+  //   event.preventDefault()
+  //   event.stopImmediatePropagation()
+  //   event.stopPropagation()
+  //   try {
+  //     //Old working code
+  //     //  Fetch data from EntityDivisionDepartmentMappingMasterList
+  //     const entityItems = await sp.web.lists
+  //       .getByTitle("EntityDivisionDepartmentMappingMasterList")
+  //       .items.select(
+  //         "Entitylookup/Title, Entitylookup/SiteURL", "Entitylookup/SiteID", "Entitylookup/IsExternal",
+  //         "Devisionlookup/Title",
+  //         "Departmentlookup/Title",
+  //         "Devisionlookup/Active",
+  //         "Departmentlookup/Active"
+  //       )
+  //       .expand("Entitylookup", "Devisionlookup", "Departmentlookup")
+  //       .filter("Entitylookup/Active eq 'Yes'")();
+  //     console.log(entityItems, "entityItems 1")
+  //     const uniqueEntityMap = new Map();
+  //     const uniqueEntitiesWithAccess: any = [];
+
+  //     // Loop through each item and check permissions
+  //     for (const item of entityItems) {
+  //       const entityTitle = item.Entitylookup.Title;
+  //       try {
+  //         const subsiteWeb = await sp.site.openWebById(item.Entitylookup.SiteID);
+  //         const hasAccess = await subsiteWeb.web.currentUserHasPermissions(PermissionKind.ViewListItems);
+
+  //         if (hasAccess) {
+  //           // Add to uniqueEntitiesWithAccess only if user has access
+  //           uniqueEntityMap.set(entityTitle, item); // Store the item or any required data
+  //           uniqueEntitiesWithAccess.push(item);  // Add the item to the list of entities with access
+  //           console.log(`User has access to site: ${entityTitle}`, item);
+  //         } else {
+  //           console.log(`User does not have access to site: ${entityTitle}`);
+  //         }
+  //       } catch (error) {
+  //         console.error(`Error while checking access for site: ${entityTitle}`, error);
+  //       }
+  //     }
+  //     console.log(uniqueEntityMap, "uniqueEntityMap ......")
+  //     console.log(uniqueEntitiesWithAccess, "uniqueEntitiesWithAccess");
+  //     /// New Code 
+
+
+  //     // Fetch data from DMSFolderMaster
+  //     const folderItems = await sp.web.lists
+  //       .getByTitle("DMSFolderMaster").items.filter("IsActive eq 1").select("*").getAll();
+  //     console.log("folderItems", folderItems);
+
+  //     // const myButton = document.getElementById("mybutton");
+  //     //      const createFileButton=document.getElementById("createFileButton");
+  //     //      const createFileButton2=document.getElementById("createFileButton2");
+  //     //            const createFolderButton=document.getElementById("createFolderButton");
+  //     // Create a map to hold folder data by SiteTitle, Devision, Department
+  //     const folderMap = new Map();
+  //     folderItems.forEach((folderItem) => {
+  //       const {
+  //         SiteTitle,
+  //         Devision,
+  //         Department,
+  //         DocumentLibraryName,
+  //         FolderName,
+  //         ParentFolderId,
+  //         FolderPath,
+  //         IsRename,
+  //         IsActive,
+  //         External
+  //       } = folderItem;
+  //       if (SiteTitle) {
+  //         const key = `${SiteTitle.trim()}::${Devision?.trim() || ""}::${Department?.trim() || ""
+  //           }`;
+  //         if (!folderMap.has(key)) {
+  //           folderMap.set(key, []);
+  //         }
+  //         if (DocumentLibraryName) {
+  //           folderMap
+  //             .get(key)
+  //             .push({
+  //               IsRename,
+  //               FolderPath,
+  //               ParentFolderId,
+  //               DocumentLibraryName,
+  //               IsActive,
+  //               External,
+  //               FolderName: Array.isArray(FolderName)
+  //                 ? FolderName
+  //                 : [FolderName],
+  //             });
+  //         }
+  //       }
+  //     });
+  //     // console.log(folderMap, "folderMap");
+  //     // const entitiesMap = new Map();
+  //     const entitiesMap: any = new Map();
+
+  //     uniqueEntitiesWithAccess.forEach((item: any) => {
+  //       const entityTitle = item.Entitylookup.Title;
+  //       const siteURL = item.Entitylookup.SiteURL;
+  //       const siteID = item.Entitylookup.SiteID;
+  //       const isExternal = item.Entitylookup.IsExternal;
+  //       if (!entitiesMap.has(entityTitle)) {
+  //         entitiesMap.set(entityTitle, {
+  //           siteURL: siteURL,
+  //           entityTitle: entityTitle,
+  //           siteID: siteID,
+  //           isExternal: isExternal,
+  //           devisions: new Map(),
+  //         });
+  //       }
+
+  //       const entry = entitiesMap.get(entityTitle);
+  //       const devisionTitle = item.Devisionlookup?.Title;
+  //       const departmentTitle = item.Departmentlookup?.Title;
+  //       const isDevisionActive = item.Devisionlookup?.Active === "Yes";
+  //       const isDepartmentActive = item.Departmentlookup?.Active === "Yes";
+
+  //       if (devisionTitle && isDevisionActive) {
+  //         if (!entry.devisions.has(devisionTitle)) {
+  //           entry.devisions.set(devisionTitle, {
+  //             departments: new Set(),
+  //             docLibs: new Set(),
+  //           });
+  //         }
+  //         const devisionEntry = entry.devisions.get(devisionTitle);
+  //         if (departmentTitle && isDepartmentActive) {
+  //           devisionEntry.departments.add(departmentTitle);
+  //         } else if (!departmentTitle || !isDepartmentActive) {
+  //           const nullDeptKey = `${entityTitle.trim()}::${devisionTitle.trim()}::`;
+  //           // Handle case where department is null or inactive
+  //         }
+  //       }
+  //     });
+  //     const buildFolderStructure = (
+  //       folderList: HTMLElement,
+  //       folders: any[],
+  //       parentFolderId: string | null
+  //     ) => {
+  //       const filteredFolders = folders.filter(
+  //         (folder) => folder.ParentFolderId === parentFolderId
+  //       );
+  //       filteredFolders.forEach((folder) => {
+  //         const folderElement = document.createElement("li");
+  //         folderElement.textContent = folder.FolderName;
+  //         folderList.appendChild(folderElement);
+
+  //         const childFolderList = document.createElement("ul");
+  //         childFolderList.style.display = "none";
+  //         folderElement.appendChild(childFolderList);
+
+  //         folderElement.addEventListener("click", (event) => {
+  //           event.stopPropagation();
+  //           // currentFolder = folder.FolderName;
+  //           toggleVisibility(childFolderList);
+  //         });
+
+  //         // Recursively build the structure for subfolders
+  //         buildFolderStructure(childFolderList, folders, folder.FolderName);
+  //       });
+  //     };
+  //     // Build the folder tree structure in the DOM
+  //     const container = document.getElementById("folderContainer2");
+
+  //     if (container) {
+  //       container.innerHTML = ""; // Clear previous contents
+  //     } else {
+  //       console.error("Container element not found");
+  //     }
+  //     // container.innerHTML = ''; // Clear previous contents
+
+  //     const toggleVisibility = (element: any, forceShow = false) => {
+  //       const isVisible = element.style.display === "block";
+  //       element.style.display = isVisible && !forceShow ? "none" : "block";
+  //     };
+  //     const createImageElement = (src: string, alt: string) => {
+  //       const img = document.createElement("img");
+  //       img.src = require("../assets/add-folder.png");
+  //       img.alt = alt;
+  //       img.style.float = "left";
+  //       img.style.width = "20px"; // Adjust the size as needed
+  //       img.style.height = "20px"; // Adjust the size as needed
+  //       img.style.marginRight = "5px"; // Space between image and text
+  //       return img;
+  //     };
+  //     //     const createToggleButton = () => {
+  //     //     const link = document.createElement("a");
+  //     //     link.textContent = "+"; // Initial text
+  //     //     link.className="toggle-button"
+  //     //     link.style.cursor = "pointer";
+  //     //     link.style.textDecoration = "none";
+
+  //     //     link.addEventListener("click", (e) => {
+  //     //         e.preventDefault()
+  //     //         console.log("Button clicked +/-");
+  //     //         if (link.textContent === "+") {
+  //     //             link.textContent = "-"; // Change to minus when content is visible
+  //     //         } else if(link.textContent){
+  //     //             link.textContent = "+"; // Change to plus when content is hidden
+  //     //         }
+  //     //     });
+
+  //     //     return link;
+  //     // };
+  //     const createToggleButton = () => {
+  //       const link = document.createElement("a");
+  //       link.id = "toggle-plus/minus";
+  //       link.textContent = "+"; // Initial text
+  //       link.className = "toggle-button"
+  //       link.style.cursor = "pointer";
+  //       link.style.textDecoration = "none";
+
+  //       // Add background image
+  //       link.style.backgroundImage = `url('${require('../assets/Toggle-Button-plus-minus.png')}')`;
+  //       link.style.backgroundRepeat = "no-repeat";
+  //       link.style.backgroundPosition = "center";
+  //       link.style.backgroundSize = "contain";
+
+  //       // Optionally adjust dimensions if needed
+  //       // link.style.width = "20px"; 
+  //       // link.style.height = "20px"; 
+  //       // link.style.display = "inline-block";
+  //       link.style.border = 'none';
+  //       link.style.borderRadius = '0px'
+  //       // link.addEventListener("click", (e) => {
+  //       //     e.preventDefault()
+  //       //     console.log("Button clicked +/-");
+  //       //     if (link.textContent === "+") {
+  //       //         link.textContent = "-"; // Change to minus when content is visible
+  //       //     } else if(link.textContent){
+  //       //         link.textContent = "+"; // Change to plus when content is hidden
+  //       //     }
+  //       // });
+
+  //       return link;
+  //     };
+  //     const createToggleButtonEntity = () => {
+  //       const link = document.createElement("a");
+  //       link.id = "toggle-plus/minus-Entity";
+  //       link.textContent = "+"; // Initial text
+  //       link.className = "toggle-button"
+  //       link.style.cursor = "pointer";
+  //       link.style.textDecoration = "none";
+
+  //       return link;
+  //     };
+  //     entitiesMap.forEach((value: any, entityTitle: any) => {
+  //       const titleElement = document.createElement("p");
+
+  //       // titleElement.textContent = entityTitle;
+  //       titleElement.classList.add("folder", "icon");
+  //       titleElement.style.cursor = "pointer";
+  //       // const entityImage = createImageElement(
+  //       //   "icons/entity-icon.png",
+  //       //   "Entity Icon"
+  //       // );
+  //       const toggleButton1 = createToggleButtonEntity();
+  //       titleElement.appendChild(toggleButton1);
+  //       titleElement.appendChild(document.createTextNode(entityTitle));
+
+  //       if (container) {
+  //         container.appendChild(titleElement);
+  //       } else {
+  //         console.error("Container element not found");
+  //       }
+
+  //       const documentList = document.createElement("ul");
+  //       titleElement.appendChild(documentList);
+  //       documentList.style.display = "none";
+  //       /////start: Display Document library with recursive folder under Enitiy directly when Devision and Department Null /////
+  //       const nullKey = `${entityTitle.trim()}::::`;
+  //       if (folderMap.has(nullKey)) {
+  //         const documentLibraries = folderMap.get(nullKey) || [];
+
+  //         // Create a map to store unique DocumentLibraryNames and their details
+  //         const uniqueDocLibs = new Map();
+
+  //         // Iterate over document libraries and populate the map with unique DocumentLibraryNames
+  //         documentLibraries.forEach((item: any) => {
+  //           console.log("item is external", item.External);
+
+  //           if (!uniqueDocLibs.has(item.DocumentLibraryName)) {
+  //             uniqueDocLibs.set(item.DocumentLibraryName, {
+  //               folders: [],
+  //               folderPath: item.FolderPath, // Store FolderPath with other details
+  //               isActive: item.IsActive,
+  //               External: item.External
+  //             });
+  //           }
+  //           uniqueDocLibs.get(item.DocumentLibraryName).folders.push(item);
+  //         });
+
+  //         // Now render each unique DocumentLibraryName and its associated folders
+  //         uniqueDocLibs.forEach((data, docLibName) => {
+  //           const docLibElement = document.createElement("li");
+
+  //           // New code to check the Document library name is Rename or not start
+  //           const checkIsRename = data.folders.filter((item: any) =>
+  //             item.FolderName.length === 1 && item.FolderName[0] === null
+  //           );
+  //           console.log("checkIsRename", checkIsRename);
+  //           let renameText = docLibName;
+  //           if (checkIsRename.length > 0) {
+
+
+  //             if (checkIsRename[0]?.IsRename !== null) {
+  //               renameText = checkIsRename[0]?.IsRename;
+  //             }
+  //           }
+  //           // End
+  //           docLibElement.textContent = renameText;
+  //           // docLibElement.textContent = docLibName;
+  //           console.log("Data of doclib/folder", data);
+  //           // Optionally display the FolderPath in the docLibElement
+  //           const pathText = document.createElement("span");
+  //           // pathText.textContent = ` (${data.folderPath})`; // Display FolderPath
+  //           docLibElement.appendChild(pathText);
+
+  //           documentList.appendChild(docLibElement);
+
+  //           const folderList = document.createElement("ul");
+  //           folderList.style.display = "none";
+  //           folderList.style.width = "240px";
+  //           // const entityImage = createImageElement(
+  //           //   "icons/entity-icon.png",
+  //           //   "Entity Icon"
+  //           // );
+  //           // docLibElement.appendChild(entityImage);
+  //           const toggleButton = createToggleButton();
+  //           docLibElement.appendChild(toggleButton);
+  //           docLibElement.appendChild(folderList);
+
+  //           // Handle click to toggle the visibility of the folder list
+  //           docLibElement.addEventListener("click", (event: any) => {
+  //             const createFileButton = document.getElementById("createFileButton");
+  //             event.preventDefault()
+  //             event.stopPropagation();
+  //             if (toggleButton.textContent === "+") {
+  //               toggleButton.textContent = "-";
+  //             } else if (toggleButton.textContent) {
+  //               toggleButton.textContent = "+";
+  //             }
+  //             if (data.isActive === false) {
+  //               Swal.fire({
+  //                 icon: 'warning',
+  //                 title: 'Warning',
+  //                 text: 'We are setting up This Newly Created Folder Please Check after few Seconds',
+  //                 showConfirmButton: true,
+  //                 confirmButtonText: 'OK',
+  //               });
+  //             }
+
+  //             // setShowMyrequButtons(false)
+  //             // setShowMyfavButtons(false)
+  //             // handleNavigation(value.entityTitle, null , null , docLibName , null )
+  //             updateBreadcrumb(data.folderPath);
+  //             toggleVisibility(folderList);
+  //             getdoclibdata(data.folderPath, value.siteID, docLibName);
+  //             IsExternal = data.External;
+  //             currentfolderpath = data.folderPath
+  //             currentDocumentLibrary = docLibName;
+  //             currentEntityURL = value.siteURL;
+  //             currentEntity = value.entityTitle
+  //             currentsiteID = value.siteID
+  //             currentDevision = ''
+  //             currentDepartment = ''
+  //             currentFolder = ''
+  //             setcurrentSearchPath(RootsiteUrl + data.folderPath);
+  //             console.log(currentEntityURL, "currentEntityURL")
+  //             console.log(currentsiteID, "currentsiteID")
+  //             console.log(currentEntity, "currentEntity")
+  //             console.log(currentDocumentLibrary, "currentFolder")
+  //             console.log(currentfolderpath, "currentfolderpath")
+  //             console.log(currentDevision, "currentfolderpath")
+  //             console.log(currentDepartment, "currentfolderpath")
+  //             //      createFileButton.style.display = "block";
+  //             //      createFileButton2.style.display = "block";
+  //             //       if(createFolderButton){
+  //             //   createFolderButton.style.display="block"
+  //             // }
+
+  //             // if(createFileButton){
+  //             //   createFileButton.style.display = "block";
+  //             // }
+  //             // if(createFileButton2){
+  //             //   createFileButton2.style.display = "block";
+  //             // }
+
+  //             // if (myButton) {
+  //             //   myButton.textContent = `Create Folder under ${docLibName}`;
+  //             // } else {
+  //             //   console.error();
+  //             // }
+  //           });
+
+  //           // Handle double-click to hide the folder list
+  //           docLibElement.addEventListener("dblclick", (event) => {
+  //             IsExternal = data.External;
+  //             event.stopPropagation();
+  //             toggleVisibility(folderList, false);
+  //           });
+
+  //           // Function to build the folder structure recursively
+  //           const buildFolderStructure = (
+  //             parentFolderId: any,
+  //             parentElement: any
+  //           ) => {
+  //             data.folders.forEach((item: any) => {
+  //               const folderNamesArray = Array.isArray(item.FolderName)
+  //                 ? item.FolderName
+  //                 : [item.FolderName];
+
+  //               folderNamesArray.forEach((folderName: any) => {
+  //                 if (folderName && item.ParentFolderId === parentFolderId) {
+  //                   // Only display non-null folder names
+  //                   const folderElement = document.createElement("li");
+  //                   // New code to check the folder library name is Rename or not start
+  //                   let folderRenameText = folderName;
+  //                   if (item.IsRename !== null) {
+  //                     folderRenameText = item.IsRename
+  //                   }
+  //                   // End
+  //                   // folderElement.textContent = folderName;
+  //                   folderElement.textContent = folderRenameText;
+  //                   parentElement.appendChild(folderElement);
+  //                   // const entityImage = createImageElement(
+  //                   //   "icons/entity-icon.png",
+  //                   //   "Entity Icon"
+  //                   // );
+  //                   // folderElement.appendChild(entityImage);
+  //                   const toggleButton = createToggleButton();
+  //                   folderElement.appendChild(toggleButton);
+  //                   const subFolderList = document.createElement("ul");
+  //                   subFolderList.style.display = "none";
+  //                   subFolderList.style.width = "240px";
+  //                   folderElement.appendChild(subFolderList);
+
+  //                   folderElement.addEventListener("click", (event: any) => {
+  //                     event.preventDefault();  // Prevent default action
+  //                     event.stopPropagation();  // Stop event bubbling
+  //                     console.log("Event listener triggered");
+  //                     currentEntityURL = value.siteURL;
+  //                     currentsiteID = value.siteID
+  //                     currentEntity = value.entityTitle
+  //                     currentDocumentLibrary = docLibName;
+  //                     currentFolder = folderName;
+  //                     parentfolder = item.ParentFolderId;
+  //                     currentfolderpath = item.FolderPath;
+  //                     currentDevision = ''
+  //                     currentDepartment = ''
+  //                     setcurrentSearchPath(RootsiteUrl + data.folderPath);
+  //                     console.log(currentEntityURL, "currentEntityURL")
+  //                     console.log(currentsiteID, "currentsiteID")
+  //                     console.log(currentEntity, "currentEntity")
+  //                     console.log(currentDocumentLibrary, "currentDocumentLibrary")
+  //                     console.log(currentFolder, "currentFolder")
+  //                     console.log(parentfolder, "parentfolder")
+  //                     IsExternal = item.External;
+  //                     console.log(currentfolderpath, "currentfolderpath");
+  //                     // handleNavigation(value.entityTitle, null , null , docLibName , folderName )
+  //                     updateBreadcrumb(item.FolderPath);
+  //                     event.stopPropagation();
+  //                     getdoclibdata(item.FolderPath, currentsiteID, docLibName)
+  //                     // if (myButton) {
+  //                     //   myButton.textContent = `Create Folder under ${folderName}`;
+  //                     // } else {
+  //                     //   console.error();
+  //                     // }
+  //                     if (toggleButton.textContent === "+") {
+  //                       toggleButton.textContent = "-";
+  //                     } else if (toggleButton.textContent) {
+  //                       toggleButton.textContent = "+";
+  //                     }
+
+  //                     toggleVisibility(subFolderList);
+
+  //                     // Clear existing sub-folder list to avoid duplications
+  //                     subFolderList.innerHTML = "";
+
+  //                     // Recursively build the sub-folder structure
+  //                     buildFolderStructure(folderName, subFolderList);
+  //                   });
+  //                 }
+  //               });
+  //             });
+  //           };
+
+  //           // Start building the folder structure from the root level (null ParentFolderId)
+  //           buildFolderStructure(null, folderList);
+  //         });
+  //       }
+  //       /////End Display Document library with recursive folder under Enitiy directly when Devision and Department Null /////
+  //       const devisionList = document.createElement("ul");
+  //       devisionList.style.display = "none";
+  //       titleElement.appendChild(devisionList);
+
+  //       value.devisions.forEach((devisionValue: any, devisionTitle: any) => {
+  //         const devisionElement = document.createElement("li");
+  //         devisionElement.textContent = devisionTitle;
+  //         devisionElement.classList.add("folder", "icon");
+  //         devisionElement.style.cursor = "pointer";
+  //         devisionList.appendChild(devisionElement);
+
+  //         const docLibList = document.createElement("ul");
+  //         docLibList.style.display = "none";
+  //         // const entityImage = createImageElement(
+  //         //   "icons/entity-icon.png",
+  //         //   "Entity Icon"
+  //         // );
+  //         // devisionElement.appendChild(entityImage);
+  //         const toggleButton = createToggleButton();
+  //         devisionElement.appendChild(toggleButton);
+  //         devisionElement.appendChild(docLibList);
+
+  //         // Display unique DocumentLibraryName under Devision
+  //         console.log("devisionValue.docLibs", devisionValue.docLibs);
+  //         devisionValue.docLibs.forEach((docLibName: any) => {
+  //           const docLibElement = document.createElement("li");
+  //           docLibElement.textContent = docLibName;
+  //           docLibElement.classList.add("file-icon", "icon");
+  //           docLibList.appendChild(docLibElement);
+
+  //           const folderList = document.createElement("ul");
+  //           folderList.style.display = "none";
+
+  //           docLibElement.appendChild(folderList);
+
+  //           const docLibKey = `${entityTitle.trim()}::${devisionTitle.trim()}::`;
+  //           const docLibFolders = folderMap.get(docLibKey) || [];
+  //           docLibFolders.forEach((folderItem: any) => {
+  //             console.log("Folder under divisions", folderItem);
+  //             const folderElement = document.createElement("li");
+  //             folderElement.textContent = folderItem.FolderName;
+
+  //             folderList.appendChild(folderElement);
+  //           });
+
+  //           docLibElement.addEventListener("click", (event) => {
+
+  //             console.log(devisionValue, "devisionValue");
+  //             event.stopPropagation();
+  //             currentDocumentLibrary = docLibName;
+  //             // currentFolder = '';
+  //             currentDevision = devisionTitle;
+  //             // currentDepartment = '';
+  //             currentEntityURL = value.siteURL;
+  //             currentEntity = value.entityTitle
+  //             currentsiteID = value.siteID
+
+  //             console.log("currentEntityURL", currentEntityURL);
+  //             console.log("currentEntity", currentEntity);
+  //             console.log("currentsiteID", currentsiteID);
+  //             console.log("currentDevision", currentDevision);
+  //             console.log("currentDocumentLibrary", currentDocumentLibrary);
+  //             // if (myButton) {
+  //             //   myButton.textContent = `Create Library under ${docLibName}`;
+  //             // } else {
+  //             //   console.error();
+  //             // }
+  //             if (toggleButton.textContent === "+") {
+  //               toggleButton.textContent = "-";
+  //             } else if (toggleButton.textContent) {
+  //               toggleButton.textContent = "+";
+  //             }
+  //             toggleVisibility(folderList);
+  //           });
+
+  //           docLibElement.addEventListener("dblclick", (event) => {
+  //             event.stopPropagation();
+  //             toggleVisibility(folderList, false);
+  //           });
+  //         });
+
+  //         const departmentList = document.createElement("ul");
+
+  //         departmentList.style.display = "none";
+  //         devisionElement.appendChild(departmentList);
+
+  //         devisionValue.departments.forEach((departmentTitle: any) => {
+  //           const departmentElement = document.createElement("li");
+  //           departmentElement.textContent = departmentTitle;
+  //           departmentElement.classList.add("folder");
+  //           departmentElement.style.cursor = "pointer";
+  //           departmentList.appendChild(departmentElement);
+
+  //           const documentList = document.createElement("ul");
+  //           documentList.style.display = "none";
+  //           documentList.style.width = "300px";
+  //           // const entityImage = createImageElement(
+  //           //   "icons/entity-icon.png",
+  //           //   "Entity Icon"
+  //           // );
+  //           // departmentElement.appendChild(entityImage);
+  //           const toggleButton = createToggleButton();
+  //           departmentElement.appendChild(toggleButton);
+  //           departmentElement.appendChild(documentList);
+
+  //           departmentElement.addEventListener("click", (event) => {
+  //             currentEntityURL = value.siteURL;
+  //             currentsiteID = value.siteID
+  //             currentEntity = value.entityTitle;
+  //             currentDevision = devisionTitle;
+  //             currentDepartment = departmentTitle;
+  //             currentDocumentLibrary = ''
+  //             currentFolder = ''
+  //             currentfolderpath = ''
+  //             if (value.isExternal === "Yes") {
+  //               IsExternal = true;
+  //             } else {
+  //               IsExternal = false;
+  //             }
+  //             console.log("currentEntityURL", currentEntityURL);
+  //             console.log("currentsiteID", currentsiteID);
+  //             console.log("currentEntity", currentEntity);
+  //             console.log("currentDevision", currentDevision);
+  //             console.log("currentDepartment", currentDepartment);
+  //             const container = document.getElementById("files-container");
+  //             container.innerHTML = "";
+  //             // handleNavigation(value.entityTitle, devisionTitle , departmentTitle , null , null )
+  //             updateBreadcrumb(`${window.location.pathname.match(/\/sites\/[^\/]+/)[0]}/${currentEntity}`);
+  //             event.stopPropagation();
+  //             // if (myButton) {
+  //             //   myButton.textContent = `Create Library under ${departmentTitle}`;
+  //             // } else {
+  //             //   console.error();
+  //             // }
+  //             if (toggleButton.textContent === "+") {
+  //               toggleButton.textContent = "-";
+  //             } else if (toggleButton.textContent) {
+  //               toggleButton.textContent = "+";
+  //             }
+  //             const checkPermission = async () => {
+  //               const CreateFolder = document.getElementById("CreateFolder")
+  //               const CreateRoot = document.getElementById("CreateFolder1")
+  //               const createFileButton = document.getElementById("createFileButton")
+  //               try {
+  //                 const currentUser = await sp.web.currentUser();
+  //                 const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+  //                 const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
+  //                 const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
+  //                 const isMemberOfDeligation = userGroups.some(group => group.Title === `${currentEntity}_FolderDeligation`);
+  //                 console.log("isMemberOfDeligation", isMemberOfDeligation);
+  //                 console.log("isMemberOfSuperAdmin", isMemberOfSuperAdmin);
+  //                 console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
+  //                 // console.log(`User is a member of the group: ${currentEntity}_Admin`);
+  //                 if (isMemberOfGroup || isMemberOfSuperAdmin) {
+  //                   IsFolderDeligationUser = false;
+  //                   console.log(`User is a member of the group: ${currentEntity}_Admin`);
+  //                   if (createFileButton) {
+  //                     createFileButton.style.display = "none";
+  //                   }
+  //                   if (CreateFolder) {
+  //                     CreateFolder.style.display = "block";
+  //                   }
+  //                   // if(CreateRoot){
+  //                   //   CreateRoot.style.display="none";
+  //                   // }
+  //                 } else if (isMemberOfDeligation) {
+  //                   IsFolderDeligationUser = true;
+  //                   console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
+  //                   if (createFileButton) {
+  //                     createFileButton.style.display = "none";
+  //                   }
+  //                   if (CreateFolder) {
+  //                     CreateFolder.style.display = "block";
+  //                   }
+  //                 } else {
+  //                   console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+  //                   if (createFileButton) {
+  //                     createFileButton.style.display = "none";
+  //                   }
+  //                   if (CreateFolder) {
+  //                     CreateFolder.style.display = "none";
+  //                   }
+
+
+  //                 }
+  //               } catch (error) {
+  //                 console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+  //                 if (createFileButton) {
+  //                   createFileButton.style.display = "none";
+  //                 }
+  //                 if (CreateFolder) {
+  //                   CreateFolder.style.display = "none";
+  //                 }
+
+
+  //               }
+  //             }
+  //             checkPermission()
+  //             // Prevent toggling visibility before the list is populated
+  //             if (documentList.innerHTML === "") {
+  //               const key = `${entityTitle.trim()}::${devisionTitle.trim()}::${departmentTitle.trim()}`;
+  //               const documentLibraries = folderMap.get(key) || [];
+  //               documentList.innerHTML = "";
+  //               const uniqueDocLibs = new Map();
+
+  //               documentLibraries.forEach((item: any) => {
+  //                 if (!uniqueDocLibs.has(item.DocumentLibraryName)) {
+  //                   uniqueDocLibs.set(item.DocumentLibraryName, {
+  //                     folders: [],
+  //                     folderPath: item.FolderPath, // Store FolderPath
+  //                     External: item.External
+  //                   });
+  //                 }
+  //                 uniqueDocLibs
+  //                   .get(item.DocumentLibraryName)
+  //                   .folders.push(item);
+  //               });
+
+  //               uniqueDocLibs.forEach((data, docLibName) => {
+  //                 console.log(uniqueDocLibs, "uniqueDocLibs")
+  //                 const docLibElement = document.createElement("li");
+  //                 docLibElement.textContent = docLibName;
+
+  //                 // Optionally display the FolderPath in the docLibElement
+  //                 // const pathText = document.createElement("span");
+  //                 // pathText.textContent = ` (${data.folderPath})`; // Display FolderPath
+  //                 // docLibElement.appendChild(pathText);
+
+  //                 documentList.appendChild(docLibElement);
+
+  //                 const folderList = document.createElement("ul");
+  //                 folderList.style.display = "none";
+  //                 folderList.style.width = "351px";
+  //                 // const entityImage = createImageElement(
+  //                 //   "icons/entity-icon.png",
+  //                 //   "Entity Icon"
+  //                 // );
+  //                 // docLibElement.appendChild(entityImage);
+  //                 const toggleButton = createToggleButton();
+  //                 docLibElement.appendChild(toggleButton);
+  //                 docLibElement.appendChild(folderList);
+
+  //                 docLibElement.addEventListener("click", (event) => {
+  //                   event.stopPropagation();
+  //                   currentEntityURL = value.siteURL;
+  //                   currentsiteID = value.siteID
+  //                   currentEntity = value.entityTitle;
+  //                   currentDevision = devisionTitle;
+  //                   currentDocumentLibrary = docLibName;
+  //                   currentDepartment = departmentTitle;
+  //                   currentfolderpath = data.folderPath,
+  //                     IsExternal = data.IsExternal
+  //                   setcurrentSearchPath(RootsiteUrl + data.folderPath);
+  //                   currentFolder = ''
+  //                   console.log(data, data, "data")
+  //                   console.log("currentEntityURL", currentEntityURL);
+  //                   console.log("currentsiteID", currentsiteID);
+  //                   console.log("currentEntity", currentEntity);
+  //                   console.log("currentDevision", currentDevision);
+  //                   console.log("currentDepartment", currentDepartment);
+  //                   console.log("currentDocumentLibrary", currentDocumentLibrary);
+  //                   console.log("currentfolderpath", currentfolderpath);
+  //                   console.log("parentfolder", parentfolder);
+  //                   getdoclibdata(data.folderPath, value.siteID, docLibName)
+  //                   // handleNavigation(value.entityTitle, devisionTitle , departmentTitle , docLibName , null )
+  //                   updateBreadcrumb(currentfolderpath);
+  //                   console.log(
+  //                     "FolderPath for document library:",
+  //                     data.folderPath
+  //                   );
+  //                   toggleVisibility(folderList);
+  //                   //     const createFileButton=document.getElementById("createFileButton")
+  //                   //     const createFileButton2=document.getElementById("createFileButton")
+  //                   // createFileButton.style.display="block";
+  //                   // createFileButton2.style.display="block";
+  //                   // if (myButton) {
+  //                   //   myButton.textContent = `Create Folder under ${docLibName}`;
+  //                   // } else {
+  //                   //   console.error();
+  //                   // }
+  //                   if (toggleButton.textContent === "+") {
+  //                     toggleButton.textContent = "-";
+  //                   } else if (toggleButton.textContent) {
+  //                     toggleButton.textContent = "+";
+  //                   }
+  //                 });
+
+  //                 docLibElement.addEventListener("dblclick", (event) => {
+  //                   IsExternal = data.IsExternal
+  //                   event.stopPropagation();
+  //                   toggleVisibility(folderList, false);
+  //                 });
+  //                 const buildFolderStructure = (
+  //                   parentFolderId: any,
+  //                   parentElement: any
+  //                 ) => {
+  //                   data.folders.forEach((item: any) => {
+
+  //                     const folderNamesArray = Array.isArray(item.FolderName)
+  //                       ? item.FolderName
+  //                       : [item.FolderName];
+
+  //                     folderNamesArray.forEach((folderName: any) => {
+
+  //                       if (
+  //                         folderName &&
+  //                         item.ParentFolderId === parentFolderId
+  //                       ) {
+  //                         const folderElement = document.createElement("li");
+  //                         folderElement.textContent = folderName;
+  //                         parentElement.appendChild(folderElement);
+  //                         // const entityImage = createImageElement(
+  //                         //   "icons/entity-icon.png",
+  //                         //   "Entity Icon"
+  //                         // );
+  //                         // folderElement.appendChild(entityImage);
+  //                         const toggleButton = createToggleButton();
+  //                         folderElement.appendChild(toggleButton);
+  //                         const subFolderList = document.createElement("ul");
+  //                         subFolderList.style.display = "none";
+  //                         folderElement.appendChild(subFolderList);
+
+  //                         folderElement.addEventListener("click", (event) => {
+
+  //                           currentEntityURL = value.siteURL;
+  //                           currentEntity = value.entityTitle;
+  //                           currentsiteID = value.siteID
+  //                           currentDevision = devisionTitle;
+  //                           currentDepartment = departmentTitle;
+  //                           currentDocumentLibrary = docLibName;
+  //                           currentFolder = folderName
+  //                           IsExternal = item.External
+  //                           console.log("currentEntityURL", currentEntityURL);
+  //                           console.log("currentEntity", currentEntity);
+  //                           console.log("currentsiteID", currentsiteID);
+  //                           console.log("currentDevision", currentDevision);
+  //                           console.log("currentDepartment", currentDepartment);
+  //                           console.log("currentDocumentLibrary", currentDocumentLibrary);
+  //                           console.log("currentfolderpath", item.FolderPath);
+  //                           getdoclibdata(item.FolderPath, currentsiteID, docLibName)
+  //                           // handleNavigation(value.entityTitle, devisionTitle , departmentTitle , docLibName , folderName )
+  //                           updateBreadcrumb(item.FolderPath);
+  //                           //      const createFileButton=document.getElementById("createFileButton")
+  //                           // createFileButton.style.display="block";
+  //                           //      const createFileButton2=document.getElementById("createFileButton")
+  //                           // createFileButton2.style.display="block";
+  //                           //   if (myButton) {
+  //                           //     myButton.textContent = `Create Folder under ${folderName}`;
+  //                           //   } else {
+  //                           //     console.error();
+  //                           //   }
+  //                           if (toggleButton.textContent === "+") {
+  //                             toggleButton.textContent = "-";
+  //                           } else if (toggleButton.textContent) {
+  //                             toggleButton.textContent = "+";
+  //                           }
+  //                           event.stopPropagation();
+  //                           toggleVisibility(subFolderList);
+  //                           subFolderList.innerHTML = "";
+  //                           buildFolderStructure(folderName, subFolderList);
+  //                         });
+  //                       }
+  //                     });
+  //                   });
+  //                 };
+  //                 buildFolderStructure(null, folderList);
+  //               });
+  //             }
+
+  //             toggleVisibility(documentList);
+  //           });
+
+  //           departmentElement.addEventListener("dblclick", (event) => {
+  //             if (value.isExternal === "Yes") {
+  //               IsExternal = true;
+  //             } else {
+  //               IsExternal = false
+  //             }
+  //             event.stopPropagation();
+  //             toggleVisibility(documentList, false);
+  //           });
+  //         });
+
+  //         ///Start: display all Document libraries under Devision directly if Department null with nested folder //////
+  //         const keyForDevisionOnly = `${entityTitle.trim()}::${devisionTitle.trim()}::`;
+
+  //         if (folderMap.has(keyForDevisionOnly)) {
+  //           const documentLibraries = folderMap.get(keyForDevisionOnly) || [];
+  //           // console.log(documentLibraries, "documentLibraries");
+  //           const uniqueDocLibNames = new Set();
+
+  //           documentLibraries.forEach((item: any) => {
+  //             const normalizedDocLibName =
+  //               item.DocumentLibraryName.trim().toLowerCase();
+  //             console.log("item of doclib under division", item);
+
+  //             if (!uniqueDocLibNames.has(normalizedDocLibName)) {
+  //               uniqueDocLibNames.add(normalizedDocLibName);
+
+  //               const docLibElement = document.createElement("li");
+  //               // New code to check the Document library name is Rename or not start
+  //               // const checkIsRename = item.folders.filter((item:any) => 
+  //               //   item.FolderName.length === 1 && item.FolderName[0] === null
+  //               // );
+  //               // console.log("checkIsRename",checkIsRename);
+  //               // let renameText=item.DocumentLibraryName;
+  //               // if(checkIsRename[0].IsRename !== null){
+  //               //   renameText=checkIsRename[0].IsRename;
+  //               // }
+  //               // End
+  //               // docLibElement.textContent = renameText;
+  //               docLibElement.textContent = item.DocumentLibraryName;
+
+  //               departmentList.appendChild(docLibElement);
+
+  //               const folderList = document.createElement("ul");
+  //               folderList.style.display = "none";
+  //               // const entityImage = createImageElement(
+  //               //   "icons/entity-icon.png",
+  //               //   "Entity Icon"
+  //               // );
+  //               // docLibElement.appendChild(entityImage);
+  //               const toggleButton = createToggleButton();
+  //               docLibElement.appendChild(toggleButton);
+  //               docLibElement.appendChild(folderList);
+
+  //               docLibElement.addEventListener("click", (event) => {
+
+  //                 event.stopPropagation();
+  //                 currentEntityURL = value.siteURL; // Use the SiteURL from entitiesMap
+  //                 currentsiteID = value.siteID
+  //                 currentEntity = value.entityTitle
+  //                 currentDevision = devisionTitle;
+  //                 currentDepartment = ''
+  //                 currentFolder = ''
+  //                 currentDocumentLibrary = item.DocumentLibraryName;
+  //                 currentfolderpath = item.FolderPath;
+  //                 value.isExternal
+  //                 setcurrentSearchPath(RootsiteUrl + item.folderPath);
+  //                 console.log("currentEntityURL", currentEntityURL);
+  //                 console.log("currentsiteID", currentsiteID);
+  //                 console.log("currentEntity", currentEntity);
+  //                 console.log("currentDevision", currentDevision);
+  //                 console.log("currentDepartment", currentDepartment);
+  //                 console.log("currentDocumentLibrary", currentDocumentLibrary);
+  //                 console.log("currentfolderpath", currentfolderpath);
+  //                 getdoclibdata(item.FolderPath, value.siteID, item.DocumentLibraryName)
+  //                 // handleNavigation(value.entityTitle , devisionTitle, null , item.DocumentLibraryName )
+  //                 updateBreadcrumb(item.FolderPath);
+  //                 // const createFileButton=document.getElementById("createFileButton")
+  //                 // createFileButton.style.display="block";
+  //                 // const createFileButton2=document.getElementById("createFileButton2")
+  //                 // createFileButton2.style.display="block";
+  //                 // if (myButton) {
+  //                 //   myButton.textContent = `Create Folder under ${item.DocumentLibraryName}`;
+  //                 // } else {
+  //                 //   console.error();
+  //                 // }
+  //                 if (toggleButton.textContent === "+") {
+  //                   toggleButton.textContent = "-";
+  //                 } else if (toggleButton.textContent) {
+  //                   toggleButton.textContent = "+";
+  //                 }
+  //                 toggleVisibility(folderList);
+  //                 folderList.innerHTML = "";
+  //                 const buildFolderStructure = (
+  //                   parentFolderId: any,
+  //                   parentElement: any
+  //                 ) => {
+  //                   const createImageElement = (src: string, alt: string) => {
+  //                     const img = document.createElement("img");
+  //                     img.src = require("../assets/add-folder.png");
+  //                     img.alt = alt;
+  //                     img.style.float = "left";
+  //                     img.style.width = "20px"; // Adjust the size as needed
+  //                     img.style.height = "20px"; // Adjust the size as needed
+  //                     img.style.marginRight = "5px"; // Space between image and text
+  //                     return img;
+  //                   };
+  //                   documentLibraries.forEach((libItem: any) => {
+
+  //                     if (
+  //                       libItem.DocumentLibraryName.trim().toLowerCase() ===
+  //                       normalizedDocLibName
+  //                     ) {
+  //                       const folderNamesArray = Array.isArray(
+  //                         libItem.FolderName
+  //                       )
+  //                         ? libItem.FolderName
+  //                         : [libItem.FolderName];
+
+  //                       folderNamesArray.forEach((folderName: any) => {
+
+  //                         if (
+  //                           folderName &&
+  //                           libItem.ParentFolderId === parentFolderId
+  //                         ) {
+  //                           // Only display non-null folder names
+  //                           const folderElement2 = document.createElement("li");
+  //                           folderElement2.textContent = folderName;
+  //                           parentElement.appendChild(folderElement2);
+  //                           const folderPath = libItem.FolderPath;
+  //                           // const entityImage = createImageElement(
+  //                           //   "icons/entity-icon.png",
+  //                           //   "Entity Icon"
+  //                           // );
+  //                           // folderElement2.appendChild(entityImage);
+  //                           const toggleButton = createToggleButton();
+  //                           folderElement2.appendChild(toggleButton);
+  //                           const subFolderList2 = document.createElement("ul");
+  //                           subFolderList2.style.display = "none";
+
+  //                           // const entityImage = createImageElement('icons/entity-icon.png', 'Entity Icon')
+  //                           // folderElement2.appendChild(entityImage);
+  //                           // subFolderList2.appendChild(entityImage);
+  //                           folderElement2.appendChild(toggleButton)
+  //                           subFolderList2.appendChild(toggleButton)
+  //                           folderElement2.appendChild(subFolderList2);
+
+  //                           folderElement2.addEventListener(
+
+  //                             "click",
+  //                             (event) => {
+  //                               currentEntityURL = value.siteURL; // Use the SiteURL from entitiesMap
+  //                               currentsiteID = value.siteID
+  //                               currentEntity = value.entityTitle
+  //                               currentDevision = devisionTitle;
+  //                               currentDepartment = null
+  //                               currentDocumentLibrary = item.DocumentLibraryName;
+  //                               currentFolder = folderName
+  //                               currentDepartment = ''
+  //                               currentFolder = folderPath
+  //                               IsExternal = item.External;
+  //                               // currentfolderpath = item.FolderPath;
+  //                               parentfolder = parentFolderId
+  //                               console.log("currentEntityURL", currentEntityURL);
+  //                               console.log("currentsiteID", currentsiteID);
+
+  //                               console.log("currentEntity", currentEntity);
+  //                               console.log("currentDevision", currentDevision);
+  //                               console.log("currentDepartment", currentDepartment);
+  //                               console.log("currentDocumentLibrary", currentDocumentLibrary);
+  //                               console.log("currentFolder", currentFolder);
+  //                               console.log("currentfolderpath", folderPath);
+  //                               console.log("parentfolder", parentfolder);
+  //                               // handleNavigation(value.entityTitle , devisionTitle ,null , item.DocumentLibraryName , folderName)
+  //                               updateBreadcrumb(folderPath);
+  //                               event.stopPropagation();
+  //                               toggleVisibility(subFolderList2);
+  //                               console.log("enter ee");
+  //                               getdoclibdata(folderPath, currentsiteID, item.DocumentLibraryName)
+  //                               //   const createFileButton=document.getElementById("createFileButton")
+  //                               // createFileButton.style.display="block";
+  //                               //   const createFileButton2=document.getElementById("createFileButton")
+  //                               // createFileButton2.style.display="block";
+  //                               // if (myButton) {
+  //                               //   myButton.textContent = `Create Folder under ${folderName}`;
+  //                               // } else {
+  //                               //   console.error();
+  //                               // }
+  //                               if (toggleButton.textContent === "+") {
+  //                                 toggleButton.textContent = "-";
+  //                               } else if (toggleButton.textContent) {
+  //                                 toggleButton.textContent = "+";
+  //                               }
+  //                               // Clear existing sub-folder list to avoid duplications
+  //                               subFolderList2.innerHTML = "";
+
+  //                               // Recursively build the sub-folder structure
+  //                               buildFolderStructure(
+  //                                 folderName,
+  //                                 subFolderList2
+  //                               );
+  //                             }
+  //                           );
+  //                         }
+  //                       });
+  //                     }
+  //                   });
+  //                 };
+
+  //                 // Start building the folder structure from the root level (null ParentFolderId)
+  //                 buildFolderStructure(null, folderList);
+  //               });
+
+  //               // Optionally, expand the folder structure by default
+  //               // buildFolderStructure(folderList, documentLibraries, null);
+  //             }
+  //           });
+  //         }
+
+  //         ///End: display all Document libraries under Devision directly if Department null with nested folder //////
+
+  //         devisionElement.addEventListener("click", (event) => {
+
+  //           const breadcrumbElement = document.getElementById("breadcrumb");
+  //           if (breadcrumbElement) {
+  //             breadcrumbElement.style.display = "none";
+  //           }
+  //           event.stopPropagation();
+  //           currentDevision = devisionTitle;
+  //           currentEntityURL = value.siteURL;
+  //           currentEntity = value.entityTitle
+  //           currentsiteID = value.siteID
+  //           currentDepartment = ''
+  //           currentDocumentLibrary = ''
+  //           currentFolder = ''
+  //           currentfolderpath = ''
+  //           if (value.isExternal === "Yes") {
+  //             IsExternal = true
+  //           } else {
+  //             IsExternal = false
+  //           }
+  //           console.log("currentEntityURL", currentEntityURL);
+  //           console.log("currentsiteID", currentsiteID);
+  //           console.log("currentEntity", currentEntity);
+  //           console.log("currentDevision", currentDevision);
+  //           const container = document.getElementById("files-container");
+  //           container.innerHTML = "";
+  //           // handleNavigation(value.entityTitle , devisionTitle , null , null , null)
+  //           updateBreadcrumb(`${window.location.pathname.match(/\/sites\/[^\/]+/)[0]}/${currentEntity}`);
+  //           toggleVisibility(departmentList);
+  //           // Toggle plus/minus icon
+  //           devisionElement.classList.remove("expanded");
+  //           // const //createFileButton=document.getElementById("createFileButton")
+  //           // createFileButton.style.display="block";
+  //           // if (myButton) {
+  //           //   myButton.textContent = `Create Library under ${devisionTitle}`;
+  //           // } else {
+  //           //   console.error();
+  //           // }
+  //           if (toggleButton.textContent === "+") {
+  //             toggleButton.textContent = "-";
+  //           } else if (toggleButton.textContent) {
+  //             toggleButton.textContent = "+";
+  //           }
+  //           const checkPermission = async () => {
+  //             const CreateFolder = document.getElementById("CreateFolder")
+  //             const CreateRoot = document.getElementById("CreateFolder1")
+  //             const createFileButton = document.getElementById("createFileButton")
+  //             try {
+  //               const currentUser = await sp.web.currentUser();
+  //               const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+  //               const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
+  //               const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
+  //               const isMemberOfDeligation = userGroups.some(group => group.Title === `${currentEntity}_FolderDeligation`);
+  //               console.log("isMemberOfDeligation", isMemberOfDeligation);
+  //               console.log("isMemberOfSuperAdmin", isMemberOfSuperAdmin);
+  //               console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
+  //               // console.log(`User is a member of the group: ${currentEntity}_Admin`);
+  //               if (isMemberOfGroup || isMemberOfSuperAdmin) {
+  //                 IsFolderDeligationUser = false;
+  //                 console.log(`User is a member of the group: ${currentEntity}_Admin`);
+  //                 if (createFileButton) {
+  //                   createFileButton.style.display = "none";
+  //                 }
+  //                 if (CreateFolder) {
+  //                   CreateFolder.style.display = "block";
+  //                 }
+  //                 // if(CreateRoot){
+  //                 //   CreateRoot.style.display="none";
+  //                 // }
+  //               } else if (isMemberOfDeligation) {
+  //                 IsFolderDeligationUser = true;
+  //                 console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
+  //                 if (createFileButton) {
+  //                   createFileButton.style.display = "none";
+  //                 }
+  //                 if (CreateFolder) {
+  //                   CreateFolder.style.display = "block";
+  //                 }
+  //               } else {
+  //                 console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+  //                 if (createFileButton) {
+  //                   createFileButton.style.display = "none";
+  //                 }
+  //                 if (CreateFolder) {
+  //                   CreateFolder.style.display = "none";
+  //                 }
+
+
+  //               }
+  //             } catch (error) {
+  //               console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+  //               if (createFileButton) {
+  //                 createFileButton.style.display = "none";
+  //               }
+  //               if (CreateFolder) {
+  //                 CreateFolder.style.display = "none";
+  //               }
+
+
+  //             }
+  //           }
+  //           checkPermission()
+  //         });
+
+  //         devisionElement.addEventListener("dblclick", (event) => {
+  //           if (value.isExternal === "Yes") {
+  //             IsExternal = true
+  //           } else {
+  //             IsExternal = false
+  //           }
+  //           event.stopPropagation();
+  //           toggleVisibility(departmentList, false);
+  //           // Toggle plus/minus icon
+  //           devisionElement.classList.remove("expanded");
+  //           const checkPermission = async () => {
+  //             const CreateFolder = document.getElementById("CreateFolder")
+  //             const CreateRoot = document.getElementById("CreateFolder1")
+  //             const createFileButton = document.getElementById("createFileButton")
+  //             try {
+  //               const currentUser = await sp.web.currentUser();
+  //               const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+  //               const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
+  //               const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
+  //               const isMemberOfDeligation = userGroups.some(group => group.Title === `${currentEntity}_FolderDeligation`);
+  //               console.log("isMemberOfDeligation", isMemberOfDeligation);
+  //               console.log("isMemberOfSuperAdmin", isMemberOfSuperAdmin);
+  //               console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
+  //               // console.log(`User is a member of the group: ${currentEntity}_Admin`);
+  //               if (isMemberOfGroup || isMemberOfSuperAdmin) {
+  //                 IsFolderDeligationUser = false;
+  //                 console.log(`User is a member of the group: ${currentEntity}_Admin`);
+  //                 if (createFileButton) {
+  //                   createFileButton.style.display = "none";
+  //                 }
+  //                 if (CreateFolder) {
+  //                   CreateFolder.style.display = "block";
+  //                 }
+  //                 // if(CreateRoot){
+  //                 //   CreateRoot.style.display="none";
+  //                 // }
+  //               } else if (isMemberOfDeligation) {
+  //                 IsFolderDeligationUser = true;
+  //                 console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
+  //                 if (createFileButton) {
+  //                   createFileButton.style.display = "none";
+  //                 }
+  //                 if (CreateFolder) {
+  //                   CreateFolder.style.display = "block";
+  //                 }
+  //               } else {
+  //                 console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+  //                 if (createFileButton) {
+  //                   createFileButton.style.display = "none";
+  //                 }
+  //                 if (CreateFolder) {
+  //                   CreateFolder.style.display = "none";
+  //                 }
+
+
+  //               }
+  //             } catch (error) {
+  //               console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+  //               if (createFileButton) {
+  //                 createFileButton.style.display = "none";
+  //               }
+  //               if (CreateFolder) {
+  //                 CreateFolder.style.display = "none";
+  //               }
+
+
+  //             }
+  //           }
+  //           checkPermission()
+  //         });
+  //       });
+
+  //       let clickTimer: any;
+  //       titleElement.addEventListener("click", async (event) => {
+
+  //         if (entityclicktext !== '') {
+
+  //           const breadcrumbElement = document.getElementById("breadcrumb");
+  //           if (breadcrumbElement) {
+  //             breadcrumbElement.style.display = "block";
+  //             breadcrumbElement.textContent = entityclicktext;
+  //           }
+  //         } else {
+
+  //           const breadcrumbElement = document.getElementById("breadcrumb");
+  //           if (breadcrumbElement) {
+  //             breadcrumbElement.style.display = "none";
+  //           }
+
+  //         }
+  //         // setdisplayuploadfileandcreatefolder(true)
+
+  //         // new code added.
+  //         // toggle createfolder button based on the permission
+  //         // Get the users in the group
+  //         // const subsiteContext=await sp.site.openWebById(value.siteID);
+  //         // const usersFromAdmin = await subsiteContext.web.siteGroups.getByName(`${value.entityTitle}_Admin`).users();
+  //         // const usersFromInitiator=await subsiteContext.web.siteGroups.getByName(`${value.entityTitle}_Initiator`).users();
+  //         // console.log("usersFromAdmin",usersFromAdmin);
+  //         // console.log("usersFromInitiator",usersFromInitiator);
+  //         // const CreateFolder=document.getElementById("CreateFolder")
+  //         // const createFileButton=document.getElementById("createFileButton")
+  //         // try {
+  //         //   const currentUser = await sp.web.currentUser();
+  //         //   const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+  //         //   const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
+  //         //   const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
+  //         //   console.log("isMemberOfSuperAdmin",isMemberOfSuperAdmin);
+  //         //   console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
+  //         //   // console.log(`User is a member of the group: ${currentEntity}_Admin`);
+  //         //   if (isMemberOfGroup || isMemberOfSuperAdmin) {
+  //         //   console.log(`User is a member of the group: ${currentEntity}_Admin`);
+  //         //   if(createFileButton){
+  //         //     createFileButton.style.display=  "none";
+  //         //   }
+  //         //   if(CreateFolder){
+  //         //     CreateFolder.style.display="block";
+  //         //   }
+  //         //  }else {
+  //         //     console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+  //         //     if(createFileButton){
+  //         //       createFileButton.style.display="none";
+  //         //     }
+  //         //     if(CreateFolder){
+  //         //       CreateFolder.style.display="none";
+  //         //     }
+
+
+  //         //    }
+  //         // } catch (error) {
+  //         //   console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+  //         //   if(createFileButton){
+  //         //     createFileButton.style.display="none";
+  //         //   }
+  //         //   if(CreateFolder){
+  //         //     CreateFolder.style.display="none";
+  //         //   }
+
+
+  //         // }
+  //       })
+  //       titleElement.addEventListener("click", async (event) => {
+  //         if (entityclicktext !== '') {
+
+  //           const breadcrumbElement = document.getElementById("breadcrumb");
+  //           if (breadcrumbElement) {
+  //             breadcrumbElement.style.display = "block";
+  //             breadcrumbElement.textContent = entityclicktext;
+  //           }
+  //         } else {
+
+  //           const breadcrumbElement = document.getElementById("breadcrumb");
+  //           if (breadcrumbElement) {
+  //             breadcrumbElement.style.display = "none";
+  //           }
+
+  //         }
+
+
+  //         setdisplayuploadfileandcreatefolder(true)
+
+  //         // Toggle +/- button
+  //         // const plusMinus = document.getElementById("toggle-plus/minus");
+  //         if (toggleButton1.textContent === "+") {
+  //           toggleButton1.textContent = "-";
+  //         } else if (toggleButton1.textContent) {
+  //           toggleButton1.textContent = "+";
+  //         }
+  //         const CreateFolder = document.getElementById("CreateFolder")
+  //         const CreateRoot = document.getElementById("CreateFolder1")
+  //         const createFileButton = document.getElementById("createFileButton")
+  //         const currentUser = await sp.web.currentUser();
+  //         const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+  //         // try {
+  //         //   // const currentUser = await sp.web.currentUser();
+  //         //   // const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+  //         //   const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
+  //         //   const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
+  //         //   console.log("isMemberOfSuperAdmin",isMemberOfSuperAdmin);
+  //         //   console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
+  //         //   // console.log(`User is a member of the group: ${currentEntity}_Admin`);
+  //         //   if (isMemberOfGroup || isMemberOfSuperAdmin) {
+  //         //   console.log(`User is a member of the group: ${currentEntity}_Admin`);
+  //         //   if(createFileButton){
+  //         //     createFileButton.style.display=  "none";
+  //         //   }
+  //         //   if(CreateFolder){
+  //         //     CreateFolder.style.display="block";
+  //         //   }
+  //         //  }else {
+  //         //     console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+  //         //     if(createFileButton){
+  //         //       createFileButton.style.display="none";
+  //         //     }
+  //         //     if(CreateFolder){
+  //         //       CreateFolder.style.display="none";
+  //         //     }
+
+
+  //         //    }
+  //         // } catch (error) {
+  //         //   console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+  //         //   if(createFileButton){
+  //         //     createFileButton.style.display="none";
+  //         //   }
+  //         //   if(CreateFolder){
+  //         //     CreateFolder.style.display="none";
+  //         //   }
+
+
+  //         // }
+  //         event.stopPropagation();
+  //         // const createFileButton2 = document.getElementById("createFileButton2");
+  //         // Clear any existing timer
+  //         clearTimeout(clickTimer);
+
+  //         // Set a new timer
+  //         clickTimer = setTimeout(() => {
+  //           setlistorgriddata('');
+  //           currentEntity = value.entityTitle
+  //           currentEntityURL = value.siteURL;
+  //           currentsiteID = value.siteID;
+  //           currentDevision = ""
+  //           currentDepartment = ''
+  //           currentDocumentLibrary = ""
+  //           currentFolder = ""
+  //           currentfolderpath = ""
+  //           if (value.isExternal === "Yes") {
+  //             IsExternal = true
+  //           } else if (value.isExternal === "No") {
+  //             IsExternal = false
+  //           }
+  //           console.log(value.entityTitle, "value");
+  //           console.log(currentsiteID, "currentsiteID");
+  //           console.log("currentEntityURL", currentEntityURL);
+  //           setcurrentSearchPath(currentEntityURL);
+  //           mydata.push(value.siteURL);
+  //           console.log(mydata, "my mydata");
+  //           toggleVisibility(devisionList);
+  //           toggleVisibility(documentList);
+  //           const hidegidvewlistviewbutton = document.getElementById("hidegidvewlistviewbutton");
+  //           const hidegidvewlistviewbutton2 = document.getElementById("hidegidvewlistviewbutton2");
+  //           if (hidegidvewlistviewbutton) {
+  //             console.log("enter here .....................");
+  //             hidegidvewlistviewbutton.style.display = 'none';
+  //           }
+  //           if (hidegidvewlistviewbutton2) {
+  //             console.log("enter here .....................");
+  //             hidegidvewlistviewbutton2.style.display = 'none';
+  //           }
+  //           // handleNavigation(value.entityTitle, null, null, null, null);
+  //           // Toggle plus/minus icon
+  //           titleElement.classList.toggle("expanded");
+  //           console.log(value, "value");
+  //           try {
+  //             // const currentUser = await sp.web.currentUser();
+  //             // const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+  //             const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
+  //             const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
+  //             const isMemberOfDeligation = userGroups.some(group => group.Title === `${currentEntity}_FolderDeligation`);
+  //             console.log("isMemberOfDeligation", isMemberOfDeligation);
+  //             console.log("isMemberOfSuperAdmin", isMemberOfSuperAdmin);
+  //             console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
+  //             // console.log(`User is a member of the group: ${currentEntity}_Admin`);
+  //             if (isMemberOfGroup || isMemberOfSuperAdmin) {
+  //               IsFolderDeligationUser = false;
+  //               console.log(`User is a member of the group: ${currentEntity}_Admin`);
+  //               if (createFileButton) {
+  //                 createFileButton.style.display = "none";
+  //               }
+  //               if (CreateFolder) {
+  //                 CreateFolder.style.display = "block";
+  //               }
+  //               // if(CreateRoot){
+  //               //   CreateRoot.style.display="none";
+  //               // }
+  //             } else if (isMemberOfDeligation) {
+  //               IsFolderDeligationUser = true;
+  //               console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
+  //               if (createFileButton) {
+  //                 createFileButton.style.display = "none";
+  //               }
+  //               if (CreateFolder) {
+  //                 CreateFolder.style.display = "block";
+  //               }
+  //             } else {
+  //               console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+  //               if (createFileButton) {
+  //                 createFileButton.style.display = "none";
+  //               }
+  //               if (CreateFolder) {
+  //                 CreateFolder.style.display = "none";
+  //               }
+
+
+  //             }
+  //           } catch (error) {
+  //             console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+  //             if (createFileButton) {
+  //               createFileButton.style.display = "none";
+  //             }
+  //             if (CreateFolder) {
+  //               CreateFolder.style.display = "none";
+  //             }
+
+
+  //           }
+  //           // const CreateFolder=document.getElementById("CreateFolder")
+  //           // const createFileButton=document.getElementById("createFileButton")
+  //           // if (createFolderButton) {
+  //           //     createFolderButton.style.display = "block";
+  //           // }
+  //           // if (createFileButton) {
+  //           //     createFileButton.style.display = "none";
+  //           // }
+  //           // if (CreateFolder) {
+  //           //   CreateFolder.style.display = "block";
+  //           // }
+  //           // if (myButton) {
+  //           //     myButton.textContent = `Create Library under ${entityTitle}`;
+  //           // } else {
+  //           //     console.error();
+  //           // }
+  //           // fetchData(currentEntityURL);
+  //         }, 300); // Adjust the delay as needed
+  //       });
+
+  //       titleElement.addEventListener("dblclick", async (event) => {
+  //         const breadcrumbElement = document.getElementById("breadcrumb");
+  //         if (breadcrumbElement) {
+  //           breadcrumbElement.style.display = "none";
+  //         }
+
+  //         setdisplayuploadfileandcreatefolder(true)
+  //         event.stopPropagation();
+  //         const CreateFolder = document.getElementById("CreateFolder")
+  //         const createFileButton = document.getElementById("createFileButton")
+  //         try {
+  //           const currentUser = await sp.web.currentUser();
+  //           const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+  //           const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
+  //           const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
+  //           const isMemberOfDeligation = userGroups.some(group => group.Title === `${currentEntity}_FolderDeligation`);
+  //           console.log("isMemberOfSuperAdmin", isMemberOfSuperAdmin);
+  //           console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
+  //           // console.log(`User is a member of the group: ${currentEntity}_Admin`);
+  //           if (isMemberOfGroup || isMemberOfSuperAdmin) {
+  //             IsFolderDeligationUser = false;
+  //             console.log(`User is a member of the group: ${currentEntity}_Admin`);
+  //             if (createFileButton) {
+  //               createFileButton.style.display = "none";
+  //             }
+  //             if (CreateFolder) {
+  //               CreateFolder.style.display = "block";
+  //             }
+  //           } else if (isMemberOfDeligation) {
+  //             IsFolderDeligationUser = true;
+  //             console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
+  //             if (createFileButton) {
+  //               createFileButton.style.display = "none";
+  //             }
+  //             if (CreateFolder) {
+  //               CreateFolder.style.display = "block";
+  //             }
+  //           } else {
+  //             console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+  //             if (createFileButton) {
+  //               createFileButton.style.display = "none";
+  //             }
+  //             if (CreateFolder) {
+  //               CreateFolder.style.display = "none";
+  //             }
+
+
+  //           }
+  //         } catch (error) {
+  //           console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+  //           if (createFileButton) {
+  //             createFileButton.style.display = "none";
+  //           }
+  //           if (CreateFolder) {
+  //             CreateFolder.style.display = "none";
+  //           }
+
+
+  //         }
+  //         if (value.isExternal === "Yes") {
+  //           IsExternal = true
+  //         } else if (value.isExternal === "No") {
+  //           IsExternal = false
+  //         }
+  //         // Clear the single click timer
+  //         clearTimeout(clickTimer);
+
+  //         setlistorgriddata('');
+  //         toggleVisibility(devisionList, false);
+  //         toggleVisibility(documentList, false);
+  //         // Toggle plus/minus icon
+  //         titleElement.classList.remove("expanded");
+  //       });
+  //     });
+  //   } catch (error) {
+  //     console.error("Error fetching or building folder tree:", error);
+  //   }
+  // };
+  // useEffect(() => {
+  //   fetchNavItems();
+  //   fetchAndBuildTree2();
+  // }, [])
   const fetchNavItems = async () => {
 
     const currentUser = await sp.web.currentUser();
@@ -11132,7 +12778,7 @@ const ArgPoc = ({ props }: any) => {
         case 'Annual Audit Program':
           setDynamicContent('Annual Audit Program');
           break;
-        case 'IMS Audit Report and Checklist':
+        case 'Audit Checklist and Report':
           setDynamicContent('Annual Audit Report');
           break;
         case 'Non Conformity':

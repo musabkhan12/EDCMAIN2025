@@ -44,6 +44,7 @@ const CreateFolder: React.FC<CreateFolderProps> = ({
   const siteUrl = window.location.origin;
   // alert(`siteUrl : ${siteUrl}${locationPath}/SitePages/DMSAdmin.aspx`)
   const [toggleApproval, setToggleApproval] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [approvalOption, setApprovalOption]=useState("");
   console.log("Approval option",approvalOption);
 
@@ -638,27 +639,79 @@ const validateFields = () => {
   // }
   const checkFolderNameValidation=async ()=>{
     let isValid=true;
+    
     if(OthProps.DocumentLibrary === ""){
-        const getFolderData=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`SiteTitle eq '${OthProps.Entity}' and DocumentLibraryName eq '${folderName.trim()}' and FolderPath eq '${locationPath}/${OthProps.Entity}/${folderName.trim()}'`)();
 
-        if(getFolderData.length > 0 ){
-          isValid=false;
+        // const getFolderData=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`SiteTitle eq '${OthProps.Entity}' and DocumentLibraryName eq '${folderName.trim()}' and FolderPath eq '${locationPath}/${OthProps.Entity}/${folderName.trim()}'`)();
+        // if(getFolderData.length > 0 ){
+        //   isValid=false;
+        // }
+        let allItems: any[] = [];
+        let paged = await sp.web.lists.getByTitle("DMSFolderMaster")
+          .items
+          .select("Id", "Title", "SiteTitle", "DocumentLibraryName", "FolderPath")
+          .top(100)
+          .getPaged();
+        
+        allItems.push(...paged.results);
+        
+        while (paged.hasNext) {
+          paged = await paged.getNext();
+          allItems.push(...paged.results);
         }
+        
+        // ✅ Now filter in JS
+        const filteredItems = allItems.filter(item =>
+          item.SiteTitle === OthProps.Entity &&
+          item.DocumentLibraryName === folderName.trim() &&
+          item.FolderPath === `${locationPath}/${OthProps.Entity}/${folderName.trim()}`
+        );
+        // alert(filteredItems.length);
+        // alert(JSON.stringify(filteredItems) + "length");
+        if(filteredItems.length > 0 ){
+          isValid=false;
+        } 
+       
     }else if(OthProps.DocumentLibrary !== ""){
+      // alert("Check for folder" + OthProps.DocumentLibrary);
+      // const getFolderData=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`SiteTitle eq '${OthProps.Entity}' and DocumentLibraryName eq '${OthProps.DocumentLibrary}' and FolderPath eq '${OthProps.folderpath}/${folderName.trim()}'`)();
 
-      const getFolderData=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`SiteTitle eq '${OthProps.Entity}' and DocumentLibraryName eq '${OthProps.DocumentLibrary}' and FolderPath eq '${OthProps.folderpath}/${folderName.trim()}'`)();
-
-      if(getFolderData.length > 0 ){
-        isValid=false;
+      // if(getFolderData.length > 0 ){
+      //   isValid=false;
+      // }
+      let allItems: any[] = [];
+      let paged = await sp.web.lists.getByTitle("DMSFolderMaster")
+        .items
+        .select("Id", "Title", "SiteTitle", "DocumentLibraryName", "FolderPath")
+        .top(100)
+        .getPaged();
+      
+      allItems.push(...paged.results);
+      
+      while (paged.hasNext) {
+        paged = await paged.getNext();
+        allItems.push(...paged.results);
       }
-
+      
+      // ✅ Now filter in JS
+      const filteredItems = allItems.filter(item =>
+        item.SiteTitle === OthProps.Entity &&
+        item.DocumentLibraryName === OthProps.DocumentLibrary &&
+        item.FolderPath === `${OthProps.folderpath}/${folderName.trim()}`       // `${locationPath}/${OthProps.Entity}/${folderName.trim()}`
+                               
+      );
+      // alert(filteredItems.length);
+      // alert(JSON.stringify(filteredItems) + "length");
+      if(filteredItems.length > 0 ){
+        isValid=false;
+      } 
     }
 
     return isValid;
   }
   const handleCreate = async(e: any) => {
     e.preventDefault();
-
+    setIsLoading(true); // Start loading
     let validateColumns=false;
     let validateUser=false;
     let formFieldValidation=false;
@@ -667,565 +720,575 @@ const validateFields = () => {
     const nonAlphaNumericForEntity = folderName.replace(/[^a-zA-Z0-9 -]/g, '');
     // Validate the form
     let validationErrors: FormErrors = {};
-
-    if(OthProps.DocumentLibrary !== ""){
-      console.log("create Folder");
-      if (!folderName.trim()) {
-        validationErrors.folderName = "Folder Name is required.";
-      }
-      if(folderName !== nonAlphaNumericForEntity){
-        validationErrors.folderName = "Special charaters are not allowed.";
-      }
-      if(nonAlphaNumericForEntity.length > 50){
-        validationErrors.folderName = "Input cannot exceed 50 characters in the folder name field.";
-      }
-      if (!folderOverview.trim()) {
-        validationErrors.folderOverview = "Folder Overview is required.";
-      }
-      if(!validatePermissionsSelect() && showDiv){
-        validatePermissionAndUser=true;
-      }
-      // if(!await checkDuplicateFolderNameValidation()){
-      //   validationErrors.folderName = "Folder name already exist.";
-      // }
-      if(!await checkFolderNameValidation()){
-        validationErrors.folderName = "Folder already exists. Please change the folder name."
-     }
-    }else{
-      console.log("create document library");
-      if (!folderName.trim()) {
-        validationErrors.folderName = "Folder Name is required.";
-      }
-      if(folderName !== nonAlphaNumericForEntity){
-        validationErrors.folderName = "Special charaters are not allowed.";
-      }
-      if(nonAlphaNumericForEntity.length > 50){
-        validationErrors.folderName = "Input cannot exceed 50 characters in the folder name field.";
-      }
-      if(!approvalOption.trim()){
-        validationErrors.approvalOption = "Approval Option is required.";
-      }
-      if (!folderPrivacy) {
-        validationErrors.folderPrivacy = "Please select folder privacy.";
-      }
-      if (!folderOverview.trim()) {
-        validationErrors.folderOverview = "Folder Overview is required.";
-      }
-      if(!validateUsersSelect() && toggleApproval){
-        console.log("User errors checks called");
-        validateUser=true;
-      }
-      if(!validateFields()){
-          // console.log("select the fiels or type");
-          validateColumns=true
-      }
-
-      if(!validatePermissionsSelect() && showDiv){
-        validatePermissionAndUser=true;
-      }
-      // if(!await checkDuplicateFolderNameValidation()){
-      //   validationErrors.folderName = "Folder name already exist.";
-      // }
-
-      if(!await checkFolderNameValidation()){
-         validationErrors.folderName = "Folder already exists. Please change the folder name."
-      }
-    }
-    
-    // Validation for forbidden column names
-    const forbiddenNames = ["status", "isdeleted"];
-    const invalidFields = formFields.filter((field) => forbiddenNames.includes(field.fieldName.trim().toLowerCase()));
-    if (invalidFields.length > 0) {
-      formFieldValidation=true;
-          // return;
-    }
-    // If errors exist, set them to the state and prevent submission
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-    }
-    else if(validateColumns){
-        // alert("Add Columns Fields and Type");
-    }
-    else if(validateUser){
-        // alert("Please select at least one user");
-    }else if(formFieldValidation){
-      Swal.fire(
-        'Validation Error',
-        `The column names "${invalidFields.map(f => f.fieldName).join(', ')}" are not allowed. Please choose different names.`,
-        'error'
-      );
-    }else if(validatePermissionAndUser){
-
-    }
-    else {
-      const createFolderButton=document.getElementById('CreateFolderInsideSharePoint') as HTMLButtonElement;
-      createFolderButton.disabled=true;
-      const payloadForFolderMaster={
-        SiteTitle:OthProps.Entity,
-        CurrentUser:currentUserEmailRef.current
-      }
-
-      if(OthProps.DocumentLibrary === ""){
-        (payloadForFolderMaster as any).DocumentLibraryName=folderName.trim();
-        (payloadForFolderMaster as any).FolderPath=`${locationPath}/${OthProps.Entity}/${folderName.trim()}`;
-        //  (payloadForFolderMaster as any).FolderPath=`/sites/edcspfx/${OthProps.Entity}/${folderName}`;
-        (payloadForFolderMaster as any).IsLibrary=true;
-        (payloadForFolderMaster as any).IsActive=false;
-        if(folderPrivacy === "private"){
-          (payloadForFolderMaster as any).IsPrivate=true;
-        }else if(folderPrivacy === "public"){
-          (payloadForFolderMaster as any).IsPrivate=false;
-        }
-        if(OthProps.IsFolderDeligationUser === "true"){
-          (payloadForFolderMaster as any).IsFolderDeligation=true;
-        }
-        if(OthProps.IsExternal === 'true'){
-          (payloadForFolderMaster as any).External=true;
-        }
-      }else{
-        (payloadForFolderMaster as any).DocumentLibraryName=OthProps.DocumentLibrary;
-        (payloadForFolderMaster as any).FolderPath=`${OthProps.folderpath}/${folderName.trim()}`;
-        (payloadForFolderMaster as any).IsFolder=true;
-        if(OthProps.IsFolderDeligationUser === "true"){
-          (payloadForFolderMaster as any).IsActive=false;
-        }else if(OthProps.IsFolderDeligationUser === "false"){
-          (payloadForFolderMaster as any).IsActive=true;
-        }
-
-        if(OthProps.Folder ===  ""){
-            (payloadForFolderMaster as any).FolderName=folderName.trim();
-        }else{
-            (payloadForFolderMaster as any).FolderName=folderName.trim();
-            (payloadForFolderMaster as any).ParentFolderId=OthProps.Folder;
-
-            const parentIdData=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`FolderPath eq '${OthProps.folderpath}'`)();
-            console.log("parentIdData",parentIdData);
-
-            (payloadForFolderMaster as any).ParentID=parentIdData[0].ID;
-            
-        }
-        if(folderPrivacy === "private"){
-          (payloadForFolderMaster as any).IsPrivate=true;
-        }else if(folderPrivacy === "public"){
-          (payloadForFolderMaster as any).IsPrivate=false;
-        }
-
-        if(OthProps.IsFolderDeligationUser === "true"){
-          (payloadForFolderMaster as any).IsFolderDeligation=true;
-        }
-        if(OthProps.IsExternal === 'true'){
-          (payloadForFolderMaster as any).External=true;
-        }
-      }
-
-      if(OthProps.Department !== ""){
-        (payloadForFolderMaster as any).Department=OthProps.Department
-      }
-      if(OthProps.Devision !== ""){
-        (payloadForFolderMaster as any).Devision=OthProps.Devision
-      }
-
-      console.log("payloadForFolderMaster",payloadForFolderMaster);
-      console.log("Approved User list",rows);
-
-      
-
-      const addedItem = await sp.web.lists.getByTitle("DMSFolderMaster").items.add(payloadForFolderMaster);
-      console.log("Item added successfully in the DMSFolderMaster", addedItem);
-
-
-      // new code for Creating Folder inside the document library
+    try {
       if(OthProps.DocumentLibrary !== ""){
-
-          try {
-          
-            console.log("Create Folder Inside this Document Library -",OthProps.DocumentLibraryName);
-            const {web}=await sp.site.openWebById(OthProps.siteID);
-            const folderAddResult = await web.folders.addUsingPath(`${OthProps.folderpath}/${folderName.trim()}`);
-            console.log("Folder created successfully -",folderAddResult);
-
-            if(folderPrivacy === "public"){
-              const folder =await web.getFolderByServerRelativePath(`${OthProps.folderpath}/${folderName.trim()}`).getItem();
-              const itemData = await folder.select("HasUniqueRoleAssignments")();
-              const breaKRole=itemData.HasUniqueRoleAssignments;
-              if (!breaKRole) {
-                await folder.breakRoleInheritance(true);
-                console.log("Inheritance broken, retaining previous permissions.");
-              }
-               // Fetch all the groups in the subsite
-                interface IMember {
-                  PrincipalType: number;
-                  Title:String;
-                  Id:number 
-                }
-                interface IRoleAssignmentInfo {
-                  Member?: IMember; 
-                }
-                const groups:IRoleAssignmentInfo[] = await web.roleAssignments.expand("Member")();
-                console.log("groups3",groups);
-                const filteredMembers=groups.filter(roleAssignment => {
-                  return roleAssignment.Member.PrincipalType === 8;
-                });
-
-                const filteredGroups = filteredMembers.map((object) => ({
-                    value: object.Member.Title,
-                    label: object.Member.Title,
-                    Id: object.Member.Id,
-                }));
-                console.log("filteredGroups",filteredGroups);
-                console.log("filteredMembers",filteredMembers);
-
-                const updatedData = filteredGroups.map(item => {
-                  let permission = "";
-              
-                  if (item.value.includes("_Admin")) permission = "Full Control";
-                  else if (item.value.includes("_View")) permission = "View";
-                  else if (item.value.includes("_Read")) permission = "Read";
-                  else if (item.value.includes("_Contribute")) permission = "Contribute";
-                  else if (item.value.includes("_Initiator")) permission = "Edit";
-                  else if (item.value.includes("_Approval")) permission = "Edit";
-                  else if (item.value.includes("_AllUsers")) permission = "Edit";
-                  else if (item.value.includes("_FolderDeligation")) permission = "Contribute";
-              
-                  return { ...item, permission };
-              });
-
-              console.log("updatedData",updatedData);
-              updatedData.forEach(async(item)=>{
-                try {
-                  const roleDefinition = await web.roleDefinitions.getByName(item.permission)();
-                  const roleDefinitionId = roleDefinition.Id;
-                  const principalId =item.Id;
-                  await folder.roleAssignments.add(principalId, roleDefinitionId);
-                  console.log(`Adding ${item.value} (${principalId}) with ${item.permission} permissions`);
-                } catch (error) {
-                  console.log("Error Adding groups to the folders",error)
-                }
- 
-              })
-            }
-          } catch (error) {
-            console.log("Error In creating Folder Inside the Document Library",error);
-          }
-        
-      
-      }
-      // END NEW CODE
-
-      if(OthProps.DocumentLibrary === "" && toggleApproval){
-
-            let payloadForFolderPermissionMaster={
-              SiteName:OthProps.Entity,
-              DocumentLibraryName:folderName.trim(),
-              CurrentUser:currentUserEmailRef.current,
-            }
-
-            rows.forEach((row)=>{
-
-              payloadForFolderPermissionMaster={
-                SiteName:OthProps.Entity,
-                DocumentLibraryName:folderName.trim(),
-                CurrentUser:currentUserEmailRef.current,
-  
-              }
-
-              row.approvedUserList.forEach(async(user:any)=>{
-                // (payloadForFolderPermissionMaster as any).ApprovalUser=user.value
-                console.log("user",user.value);
-                console.log("userID",user.userId);
-                console.log("id",row.id);
-
-                
-                if(row.selectionType === "All"){
-                  (payloadForFolderPermissionMaster as any).ApprovalType=1;
-                }else if(row.selectionType === "One"){
-                  (payloadForFolderPermissionMaster as any).ApprovalType=0;
-                };
-
-
-                // (payloadForFolderPermissionMaster as any).ApprovalUser={
-                //   "__metadata": {"type": "SP.FieldUserValue" },
-                //   LookupId: user.userId
-                // };
-
-                // const ensureUser=await sp.web.ensureUser(user.email);  
-                // console.log("user to update",ensureUser);
-
-                (payloadForFolderPermissionMaster as any).ApprovalUserId=user.userId;
-
-                (payloadForFolderPermissionMaster as any).Level=row.id + 1;
-                console.log("payloadForFolderPermissionMaster",payloadForFolderPermissionMaster);
-
-                // Add the payload DMSFolderPermissionMaster
-                try {
-                  const addedItem = await sp.web.lists.getByTitle("DMSFolderPermissionMaster").items.add(payloadForFolderPermissionMaster);
-                  console.log("Item added successfully in the payloadForFolderPermissionMaster", addedItem);
-                } catch (error) {
-                  console.log("Error adding items to DMSFolderPermissionMaster",error);
-                }
-               
-              })
-              
-
-            })
-      }
-      
-
-    if(OthProps.DocumentLibrary === ""){
-
-          console.log("Add the Columns when create document library");
-          const payloadForPreviewFormMaster={
-            SiteName:OthProps.Entity,
-            DocumentLibraryName:folderName.trim(),
-            IsRequired:true,
-            AddorRemoveThisColumn:"Add To Library",
-            IsInProgress:true
-          }
-
-          // console.log("payloadForPreviewFormMaster",payloadForPreviewFormMaster)
-          
-          let optionSelectedForPrivacy:boolean;
-          if(folderPrivacy === "private"){
-            optionSelectedForPrivacy=true;
-          }else if(folderPrivacy === "public"){
-            optionSelectedForPrivacy=false;
-          }
-          let optionSelectedForApprovals:boolean;
-          if(approvalOption === "Yes"){
-            optionSelectedForApprovals=true;
-          }else if(approvalOption === "No"){
-            optionSelectedForApprovals=false;
-          }
-
-          const payload={
-            SiteName:OthProps.Entity,
-            DocumentLibraryName:folderName.trim(),
-            IsDocumentLibrary:true,
-            IsPrivate:optionSelectedForPrivacy,
-            IsHardDelete:false,
-            IsApproval:optionSelectedForApprovals
-          }
-          console.log("payload for DMSPreviewFormField for IsDocumentLibrary",payload)
-          const addedItem = await sp.web.lists.getByTitle("DMSPreviewFormMaster").items.add(payload);
-          console.log("Item added successfully in the DMSPreviewFormField for IsDocumentLibrary", addedItem);
-          
-          if(formFields.length > 0){
-            // if(formFields[0].fieldName !== '' && formFields[0].selectField !== ''){
-              formFields.forEach(async(field)=>{
-                // type.replace(/\s+/g, '').toLowerCase();
-                if (field.fieldName.trim() !== '') {
-                    (payloadForPreviewFormMaster as any).ColumnName=field.fieldName.replace(/\s+/g,'');
-                    (payloadForPreviewFormMaster as any).ColumnType=field.selectField
-                    console.log("Call the Api with this payload",payloadForPreviewFormMaster)
-    
-                    const addedItem = await sp.web.lists.getByTitle("DMSPreviewFormMaster").items.add(payloadForPreviewFormMaster);
-                    console.log("Item added successfully in the DMSPreviewFormField", addedItem);
-                }
-                    
-              })
-            // }
-          }
-          // formFields.forEach(async(field)=>{
-          //   // type.replace(/\s+/g, '').toLowerCase();
-          //       (payloadForPreviewFormMaster as any).ColumnName=field.fieldName.replace(/\s+/g,'');
-          //       (payloadForPreviewFormMaster as any).ColumnType=field.selectField
-          //       console.log("Call the Api with this payload",payloadForPreviewFormMaster)
-
-          //       const addedItem = await sp.web.lists.getByTitle("DMSPreviewFormMaster").items.add(payloadForPreviewFormMaster);
-          //       console.log("Item added successfully in the DMSPreviewFormField", addedItem);
-                
-          // })
-    }
-
-    // new code  creating payload for DMSFolderPrivacy and add the data
-      // if(OthProps.DocumentLibrary === "" && permission === true){
-        // if(permission === true){
-
-    // Add permission  to all whetehr its document library folder or subfolder
-    let Id:any;
-    if(OthProps.DocumentLibrary === ""){
-      const getIDDetailsOfTheCurrentFolder=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`FolderPath eq '${locationPath}/${OthProps.Entity}/${folderName.trim()}'`)();
-
-      Id=getIDDetailsOfTheCurrentFolder[0].ID;
-    }else{
-      const getIDDetailsOfTheCurrentFolder=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`FolderPath eq '${OthProps.folderpath}/${folderName.trim()}'`)();
-
-      Id=getIDDetailsOfTheCurrentFolder[0].ID;
-    }
-          const payloadForDMSFolderPrivacy={
-            SiteName:OthProps.Entity,
-            CurrentUser:currentUserEmailRef.current,
-            IsModified:false,
-            FolderID:Id
-            // DocumentLibraryName:folderName
-          }
-          if(OthProps.DocumentLibrary === ""){
-            (payloadForDMSFolderPrivacy as any).DocumentLibraryName=folderName.trim();
-          }else{
-            (payloadForDMSFolderPrivacy as any).DocumentLibraryName=OthProps.DocumentLibrary;
-            (payloadForDMSFolderPrivacy as any).FolderName=folderName.trim();
-          }
-
-          if(folderPrivacy === "private"){
-            (payloadForDMSFolderPrivacy as any).PublicFolderPermission=false;
-          }else if(folderPrivacy === "public"){
-            (payloadForDMSFolderPrivacy as any).PublicFolderPermission=true;
-          }
-
-          console.log("Payload for DMSFolderPrivacy without selected field",payloadForDMSFolderPrivacy);
-          const addedItem1 = await sp.web.lists.getByTitle("DMSFolderPrivacy").items.add(payloadForDMSFolderPrivacy);
-          console.log("Added data to DMSFolderPrivacy without selected field",addedItem1);
-
-          rowsForPermission.forEach((row)=>{
-              console.log("row",row.selectedPermission);
-              row.selectedUserForPermission.forEach(async(user:any)=>{
-                (payloadForDMSFolderPrivacy as any).User=user.value;
-                (payloadForDMSFolderPrivacy as any).UserID=user.userId;
-                (payloadForDMSFolderPrivacy as any).UserPermission=row.selectedPermission;
-                payloadForDMSFolderPrivacy.IsModified=false;
-                console.log("Payload for DMSFolderPrivacy after slecetd value",payloadForDMSFolderPrivacy);
-                try {
-                  const addedItem = await sp.web.lists.getByTitle("DMSFolderPrivacy").items.add(payloadForDMSFolderPrivacy);
-                  console.log("Item added to the list DMSFolderPrivacy after selected value ",addedItem);
-                } catch (error) {
-                  console.log("Erroe in adding items in the DMSFolderPrivacy after selected value",error);
-                }
-              })
-          })
-          // selectedArrayForUserPermission.forEach(async(user)=>{
-          //   (payloadForDMSFolderPrivacy as any).User=user.value;
-          //   (payloadForDMSFolderPrivacy as any).UserID=user.userId;
-          //   (payloadForDMSFolderPrivacy as any).UserPermission=selectedPermissionValue;
-          //   payloadForDMSFolderPrivacy.IsModified=false;
-
-          //   console.log("Payload for DMSFolderPrivacy after slecetd value",payloadForDMSFolderPrivacy);
-
-          //   try {
-          //     const addedItem = await sp.web.lists.getByTitle("DMSFolderPrivacy").items.add(payloadForDMSFolderPrivacy);
-          //     console.log("Item added to the list DMSFolderPrivacy after selected value ",addedItem);
-          //   } catch (error) {
-          //     console.log("Erroe in adding items in the DMSFolderPrivacy after selected value",error);
-          //   }
-            
-          // })
-
-      // }
-    // new code end
-    const getUniqueRequestNo = async () => {
-      const counterItem = await sp.web.lists.getByTitle('DMSFolderCounterList').items.getById(1)();
-      console.log("Counter Item 0", counterItem);
-      console.log("Counter Item 1", counterItem.FolderCount);
-      let FolderCount = counterItem.FolderCount;
-    
-      // Increment the counter
-      FolderCount++;
-    
-      // Generate the new RequestNo
-      const newRequestNo = `Folder${String(FolderCount).padStart(2, '0')}`;
-    
-      // Update the counter in the CounterList
-      await sp.web.lists.getByTitle('DMSFolderCounterList').items.getById(1).update({
-        FolderCount: FolderCount
-      });
-    
-      return newRequestNo;
-    };
-    const newRequestNo = await getUniqueRequestNo();
-
-      if(OthProps.IsFolderDeligationUser === "true"){
-        
-        const payloadForFolderDelegation={
-          SiteTitle:OthProps.Entity,
-          CurrentUser:currentUserEmailRef.current,
-          Processname:'New Folder Request',
-          RequestNo:newRequestNo,
-          Status:'Pending',
-          SubmitStatus:'Submitted'
+        console.log("create Folder");
+        if (!folderName.trim()) {
+          validationErrors.folderName = "Folder Name is required.";
         }
-        
+        if(folderName !== nonAlphaNumericForEntity){
+          validationErrors.folderName = "Special charaters are not allowed.";
+        }
+        if(nonAlphaNumericForEntity.length > 50){
+          validationErrors.folderName = "Input cannot exceed 50 characters in the folder name field.";
+        }
+        if (!folderOverview.trim()) {
+          validationErrors.folderOverview = "Folder Overview is required.";
+        }
+        if(!validatePermissionsSelect() && showDiv){
+          validatePermissionAndUser=true;
+        }
+        // if(!await checkDuplicateFolderNameValidation()){
+        //   validationErrors.folderName = "Folder name already exist.";
+        // }
+        if(!await checkFolderNameValidation()){
+          validationErrors.folderName = "Folder already exists. Please change the folder name."
+       }
+      }else{
+        console.log("create document library");
+        if (!folderName.trim()) {
+          validationErrors.folderName = "Folder Name is required.";
+        }
+        if(folderName !== nonAlphaNumericForEntity){
+          validationErrors.folderName = "Special charaters are not allowed.";
+        }
+        if(nonAlphaNumericForEntity.length > 50){
+          validationErrors.folderName = "Input cannot exceed 50 characters in the folder name field.";
+        }
+        if(!approvalOption.trim()){
+          validationErrors.approvalOption = "Approval Option is required.";
+        }
+        if (!folderPrivacy) {
+          validationErrors.folderPrivacy = "Please select folder privacy.";
+        }
+        if (!folderOverview.trim()) {
+          validationErrors.folderOverview = "Folder Overview is required.";
+        }
+        if(!validateUsersSelect() && toggleApproval){
+          console.log("User errors checks called");
+          validateUser=true;
+        }
+        if(!validateFields()){
+            // console.log("select the fiels or type");
+            validateColumns=true
+        }
+  
+        if(!validatePermissionsSelect() && showDiv){
+          validatePermissionAndUser=true;
+        }
+        // if(!await checkDuplicateFolderNameValidation()){
+        //   validationErrors.folderName = "Folder name already exist.";
+        // }
+  
+        if(!await checkFolderNameValidation()){
+           validationErrors.folderName = "Folder already exists. Please change the folder name."
+        }
+      }
+      
+      // Validation for forbidden column names
+      const forbiddenNames = ["status", "isdeleted"];
+      const invalidFields = formFields.filter((field) => forbiddenNames.includes(field.fieldName.trim().toLowerCase()));
+      if (invalidFields.length > 0) {
+        formFieldValidation=true;
+            // return;
+      }
+      // If errors exist, set them to the state and prevent submission
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+      }
+      else if(validateColumns){
+          // alert("Add Columns Fields and Type");
+      }
+      else if(validateUser){
+          // alert("Please select at least one user");
+      }else if(formFieldValidation){
+        Swal.fire(
+          'Validation Error',
+          `The column names "${invalidFields.map(f => f.fieldName).join(', ')}" are not allowed. Please choose different names.`,
+          'error'
+        );
+      }else if(validatePermissionAndUser){
+  
+      }
+      else {
+        const createFolderButton=document.getElementById('CreateFolderInsideSharePoint') as HTMLButtonElement;
+        createFolderButton.disabled=true;
+        const payloadForFolderMaster={
+          SiteTitle:OthProps.Entity,
+          CurrentUser:currentUserEmailRef.current
+        }
+  
         if(OthProps.DocumentLibrary === ""){
-          (payloadForFolderDelegation as any).DocumentLibraryName=folderName.trim();
-          //  (payloadForFolderDelegation as any).FolderPath=`/sites/IntranetUAT/${OthProps.Entity}/${folderName}`;
-           (payloadForFolderDelegation as any).FolderPath=`${locationPath}/${OthProps.Entity}/${folderName.trim()}`;
-          (payloadForFolderDelegation as any).IsLibrary=true;
-          // (payloadForFolderDelegation as any).IsActive=false;
+          (payloadForFolderMaster as any).DocumentLibraryName=folderName.trim();
+          //  (payloadForFolderMaster as any).FolderPath=`/sites/IntranetUAT/${OthProps.Entity}/${folderName}`;
+          //  (payloadForFolderMaster as any).FolderPath=`/sites/AlRostmanispfx2/${OthProps.Entity}/${folderName}`;
+           (payloadForFolderMaster as any).FolderPath=`${locationPath}/${OthProps.Entity}/${folderName.trim()}`;
+          //  (payloadForFolderMaster as any).FolderPath=`/sites/AlRostmani/${OthProps.Entity}/${folderName}`;
+          (payloadForFolderMaster as any).IsLibrary=true;
+          (payloadForFolderMaster as any).IsActive=false;
           if(folderPrivacy === "private"){
-            (payloadForFolderDelegation as any).IsPrivate=true;
+            (payloadForFolderMaster as any).IsPrivate=true;
           }else if(folderPrivacy === "public"){
-            (payloadForFolderDelegation as any).IsPrivate=false;
+            (payloadForFolderMaster as any).IsPrivate=false;
           }
-          // if(OthProps.IsFolderDeligationUser === "true"){
-          //   (payloadForFolderDelegation as any).IsFolderDeligation=true;
-          // }
-          if(approvalOption === "Yes"){
-            (payloadForFolderDelegation as any).IsApproval=true;
-          }else if(approvalOption === "No"){
-            (payloadForFolderDelegation as any).IsApproval=false;
+          if(OthProps.IsFolderDeligationUser === "true"){
+            (payloadForFolderMaster as any).IsFolderDeligation=true;
+          }
+          if(OthProps.IsExternal === 'true'){
+            (payloadForFolderMaster as any).External=true;
           }
         }else{
-          (payloadForFolderDelegation as any).DocumentLibraryName=OthProps.DocumentLibrary;
-          (payloadForFolderDelegation as any).FolderPath=`${OthProps.folderpath}/${folderName.trim()}`;
-          (payloadForFolderDelegation as any).IsFolder=true;
-          // (payloadForFolderDelegation as any).IsActive=true;
+          (payloadForFolderMaster as any).DocumentLibraryName=OthProps.DocumentLibrary;
+          (payloadForFolderMaster as any).FolderPath=`${OthProps.folderpath}/${folderName.trim()}`;
+          (payloadForFolderMaster as any).IsFolder=true;
+          if(OthProps.IsFolderDeligationUser === "true"){
+            (payloadForFolderMaster as any).IsActive=false;
+          }else if(OthProps.IsFolderDeligationUser === "false"){
+            (payloadForFolderMaster as any).IsActive=true;
+          }
   
           if(OthProps.Folder ===  ""){
-              (payloadForFolderDelegation as any).FolderName=folderName.trim();
+              (payloadForFolderMaster as any).FolderName=folderName.trim();
           }else{
-              (payloadForFolderDelegation as any).FolderName=folderName.trim();
-              (payloadForFolderDelegation as any).ParentFolderId=OthProps.Folder;
+              (payloadForFolderMaster as any).FolderName=folderName.trim();
+              (payloadForFolderMaster as any).ParentFolderId=OthProps.Folder;
+  
+              const parentIdData=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`FolderPath eq '${OthProps.folderpath}'`)();
+              console.log("parentIdData",parentIdData);
+  
+              (payloadForFolderMaster as any).ParentID=parentIdData[0].ID;
               
           }
           if(folderPrivacy === "private"){
-            (payloadForFolderDelegation as any).IsPrivate=true;
+            (payloadForFolderMaster as any).IsPrivate=true;
           }else if(folderPrivacy === "public"){
-            (payloadForFolderDelegation as any).IsPrivate=false;
+            (payloadForFolderMaster as any).IsPrivate=false;
           }
   
-          // if(OthProps.IsFolderDeligationUser === "true"){
-          //   (payloadForFolderMaster as any).IsFolderDeligation=true;
-          // }
+          if(OthProps.IsFolderDeligationUser === "true"){
+            (payloadForFolderMaster as any).IsFolderDeligation=true;
+          }
+          if(OthProps.IsExternal === 'true'){
+            (payloadForFolderMaster as any).External=true;
+          }
         }
   
         if(OthProps.Department !== ""){
-          (payloadForFolderDelegation as any).Department=OthProps.Department
+          (payloadForFolderMaster as any).Department=OthProps.Department
         }
         if(OthProps.Devision !== ""){
-          (payloadForFolderDelegation as any).Devision=OthProps.Devision
+          (payloadForFolderMaster as any).Devision=OthProps.Devision
         }
-
-
-        try {
-          await sp.web.lists.getByTitle('DMSFolderDeligationMaster').items.add(payloadForFolderDelegation);
-          console.log("Item added successfully in the DMSFolderDeligationMaster list");
-        } catch (error) {
-          console.log("Error in adding item in DMSFolderDeligationMaster list",error);
+  
+        console.log("payloadForFolderMaster",payloadForFolderMaster);
+        console.log("Approved User list",rows);
+  
+        
+  
+        const addedItem = await sp.web.lists.getByTitle("DMSFolderMaster").items.add(payloadForFolderMaster);
+        console.log("Item added successfully in the DMSFolderMaster", addedItem);
+  
+  
+        // new code for Creating Folder inside the document library
+        if(OthProps.DocumentLibrary !== ""){
+  
+            try {
+            
+              console.log("Create Folder Inside this Document Library -",OthProps.DocumentLibraryName);
+              const {web}=await sp.site.openWebById(OthProps.siteID);
+              const folderAddResult = await web.folders.addUsingPath(`${OthProps.folderpath}/${folderName.trim()}`);
+              console.log("Folder created successfully -",folderAddResult);
+  
+              if(folderPrivacy === "public"){
+                const folder =await web.getFolderByServerRelativePath(`${OthProps.folderpath}/${folderName.trim()}`).getItem();
+                const itemData = await folder.select("HasUniqueRoleAssignments")();
+                const breaKRole=itemData.HasUniqueRoleAssignments;
+                if (!breaKRole) {
+                  await folder.breakRoleInheritance(true);
+                  console.log("Inheritance broken, retaining previous permissions.");
+                }
+                 // Fetch all the groups in the subsite
+                  interface IMember {
+                    PrincipalType: number;
+                    Title:String;
+                    Id:number 
+                  }
+                  interface IRoleAssignmentInfo {
+                    Member?: IMember; 
+                  }
+                  const groups:IRoleAssignmentInfo[] = await web.roleAssignments.expand("Member")();
+                  console.log("groups3",groups);
+                  const filteredMembers=groups.filter(roleAssignment => {
+                    return roleAssignment.Member.PrincipalType === 8;
+                  });
+  
+                  const filteredGroups = filteredMembers.map((object) => ({
+                      value: object.Member.Title,
+                      label: object.Member.Title,
+                      Id: object.Member.Id,
+                  }));
+                  console.log("filteredGroups",filteredGroups);
+                  console.log("filteredMembers",filteredMembers);
+  
+                  const updatedData = filteredGroups.map(item => {
+                    let permission = "";
+                
+                    if (item.value.includes("_Admin")) permission = "Full Control";
+                    else if (item.value.includes("_View")) permission = "View";
+                    else if (item.value.includes("_Read")) permission = "Read";
+                    else if (item.value.includes("_Contribute")) permission = "Contribute";
+                    else if (item.value.includes("_Initiator")) permission = "Edit";
+                    else if (item.value.includes("_Approval")) permission = "Edit";
+                    else if (item.value.includes("_AllUsers")) permission = "Edit";
+                    else if (item.value.includes("_FolderDeligation")) permission = "Contribute";
+                
+                    return { ...item, permission };
+                });
+  
+                console.log("updatedData",updatedData);
+                updatedData.forEach(async(item)=>{
+                  try {
+                    const roleDefinition = await web.roleDefinitions.getByName(item.permission)();
+                    const roleDefinitionId = roleDefinition.Id;
+                    const principalId =item.Id;
+                    await folder.roleAssignments.add(principalId, roleDefinitionId);
+                    console.log(`Adding ${item.value} (${principalId}) with ${item.permission} permissions`);
+                  } catch (error) {
+                    console.log("Error Adding groups to the folders",error)
+                  }
+   
+                })
+              }
+            } catch (error) {
+              console.log("Error In creating Folder Inside the Document Library",error);
+            }
+          
+        
         }
+        // END NEW CODE
+  
+        if(OthProps.DocumentLibrary === "" && toggleApproval){
+  
+              let payloadForFolderPermissionMaster={
+                SiteName:OthProps.Entity,
+                DocumentLibraryName:folderName.trim(),
+                CurrentUser:currentUserEmailRef.current,
+              }
+  
+              rows.forEach((row)=>{
+  
+                payloadForFolderPermissionMaster={
+                  SiteName:OthProps.Entity,
+                  DocumentLibraryName:folderName.trim(),
+                  CurrentUser:currentUserEmailRef.current,
+    
+                }
+  
+                row.approvedUserList.forEach(async(user:any)=>{
+                  // (payloadForFolderPermissionMaster as any).ApprovalUser=user.value
+                  console.log("user",user.value);
+                  console.log("userID",user.userId);
+                  console.log("id",row.id);
+  
+                  
+                  if(row.selectionType === "All"){
+                    (payloadForFolderPermissionMaster as any).ApprovalType=1;
+                  }else if(row.selectionType === "One"){
+                    (payloadForFolderPermissionMaster as any).ApprovalType=0;
+                  };
+  
+  
+                  // (payloadForFolderPermissionMaster as any).ApprovalUser={
+                  //   "__metadata": {"type": "SP.FieldUserValue" },
+                  //   LookupId: user.userId
+                  // };
+  
+                  // const ensureUser=await sp.web.ensureUser(user.email);  
+                  // console.log("user to update",ensureUser);
+  
+                  (payloadForFolderPermissionMaster as any).ApprovalUserId=user.userId;
+  
+                  (payloadForFolderPermissionMaster as any).Level=row.id + 1;
+                  console.log("payloadForFolderPermissionMaster",payloadForFolderPermissionMaster);
+  
+                  // Add the payload DMSFolderPermissionMaster
+                  try {
+                    const addedItem = await sp.web.lists.getByTitle("DMSFolderPermissionMaster").items.add(payloadForFolderPermissionMaster);
+                    console.log("Item added successfully in the payloadForFolderPermissionMaster", addedItem);
+                  } catch (error) {
+                    console.log("Error adding items to DMSFolderPermissionMaster",error);
+                  }
+                 
+                })
+                
+  
+              })
+        }
+        
+  
+      if(OthProps.DocumentLibrary === ""){
+  
+            console.log("Add the Columns when create document library");
+            const payloadForPreviewFormMaster={
+              SiteName:OthProps.Entity,
+              DocumentLibraryName:folderName.trim(),
+              IsRequired:true,
+              AddorRemoveThisColumn:"Add To Library",
+              IsInProgress:true
+            }
+  
+            // console.log("payloadForPreviewFormMaster",payloadForPreviewFormMaster)
+            
+            let optionSelectedForPrivacy:boolean;
+            if(folderPrivacy === "private"){
+              optionSelectedForPrivacy=true;
+            }else if(folderPrivacy === "public"){
+              optionSelectedForPrivacy=false;
+            }
+            let optionSelectedForApprovals:boolean;
+            if(approvalOption === "Yes"){
+              optionSelectedForApprovals=true;
+            }else if(approvalOption === "No"){
+              optionSelectedForApprovals=false;
+            }
+  
+            const payload={
+              SiteName:OthProps.Entity,
+              DocumentLibraryName:folderName.trim(),
+              IsDocumentLibrary:true,
+              IsPrivate:optionSelectedForPrivacy,
+              IsHardDelete:false,
+              IsApproval:optionSelectedForApprovals
+            }
+            console.log("payload for DMSPreviewFormField for IsDocumentLibrary",payload)
+            const addedItem = await sp.web.lists.getByTitle("DMSPreviewFormMaster").items.add(payload);
+            console.log("Item added successfully in the DMSPreviewFormField for IsDocumentLibrary", addedItem);
+            
+            if(formFields.length > 0){
+              // if(formFields[0].fieldName !== '' && formFields[0].selectField !== ''){
+                formFields.forEach(async(field)=>{
+                  // type.replace(/\s+/g, '').toLowerCase();
+                  if (field.fieldName.trim() !== '') {
+                      (payloadForPreviewFormMaster as any).ColumnName=field.fieldName.replace(/\s+/g,'');
+                      (payloadForPreviewFormMaster as any).ColumnType=field.selectField
+                      console.log("Call the Api with this payload",payloadForPreviewFormMaster)
+      
+                      const addedItem = await sp.web.lists.getByTitle("DMSPreviewFormMaster").items.add(payloadForPreviewFormMaster);
+                      console.log("Item added successfully in the DMSPreviewFormField", addedItem);
+                  }
+                      
+                })
+              // }
+            }
+            // formFields.forEach(async(field)=>{
+            //   // type.replace(/\s+/g, '').toLowerCase();
+            //       (payloadForPreviewFormMaster as any).ColumnName=field.fieldName.replace(/\s+/g,'');
+            //       (payloadForPreviewFormMaster as any).ColumnType=field.selectField
+            //       console.log("Call the Api with this payload",payloadForPreviewFormMaster)
+  
+            //       const addedItem = await sp.web.lists.getByTitle("DMSPreviewFormMaster").items.add(payloadForPreviewFormMaster);
+            //       console.log("Item added successfully in the DMSPreviewFormField", addedItem);
+                  
+            // })
       }
-      // Clear form on successful submission
-      Swal.fire({
-        title: "Success",
-        text: "Your request to create a folder has been submitted successfully. The folder will appear shortly as we complete the setup process.",
-        icon: "success",
-        // showCancelButton: true,
-        confirmButtonText: 'OK',
-      }).then((result) => {
-        if (result.isConfirmed) {
-          location.reload(); // This will reload the page
-          onReturnToMain()
-        }
-        if(result.isDismissed){
-          location.reload();
-          onReturnToMain()
-        }
-      });
+  
+      // new code  creating payload for DMSFolderPrivacy and add the data
+        // if(OthProps.DocumentLibrary === "" && permission === true){
+          // if(permission === true){
+  
+      // Add permission  to all whetehr its document library folder or subfolder
+      let Id:any;
+      if(OthProps.DocumentLibrary === ""){
+        const getIDDetailsOfTheCurrentFolder=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`FolderPath eq '${locationPath}/${OthProps.Entity}/${folderName.trim()}'`)();
+  
+        Id=getIDDetailsOfTheCurrentFolder[0].ID;
+      }else{
+        const getIDDetailsOfTheCurrentFolder=await sp.web.lists.getByTitle("DMSFolderMaster").items.select("*").filter(`FolderPath eq '${OthProps.folderpath}/${folderName.trim()}'`)();
+  
+        Id=getIDDetailsOfTheCurrentFolder[0].ID;
+      }
+            const payloadForDMSFolderPrivacy={
+              SiteName:OthProps.Entity,
+              CurrentUser:currentUserEmailRef.current,
+              IsModified:false,
+              FolderID:Id
+              // DocumentLibraryName:folderName
+            }
+            if(OthProps.DocumentLibrary === ""){
+              (payloadForDMSFolderPrivacy as any).DocumentLibraryName=folderName.trim();
+            }else{
+              (payloadForDMSFolderPrivacy as any).DocumentLibraryName=OthProps.DocumentLibrary;
+              (payloadForDMSFolderPrivacy as any).FolderName=folderName.trim();
+            }
+  
+            if(folderPrivacy === "private"){
+              (payloadForDMSFolderPrivacy as any).PublicFolderPermission=false;
+            }else if(folderPrivacy === "public"){
+              (payloadForDMSFolderPrivacy as any).PublicFolderPermission=true;
+            }
+  
+            console.log("Payload for DMSFolderPrivacy without selected field",payloadForDMSFolderPrivacy);
+            const addedItem1 = await sp.web.lists.getByTitle("DMSFolderPrivacy").items.add(payloadForDMSFolderPrivacy);
+            console.log("Added data to DMSFolderPrivacy without selected field",addedItem1);
+  
+            rowsForPermission.forEach((row)=>{
+                console.log("row",row.selectedPermission);
+                row.selectedUserForPermission.forEach(async(user:any)=>{
+                  (payloadForDMSFolderPrivacy as any).User=user.value;
+                  (payloadForDMSFolderPrivacy as any).UserID=user.userId;
+                  (payloadForDMSFolderPrivacy as any).UserPermission=row.selectedPermission;
+                  payloadForDMSFolderPrivacy.IsModified=false;
+                  console.log("Payload for DMSFolderPrivacy after slecetd value",payloadForDMSFolderPrivacy);
+                  try {
+                    const addedItem = await sp.web.lists.getByTitle("DMSFolderPrivacy").items.add(payloadForDMSFolderPrivacy);
+                    console.log("Item added to the list DMSFolderPrivacy after selected value ",addedItem);
+                  } catch (error) {
+                    console.log("Erroe in adding items in the DMSFolderPrivacy after selected value",error);
+                  }
+                })
+            })
+            // selectedArrayForUserPermission.forEach(async(user)=>{
+            //   (payloadForDMSFolderPrivacy as any).User=user.value;
+            //   (payloadForDMSFolderPrivacy as any).UserID=user.userId;
+            //   (payloadForDMSFolderPrivacy as any).UserPermission=selectedPermissionValue;
+            //   payloadForDMSFolderPrivacy.IsModified=false;
+  
+            //   console.log("Payload for DMSFolderPrivacy after slecetd value",payloadForDMSFolderPrivacy);
+  
+            //   try {
+            //     const addedItem = await sp.web.lists.getByTitle("DMSFolderPrivacy").items.add(payloadForDMSFolderPrivacy);
+            //     console.log("Item added to the list DMSFolderPrivacy after selected value ",addedItem);
+            //   } catch (error) {
+            //     console.log("Erroe in adding items in the DMSFolderPrivacy after selected value",error);
+            //   }
+              
+            // })
+  
+        // }
+      // new code end
+      const getUniqueRequestNo = async () => {
+        const counterItem = await sp.web.lists.getByTitle('DMSFolderCounterList').items.getById(1)();
+        console.log("Counter Item 0", counterItem);
+        console.log("Counter Item 1", counterItem.FolderCount);
+        let FolderCount = counterItem.FolderCount;
       
-      //  setTimeout(() => {
-      //     Swal.close(); // Close the pop-up
-      //     onReturnToMain(); // Call onReturnToMain if needed
-      //   }, 3000); // 3000 milliseconds = 3 seconds
+        // Increment the counter
+        FolderCount++;
       
-      clearForm();
+        // Generate the new RequestNo
+        const newRequestNo = `Folder${String(FolderCount).padStart(2, '0')}`;
+      
+        // Update the counter in the CounterList
+        await sp.web.lists.getByTitle('DMSFolderCounterList').items.getById(1).update({
+          FolderCount: FolderCount
+        });
+      
+        return newRequestNo;
+      };
+      const newRequestNo = await getUniqueRequestNo();
+  
+        if(OthProps.IsFolderDeligationUser === "true"){
+          
+          const payloadForFolderDelegation={
+            SiteTitle:OthProps.Entity,
+            CurrentUser:currentUserEmailRef.current,
+            Processname:'New Folder Request',
+            RequestNo:newRequestNo,
+            Status:'Pending',
+            SubmitStatus:'Submitted'
+          }
+          
+          if(OthProps.DocumentLibrary === ""){
+            (payloadForFolderDelegation as any).DocumentLibraryName=folderName.trim();
+            //  (payloadForFolderDelegation as any).FolderPath=`/sites/IntranetUAT/${OthProps.Entity}/${folderName}`;
+            //  (payloadForFolderDelegation as any).FolderPath=`/sites/AlRostmanispfx2/${OthProps.Entity}/${folderName}`;
+            //  (payloadForFolderDelegation as any).FolderPath=`/sites/AlRostmani/${OthProps.Entity}/${folderName}`;
+             (payloadForFolderDelegation as any).FolderPath=`${locationPath}/${OthProps.Entity}/${folderName.trim()}`;
+            (payloadForFolderDelegation as any).IsLibrary=true;
+            // (payloadForFolderDelegation as any).IsActive=false;
+            if(folderPrivacy === "private"){
+              (payloadForFolderDelegation as any).IsPrivate=true;
+            }else if(folderPrivacy === "public"){
+              (payloadForFolderDelegation as any).IsPrivate=false;
+            }
+            // if(OthProps.IsFolderDeligationUser === "true"){
+            //   (payloadForFolderDelegation as any).IsFolderDeligation=true;
+            // }
+            if(approvalOption === "Yes"){
+              (payloadForFolderDelegation as any).IsApproval=true;
+            }else if(approvalOption === "No"){
+              (payloadForFolderDelegation as any).IsApproval=false;
+            }
+          }else{
+            (payloadForFolderDelegation as any).DocumentLibraryName=OthProps.DocumentLibrary;
+            (payloadForFolderDelegation as any).FolderPath=`${OthProps.folderpath}/${folderName.trim()}`;
+            (payloadForFolderDelegation as any).IsFolder=true;
+            // (payloadForFolderDelegation as any).IsActive=true;
+    
+            if(OthProps.Folder ===  ""){
+                (payloadForFolderDelegation as any).FolderName=folderName.trim();
+            }else{
+                (payloadForFolderDelegation as any).FolderName=folderName.trim();
+                (payloadForFolderDelegation as any).ParentFolderId=OthProps.Folder;
+                
+            }
+            if(folderPrivacy === "private"){
+              (payloadForFolderDelegation as any).IsPrivate=true;
+            }else if(folderPrivacy === "public"){
+              (payloadForFolderDelegation as any).IsPrivate=false;
+            }
+    
+            // if(OthProps.IsFolderDeligationUser === "true"){
+            //   (payloadForFolderMaster as any).IsFolderDeligation=true;
+            // }
+          }
+    
+          if(OthProps.Department !== ""){
+            (payloadForFolderDelegation as any).Department=OthProps.Department
+          }
+          if(OthProps.Devision !== ""){
+            (payloadForFolderDelegation as any).Devision=OthProps.Devision
+          }
+  
+  
+          try {
+            await sp.web.lists.getByTitle('DMSFolderDeligationMaster').items.add(payloadForFolderDelegation);
+            console.log("Item added successfully in the DMSFolderDeligationMaster list");
+          } catch (error) {
+            console.log("Error in adding item in DMSFolderDeligationMaster list",error);
+          }
+        }
+        // Clear form on successful submission
+        Swal.fire({
+          title: "Success",
+          text: "Your request to create a folder has been submitted successfully. The folder will appear shortly as we complete the setup process.",
+          icon: "success",
+          // showCancelButton: true,
+          confirmButtonText: 'OK',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            location.reload(); // This will reload the page
+            onReturnToMain()
+          }
+          if(result.isDismissed){
+            location.reload();
+            onReturnToMain()
+          }
+        });
+        
+        //  setTimeout(() => {
+        //     Swal.close(); // Close the pop-up
+        //     onReturnToMain(); // Call onReturnToMain if needed
+        //   }, 3000); // 3000 milliseconds = 3 seconds
+        
+        clearForm();
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }finally {
+      setIsLoading(false); // Stop loading
     }
+
   };
   // Handle form reset (Cancel button click)
   const clearForm = () => {
@@ -1284,6 +1347,13 @@ const validateFields = () => {
  
         Back
       </button>
+      {isLoading && (
+      <div className='loaderOverlay'>
+        <div className='loader'>
+        <img style={{width :'116px'  ,margin: '31px'}} src={require("../../../CustomAsset/argloader.gif")} alt="Loading..." />
+        </div>
+      </div>
+    )}
       <div className="mt-3">
       <p id="breadCrumb"></p>
         <div className="card cardborder p-31" style={{
