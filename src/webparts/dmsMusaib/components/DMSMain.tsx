@@ -15633,7 +15633,8 @@ const ArgPoc = ({ props }: any) => {
                         </Dropdown.Menu>
                       </Dropdown>
                     </div>
-                    <div id="hidegidvewlistviewbutton" className="view-buttons mt-2">
+                    {/* this was my request list view grid view button and now it is commented as nitesh told me we dont need it now and this was working  */}
+                    {/* <div id="hidegidvewlistviewbutton" className="view-buttons mt-2">
                       <button type="button" className="btn me-1 btngridview mt-0 grid-view active"
                         onClick={(event: any = null, siteIdToUpdate: string = null) => myRequest(event)}>
                         <a className="listviewfonticon">
@@ -15646,7 +15647,7 @@ const ArgPoc = ({ props }: any) => {
                         List View
                       </button>
 
-                    </div>
+                    </div> */}
                     {displayuploadfileandcreatefolder && (
                       <div id="createuploadfilecont" className="createuploadfilecont mt-2">
                         <button
@@ -15687,7 +15688,8 @@ const ArgPoc = ({ props }: any) => {
 
                     }
 
-                    {showMyfavButtons && (<div id="hidegidvewlistviewbutton2" className="view-buttons mt-2">
+                    {/* this show list view and grid view is for my request and this was working i just comment it as nitesh said we dont use it now */}
+                    {/* {showMyfavButtons && (<div id="hidegidvewlistviewbutton2" className="view-buttons mt-2">
                       <button className="btn btngridview grid-view active"
                         onClick={(e) => myFavorite(e)}>
                         <a className="listviewfonticon">
@@ -15700,7 +15702,7 @@ const ArgPoc = ({ props }: any) => {
                         List View
                       </button>
                     </div>)
-                    }
+                    } */}
                   </div>
 
                 </div>

@@ -387,11 +387,11 @@ const AdvancedSearch: React.FC<IAdvancedSearchProps> = (props) => {
                                 </form>
                             </header>
 
-                            <main className="mt-3 p-3 pb-0 col-12">
-                                <div className='row mt-3 p-3'>
-                                    <section className='col-sm-3'>
-                                        <div  style={{border:'1px solid #f37421', borderRadius:'30px'}}  className='card'>
-                                        
+                            <main className="mt-3 p-0 pb-3 col-12">
+                                <div className='row mt-0 p-0'>
+                                    <section style={{paddingLeft:'25px'}}className='col-sm-3 nwsera'>
+                                        <div  style={{background:'transparent', border:'0px solid #ccc',width:'95%',}}  className='card'>
+                                        <h5 style={{textAlign:'left', fontSize:'18px',borderBottom:'1px solid #ccc',  margin:'inherit'}} className='text-dark p-0 pt-0 mb-2 fw-bold'>Filter</h5> 
                                         <DMSSearchFilterCheckedDropDown context={props.context} 
                                         
                                         onMultiFieldSelect={selfields => {
@@ -493,18 +493,18 @@ const AdvancedSearch: React.FC<IAdvancedSearchProps> = (props) => {
 
                                         }}/>
                                         </div>
-                                        <div>
-                                            <h5 style={{textAlign:'left', fontSize:'20px'}} className='font-16 text-dark p-0 pt-4 mb-2'>Refiners</h5>
-                                            <div className='row p-2'>
+                                        <div style={{width:'95%'}}>
+                                            <h5 style={{textAlign:'left', fontSize:'18px',borderBottom:'1px solid #ccc'}} className='text-dark  mb-2 fw-bold'>Refiners</h5>
+                                            <div className='row p-0'>
                                                 {searchRefiners?.map(refiner => (
-                                                    <div  style={{border:'1px solid #f37421', borderRadius:'30px'}} key={refiner.field} className="card col-12 mb-3 pt-2">
-                                                        <h6 style={{textAlign:'left', fontSize:'16px'}} className='mt-2'>{GetFieldName(refiner.field)}</h6>
+                                                    <div  style={{border:'0px solid #1fb0e5', borderRadius:'0px', background:'transparent'}} key={refiner.field} className="card col-12 mb-3 pt-2">
+                                                        <h6 style={{textAlign:'left', fontSize:'16px', margin:'inherit'}} className='mt-0 mb-1'>{GetFieldName(refiner.field)}</h6>
 
                                                         <div className="form-check">
                                                             {
                                                                 (GetFieldType(refiner.field) == enumfieldtype.DateTime) ?
-                                                                    (<div className='col-10'>
-                                                                        <div className='col'><label htmlFor="startDate" className="form-label mb-0 mt-2">Start Date</label></div>
+                                                                    (<div className='col-12'>
+                                                                        <div className='col'><label htmlFor="startDate" className="form-label mb-1 mt-1">Start Date</label></div>
                                                                         <div className="col">
                                                                         <input
                                                                             type="date"
@@ -526,7 +526,7 @@ const AdvancedSearch: React.FC<IAdvancedSearchProps> = (props) => {
                                                                         />
                                                                             
                                                                         </div>
-                                                                        <div className="col">  <label htmlFor="endDate" className="form-label mb-0 mt-2">End Date</label> </div>
+                                                                        <div className="col">  <label htmlFor="endDate" className="form-label mb-1 mt-1">End Date</label> </div>
                                                                         <div className="col">
 
                                                                         <input
@@ -547,17 +547,17 @@ const AdvancedSearch: React.FC<IAdvancedSearchProps> = (props) => {
                                                                             }}
                                                                         />
                                                                         </div>
-                                                                        <div className="col mt-1 mb-3">
+                                                                        {/* <div className="col mt-1 mb-3">
                                                                             <button type='button' className="btn btn-primary float-end mt-2 mb-3" onClick={() => ClearFilter(refiner.field)}>
                                                                                 Clear
                                                                             </button>
-                                                                        </div>
+                                                                        </div> */}
                                                                     </div>)
                                                                     :
                                                                     <>
                                                                     <FilterCheckBox refiner={refiner} handleCheckboxChange={handleCheckboxChange} searchRefinerFilters={searchRefinerFilters} />
-                                                                    <div className="col mt-1 mb-3">
-                                                                        <button type='button' className="btn btn-primary float-end mt-2 mb-3 me-2" onClick={() => ClearRefinerFilter(refiner.field)}>
+                                                                    <div style={{clear:'both', position:'relative'}} className="col mt-1 mb-3">
+                                                                        <button type='button' className="btn btn-secondary newbuttons float-end mt-2 mb-3 me-2" onClick={() => ClearRefinerFilter(refiner.field)}>
                                                                             Clear
                                                                         </button>
                                                                     </div>
@@ -569,7 +569,7 @@ const AdvancedSearch: React.FC<IAdvancedSearchProps> = (props) => {
                                                     </div>
                                                 ))}
                                                 {(searchRefiners && searchRefiners.length>0)?<div className="col">
-                                                    <button type='button' className="btn btn-success" onClick={() => handleApplyFilters()}>
+                                                    <button type='button' className="btn btn-success neewd" onClick={() => handleApplyFilters()}>
                                                         Apply Filters
                                                     </button>
                                                 </div>:<></>}

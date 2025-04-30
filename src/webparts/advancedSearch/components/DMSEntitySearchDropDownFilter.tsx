@@ -178,7 +178,7 @@ export const DMSEntitySearchDropDowns: React.FC<IDMSEntitySearchDropDownsProps> 
   return (
     <div className="container p-3">
        <div className="mb-3">
-        <label className="form-label">Select Entities</label>
+        <label className="form-label">Select Departments</label>
         <div className="d-flex">
           <select
             className="form-select me-2"

@@ -169,7 +169,7 @@ export const DMSSearchFilterCheckedDropDown: React.FC<IDMSEntitySearchDropDownsP
   return (
     <div className="p-3">
        <div className="mb-2 border-bottom">
-        <label className="form-label">Select Entities</label>
+        <label className="form-label">Select Departments</label>
         <div className="d-flex">
            {/* <CheckedFilterDropDown options={dropdown1.map(d=>({label:d.text,value:d.text }))} onChange={handleAddDropdown2} ></CheckedFilterDropDown>  */}
            <CheckedFilterDropDown options={dropdown1.map(d=>({label:d.text,value:d.key }))} onChange={handleAddDropdown2} ></CheckedFilterDropDown> 
