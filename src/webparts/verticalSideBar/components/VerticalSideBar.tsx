@@ -151,7 +151,7 @@ const VerticalContext = ({ _context }: any) => {
       console.log(res, "currentuser");
     })
    
-    const siteUrl = "https://edcadae.sharepoint.com/sites/EDeDMS";
+    const siteUrl = "https://officeindia.sharepoint.com/sites/edcspfx";
     let listTitle = 'UtilitySettings'
     let CurrentsiteID ="ec1d9ac4-4785-46e0-91bf-9e0ce3b8f5e6";
     siteID = CurrentsiteID;
@@ -172,7 +172,7 @@ const VerticalContext = ({ _context }: any) => {
       let siteId = siteID;
       let listID = response && response.Id;
       let img1 = imageData && imageData.fileName ? `${siteUrl}/_api/v2.1/sites('${siteId}')/lists('${listID}')/items('${res[0].ID}')/attachments('${imageData.fileName}')/thumbnails/0/c400x400/content` : ""
-      let img = imageData && imageData.serverRelativeUrl ? `https://edcadae.sharepoint.com${imageData.serverRelativeUrl}` : img1
+      let img = imageData && imageData.serverRelativeUrl ? `https://officeindia.sharepoint.com${imageData.serverRelativeUrl}` : img1
       const imageUrl = imageData
         //? `${siteUrl}/SiteAssets/Lists/ea596702-57db-4833-8023-5dcd2bba46e3/${imageData.fileName}`
         //? `${imageData.serverUrl}${imageData.serverRelativeUrl}`

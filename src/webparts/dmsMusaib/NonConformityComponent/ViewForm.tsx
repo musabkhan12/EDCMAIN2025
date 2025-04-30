@@ -7,6 +7,7 @@ import {
   IDropdownOption,
   DatePicker,
   PrimaryButton,
+  TooltipHost,
 } from "@fluentui/react";
 import { PeoplePicker, PrincipalType, IPeoplePickerContext } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { spfi, SPFx } from '@pnp/sp';
@@ -20,10 +21,17 @@ import { Checkbox } from '@fluentui/react';
 import Swal from 'sweetalert2';
 import CustomBreadcrumb from '../ChangerequestComponent/CustomBreadcrumb/CustomBreadcrumb';
 import moment from 'moment';
+import { getMemoNumberAuditReport } from '../AnnualAuditReportComponent/AuditReportService';
 
 export class IViewState {
   mainItemId?: any | null;
   viewDepartmentOption: IDropdownOption[];
+  memonumberOptions: any[];
+  NCNumberOptions: any[];
+  NCNumber: string;
+  ApprovedAuditReport: string | number;
+  NCNumberID: string | number;
+  MemoNumber: string;
   viewDepartment: string | number;
   viewCriteria: string;
   viewncrNo: string;
@@ -117,6 +125,12 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
     this.state = {
       mainItemId: props.edItm || null,
       viewDepartmentOption: [],
+      memonumberOptions: [],
+      NCNumberOptions: [],
+      NCNumber: "",
+      NCNumberID: "",
+      ApprovedAuditReport: "",
+      MemoNumber: "",
       viewDepartment: "",
       viewCriteria: "",
       viewncrNo: "",
@@ -302,6 +316,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
     if (selectedTextDiv) {
       selectedTextDiv.style.display = 'none';
     }
+    await this.getAuditreport();
     await this.getGeneratedTemplateDocNC()
     await this.getDepartment();
     await this.getListData();
@@ -341,6 +356,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
       console.log("Items1", Items);
       this.setState({
         ncItemId: Items.Id,
+        
         viewDepartment: Items.DepartmentId,
         viewCriteria: Items.Criteria,
         viewncrNo: Items.NCRNo,
@@ -390,6 +406,55 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
       console.error(e);
     }
   }
+  public async getUniqueBy(array: any[], key: string) {
+    debugger
+    const seen: any[] = [];
+    const result = [];
+
+    for (let i = 0; i < array.length; i++) {
+      const value = array[i][key];
+      if (value != null && !seen.includes(value)) {
+        seen.push(value);
+        result.push(array[i]);
+      }
+    }
+
+    return result;
+  }
+  public async getAuditreport() {
+    const sp = spfi().using(SPFx(this.props.context));
+    debugger
+    try {
+      const memoItems = await getMemoNumberAuditReport(sp);
+      let optionsmemoNumber: any = [];
+      if (memoItems.length > 0) {
+        optionsmemoNumber = memoItems[0].map((item: any) => ({
+          key: item.ID,
+          text: item.MemoNumber,
+          itemId: item.ID,
+          memoNumber: item.MemoNumber,
+          ncNo: item.NCNumber
+        }));
+      }
+      let optionsmemoNumbernew: any[] = [];
+      optionsmemoNumbernew = await this.getUniqueBy(optionsmemoNumber, "memoNumber");
+      this.setState({ memonumberOptions: optionsmemoNumbernew });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: any): Promise<void> => {
+    debugger
+    const optionsNCNumber = this.state.memonumberOptions.filter((x) => x.memoNumber == item.text).map((item: any) => ({
+      key: item.key,
+      text: item.ncNo,
+      ncNo: item.ncNo
+    }));
+    let optionsNCNumbernew: any[] = [];
+    optionsNCNumbernew = await this.getUniqueBy(optionsNCNumber, "ncNo")
+    this.setState({ NCNumberOptions: optionsNCNumber })
+    this.setState({ ApprovedAuditReport: item.key, MemoNumber: item.memoNumber });
+  };
   public async getProcessApprovalList() {
     const sp = spfi().using(SPFx(this.props.context));
     try {
@@ -803,17 +868,17 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
               hour12: false
             })}`
             : ""}>
-           {item.Status !== 'test'
-            ? `${new Intl.DateTimeFormat('en-GB', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric'
-            }).format(new Date(item.RequestedDate)).replace(/ /g, "-")} ${new Date(item.RequestedDate).toLocaleTimeString('en-GB', {
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false
-            })}`
-            : ""}
+            {item.Status !== 'test'
+              ? `${new Intl.DateTimeFormat('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              }).format(new Date(item.RequestedDate)).replace(/ /g, "-")} ${new Date(item.RequestedDate).toLocaleTimeString('en-GB', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+              })}`
+              : ""}
           </td>
           <td title={item.ActionTakenBy} style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.ActionTakenBy}
@@ -830,16 +895,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
             })}`
             : ""}>
             {item.Status !== 'Pending'
-            ? `${new Intl.DateTimeFormat('en-GB', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric'
-            }).format(new Date(item.ActionTakenOn)).replace(/ /g, "-")} ${new Date(item.ActionTakenOn).toLocaleTimeString('en-GB', {
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false
-            })}`
-            : ""}
+              ? `${new Intl.DateTimeFormat('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              }).format(new Date(item.ActionTakenOn)).replace(/ /g, "-")} ${new Date(item.ActionTakenOn).toLocaleTimeString('en-GB', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+              })}`
+              : ""}
           </td>
           <td title={item.Remarks} style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.Remarks}
@@ -878,6 +943,42 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                 </div>
 
                 <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
+                  <div className="form-group col-md-4">
+                    <TooltipHost
+                      content={this.state.memonumberOptions.filter((item: any) => item.key == this.state.ApprovedAuditReport)[0]?.text || ""}
+                      calloutProps={{ gapSpace: 0 }}
+                      styles={{ root: { display: 'inline-block', width: '100%' } }}
+                    >
+                      <Dropdown
+                        required
+                        disabled={true}
+                        placeholder="Approved Audit Report/Memo Number"
+                        label="Approved Audit Report/Memo Number:"
+                        options={this.state.memonumberOptions}
+                        defaultSelectedKey={this.state.ApprovedAuditReport}
+                        selectedKey={this.state.ApprovedAuditReport}
+                        
+                      />
+                    </TooltipHost>
+                  </div>
+                  <div className="form-group col-md-4">
+                    <TooltipHost
+                      content={this.state.NCNumber || ""}
+                      calloutProps={{ gapSpace: 0 }}
+                      styles={{ root: { display: 'inline-block', width: '100%' } }}
+                    >
+                      <Dropdown
+                        disabled={true}
+                        required
+                        placeholder="NCNumber"
+                        label="NC Number:"
+                        options={this.state.NCNumberOptions}
+                        defaultSelectedKey={this.state.NCNumberID}
+                        selectedKey={this.state.NCNumberID}
+                        
+                      />
+                    </TooltipHost>
+                  </div>
                   <div className="form-group col-md-4">
                     <TextField label="NCR No:" name='viewncrNo' required value={this.state.viewncrNo} disabled={true} onChange={this.handleChange}
 

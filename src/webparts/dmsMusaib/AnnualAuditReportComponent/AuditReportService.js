@@ -18,15 +18,15 @@ export const getGeneratedTemplateDocCR = async (_sp, itemId) => {
   debugger
   let results = [];
   // for (let itemId of AttachmentIds) {
-    await _sp.web.lists.getByTitle("AnnualAuditReportCheckListGeneratedTemplateDoc").items
-      .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
-      .then((res) => {
-        console.log(res, 'tem let arrs=[]');
-        results = res;
-      })
-      .catch((error) => {
-        console.log("Error fetching data: ", error);
-      });
+  await _sp.web.lists.getByTitle("AnnualAuditReportCheckListGeneratedTemplateDoc").items
+    .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
+    .then((res) => {
+      console.log(res, 'tem let arrs=[]');
+      results = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
   // }
   console.log(results, 'results');
   return results;
@@ -66,7 +66,7 @@ export const getAllApprovedAuditplan = async (_sp) => {
         }
         return acc;
       }, {});
-      
+
       //arr = res;
       arr = Object.values(latestDocuments);
       console.log("accccc", arr);
@@ -105,8 +105,8 @@ export const getItemByID = async (_sp, id) => {
   let bannerimg = []
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("AnnualAuditReportList").items.getById(id)
-  .select("*,Author/ID,Author/Title,ApprovedAuditPlan/MemoNumber,ApprovedAuditPlan/ID,Department/ID,Department/Department,AnnualAuditPlanDocumentLink/ID,Attachment/ID,Sharewith/Title,Sharewith/ID").expand("Author,Department,ApprovedAuditPlan,AnnualAuditPlanDocumentLink,Attachment,Sharewith")()
-  .then((res) => {
+    .select("*,Author/ID,Author/Title,ApprovedAuditPlan/MemoNumber,ApprovedAuditPlan/ID,Department/ID,Department/Department,AnnualAuditPlanDocumentLink/ID,Attachment/ID,Sharewith/Title,Sharewith/ID").expand("Author,Department,ApprovedAuditPlan,AnnualAuditPlanDocumentLink,Attachment,Sharewith")()
+    .then((res) => {
       console.log(res, ' let arrs=[]');
 
       arr.push(res)
@@ -125,11 +125,38 @@ export const getItemsAuditReport = async (_sp) => {
   let bannerimg = []
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("AnnualAuditReportList").items
-    .select("NCSequence,ID,ObservervationSequence,NCNumber,ObservervationNumber").expand("")
+    .select("NCSequence,ID,ObservationSequence,NCNumber,ObservationNumber").expand("")
     .orderBy("Modified", false)
+    .top(1)
     ()
     .then((res) => {
       console.log(res, 'ncnumberr let arrs=[]');
+      if (res.length > 0){
+        arr.push(res[0])
+      }
+        //arr.push(res[0])
+      // arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  console.log(arr, 'arr');
+  return arr;
+}
+export const getMemoNumberAuditReport = async (_sp) => {
+
+  let arr = []
+  let arrs = []
+  let bannerimg = []
+  const currentUser = await _sp.web.currentUser();
+  await _sp.web.lists.getByTitle("AnnualAuditReportList").items
+    .select("*,ApprovedAuditPlan/MemoNumber,ApprovedAuditPlan/ID,FailureofIntentNonconformity")
+    .expand("ApprovedAuditPlan")
+    .filter(`FailureofIntentNonconformity eq 'Yes'`)
+    .orderBy("Modified", false)
+    ()
+    .then((res) => {
+      console.log(res, 'Memonumbers from audit report');
 
       arr.push(res)
       // arr = res;
@@ -563,6 +590,22 @@ export const getDocumentLinkByIDPlan = async (_sp, AttachmentIds) => {
   for (let itemId of AttachmentIds) {
     await _sp.web.lists.getByTitle("AnnualAuditPlanDocs").items.getById(itemId)
       .select("*,FileRef, FileLeafRef")()
+      .then((res) => {
+        console.log(res, ' let arrs=[] report plan doc');
+        results.push(res);
+      })
+      .catch((error) => {
+        console.log("Error fetching data: ", error);
+      });
+  }
+  console.log(results, 'results');
+  return results;
+}
+export const getAuditDocumentLinkByIDPlan = async (_sp, AttachmentIds) => {
+  let results = [];
+  for (let itemId of AttachmentIds) {
+    await _sp.web.lists.getByTitle("AnnualAuditPlanGeneratedTemplateDoc").items
+      .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
       .then((res) => {
         console.log(res, ' let arrs=[] report plan doc');
         results.push(res);
