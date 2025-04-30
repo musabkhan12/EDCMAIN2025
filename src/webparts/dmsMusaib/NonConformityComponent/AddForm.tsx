@@ -357,6 +357,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
         key: item.Id,
         text: item.Title,
       }));
+      debugger
+      console.log("options cate",options);  
       this.setState({ categoryCheckOption: options });
       await this.getSubCategory();
     } catch (e) {
@@ -372,6 +374,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
         key: item.Id,
         text: item.Title,
       }));
+      debugger
+      console.log("options sub",options);  
       this.setState({ subCategoryCheckOption: options });
       await this.getLocation();
     } catch (e) {
@@ -387,6 +391,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
         key: item.Id,
         text: item.Title,
       }));
+      console.log("options loc",options);  
       this.setState({ locationCheckOption: options });
     } catch (e) {
       console.error(e);

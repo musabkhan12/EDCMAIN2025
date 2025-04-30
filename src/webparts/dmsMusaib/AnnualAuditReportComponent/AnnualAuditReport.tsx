@@ -30,7 +30,7 @@ import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
-import { addAllProcessItem, addItem, addItem2, getAllApprovedAuditplan, getAllAuditType, getAllDepartment, getAllDepartment1, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDocumentLinkByIDPlan, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDocCR, getItemByID, getItemByID2, getItemfromChecklistMaster, getLatestChangeRequestTemplateType, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles } from './AuditReportService';
+import { addAllProcessItem, addItem, addItem2, getAllApprovedAuditplan, getAllAuditType, getAllDepartment, getAllDepartment1, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDocumentLinkByIDPlan, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDocAuditplan, getGeneratedTemplateDocCR, getItemByID, getItemByID2, getItemfromChecklistMaster, getItemsAuditReport, getLatestChangeRequestTemplateType, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles } from './AuditReportService';
 import { TextField } from '@fluentui/react';
 import { isMac } from 'office-ui-fabric-react';
 import moment from 'moment';
@@ -90,6 +90,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [showviewdownload, setshowviewdownload] = React.useState(true);
     const [currentUserDept, setcurrentUserDept] = React.useState("");
     const [selectUserDept, setselectUserDept] = React.useState(null);
+    const [reportCode, setreportCode] = React.useState("");
+
     const [selectAuditplan, setselectAuditplan] = React.useState(null);
     const [doccode, setdoccode] = React.useState("");
     const [AllDept, setAllDept] = React.useState([]);
@@ -112,9 +114,24 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [sharewitherr, setsharewitherr] = React.useState(false);
     const [approvedauditplanerr, setapprovedauditplanerr] = React.useState(false);
     const [TemplateDoc, setTemplateDoc] = React.useState<any>([]);
+    const [TemplateDocAudit, setTemplateDocAudit] = React.useState<any>([]);
     const [sharewithusers, setSharewithusers] = React.useState([]);
+    const [checkboxValues, setCheckboxValues] = React.useState({
+        ConformingPositiveFindings: false,
+        Observations: false,
+        OpportunitiesforImprovement: false,
+        FailureofIntentNonconformity: false,
+        FailureofImplementation: false,
+        FailureofEffectiveness: false,
+    });
     //error end
     const [formData, setFormData] = React.useState({
+        ObservervationSequence: 0,
+        NCSequence: 0,
+        NCNo: "",
+        ObservationNo: "",
+        description: "",
+        reportCode: "",
         approvedauditplanId: 0,
         deptId: 0,
         date: "",
@@ -138,7 +155,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
     const handleDepartmentChange = (selectedOption: any) => {
         setselectUserDept(selectedOption);
-        setFormData({ ...formData, deptId: selectedOption.value });
+        let reportcode = selectedOption.departmentcode + "/" + moment(new Date()).format("MM/DD/YYYY");
+        setreportCode(reportcode);
+        setFormData({ ...formData, deptId: selectedOption.value, reportCode: reportcode });
     };
 
 
@@ -286,8 +305,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
         const userProfile = await sp.profiles.myProperties();
         setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
         const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
-        setselectUserDept(setAllDept1.filter(user => user.label === UserDept));
-        setFormData({ ...formData, deptId: setAllDept1.filter(user => user.label === UserDept)[0]?.value });
+        //setselectUserDept(setAllDept1.filter(user => user.label === UserDept));
+        let currentuserdepartment = UserDept == "IT" ? "Information Technology" : UserDept;
+        console.log("userrrrdeptt", UserDept);
+        setFormData({ ...formData, deptId: setAllDept1.filter(user => user.label === currentuserdepartment)[0]?.value });
         const AllUserRoles = await getDataRoles(sp);
         const setRolesValue = AllUserRoles.map((item: any) => ({
             value: item.Id,
@@ -331,7 +352,13 @@ const AnnualAuditReportContext = ({ props }: any) => {
             }));
         }
 
+        const setAuditreportNC = await getItemsAuditReport(sp);
+        setFormData(prevData => ({
+            ...prevData,
+            NCSequence: setAuditreportNC[0].NCSequence,
+            ObservervationSequence: setAuditreportNC[0].ObservervationSequence,
 
+        }));
         let formitemid;
         //#region getdataByID
         if (sessionStorage.getItem("AuditReportId") != undefined) {
@@ -397,6 +424,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 setFormData(prevData => ({
                     ...prevData,
                     // memoNo: "",
+                    ReportCode: setBannerById[0].ReportCode,
+                    NCNo: setBannerById[0].NCNumber,
+                    ObservationNo: setBannerById[0].ObservationNumber,
+                    ObservervationSequence: setBannerById[0].ObservervationSequence,
+                    NCSequence: setBannerById[0].NCSequence,
                     deptId: setBannerById[0].DepartmentId,
                     issueNo: setBannerById[0].IssueNumber,
                     revisionNo: setBannerById[0].RevisionNumber,
@@ -405,6 +437,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     date: new Date(setBannerById[0].Date).toLocaleDateString("en-CA"),
                     approvedauditplanId: setBannerById[0].ApprovedAuditPlanId,
                     documentcode: setBannerById[0].DocumentCode,
+
                     referenceNo: setBannerById[0].ReferenceNumber,
                     AnnualAuditPlanDocumentLinkId: setBannerById[0].AnnualAuditPlanDocumentLinkId,
                     SubmiitedDate: setBannerById[0].SubmiitedDate,
@@ -415,6 +448,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     attachmentIds: setBannerById[0].AttachmentId || null,
                     attachmentJson: setBannerById[0].AttachmentJson || null
                 }));
+                const newValues: any = {};
+                for (const [label, field] of Object.entries(CheckboxFieldMap)) {
+                    newValues[field] = setBannerById[0][field] === "Yes";
+                }
+                setCheckboxValues(newValues);
                 let sharewithuser = setBannerById[0].Sharewith?.map((approver: any) => ({
                     value: approver.ID,
                     label: approver.Title,
@@ -619,6 +657,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
     const onSelectDocCode = async (selectedList: any) => {
         debugger
+        setTemplateDocAudit(await getGeneratedTemplateDocAuditplan(sp, Number(selectedList.value)));
         console.log(selectedList, "selectedList");
         if (selectedList != null) {
             setLoading(true);
@@ -928,7 +967,15 @@ const AnnualAuditReportContext = ({ props }: any) => {
         // return valid;
     };
     // #region  Submit Form
+    const convertForSharePoint = (values: Record<string, boolean>) => {
+        const formatted: Record<string, string> = {};
+        for (const key in values) {
+            formatted[key] = values[key] ? "Yes" : ""; // or "true"/"false" if your list uses that
+        }
+        return formatted;
+    };
     const handleFormSubmit = async () => {
+        debugger
         if (await validateForm(FormSubmissionMode.SUBMIT)) {
             if (editForm) {
                 Swal.fire({
@@ -950,7 +997,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let DocumentName: string = "";
                         let attachmentIds = [];
                         const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
-
+                        const formattedData = convertForSharePoint(checkboxValues);
 
 
                         if (FilesArr.length > 0) {
@@ -993,11 +1040,16 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         });
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
-
+                            ...formattedData,
                             MemoNumber: doccode,
                             // MemoSerialNumber:,
                             // IssueNumber:,
                             // RevisionNumber:,
+                            ReportCode: formData.reportCode,
+                            NCNumber: formData.NCNo,
+                            ObservervationNumber: formData.ObservationNo,
+                            ObservervationSequence: formData.ObservervationSequence,
+                            NCSequence: formData.NCSequence,
                             Title: doccode,
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.deptId,
@@ -1230,7 +1282,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let DocumentName: string = "";
                         let attachmentIds = [];
                         const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
-
+                        const formattedData = convertForSharePoint(checkboxValues);
 
                         if (FilesArr.length > 0) {
 
@@ -1272,6 +1324,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             }
                         });
                         let arr = {
+                            ...formattedData,
+                            ReportCode: formData.reportCode,
+                            NCNumber: formData.NCNo,
+                            ObservervationNumber: formData.ObservationNo,
+                            ObservervationSequence: formData.ObservervationSequence,
+                            NCSequence: formData.NCSequence,
                             MemoNumber: doccode,
                             Title: doccode,
                             ApprovedAuditPlanId: selectAuditplan.ID,
@@ -1433,6 +1491,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
     }
 
     const handleSaveAsDraft = async () => {
+        debugger
+        console.log("checkboxvalueee", checkboxValues);
         if (await validateForm(FormSubmissionMode.DRAFT)) {
             if (editForm) {
                 Swal.fire({
@@ -1447,13 +1507,14 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     debugger
                     console.log(result)
                     if (result.isConfirmed) {
+                        console.log("checkboxvalueee conf", checkboxValues);
                         setLoading(true);
                         let galleryArray: any[] = [];
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
                         const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
-
+                        const formattedData = convertForSharePoint(checkboxValues);
 
                         if (FilesArr.length > 0) {
 
@@ -1495,6 +1556,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         });
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
+                            ...formattedData,
+                            ReportCode: formData.reportCode,
+                            NCNumber: formData.NCNo,
+                            ObservervationNumber: formData.ObservationNo,
+                            ObservervationSequence: formData.ObservervationSequence,
+                            NCSequence: formData.NCSequence,
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.deptId,
                             Date: formData.date,
@@ -1724,7 +1791,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let DocumentName: string = "";
                         let attachmentIds = [];
                         const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
-
+                        const formattedData = convertForSharePoint(checkboxValues);
 
                         if (FilesArr.length > 0) {
 
@@ -1770,6 +1837,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             // MemoSerialNumber:,
                             // IssueNumber:,
                             // RevisionNumber:,
+                            ...formattedData,
+                            NCNumber: formData.NCNo,
+                            ObservervationNumber: formData.ObservationNo,
+                            ObservervationSequence: formData.ObservervationSequence,
+                            NCSequence: formData.NCSequence,
+                            ReportCode: formData.reportCode,
                             MemoNumber: doccode,
                             Title: doccode,
                             ApprovedAuditPlanId: selectAuditplan.ID,
@@ -1980,6 +2053,170 @@ const AnnualAuditReportContext = ({ props }: any) => {
             }
         }
     };
+    const AuditFindingsOptions = [
+        { value: 'Conforming & Positive Findings', label: 'Conforming & Positive Findings' },
+        { value: 'Observations', label: 'Observations' },
+        { value: 'Opportunities for Improvement', label: 'Opportunities for Improvement' },
+        { value: 'Failure of Intent / Nonconformity', label: 'Failure of Intent / Nonconformity' },
+        { value: 'Failure of Implementation', label: 'Failure of Implementation' },
+        { value: 'Failure of Effectiveness', label: 'Failure of Effectiveness' }
+
+    ] as const;
+    const CheckboxFieldMap = {
+        "Conforming & Positive Findings": "ConformingPositiveFindings",
+        "Observations": "Observations",
+        "Opportunities for Improvement": "OpportunitiesforImprovement",
+        "Failure of Intent / Nonconformity": "FailureofIntentNonconformity",
+        "Failure of Implementation": "FailureofImplementation",
+        "Failure of Effectiveness": "FailureofEffectiveness",
+    } as const;
+    type CheckboxKey = keyof typeof CheckboxFieldMap;
+    type CheckboxState = {
+        [K in (typeof CheckboxFieldMap)[CheckboxKey]]: boolean;
+    }
+    type CheckboxLabel = keyof typeof CheckboxFieldMap;
+    const renderCheckboxes = () => {
+
+        return (
+            <div className="row">
+                {AuditFindingsOptions.map((checkbox) => {
+                    const fieldKey = CheckboxFieldMap[checkbox.value];
+                    return (
+                        <div className="col-lg-6" key={checkbox.value}>
+                            <div className="form-check mb-3">
+
+                                <label className="form-check-label" htmlFor={`checkbox-${fieldKey}`}>
+                                    {checkbox.label}
+                                </label>
+                                <input
+                                    type="checkbox"
+                                    className={`form-check-input ${!ValidSubmit ? "border-on-error" : ""}`}
+                                    id={`checkbox-${fieldKey}`}
+                                    disabled={InputDisabled && formData?.Status !== "Rework"}
+                                    checked={checkboxValues[fieldKey]}
+                                    onChange={() => handleCheckboxChange(checkbox.value)}
+                                />
+                            </div>
+                        </div>
+                    );
+                })};
+                <div className="col-lg-12">
+                    <div className="mb-3">
+                        <label htmlFor="Description" className="col-form-label">Description</label>
+                        <div>
+                            <textarea
+                                id="simpleinput"
+                                disabled={InputDisabled}
+                                value={formData.description}
+                                className={`form-control mb-0`}
+                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            />
+
+                        </div>
+                    </div>
+                </div>
+                {checkboxValues["FailureofIntentNonconformity"] &&
+                    <div className="col-lg-6">
+                        <div className="mb-3">
+                            <label htmlFor="NCNo" className="col-form-label">NC Number</label>
+                            <div >
+                                <input
+                                    type="text"
+                                    className={`form-control`}
+                                    // className="form-control"
+                                    id="NCNo"
+                                    value={formData.NCNo}
+                                    //onChange={(e) => setFormData({ ...formData, issueNo: e.target.value })}
+                                    disabled={true}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                }
+                {checkboxValues["Observations"] &&
+                    <div className="col-lg-6">
+                        <div className="mb-3">
+                            <label htmlFor="ObservationNo" className="col-form-label">Observation Number</label>
+                            <div >
+                                <input
+                                    type="text"
+                                    className={`form-control`}
+                                    // className="form-control"
+                                    id="ObservationNo"
+                                    value={formData.ObservationNo}
+                                    //onChange={(e) => setFormData({ ...formData, issueNo: e.target.value })}
+                                    disabled={true}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                }
+                
+            </div>
+        );
+    };
+    // const handleCheckboxChange = (label: CheckboxLabel) => {
+    //     debugger
+    //     setFormData(prevData => ({
+    //         ...prevData,
+    //         NCNo: ,
+    //         ObservationNo: ,
+
+    //     }));
+    //     const columnKey = CheckboxFieldMap[label];
+    //     setCheckboxValues((prevValues) => ({
+    //         ...prevValues,
+    //         [columnKey]: !prevValues[columnKey],
+    //     }));
+    // };
+    const handleCheckboxChange = (label: CheckboxLabel) => {
+        const columnKey = CheckboxFieldMap[label];
+
+        setCheckboxValues((prevValues) => {
+            const updatedValues = {
+                ...prevValues,
+                [columnKey]: !prevValues[columnKey], // Toggle the checkbox
+            };
+
+            // Handle NCNo if "Failure of Intent / Nonconformity" is checked
+            if (
+                CheckboxFieldMap[label] === "FailureofIntentNonconformity" &&
+                !prevValues["FailureofIntentNonconformity"] // Only set if it was previously false (i.e., now checked)
+            ) {
+                setFormData((prevData) => ({
+                    ...prevData,
+                    NCNo: Number(formData.NCSequence || "0" + 1).toString().padStart(3, "0"),
+                    NCSequence: Number((formData.NCSequence || 0) + 1)
+                }));
+            } else{
+                setFormData((prevData) => ({
+                    ...prevData,
+                    NCNo: "",
+                    NCSequence: Number(formData.NCSequence)
+                }));
+            }
+
+            // Handle ObservationNo if "Observations" is checked
+            if (
+                CheckboxFieldMap[label] === "Observations" &&
+                !prevValues["Observations"]
+            ) {
+                setFormData((prevData) => ({
+                    ...prevData,
+                    ObservationNo: Number(formData.ObservervationSequence || "0" + 1).toString().padStart(3, "0"), 
+                    ObservervationSequence: Number((formData.ObservervationSequence || 0 ) + 1)
+                }));
+            } else {
+                setFormData((prevData) => ({
+                    ...prevData,
+                    ObservationNo: "",
+                    ObservervationSequence: Number(formData.ObservervationSequence)
+                }));
+            }
+
+            return updatedValues;
+        });
+    };
 
     const handleDelete = (index: number) => {
         setFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
@@ -2082,22 +2319,22 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 </div>
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
-                                                                        <label htmlFor="Department" className="col-form-label">Department<span className="text-danger1"> *</span></label>
+                                                                        <label htmlFor="Department" className="col-form-label">From Department<span className="text-danger1"> *</span></label>
                                                                         <div >
                                                                             <div
-                                                                                title={selectUserDept?.label || "Select a department"}
+                                                                                title={currentUserDept || "Select a department"}
                                                                                 style={{ width: "100%" }}
                                                                             >
                                                                                 <Select
                                                                                     options={AllDept}
-                                                                                    isDisabled={InputDisabled}
-                                                                                    value={selectUserDept}
+                                                                                    isDisabled={true}
+                                                                                    value={currentUserDept}
                                                                                     name="deptId"
                                                                                     className={`newse  ${(!ValidSubmit && departmenterr) ? "border-on-error" : ""} ${(!ValidDraft && departmenterr) ? "border-on-error" : ""}`}
                                                                                     // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
                                                                                     // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
                                                                                     // onChange={handleDepartmentChange}
-                                                                                    onChange={(selectedOptions: any) => handleDepartmentChange(selectedOptions)}
+                                                                                    //onChange={(selectedOptions: any) => handleDepartmentChange(selectedOptions)}
                                                                                     placeholder="Select Department"
                                                                                 />
                                                                             </div>
@@ -2144,10 +2381,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
 
-                                                                {console.log("doccodedoccodedoccode", formData, doccode)}
+                                                                {console.log("doccodedoccodedoccode", formData, doccode, reportCode)}
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
-                                                                        <label htmlFor="memoNo" className="col-form-label">Memo Code<span className="text-danger1"> *</span></label>
+                                                                        <label htmlFor="memoNo" className="col-form-label">Report<span className="text-danger1"> *</span></label>
                                                                         <div >
                                                                             <input
                                                                                 disabled
@@ -2156,7 +2393,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                                                 // className="form-control"
                                                                                 id="documentCode"
-                                                                                value={doccode}
+                                                                                value={formData.reportCode}
                                                                             //onChange={(e) => setFormData({ ...formData, documentCode: e.target.value })}
                                                                             />
                                                                         </div>
@@ -2261,11 +2498,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         </div>
                                                                     </div>
                                                                 </div>*/}
-                                                               
+
                                                                 {console.log("documentlinkkkkkkk", DocumentLink, FilesArrDoclink)}
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
-                                                                        <label htmlFor="DocumentCode" className="form-label">Previous Document:</label>
+                                                                        <label htmlFor="DocumentCode" className="form-label">Audit Plan Document:</label>
                                                                         {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
 
                                                                         {/* <div className="text-dark mt-0"> <span >
@@ -2273,15 +2510,48 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                                         </span>
                                                                         </div> */}
-                                                                        {FilesArrDoclink.length > 0 ?
+                                                                        {/* {TemplateDocAudit && TemplateDocAudit.length > 0 && (
+                                                                            <span
+                                                                                onClick={() => OpenFile(TemplateDocAudit[0], "Open")}
+                                                                                style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                                                                            >
+                                                                                <div className="btn btn-primary">
+                                                                                    <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../assets/noun-download-5006210.png")} ></img></div>
+                                                                            </span>
+                                                                        )} */}
+                                                                        {TemplateDocAudit && TemplateDocAudit.length > 0 ?
                                                                             (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModalpre(true)}>
-                                                                                <FontAwesomeIcon icon={faPaperclip} />{FilesArrDoclink.length} {FilesArrDoclink.length > 0 ? "files" : "file"} Attached
+                                                                                <FontAwesomeIcon icon={faPaperclip} />{TemplateDocAudit.length} {TemplateDocAudit.length > 0 ? "files" : "file"} Attached
                                                                             </a>) : ""
 
                                                                         }
                                                                     </div>
                                                                 </div>
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="Department" className="col-form-label">Department Audited<span className="text-danger1"> *</span></label>
+                                                                        <div >
+                                                                            <div
+                                                                                title={selectUserDept?.label || "Select a department"}
+                                                                                style={{ width: "100%" }}
+                                                                            >
+                                                                                <Select
+                                                                                    options={AllDept}
+                                                                                    isDisabled={InputDisabled}
+                                                                                    value={selectUserDept}
+                                                                                    name="deptId"
+                                                                                    className={`newse  ${(!ValidSubmit && departmenterr) ? "border-on-error" : ""} ${(!ValidDraft && departmenterr) ? "border-on-error" : ""}`}
+                                                                                    // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
+                                                                                    // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
+                                                                                    // onChange={handleDepartmentChange}
+                                                                                    onChange={(selectedOptions: any) => handleDepartmentChange(selectedOptions)}
+                                                                                    placeholder="Select Department"
+                                                                                />
+                                                                            </div>
 
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="attachment" className="col-form-label">Attachment<span className="text-danger1"> *</span></label>
@@ -2336,6 +2606,19 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                         </form>
                                                     </div>
                                                 </div>
+                                                <section className='card card-body mt-2'>
+                                                    <fieldset>
+                                                        <div className='row'>
+                                                            <div className='col-sm-6'>
+                                                                <h3 className='text-dark font-16 fw-bold mb-3'>Summary of the Audit Findings</h3>
+                                                            </div>
+                                                        </div>
+
+                                                        <div style={{ display: 'grid', overflow: 'auto' }}>
+                                                            <div className="row"> {renderCheckboxes()}</div>
+                                                        </div>
+                                                    </fieldset>
+                                                </section>
 
                                                 <section className='card card-body mt-2'>
                                                     <fieldset>
@@ -2425,7 +2708,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     disabled={InputDisabled}
                                                                                 />
                                                                             </td>
-                                                                            <td style={{ minWidth: '116px', maxWidth: '116px' }}  title={row?.time ? row?.time : row?.time}>
+                                                                            <td style={{ minWidth: '116px', maxWidth: '116px' }} title={row?.time ? row?.time : row?.time}>
                                                                                 <input
                                                                                     type="time"
                                                                                     className={`form-control ${(RowErrors[index]?.time) ? "border-on-error" : ""}`}
@@ -2753,8 +3036,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {FilesArrDoclink.length > 0 && (
-                                                                    FilesArrDoclink.map((row: any, index: number) => (
+                                                                {TemplateDocAudit.length > 0 && (
+                                                                    TemplateDocAudit.map((row: any, index: number) => (
                                                                         <tr>
                                                                             <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
                                                                             <td title={row.name || row.FileLeafRef}>{row.name || row.FileLeafRef}</td>
@@ -2771,10 +3054,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                         : ""}</td> */}
 
                                                                             <td style={{ textAlign: 'center' }}>
-                                                                                <span onClick={() => OpenFile(FilesArrDoclink && FilesArrDoclink[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                <span onClick={() => OpenFile(TemplateDocAudit && TemplateDocAudit[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                                                                     <FontAwesomeIcon icon={faEye} /></span>
-                                                                                <span onClick={() => OpenFile(FilesArrDoclink && FilesArrDoclink[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                    <FontAwesomeIcon icon={faDownload} /></span>
+                                                                                {/* <span onClick={() => OpenFile(FilesArrDoclink && FilesArrDoclink[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                    <FontAwesomeIcon icon={faDownload} /></span> */}
                                                                             </td>
 
                                                                             <td style={{ minWidth: '50px', maxWidth: '50px' }}>{row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {

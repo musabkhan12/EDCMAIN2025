@@ -31,6 +31,23 @@ export const getGeneratedTemplateDocCR = async (_sp, itemId) => {
   console.log(results, 'results');
   return results;
 }
+export const getGeneratedTemplateDocAuditplan = async (_sp, itemId) => {
+  debugger
+  let results = [];
+  // for (let itemId of AttachmentIds) {
+  await _sp.web.lists.getByTitle("AnnualAuditPlanGeneratedTemplateDoc").items
+    .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
+    .then((res) => {
+      console.log(res, 'tem let arrs=[]');
+      results = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  // }
+  console.log(results, 'results');
+  return results;
+}
 export const getAllApprovedAuditplan = async (_sp) => {
   let arr = [];
 
@@ -101,7 +118,28 @@ export const getItemByID = async (_sp, id) => {
   console.log(arr, 'arr');
   return arr;
 }
+export const getItemsAuditReport = async (_sp) => {
 
+  let arr = []
+  let arrs = []
+  let bannerimg = []
+  const currentUser = await _sp.web.currentUser();
+  await _sp.web.lists.getByTitle("AnnualAuditReportList").items
+    .select("NCSequence,ID,ObservervationSequence,NCNumber,ObservervationNumber").expand("")
+    .orderBy("Modified", false)
+    ()
+    .then((res) => {
+      console.log(res, 'ncnumberr let arrs=[]');
+
+      arr.push(res)
+      // arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  console.log(arr, 'arr');
+  return arr;
+}
 export const getAllProcessData = async (_sp, MainId, processName, docCode) => {
 
   let arr;
