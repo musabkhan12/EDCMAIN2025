@@ -118,10 +118,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [sharewithusers, setSharewithusers] = React.useState([]);
     const [checkboxValues, setCheckboxValues] = React.useState({
         ConformingPositiveFindings: false,
-        Observations: false,
-        OpportunitiesforImprovement: false,
         FailureofIntentNonconformity: false,
+        Observations: false,
         FailureofImplementation: false,
+        OpportunitiesforImprovement: false,
         FailureofEffectiveness: false,
     });
     //error end
@@ -132,6 +132,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         ObservationNo: "",
         description: "",
         reportCode: "",
+        memoNumber:"",
         approvedauditplanId: 0,
         deptId: 0,
         fromdeptId: 0,
@@ -162,7 +163,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
         setFormData({ ...formData, deptId: selectedOption.value, reportCode: reportcode });
     };
 
-
+    const handleFromDepartmentChange = (selectedOption: any) => {
+        setcurrentUserDept(selectedOption);
+        
+        setFormData({ ...formData, fromdeptId: selectedOption.value});
+    };
     // ////// Recommendation
     const [recommendationRows, setRecommendationRows] = React.useState([
         { id: 0, isoreference: "", imsprocedure: "", inquiries: "", auditorcomments: "", time: "", sharewith: null, sharewithIds: null }
@@ -412,7 +417,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
             setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditReport))
 
         }
-        if (setAuditreportNC.length > 0){
+        if (setAuditreportNC.length > 0) {
             setFormData(prevData => ({
                 ...prevData,
                 NCSequence: setAuditreportNC[0].NCSequence,
@@ -420,7 +425,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
             }));
         }
-        
+
         // formitemid =20;
         if (formitemid) {
 
@@ -445,6 +450,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     ObservationNo: setBannerById[0].ObservationNumber,
                     ObservationSequence: setBannerById[0].ObservationSequence,
                     NCSequence: setBannerById[0].NCSequence,
+                    memoNumber: setBannerById[0].MemoNumber,
                     description: setBannerById[0].Description,
                     deptId: setBannerById[0].DepartmentAuditedId,
                     fromdeptId: setBannerById[0].DepartmentId,
@@ -739,7 +745,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
             let reportcodeaudit = selecteddepart.departmentcode + "/" + moment(new Date()).format("DD/MM/YYYY");
             setreportCode(reportcodeaudit);
             setFormData({ ...formData, reportCode: reportcodeaudit, deptId: selectedList.DepartmentId });
-            setselectUserDept(selecteddepart);
+            //setselectUserDept(selecteddepart);
             console.log("alllldept", AllDept, selecteddepart);
             const selectedauditplan = rows.filter((cust: { value: any; }) => cust.value === selectedList.ID)[0] || null;
             setselectAuditplan(selectedauditplan);
@@ -1034,7 +1040,32 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     if (result.isConfirmed) {
                         setLoading(true);
                         debugger
-
+                        setFormData((prevData) => {
+                            const updatedData = { ...prevData };
+                            if (checkboxValues["FailureofIntentNonconformity"]) {
+                                updatedData.NCSequence = (prevData.NCSequence || 0) + 1;
+                            }
+                            if (checkboxValues["Observations"]) {
+                                updatedData.ObservationSequence = (prevData.ObservationSequence || 0) + 1;
+                            }
+                            return updatedData;
+                        });
+                        let newNCsequence: number = formData.NCSequence;
+                        let newOnservationsequence: number = formData.ObservationSequence;
+                        let newncnumber:string = formData.NCNo;
+                        let newobservationNo:string = formData.ObservationNo;
+                        if (checkboxValues["FailureofIntentNonconformity"]) {
+                            newNCsequence = (formData.NCSequence || 0) + 1;
+                        }else{
+                            newncnumber = "";
+                        }
+                        if (checkboxValues["Observations"]) {
+                            newOnservationsequence = (formData.ObservationSequence || 0) + 1;
+                            
+                        }else{
+                            newobservationNo = "";
+                        }
+                        console.log("updateddatatatata", formData.NCSequence, formData.ObservationSequence)
                         let galleryArray: any[] = [];
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
@@ -1089,10 +1120,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             // IssueNumber:,
                             // RevisionNumber:,
                             ReportCode: formData.reportCode,
-                            NCNumber: formData.NCNo,
-                            ObservationNumber: formData.ObservationNo,
-                            ObservationSequence: formData.ObservationSequence,
-                            NCSequence: formData.NCSequence,
+                            NCNumber: checkboxValues["FailureofIntentNonconformity"]? formData.NCNo :"",
+                            ObservationNumber: checkboxValues["Observations"]? formData.ObservationNo:"",
+                            ObservationSequence: newOnservationsequence,
+                            NCSequence: newNCsequence,
                             Title: doccode,
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
@@ -1202,8 +1233,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                     // MainListID: String(editItemID),
                                     MainListID: String(editItemID),
-                                    ContentTitle: formData.documentCode,
-                                    RequestId: doccode,
+                                    ContentTitle: formData.memoNumber,
+                                    RequestId: formData.reportCode,
                                     // RequestId:String(editID.Id),
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
@@ -1329,7 +1360,25 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let attachmentIds = [];
                         const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
-
+                        setFormData((prevData) => {
+                            const updatedData = { ...prevData };
+                            if (checkboxValues["FailureofIntentNonconformity"]) {
+                                updatedData.NCSequence = (prevData.NCSequence || 0) + 1;
+                            }
+                            if (checkboxValues["Observations"]) {
+                                updatedData.ObservationSequence = (prevData.ObservationSequence || 0) + 1;
+                            }
+                            return updatedData;
+                        });
+                        let newNCsequence1: number = formData.NCSequence;
+                        let newOnservationsequence1: number = formData.ObservationSequence;
+                        if (checkboxValues["FailureofIntentNonconformity"]) {
+                            newNCsequence1 = (formData.NCSequence || 0) + 1;
+                        }
+                        if (checkboxValues["Observations"]) {
+                            newOnservationsequence1 = (formData.ObservationSequence || 0) + 1;
+                        }
+                        console.log("updateddatatatata", formData.NCSequence, formData.ObservationSequence)
                         if (FilesArr.length > 0) {
 
                             for (const file of FilesArr) {
@@ -1372,10 +1421,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let arr = {
                             ...formattedData,
                             ReportCode: formData.reportCode,
-                            NCNumber: formData.NCNo,
-                            ObservationNumber: formData.ObservationNo,
-                            ObservationSequence: formData.ObservationSequence,
-                            NCSequence: formData.NCSequence,
+                            NCNumber: checkboxValues["FailureofIntentNonconformity"] ? formData.NCNo : "",
+                            ObservationNumber: checkboxValues["Observations"] ? formData.ObservationNo : "",
+                            ObservationSequence: newOnservationsequence1,
+                            NCSequence: newNCsequence1,
                             MemoNumber: doccode,
                             Title: doccode,
                             ApprovedAuditPlanId: selectAuditplan.ID,
@@ -1470,8 +1519,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 let arr2 = {
                                     Title: currentUser.Title,
                                     // ContentTitle: selectedOption.ReferenceNumber,
-                                    ContentTitle: formData.documentCode,
-                                    RequestId: doccode,
+                                    ContentTitle: formData.memoNumber,
+                                    RequestId: formData.reportCode,
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role,
                                     Level: Number(item.level),
@@ -1704,8 +1753,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             let arr2 = {
                                 Title: currentUser.Title,
                                 // ContentTitle: selectedOption.ReferenceNumber,
-                                ContentTitle: formData.documentCode,
-                                RequestId: doccode,
+                                ContentTitle: formData.memoNumber,
+                                RequestId: formData.reportCode,
                                 MainListNameId: ListNameId,
                                 ApproverRoleId: item.role || 0,
                                 Level: Number(item.level),
@@ -1984,8 +2033,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 let arr2 = {
                                     Title: currentUser.Title,
                                     // ContentTitle: selectedOption.ReferenceNumber,
-                                    ContentTitle: formData.documentCode,
-                                    RequestId: doccode,
+                                    ContentTitle: formData.memoNumber,
+                                    RequestId: formData.reportCode,
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role ? item.role : 0,
                                     Level: Number(item.level),
@@ -2110,19 +2159,19 @@ const AnnualAuditReportContext = ({ props }: any) => {
     };
     const AuditFindingsOptions = [
         { value: 'Conforming & Positive Findings', label: 'Conforming & Positive Findings' },
-        { value: 'Observations', label: 'Observations' },
-        { value: 'Opportunities for Improvement', label: 'Opportunities for Improvement' },
         { value: 'Failure of Intent / Nonconformity', label: 'Failure of Intent / Nonconformity' },
+        { value: 'Observations', label: 'Observations' },
         { value: 'Failure of Implementation', label: 'Failure of Implementation' },
+        { value: 'Opportunities for Improvement', label: 'Opportunities for Improvement' },
         { value: 'Failure of Effectiveness', label: 'Failure of Effectiveness' }
 
     ] as const;
     const CheckboxFieldMap = {
         "Conforming & Positive Findings": "ConformingPositiveFindings",
-        "Observations": "Observations",
-        "Opportunities for Improvement": "OpportunitiesforImprovement",
         "Failure of Intent / Nonconformity": "FailureofIntentNonconformity",
+        "Observations": "Observations",
         "Failure of Implementation": "FailureofImplementation",
+        "Opportunities for Improvement": "OpportunitiesforImprovement",
         "Failure of Effectiveness": "FailureofEffectiveness",
     } as const;
     type CheckboxKey = keyof typeof CheckboxFieldMap;
@@ -2139,10 +2188,6 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     return (
                         <div className="col-lg-6" key={checkbox.value}>
                             <div className="form-check mb-3">
-
-                                <label className="form-check-label" htmlFor={`checkbox-${fieldKey}`}>
-                                    {checkbox.label}
-                                </label>
                                 <input
                                     type="checkbox"
                                     //className={`form-check-input ${!ValidSubmit ? "border-on-error" : ""}`}
@@ -2152,10 +2197,14 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     checked={checkboxValues[fieldKey]}
                                     onChange={() => handleCheckboxChange(checkbox.value)}
                                 />
+                                <label className="form-check-label" htmlFor={`checkbox-${fieldKey}`}>
+                                    {checkbox.label}
+                                </label>
+
                             </div>
                         </div>
-                    );
-                })};
+                    )
+                })}
                 <div className="col-lg-12">
                     <div className="mb-3">
                         <label htmlFor="Description" className="col-form-label">Description</label>
@@ -2287,9 +2336,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     updatedFormData.NCNo = isChecked
                         ? (baseNCSeq + 1).toString().padStart(3, "0")
                         : baseNCSeq.toString().padStart(3, "0");
-                    updatedFormData.NCSequence = isChecked
-                        ? (baseNCSeq + 1)
-                        : baseNCSeq;
+
                 }
 
                 // Observation Logic
@@ -2298,9 +2345,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     updatedFormData.ObservationNo = isChecked
                         ? (baseObsSeq + 1).toString().padStart(3, "0")
                         : baseObsSeq.toString().padStart(3, "0");
-                    updatedFormData.ObservationSequence = isChecked
-                        ? (baseObsSeq + 1)
-                        : baseObsSeq;
+
                 }
 
                 return updatedFormData;
@@ -2420,14 +2465,14 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                             >
                                                                                 <Select
                                                                                     options={AllDept}
-                                                                                    isDisabled={true}
+                                                                                    isDisabled={InputDisabled}
                                                                                     value={currentUserDept}
                                                                                     name="deptId"
                                                                                     className={`newse`}
                                                                                     // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
                                                                                     // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
                                                                                     // onChange={handleDepartmentChange}
-                                                                                    //onChange={(selectedOptions: any) => handleDepartmentChange(selectedOptions)}
+                                                                                    onChange={(selectedOptions: any) => handleFromDepartmentChange(selectedOptions)}
                                                                                     placeholder="Select Department"
                                                                                 />
                                                                             </div>
@@ -2647,7 +2692,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 </div>
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
-                                                                        <label htmlFor="attachment" className="col-form-label">Attachment<span className="text-danger1"> *</span></label>
+                                                                        <label htmlFor="attachment" className="col-form-label">Audit Report Attachment<span className="text-danger1"> *</span></label>
                                                                         <div>
 
                                                                             <div>

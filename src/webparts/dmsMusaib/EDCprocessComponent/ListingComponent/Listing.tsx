@@ -218,8 +218,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     <td style={{ minWidth: '40px', maxWidth: '40px' }}>
                         <div style={{ marginLeft: '5px' }} className='indexdesign'>{i + 1}</div>
                     </td>
-                    <td title={item?.RequestId} style={{ minWidth: '90px', maxWidth: '90px' }}>{item.ProcessName == "Non Conformity" ? item?.NCRNo : item?.RequestId}</td>
-                    <td title={item.Title} style={{ minWidth: '90px', maxWidth: '90px' }}>{item.ProcessName == "Non Conformity" ? item?.ProblemDescription : item.Title}</td>
+                    <td title={item.ProcessName == "Non Conformity" ? item?.NCNumber : item?.RequestId} style={{ minWidth: '90px', maxWidth: '90px' }}>{item.ProcessName == "Non Conformity" ? item?.NCNumber : item?.RequestId}</td>
+                    <td title={item.ProcessName == "Non Conformity" ? item?.ProblemDescription : item.Title} style={{ minWidth: '90px', maxWidth: '90px' }}>{item.ProcessName == "Non Conformity" ? item?.ProblemDescription : item.Title}</td>
                     <td title={item?.ProcessName === "Annual Audit Plan"
                         ? "IMS Audit Plan"
                         : item?.ProcessName === "Annual Audit Program"
@@ -542,7 +542,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             }
         }
 
-        const AnnualAuditReportList = await spfi(this._sp).web.lists.getByTitle("AnnualAuditReportList").items.select('*,Id,Title,Author/Title,Created,Status,ReferenceNumber').expand('Author').filter(`Author/ID eq '${this.props.userid}'`)();
+        const AnnualAuditReportList = await spfi(this._sp).web.lists.getByTitle("AnnualAuditReportList").items.select('*,ReportCode,Id,Title,Author/Title,Created,Status,ReferenceNumber').expand('Author').filter(`Author/ID eq '${this.props.userid}'`)();
         AnnualAuditReportList.forEach(async itm => {
 
             if (itm.Status === "Pending") {
@@ -551,8 +551,9 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     for (const itom of processItems2) {
 
                         allItems.push({
-                            RequestId: "",
-                            Title: itm.DocumentCode ? itm.DocumentCode : "",
+                            RequestId:itm.ReportCode? itm.ReportCode : "",
+                            ReportCode:itm.ReportCode? itm.ReportCode : "",
+                            Title: itm.MemoNumber ? itm.MemoNumber : "",
                             ProcessName: "Annual Audit Report",
                             ReqName: itm.Author ? itm.Author.Title : '',
                             ReqDt: new Date(itm.Created),
@@ -569,8 +570,9 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 else {
 
                     allItems.push({
-                        RequestId: itm.Title,
-                        Title: itm.DocumentCode ? itm.DocumentCode : "",
+                        RequestId:itm.ReportCode? itm.ReportCode : "",
+                        ReportCode:itm.ReportCode? itm.ReportCode : "",
+                        Title: itm.MemoNumber ? itm.MemoNumber : "",
                         ProcessName: "Annual Audit Report",
                         ReqName: itm.Author ? itm.Author.Title : '',
                         ReqDt: new Date(itm.Created),
@@ -585,8 +587,9 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             else {
 
                 allItems.push({
-                    RequestId: itm.Title,
-                    Title: itm.DocumentCode ? itm.DocumentCode : "",
+                    RequestId: itm.ReportCode? itm.ReportCode : "",
+                    ReportCode:itm.ReportCode? itm.ReportCode : "",
+                    Title: itm.MemoNumber ? itm.MemoNumber : "",
                     ProcessName: "Annual Audit Report",
                     ReqName: itm.Author ? itm.Author.Title : '',
                     ReqDt: new Date(itm.Created),
@@ -600,7 +603,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
         });
 
-        const nonconfirmity = await spfi(this._sp).web.lists.getByTitle('NonConformityList').items.select('Id, DocumentCode ,Author/Title , Status , Created,ProblemDescription , SubmitStatus , NCRNo').expand('Author').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
+        const nonconfirmity = await spfi(this._sp).web.lists.getByTitle('NonConformityList').items.select('Id,NCNumber, DocumentCode ,Author/Title , Status , Created,ProblemDescription , SubmitStatus , NCRNo').expand('Author').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
         console.log(nonconfirmity, "nonconfirmity")
         for (const item of nonconfirmity) {
             // alert (item.DocumentCode + "item.DocumentCode" )
@@ -612,11 +615,13 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 Doccode = item.DocumentCode
             }
             allItems.push({
-                // RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " ":item.DocumentCode,
-                RequestId:  item.NCRNo,
+                 RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " ":item.DocumentCode,
+                //RequestId:  item.NCRNo,
+               
                 NCRNo: item.NCRNo,
-                // Title: item.DocumentCode == "" || item.DocumentCode == null?" ":item.DocumentCode,
-                Title: item.ProblemDescription,
+                NCNumber:item.NCNumber,
+                 Title: item.DocumentCode == "" || item.DocumentCode == null?" ":item.DocumentCode,
+                //Title: item.ProblemDescription,
                 ProblemDescription: item.ProblemDescription,
                 ProcessName: "Non Conformity",
                 ReqName: item.Author?.Title || '',

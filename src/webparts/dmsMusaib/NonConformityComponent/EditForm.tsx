@@ -52,12 +52,14 @@ const datePickerErrorStyles: Partial<IDatePickerStyles> = {
 
 export interface IEditState {
   // mainItemId?: any | null;
+  Loading: boolean;
   Approveremailnew: string;
   mainItemId?: any;
   edType?: string;
   approvalItemId?: string;
   editDepartmentOption: IDropdownOption[];
   editmemonumberOptions: any[];
+  editmemonumberOptionsall: any[];
   editMemoNumber: string;
   editNCNumberOptions: any[];
   editNCNumber: string;
@@ -172,12 +174,14 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
     this.state = {
       // mainItemId: props.edItm || null,
+      Loading: false,
       Approveremailnew: "",
       mainItemId: '',
       edType: this.props.edType,
       approvalItemId: this.props.approvalItemId,
       editDepartmentOption: [],
       editmemonumberOptions: [],
+      editmemonumberOptionsall: [],
       editMemoNumber: "",
       editNCNumberOptions: [],
       editNCNumber: "",
@@ -432,16 +436,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
     return result;
   }
-public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: any): Promise<void> => {
+  public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: any): Promise<void> => {
     debugger
-    const optionsNCNumber = this.state.editmemonumberOptions.filter((x) => x.memoNumber == item.text).map((item: any) => ({
+    const optionsNCNumber = this.state.editmemonumberOptionsall.filter((x) => x.memoNumber == item.text).map((item: any) => ({
       key: item.key,
       text: item.ncNo,
       ncNo: item.ncNo
     }));
-    let optionsNCNumbernew: any[]=[];
-    optionsNCNumbernew = await this.getUniqueBy(optionsNCNumber,"ncNo")
-  this.setState({ editNCNumberOptions: optionsNCNumbernew })
+    let optionsNCNumbernew: any[] = [];
+    optionsNCNumbernew = await this.getUniqueBy(optionsNCNumber, "ncNo")
+    this.setState({ editNCNumberOptions: optionsNCNumbernew })
     this.setState({ editApprovedAuditReport: item.key, editMemoNumber: item.memoNumber });
   };
   public changeNCNumber = (_event: React.FormEvent<HTMLDivElement>, item: any): void => {
@@ -688,12 +692,12 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
         notUpdateSerialNo: Items.SerialNumber,
         Requester: Items.Author,
       });
-      const optionsNCNumberEdit = this.state.editmemonumberOptions.filter((x) => x.memoNumber == Items.ApprovedAuditReportMemoNumber).map((item: any) => ({
+      const optionsNCNumberEdit = this.state.editmemonumberOptionsall.filter((x) => x.memoNumber == Items.ApprovedAuditReportMemoNumber).map((item: any) => ({
         key: item.key,
         text: item.ncNo,
         ncNo: item.ncNo
       }));
-      console.log("optionsNCNumbernewoptionsNCNumbernew", this.state.editmemonumberOptions, memoopt)
+      console.log("optionsNCNumbernewoptionsNCNumbernew", this.state.editmemonumberOptionsall, memoopt)
       let optionsNCNumbernew: any[] = [];
       optionsNCNumbernew = await this.getUniqueBy(optionsNCNumberEdit, "ncNo")
       this.setState({ editNCNumberOptions: optionsNCNumbernew })
@@ -898,8 +902,8 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
     debugger
     try {
       const memoItems = await getMemoNumberAuditReport(sp);
-      let optionsmemoNumber:any =[];
-      if (memoItems.length > 0){
+      let optionsmemoNumber: any = [];
+      if (memoItems.length > 0) {
         optionsmemoNumber = memoItems[0].map((item: any) => ({
           key: item.ID,
           text: item.MemoNumber,
@@ -908,9 +912,9 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
           ncNo: item.NCNumber
         }));
       }
-      let optionsmemoNumbernew: any[]=[];
-       optionsmemoNumbernew = await this.getUniqueBy(optionsmemoNumber,"memoNumber");
-      this.setState({ editmemonumberOptions: optionsmemoNumbernew });
+      let optionsmemoNumbernew: any[] = [];
+      optionsmemoNumbernew = await this.getUniqueBy(optionsmemoNumber, "memoNumber");
+      this.setState({ editmemonumberOptions: optionsmemoNumbernew, editmemonumberOptionsall: optionsmemoNumber });
     } catch (e) {
       console.error(e);
     }
@@ -997,7 +1001,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
     if (this.state.editSubmitStatus == "No") {
       if (!this.state.editDepartment) editErrors.editDepartment = "Department is required";
       if (!this.state.editApprovedAuditReport) editErrors.editApprovedAuditReport = "Memo number is required";
-      if (!this.state.editNCNumber) editErrors.editNCNumber = "NC number is required";
+      if (!this.state.editNCNumber) editErrors.editNCNumber = "NCR number is required";
       if (!this.state.editCriteria) editErrors.editCriteria = "Criteria is required";
       if (!this.state.editCloseOutStatus) editErrors.editCloseOutStatus = "Close Out Status is required";
       if (this.state.editCategoryValueIsCheck.length == 0) {
@@ -1069,7 +1073,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
       if (!this.state.editCorrection) editErrors.editCorrection = "Correction is required";
       if (!this.state.editRootCause) editErrors.editRootCause = "Root Cause is required";
       if (!this.state.editCorrectiveAction) editErrors.editCorrectiveAction = "Corrective Action is required";
-      
+
       if (!this.state.editAnalyzedBy) {
         editErrors.editAnalyzedBy = "Analyzed By is required";
         document.querySelectorAll("#analyzedBypeoplepicker .ms-BasePicker-text").forEach((el) => {
@@ -1145,7 +1149,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
   };
   public validateFormDraft = (): boolean => {
     let editErrors: { [key: string]: string } = {};
-    
+
     if (!this.state.editDepartment) {
       editErrors.editDepartment = "Department is required";
       this.setState({ editErrors });
@@ -1421,6 +1425,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
     }).then(async (result) => {
       if (result.isConfirmed) {
         debugger
+        this.setState({ Loading: true });
         await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
         if (_editsubmitStatus == "submit") {
           if (currentUserRole == "AnalyzedBy" || currentUserRole == "DelegateTo") {
@@ -1481,6 +1486,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
             })
           }
         }
+        this.setState({ Loading: false });
         Swal.fire({
           title: cText + " Successfully.",
           icon: "success"
@@ -1560,6 +1566,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
     }).then(async function (val) {
       if (val.isConfirmed) {
         debugger
+        this.setState({ Loading: true });
         await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
         sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
           Status: "Approved",
@@ -1581,7 +1588,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
                 SubmitStatus: "Yes",
                 Maxlevel: maxLength,
                 ContentTitle: _self.state.editProblemDescription,
-                RequestId: ncrnumber,
+                RequestId: _self.state.editNCNumber,
                 RequesterNameId: _self.props.currentUserID,
                 RequestedDate: new Date(),
                 ProcessName: "Non Conformity",
@@ -1604,7 +1611,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
                 SubmitStatus: "Yes",
                 Maxlevel: maxLength,
                 ContentTitle: _self.state.editProblemDescription,
-                RequestId: this.state.notUpdateDepartmentCode,
+                RequestId: _self.state.editNCNumber,
                 RequesterNameId: _self.props.currentUserID,
                 RequestedDate: new Date(),
                 ProcessName: "Non Conformity",
@@ -1625,6 +1632,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
           });
         }
         //End Forward Button
+        this.setState({ Loading: false });
         Swal.fire({
           title: "Forwarded Successfully.",
           icon: "success"
@@ -1737,6 +1745,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
       cancelButtonText: 'No'
     }).then(async function (val) {
       if (val.isConfirmed) {
+        this.setState({ Loading: true });
         if (editLastInitiatorSubmitStatus != "Yes") {
           await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
         }
@@ -1766,6 +1775,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
             ActionTakenOn: new Date(),
             Remark: remarks,
           });
+          this.setState({ Loading: false });
           Swal.fire({
             title: "Approved Successfully.",
             icon: "success"
@@ -1791,6 +1801,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
       cancelButtonText: 'No'
     }).then(function (val) {
       if (val.isConfirmed) {
+        this.setState({ Loading: true });
         if (approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
           sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
             Status: "Rejected",
@@ -1798,6 +1809,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
             ActionTakenOn: new Date(),
             Remark: remarks,
           });
+          this.setState({ Loading: false });
           Swal.fire({
             title: "Rejected Successfully.",
             icon: "success"
@@ -1812,6 +1824,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
             ActionTakenOn: new Date(),
             Remark: remarks,
           });
+          this.setState({ Loading: false });
           Swal.fire({
             title: "Rejected Successfully.",
             icon: "success"
@@ -1957,6 +1970,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
       cancelButtonText: 'No'
     }).then(async function (val) {
       if (val.isConfirmed) {
+        this.setState({ Loading: true });
         await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
         if (approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
 
@@ -1967,7 +1981,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
             Remark: remarks,
             IsRework: "Yes"
           });
-
+          this.setState({ Loading: false });
           Swal.fire({
             title: "Sent for Rework.",
             icon: "success"
@@ -1984,7 +1998,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
             Remark: remarks,
             IsRework: "Yes"
           });
-
+          this.setState({ Loading: false });
           Swal.fire({
             title: "Sent for Rework.",
             icon: "success"
@@ -2198,65 +2212,86 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
             </div>
 
           </div>
-          <section className='card card-body' >
-            <fieldset>
-              <form>
-                {/* Start save as draft */}
+          {this.state.Loading ?
 
-                <div className="previewIcon">
-                  <h4 style={{ textAlign: 'left' }} className="text-dark font-16 fw-bold mb-3">Problem Details</h4>
-                  {this.state.TemplateDoc && this.state.TemplateDoc.length > 0 && (
-                    <span
-                      onClick={() => this.OpenFile(this.state.TemplateDoc[0], "Open")}
-                      style={{ color: "blue", cursor: "pointer", margin: "10px" }}
-                    >
-                      <div className="btn btn-primary">
-                        <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../assets/noun-download-5006210.png")} ></img></div>
-                    </span>
-                  )}
-                </div>
+            <div className="loadernewadd mt-10">
+              <div>
+                <img
+                  src={require("../assets/edc-gif.gif")}
+                  className="alignrightl"
+                  alt="Loading..."
+                />
+              </div>
+              <span>Loading </span>{" "}
+              <span>
+                <img
+                  src={require("../assets/edcnew.gif")}
+                  className="alignrightl"
+                  alt="Loading..."
+                />
+              </span>
+            </div>
+            :
 
-                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
-                  <div className="form-group col-md-4">
-                    <TooltipHost
-                      content={this.state.editmemonumberOptions.filter((item: any) => item.key == this.state.editApprovedAuditReport)[0]?.text || ""}
-                      calloutProps={{ gapSpace: 0 }}
-                      styles={{ root: { display: 'inline-block', width: '100%' } }}
-                    >
-                      <Dropdown
-                        disabled={this.state.isDisabled}
-                        required
-                        placeholder="Approved Audit Report/Memo Number"
-                        label="Approved Audit Report/Memo Number:"
-                        options={this.state.editmemonumberOptions}
-                        defaultSelectedKey={this.state.editApprovedAuditReport}
-                        selectedKey={this.state.editApprovedAuditReport}
-                        onChange={this.changeMemoNumber}
-                        className={this.state.editErrors?.editApprovedAuditReport ? 'dropdown-error' : ''}
-                      />
-                    </TooltipHost>
+            <section className='card card-body' >
+              <fieldset>
+                <form>
+                  {/* Start save as draft */}
+
+                  <div className="previewIcon">
+                    <h4 style={{ textAlign: 'left' }} className="text-dark font-16 fw-bold mb-3">Problem Details</h4>
+                    {this.state.TemplateDoc && this.state.TemplateDoc.length > 0 && (
+                      <span
+                        onClick={() => this.OpenFile(this.state.TemplateDoc[0], "Open")}
+                        style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                      >
+                        <div className="btn btn-primary">
+                          <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../assets/noun-download-5006210.png")} ></img></div>
+                      </span>
+                    )}
                   </div>
-                  {console.log("editNCNumberOptions", this.state.editNCNumberOptions, this.state.editNCNumberID)}
-                  <div className="form-group col-md-4">
-                    <TooltipHost
-                      content={this.state.editNCNumberOptions.filter((item: any) => item.key == this.state.editNCNumberID)[0]?.ncNo || ""}
-                      calloutProps={{ gapSpace: 0 }}
-                      styles={{ root: { display: 'inline-block', width: '100%' } }}
-                    >
-                      <Dropdown
-                        disabled={this.state.isDisabled}
-                        required
-                        placeholder="NCNumber"
-                        label="NC Number:"
-                        options={this.state.editNCNumberOptions}
-                        defaultSelectedKey={this.state.editNCNumberID}
-                        selectedKey={this.state.editNCNumberID}
-                        onChange={this.changeNCNumber}
-                        className={this.state.editErrors?.editNCNumber ? 'dropdown-error' : ''}
-                      />
-                    </TooltipHost>
-                  </div>
-                  <div className="form-group col-md-4">
+
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
+                    <div className="form-group col-md-4">
+                      <TooltipHost
+                        content={this.state.editmemonumberOptions.filter((item: any) => item.key == this.state.editApprovedAuditReport)[0]?.text || ""}
+                        calloutProps={{ gapSpace: 0 }}
+                        styles={{ root: { display: 'inline-block', width: '100%' } }}
+                      >
+                        <Dropdown
+                          disabled={this.state.isDisabled}
+                          required
+                          placeholder="Approved Audit Report/Memo Number"
+                          label="Approved Audit Report/Memo Number:"
+                          options={this.state.editmemonumberOptions}
+                          defaultSelectedKey={this.state.editApprovedAuditReport}
+                          selectedKey={this.state.editApprovedAuditReport}
+                          onChange={this.changeMemoNumber}
+                          className={this.state.editErrors?.editApprovedAuditReport ? 'dropdown-error' : ''}
+                        />
+                      </TooltipHost>
+                    </div>
+                    {console.log("editNCNumberOptions", this.state.editNCNumberOptions, this.state.editNCNumberID)}
+                    <div className="form-group col-md-4">
+                      <TooltipHost
+                        content={this.state.editNCNumberOptions.filter((item: any) => item.key == this.state.editNCNumberID)[0]?.ncNo || ""}
+                        calloutProps={{ gapSpace: 0 }}
+                        styles={{ root: { display: 'inline-block', width: '100%' } }}
+                      >
+                        <Dropdown
+                          disabled={this.state.isDisabled}
+                          required
+                          placeholder="NCR Number"
+                          label="NCR Number:"
+                          options={this.state.editNCNumberOptions}
+                          defaultSelectedKey={this.state.editNCNumberID}
+                          selectedKey={this.state.editNCNumberID}
+                          onChange={this.changeNCNumber}
+                          className={this.state.editErrors?.editNCNumber ? 'dropdown-error' : ''}
+                        />
+                      </TooltipHost>
+                    </div>
+                    {/* <div className="form-group col-md-4">
                     <TooltipHost
                       content={this.state.editNCRNo}
                       calloutProps={{ gapSpace: 0 }}
@@ -2266,262 +2301,265 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
 
                       />
                     </TooltipHost>
-                  </div>
-                  </div>
-                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
-                  <div className="form-group col-md-4">
-                    <TooltipHost
-                      content={this.state.editDocumentCode}
-                      calloutProps={{ gapSpace: 0 }}
-                      styles={{ root: { display: 'inline-block', width: '100%' } }}
-                    >
-                      <TextField label="Document Code:" name='editDocumentCode' required value={this.state.editDocumentCode} disabled={true} onChange={this.handleChange}
-
-                      />
-                    </TooltipHost>
-                  </div>
-                  <div className="form-group col-md-4">
-                    <TooltipHost
-                      content={this.state.editIssueNo}
-                      calloutProps={{ gapSpace: 0 }}
-                      styles={{ root: { display: 'inline-block', width: '100%' } }}
-                    >
-                      <TextField label="Issue Number:" name='editIssueNo' required value={this.state.editIssueNo + ""} disabled={true} onChange={this.handleChange}
-
-                      />
-                    </TooltipHost>
-                  </div>
-                </div>
-                <div className="form-group col-md-4">
-                  <TooltipHost
-                    content={this.state.editRevisionNo}
-                    calloutProps={{ gapSpace: 0 }}
-                    styles={{ root: { display: 'inline-block', width: '100%' } }}
-                  >
-                    <TextField label="Revision Number:" name='editRevisionNo' required value={this.state.editRevisionNo + ""} disabled={true} onChange={this.handleChange}
-
-                    /></TooltipHost>
-                </div>
-                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
-                  
-                  <div className="form-group col-md-4">
-                    <TooltipHost
-                      content={this.state.editDepartmentOption.filter((item: any) => item.key == this.state.editDepartment)[0]?.text || ""}
-                      calloutProps={{ gapSpace: 0 }}
-                      styles={{ root: { display: 'inline-block', width: '100%' } }}
-                    >
-                      <Dropdown
-                        required
-                        disabled={this.state.isDisabled}
-                        label="Department:"
-                        options={this.state.editDepartmentOption}
-                        defaultSelectedKey={this.state.editDepartment}
-                        selectedKey={this.state.editDepartment}
-                        onChange={this.changeDepartment}
-                        className={this.state.editErrors?.editdepartment ? 'dropdown-error' : ''}
-                      // styles={{
-                      //   title: {
-                      //     backgroundColor: this.state.editErrors.editDepartment
-                      //       ? "#ffcccb"
-                      //       : this.state.isDisabled
-                      //         ? "#f3f2f1!important"
-                      //         : "white", // Light red when error
-                      //   }
-                      // }}
-                      />
-                    </TooltipHost>
-                  </div>
-                  <div className="form-group col-md-4">
-                    <TooltipHost
-                      content={this.state.editCriteria}
-                      calloutProps={{ gapSpace: 0 }}
-                      styles={{ root: { display: 'inline-block', width: '100%' } }}
-                    >
-                      <TextField label="Criteria:" disabled={this.state.isDisabled} name='editCriteria'
-                        required value={this.state.editCriteria} onChange={this.handleChange}
-                        className={this.state.editErrors?.editCriteria ? 'textfield-error' : ''}
-                      // styles={{
-                      //   fieldGroup: {
-                      //     backgroundColor: this.state.editErrors.editCriteria ? "#ffcccb" : "white",
-                      //   }
-                      // }}
-                      />
-                    </TooltipHost>
-                  </div>
-                  <div className="form-group col-md-4">
-                    <TooltipHost
-                      content={this.state.editCloseOutStatus}
-                      calloutProps={{ gapSpace: 0 }}
-                      styles={{ root: { display: 'inline-block', width: '100%' } }}
-                    >
-                      <TextField label="Close Out Status:" disabled={this.state.isDisabled} name='editCloseOutStatus' required value={this.state.editCloseOutStatus} onChange={this.handleChange}
-                        className={this.state.editErrors?.editCloseOutStatus ? 'textfield-error' : ''}
-                      // styles={{
-                      //   fieldGroup: {
-                      //     backgroundColor: this.state.editErrors.editCloseOutStatus ? "#ffcccb" : "white",
-                      //   }
-                      // }}
-                      />
-                    </TooltipHost>
-                  </div>
-                </div>
-                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
-                  <div className="form-group col-md-4" id="categoryCheckbox">
-                    <label>Category: <span className={styles.textdanger}>*</span></label>
-                    {this.state.editCategoryCheckOption.map((item: any) => {
-                      return (
-                        <div style={{ margin: "2px", padding: "3px" }}>
-                          <Checkbox label={item.text} disabled={this.state.isDisabled} checked={this.state.editCategoryValueIsCheck.indexOf(item.key) !== -1} onChange={this._handleCheckboxChange("editCategoryValueIsCheck", item.key as number)} />
-                        </div>
-                      )
-                    }
-                    )}
-                  </div>
-                  <div className="form-group col-md-4" id="SubCategoryCheckbox">
-                    <label>Sub Category: <span className={styles.textdanger}>*</span></label>
-                    {this.state.editSubCategoryCheckOption.map((item: any) => {
-                      return (
-                        <div style={{ margin: "2px", padding: "3px" }}>
-                          <Checkbox label={item.text} disabled={this.state.isDisabled} checked={this.state.editSubCategoryValueIsCheck.indexOf(item.key) !== -1} onChange={this._handleCheckboxChange("editSubCategoryValueIsCheck", item.key as number)} />
-                        </div>
-                      )
-                    }
-                    )}
-                  </div>
-                  <div className="form-group col-md-4" id="locationCheckbox">
-                    <label>Location: <span className={styles.textdanger}>*</span></label>
-                    {this.state.editLocationCheckOption.map((item: any) => {
-                      return (
-                        <div style={{ margin: "2px", padding: "3px" }}>
-                          <Checkbox label={item.text} disabled={this.state.isDisabled} checked={this.state.editLocationValueIsCheck.indexOf(item.key) !== -1} onChange={this._handleCheckboxChange("editLocationValueIsCheck", item.key as number)}
-                          />
-                        </div>
-                      )
-                    }
-                    )}
-                  </div>
-                </div>
-                <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
-                  <div className="form-group col-md-4" id='AssigntoPeoplepicker'>
-                    <TooltipHost
-                      content={this.state.editAssignTo}
-                      calloutProps={{ gapSpace: 0 }}
-                      styles={{ root: { display: 'inline-block', width: '100%' } }}
-                    >
-                      <PeoplePicker
-                        context={peoplePickerContext}
-                        titleText="Assigned To:"
-                        personSelectionLimit={1}
-                        required={true}
-                        groupName={""} // Leave this blank in case you want to filter from all users
-                        showtooltip={true}
-                        disabled={this.state.isDisabled}
-                        ensureUser={true}
-                        defaultSelectedUsers={this.state.editAssignTo ? [this.state.editAssignTo] : []}
-                        onChange={this._handlePeoplePickerChange("editAssignTo", "editAssignToId")}
-                        principalTypes={[PrincipalType.User]}
-                        resolveDelay={1000}
-                        styles={{
-                          root: {
-                            backgroundColor: this.state.editErrors.editAssignTo ? "#ffcccb" : "white",
-                          }
-                        }}
-                      /></TooltipHost>
-                  </div>
-                  <div className="form-group col-md-4">
-                    <Label>
-                      Due Date <span className={styles.textdanger}>*</span>
-                    </Label>
-                    <div
-                      title={
-                        this.state.editDueDate
-                          ? moment(new Date(this.state.editDueDate)).format('DD/MMM/YYYY')
-                          : "Select a request date"
-                      }
-                    >
+                  </div> */}
+                    <div className="form-group col-md-4">
                       <TooltipHost
-                        content={moment(new Date(this.state.editDueDate)).format('DD/MMM/YYYY') || "Select a request date"}
+                        content={this.state.editDocumentCode}
                         calloutProps={{ gapSpace: 0 }}
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
                       >
-                        <DatePicker
-                          disabled={this.state.isDisabled}
-                          formatDate={(date: Date) => moment(date).format("DD/MMM/YYYY")}
-                          placeholder="Select a Due Date"
-                          value={this.state.editDueDate}
-                          onSelectDate={(date: Date) => this.setState({ editDueDate: date })}
-                          //styles={this.state.editErrors.editDueDate ? datePickerErrorStyles : {}}
-                          className={this.state.editErrors?.editDueDate ? 'textfield-error' : ''}
+                        <TextField label="Document Code:" name='editDocumentCode' required value={this.state.editDocumentCode} disabled={true} onChange={this.handleChange}
+
                         />
                       </TooltipHost>
                     </div>
                   </div>
-                  <div style={{ position: 'relative' }} className="col-lg-4 mt-1">
-                    <label htmlFor="Attchments" style={{ marginRight: "10px" }}>Attachments <span className={styles.textdanger}>*</span></label>
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
 
-                    <input disabled={this.state.isDisabled} className="form-control" type="file" name="myFile" onChange={(e) => this.handleFileChange(e, this)} id="newfile" multiple
-                      style={{
-                        backgroundColor: this.state.editErrors.Attchments ? "#ffe6e6" : "white",
-                        borderColor: this.state.editErrors.Attchments ? '1px red' : '1px solid #dee2e6'
-                      }} />
-                    {this.state.fileCount > 0 ?
-                      (<span style={{ fontSize: '0.875rem' }} onClick={this._OpenModal} className='newpo'>
-                        <FontAwesomeIcon icon={faPaperclip} /> {this.state.fileCount} {this.state.fileCount > 0 ? "files" : "file"} Attached
-                      </span>) : ""
-                    }
-                    {this.state.showDialog && <div id="myModal" className={styles.modal}>
-                      <div className={styles.modalcontent}>
-                        <span className={styles.close} onClick={() => this._CloseModal()}>&times;</span>
-                        <h4 className="font-16 text-dark fw-bold mb-1">Attachment Details</h4>
-                        <p className="text-muted font-14 mb-3 fw-400">Below are the attachment details for Non Conformity</p>
+                    <div className="form-group col-md-4">
+                      <TooltipHost
+                        content={this.state.editIssueNo}
+                        calloutProps={{ gapSpace: 0 }}
+                        styles={{ root: { display: 'inline-block', width: '100%' } }}
+                      >
+                        <TextField label="Issue Number:" name='editIssueNo' required value={this.state.editIssueNo + ""} disabled={true} onChange={this.handleChange}
 
-                        <table className='mtbalenew'>
-                          <thead>
-                            <tr>
-                              <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
-                              <th>File Name</th>
-                              <th>File Link</th>
-                              <th style={{ minWidth: '100px' }} className="text-center">Upload Date</th>
-                              {this.state.ShowDeleteicon &&
-                                <th className="text-center">Action</th>
-                              }
-                            </tr>
-                          </thead>
-                          {upFiles}{fileData}
-                        </table>
+                        />
+                      </TooltipHost>
+                    </div>
+                    <div className="form-group col-md-4">
+                      <TooltipHost
+                        content={this.state.editRevisionNo}
+                        calloutProps={{ gapSpace: 0 }}
+                        styles={{ root: { display: 'inline-block', width: '100%' } }}
+                      >
+                        <TextField label="Revision Number:" name='editRevisionNo' required value={this.state.editRevisionNo + ""} disabled={true} onChange={this.handleChange}
+
+                        /></TooltipHost>
+                    </div>
+                    <div className="form-group col-md-4">
+                      <TooltipHost
+                        content={this.state.editDepartmentOption.filter((item: any) => item.key == this.state.editDepartment)[0]?.text || ""}
+                        calloutProps={{ gapSpace: 0 }}
+                        styles={{ root: { display: 'inline-block', width: '100%' } }}
+                      >
+                        <Dropdown
+                          required
+                          disabled={this.state.isDisabled}
+                          label="Department:"
+                          options={this.state.editDepartmentOption}
+                          defaultSelectedKey={this.state.editDepartment}
+                          selectedKey={this.state.editDepartment}
+                          onChange={this.changeDepartment}
+                          className={this.state.editErrors?.editdepartment ? 'dropdown-error' : ''}
+                        // styles={{
+                        //   title: {
+                        //     backgroundColor: this.state.editErrors.editDepartment
+                        //       ? "#ffcccb"
+                        //       : this.state.isDisabled
+                        //         ? "#f3f2f1!important"
+                        //         : "white", // Light red when error
+                        //   }
+                        // }}
+                        />
+                      </TooltipHost>
+                    </div>
+                  </div>
+
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
+
+                    <div className="form-group col-md-4">
+                      <TooltipHost
+                        content={this.state.editCriteria}
+                        calloutProps={{ gapSpace: 0 }}
+                        styles={{ root: { display: 'inline-block', width: '100%' } }}
+                      >
+                        <TextField label="Criteria:" disabled={this.state.isDisabled} name='editCriteria'
+                          required value={this.state.editCriteria} onChange={this.handleChange}
+                          className={this.state.editErrors?.editCriteria ? 'textfield-error' : ''}
+                        // styles={{
+                        //   fieldGroup: {
+                        //     backgroundColor: this.state.editErrors.editCriteria ? "#ffcccb" : "white",
+                        //   }
+                        // }}
+                        />
+                      </TooltipHost>
+                    </div>
+                    <div className="form-group col-md-4">
+                      <TooltipHost
+                        content={this.state.editCloseOutStatus}
+                        calloutProps={{ gapSpace: 0 }}
+                        styles={{ root: { display: 'inline-block', width: '100%' } }}
+                      >
+                        <TextField label="Close Out Status:" disabled={this.state.isDisabled} name='editCloseOutStatus' required value={this.state.editCloseOutStatus} onChange={this.handleChange}
+                          className={this.state.editErrors?.editCloseOutStatus ? 'textfield-error' : ''}
+                        // styles={{
+                        //   fieldGroup: {
+                        //     backgroundColor: this.state.editErrors.editCloseOutStatus ? "#ffcccb" : "white",
+                        //   }
+                        // }}
+                        />
+                      </TooltipHost>
+                    </div>
+                  </div>
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
+                    <div className="form-group col-md-4" id="categoryCheckbox">
+                      <label>Category: <span className={styles.textdanger}>*</span></label>
+                      {this.state.editCategoryCheckOption.map((item: any) => {
+                        return (
+                          <div style={{ margin: "2px", padding: "3px" }}>
+                            <Checkbox label={item.text} disabled={this.state.isDisabled} checked={this.state.editCategoryValueIsCheck.indexOf(item.key) !== -1} onChange={this._handleCheckboxChange("editCategoryValueIsCheck", item.key as number)} />
+                          </div>
+                        )
+                      }
+                      )}
+                    </div>
+                    <div className="form-group col-md-4" id="SubCategoryCheckbox">
+                      <label>Sub Category: <span className={styles.textdanger}>*</span></label>
+                      {this.state.editSubCategoryCheckOption.map((item: any) => {
+                        return (
+                          <div style={{ margin: "2px", padding: "3px" }}>
+                            <Checkbox label={item.text} disabled={this.state.isDisabled} checked={this.state.editSubCategoryValueIsCheck.indexOf(item.key) !== -1} onChange={this._handleCheckboxChange("editSubCategoryValueIsCheck", item.key as number)} />
+                          </div>
+                        )
+                      }
+                      )}
+                    </div>
+                    <div className="form-group col-md-4" id="locationCheckbox">
+                      <label>Location: <span className={styles.textdanger}>*</span></label>
+                      {this.state.editLocationCheckOption.map((item: any) => {
+                        return (
+                          <div style={{ margin: "2px", padding: "3px" }}>
+                            <Checkbox label={item.text} disabled={this.state.isDisabled} checked={this.state.editLocationValueIsCheck.indexOf(item.key) !== -1} onChange={this._handleCheckboxChange("editLocationValueIsCheck", item.key as number)}
+                            />
+                          </div>
+                        )
+                      }
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
+                    <div className="form-group col-md-4" id='AssigntoPeoplepicker'>
+                      <TooltipHost
+                        content={this.state.editAssignTo}
+                        calloutProps={{ gapSpace: 0 }}
+                        styles={{ root: { display: 'inline-block', width: '100%' } }}
+                      >
+                        <PeoplePicker
+                          context={peoplePickerContext}
+                          titleText="Assigned To:"
+                          personSelectionLimit={1}
+                          required={true}
+                          groupName={""} // Leave this blank in case you want to filter from all users
+                          showtooltip={true}
+                          disabled={this.state.isDisabled}
+                          ensureUser={true}
+                          defaultSelectedUsers={this.state.editAssignTo ? [this.state.editAssignTo] : []}
+                          onChange={this._handlePeoplePickerChange("editAssignTo", "editAssignToId")}
+                          principalTypes={[PrincipalType.User]}
+                          resolveDelay={1000}
+                          styles={{
+                            root: {
+                              backgroundColor: this.state.editErrors.editAssignTo ? "#ffcccb" : "white",
+                            }
+                          }}
+                        /></TooltipHost>
+                    </div>
+                    <div className="form-group col-md-4">
+                      <Label>
+                        Due Date <span className={styles.textdanger}>*</span>
+                      </Label>
+                      <div
+                        title={
+                          this.state.editDueDate
+                            ? moment(new Date(this.state.editDueDate)).format('DD/MMM/YYYY')
+                            : "Select a request date"
+                        }
+                      >
+                        <TooltipHost
+                          content={moment(new Date(this.state.editDueDate)).format('DD/MMM/YYYY') || "Select a request date"}
+                          calloutProps={{ gapSpace: 0 }}
+                          styles={{ root: { display: 'inline-block', width: '100%' } }}
+                        >
+                          <DatePicker
+                            disabled={this.state.isDisabled}
+                            formatDate={(date: Date) => moment(date).format("DD/MMM/YYYY")}
+                            placeholder="Select a Due Date"
+                            value={this.state.editDueDate}
+                            onSelectDate={(date: Date) => this.setState({ editDueDate: date })}
+                            //styles={this.state.editErrors.editDueDate ? datePickerErrorStyles : {}}
+                            className={this.state.editErrors?.editDueDate ? 'textfield-error' : ''}
+                          />
+                        </TooltipHost>
                       </div>
-                    </div>}
+                    </div>
+                    <div style={{ position: 'relative' }} className="col-lg-4 mt-1">
+                      <label htmlFor="Attchments" style={{ marginRight: "10px" }}>Attachments <span className={styles.textdanger}>*</span></label>
+
+                      <input disabled={this.state.isDisabled} className="form-control" type="file" name="myFile" onChange={(e) => this.handleFileChange(e, this)} id="newfile" multiple
+                        style={{
+                          backgroundColor: this.state.editErrors.Attchments ? "#ffe6e6" : "white",
+                          borderColor: this.state.editErrors.Attchments ? '1px red' : '1px solid #dee2e6'
+                        }} />
+                      {this.state.fileCount > 0 ?
+                        (<span style={{ fontSize: '0.875rem' }} onClick={this._OpenModal} className='newpo'>
+                          <FontAwesomeIcon icon={faPaperclip} /> {this.state.fileCount} {this.state.fileCount > 0 ? "files" : "file"} Attached
+                        </span>) : ""
+                      }
+                      {this.state.showDialog && <div id="myModal" className={styles.modal}>
+                        <div className={styles.modalcontent}>
+                          <span className={styles.close} onClick={() => this._CloseModal()}>&times;</span>
+                          <h4 className="font-16 text-dark fw-bold mb-1">Attachment Details</h4>
+                          <p className="text-muted font-14 mb-3 fw-400">Below are the attachment details for Non Conformity</p>
+
+                          <table className='mtbalenew'>
+                            <thead>
+                              <tr>
+                                <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                                <th>File Name</th>
+                                <th>File Link</th>
+                                <th style={{ minWidth: '100px' }} className="text-center">Upload Date</th>
+                                {this.state.ShowDeleteicon &&
+                                  <th className="text-center">Action</th>
+                                }
+                              </tr>
+                            </thead>
+                            {upFiles}{fileData}
+                          </table>
+                        </div>
+                      </div>}
+                    </div>
                   </div>
-                </div>
-                <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row mb-3'>
-                  <div className="form-group col-md-12">
-                    <TooltipHost
-                      content={this.state.editProblemDescription}
-                      calloutProps={{ gapSpace: 0 }}
-                      styles={{ root: { display: 'inline-block', width: '100%' } }}
-                    >
-                      <TextField label="Problem Description:"
-                        required
-                        name='editProblemDescription'
-                        value={this.state.editProblemDescription}
-                        multiline rows={5}
-                        onChange={this.handleChange}
-                        disabled={this.state.isDisabled}
-                        className={this.state.editErrors?.editProblemDescription ? 'textfield-error' : ''}
-                      // styles={{
-                      //   fieldGroup: {
-                      //     backgroundColor: this.state.editErrors.editProblemDescription ? "#ffcccb" : "white", // Red tint for errors
-                      //   }
-                      // }}
-                      />
-                    </TooltipHost>
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row mb-3'>
+                    <div className="form-group col-md-12">
+                      <TooltipHost
+                        content={this.state.editProblemDescription}
+                        calloutProps={{ gapSpace: 0 }}
+                        styles={{ root: { display: 'inline-block', width: '100%' } }}
+                      >
+                        <TextField label="Problem Description:"
+                          required
+                          name='editProblemDescription'
+                          value={this.state.editProblemDescription}
+                          multiline rows={5}
+                          onChange={this.handleChange}
+                          disabled={this.state.isDisabled}
+                          className={this.state.editErrors?.editProblemDescription ? 'textfield-error' : ''}
+                        // styles={{
+                        //   fieldGroup: {
+                        //     backgroundColor: this.state.editErrors.editProblemDescription ? "#ffcccb" : "white", // Red tint for errors
+                        //   }
+                        // }}
+                        />
+                      </TooltipHost>
+                    </div>
                   </div>
-                </div>
-                {/* End Save as draft */}
-              </form>
-            </fieldset>
-          </section>
-          {this.state.editSubmitStatus == "Yes" ? //this.state.editFirstInitiatorSubmitStatus == "Yes" || this.state.editFirstAssignedToSubmitStatus == "Yes" ?
+                  {/* End Save as draft */}
+                </form>
+              </fieldset>
+            </section>
+          }
+          {this.state.editSubmitStatus == "Yes" && !this.state.Loading ? //this.state.editFirstInitiatorSubmitStatus == "Yes" || this.state.editFirstAssignedToSubmitStatus == "Yes" ?
             <section className='card card-body mt-2' >
               <fieldset>
                 <form>
@@ -2746,7 +2784,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
               </fieldset>
             </section> : null}
           {/* Approval Table */}
-          {(this.state.editReviewedBySubmitStatus == "Yes" && this.state.editDelegateToId == null) || (this.state.editLastAssignedToSubmitStatus == "Yes" && this.state.editDelegateToId != null) ?
+          {(this.state.editReviewedBySubmitStatus == "Yes" && this.state.editDelegateToId == null && !this.state.Loading) || (this.state.editLastAssignedToSubmitStatus == "Yes" && this.state.editDelegateToId != null && !this.state.Loading) ?
             (<section className={styles.sec}>
               <fieldset disabled={this.state.forwarDisable}>
                 <form>
@@ -2803,7 +2841,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
               </fieldset>
             </section>) : null}
 
-          {this.state.showApprove === true || this.state.showReject === true ?
+          {(this.state.showApprove === true || this.state.showReject === true) && !this.state.Loading ?
             <section style={{ justifyContent: 'left', textAlign: 'left' }} id="approvalSection" className='card card-body'>
               <TextField label="Remarks" required name="remarks" value={this.state.remarks} multiline rows={3} onChange={this.handleChange}
 
@@ -2817,7 +2855,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
           }
           {/* Vishnu Changes  */}
           {console.log("this.state.showSubmit ", this.state.showSubmit, this.state.showDraft, "show spprove", this.state.showApprove)}
-          {this.state.showSubmit && ((this.state.editSubmitStatus == "No" && RequesterEmail == CurrentuserEmail) ||
+          {this.state.showSubmit && !this.state.Loading && ((this.state.editSubmitStatus == "No" && RequesterEmail == CurrentuserEmail) ||
             (this.state.editSubmitStatus == "Yes" && this.state.editAssignToEmail == CurrentuserEmail)) &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
@@ -2834,7 +2872,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
             </div>
           }
           {console.log("ApproverEmailApproverEmail", ApproverEmail, CurrentuserEmail)}
-          {this.state.showApprove && ApproverEmail == CurrentuserEmail &&
+          {this.state.showApprove && !this.state.Loading && ApproverEmail == CurrentuserEmail &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
               <PrimaryButton text="Approve" onClick={() => this._approveRequest("Approve")} />
@@ -2848,7 +2886,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
             </div>
           }
           {console.log("ApproverEmailforward", ApproverEmail, CurrentuserEmail)}
-          {this.state.showForward && RequesterEmail == CurrentuserEmail &&
+          {this.state.showForward && RequesterEmail == CurrentuserEmail && !this.state.Loading &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
               <PrimaryButton text="Forward" onClick={() => this.handleForward("Forward")} />
@@ -2859,7 +2897,7 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
             </div>
           }
           {console.log("Approverreject", ApproverEmail, CurrentuserEmail)}
-          {this.state.showReject && ApproverEmail == CurrentuserEmail &&
+          {this.state.showReject && ApproverEmail == CurrentuserEmail && !this.state.Loading &&
 
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
@@ -2873,13 +2911,14 @@ public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: 
 
             </div>
           }
-          {this.state.edType === "view" &&
+          {this.state.edType === "view" && !this.state.Loading &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
               <DefaultButton text="Cancel" onClick={() => this.cancelRequest("Edcmain")} />
 
             </div>
           }
+
           {this.state.editSubmitStatus == "Yes" ?
             <section className='card card-body mt-2'>
               <form>

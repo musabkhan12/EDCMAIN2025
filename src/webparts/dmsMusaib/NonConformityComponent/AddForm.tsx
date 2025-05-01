@@ -48,8 +48,10 @@ const datePickerErrorStyles: Partial<IDatePickerStyles> = {
 
 
 export class IState {
+  Loading:boolean;
   departmentOption: IDropdownOption[];
   memonumberOptions: any[];
+  memonumberOptionsall: any[];
   NCNumberOptions: any[];
   NCNumber: string;
   ApprovedAuditReport: string | number;
@@ -98,8 +100,10 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     const selectedTextDiv = document.getElementById('selectedText');
     selectedTextDiv.style.display = 'none';
     this.state = {
+      Loading:false,
       departmentOption: [],
       memonumberOptions: [],
+      memonumberOptionsall: [],
       NCNumberOptions: [],
       NCNumber: "",
       NCNumberID: "",
@@ -217,13 +221,13 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
 
   public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: any): Promise<void> => {
     debugger
-    const optionsNCNumber = this.state.memonumberOptions.filter((x) => x.memoNumber == item.text).map((item: any) => ({
+    const optionsNCNumber = this.state.memonumberOptionsall.filter((x) => x.memoNumber == item.text).map((item: any) => ({
       key: item.key,
       text: item.ncNo,
       ncNo: item.ncNo
     }));
-    let optionsNCNumbernew: any[]=[];
-    optionsNCNumbernew = await this.getUniqueBy(optionsNCNumber,"ncNo")
+    let optionsNCNumbernew: any[] = [];
+    optionsNCNumbernew = await this.getUniqueBy(optionsNCNumber, "ncNo")
     this.setState({ NCNumberOptions: optionsNCNumber })
     this.setState({ ApprovedAuditReport: Number(item.key), MemoNumber: item.memoNumber });
   };
@@ -344,8 +348,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     debugger
     try {
       const memoItems = await getMemoNumberAuditReport(sp);
-      let optionsmemoNumber:any =[];
-      if (memoItems.length > 0){
+      let optionsmemoNumber: any = [];
+      if (memoItems.length > 0) {
         optionsmemoNumber = memoItems[0].map((item: any) => ({
           key: item.ID,
           text: item.MemoNumber,
@@ -354,9 +358,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
           ncNo: item.NCNumber
         }));
       }
-      let optionsmemoNumbernew: any[]=[];
-       optionsmemoNumbernew = await this.getUniqueBy(optionsmemoNumber,"memoNumber");
-      this.setState({ memonumberOptions: optionsmemoNumbernew });
+      let optionsmemoNumbernew: any[] = [];
+      optionsmemoNumbernew = await this.getUniqueBy(optionsmemoNumber, "memoNumber");
+      this.setState({ memonumberOptions: optionsmemoNumbernew, memonumberOptionsall: optionsmemoNumber });
     } catch (e) {
       console.error(e);
     }
@@ -831,6 +835,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     }).then(async (result) => {
       if (result.isConfirmed) {
         debugger
+      
+        this.setState({ Loading: true });
         await sp.web.lists.getByTitle("NonConformityList").items.add({
           NCNumber: this.state.NCNumber,
           NCNumberID: Number(this.state.NCNumberID),
@@ -881,6 +887,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
             })
           }
         });
+        this.setState({ Loading: false });
         Swal.fire({
           title: cText + " Successfully.",
           icon: "success"
@@ -952,49 +959,69 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
             </div>
 
           </div>
-          <form>
-            {/* Section 1 */}
-            <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row">
-              <div className="form-group col-md-12"><h3 className='text-dark font-16 text-left fw-bold mb-3'>Problem Details</h3></div>
+          {this.state.Loading ?
+
+            <div className="loadernewadd mt-10">
+              <div>
+                <img
+                  src={require("../assets/edc-gif.gif")}
+                  className="alignrightl"
+                  alt="Loading..."
+                />
+              </div>
+              <span>Loading </span>{" "}
+              <span>
+                <img
+                  src={require("../assets/edcnew.gif")}
+                  className="alignrightl"
+                  alt="Loading..."
+                />
+              </span>
             </div>
-            <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
-              <div className="form-group col-md-4">
-                <TooltipHost
-                  content={this.state.memonumberOptions.filter((item: any) => item.key == this.state.ApprovedAuditReport)[0]?.text || ""}
-                  calloutProps={{ gapSpace: 0 }}
-                  styles={{ root: { display: 'inline-block', width: '100%' } }}
-                >
-                  <Dropdown
-                    required
-                    placeholder="Approved Audit Report/Memo Number"
-                    label="Approved Audit Report/Memo Number:"
-                    options={this.state.memonumberOptions}
-                    defaultSelectedKey={this.state.ApprovedAuditReport}
-                    selectedKey={this.state.ApprovedAuditReport}
-                    onChange={this.changeMemoNumber}
-                    className={this.state.errors?.department ? 'dropdown-error' : ''}
-                  />
-                </TooltipHost>
+            :
+            <form>
+              {/* Section 1 */}
+              <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row">
+                <div className="form-group col-md-12"><h3 className='text-dark font-16 text-left fw-bold mb-3'>Problem Details</h3></div>
               </div>
-              <div className="form-group col-md-4">
-                <TooltipHost
-                  content={this.state.NCNumber || ""}
-                  calloutProps={{ gapSpace: 0 }}
-                  styles={{ root: { display: 'inline-block', width: '100%' } }}
-                >
-                  <Dropdown
-                    required
-                    placeholder="NCNumber"
-                    label="NC Number:"
-                    options={this.state.NCNumberOptions}
-                    defaultSelectedKey={this.state.NCNumberID}
-                    selectedKey={this.state.NCNumberID}
-                    onChange={this.changeNCNumber}
-                    className={this.state.errors?.department ? 'dropdown-error' : ''}
-                  />
-                </TooltipHost>
-              </div>
-              <div className="form-group col-md-4">
+              <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
+                <div className="form-group col-md-4">
+                  <TooltipHost
+                    content={this.state.memonumberOptions.filter((item: any) => item.key == this.state.ApprovedAuditReport)[0]?.text || ""}
+                    calloutProps={{ gapSpace: 0 }}
+                    styles={{ root: { display: 'inline-block', width: '100%' } }}
+                  >
+                    <Dropdown
+                      required
+                      placeholder="Approved Audit Report/Memo Number"
+                      label="Approved Audit Report/Memo Number:"
+                      options={this.state.memonumberOptions}
+                      defaultSelectedKey={this.state.ApprovedAuditReport}
+                      selectedKey={this.state.ApprovedAuditReport}
+                      onChange={this.changeMemoNumber}
+                      className={this.state.errors?.department ? 'dropdown-error' : ''}
+                    />
+                  </TooltipHost>
+                </div>
+                <div className="form-group col-md-4">
+                  <TooltipHost
+                    content={this.state.NCNumber || ""}
+                    calloutProps={{ gapSpace: 0 }}
+                    styles={{ root: { display: 'inline-block', width: '100%' } }}
+                  >
+                    <Dropdown
+                      required
+                      placeholder="NCR Number"
+                      label="NCR Number:"
+                      options={this.state.NCNumberOptions}
+                      defaultSelectedKey={this.state.NCNumberID}
+                      selectedKey={this.state.NCNumberID}
+                      onChange={this.changeNCNumber}
+                      className={this.state.errors?.department ? 'dropdown-error' : ''}
+                    />
+                  </TooltipHost>
+                </div>
+                {/* <div className="form-group col-md-4">
                 <TextField label="NCR No:" name='NCRNo' required value={this.state.ncrNo} disabled={true} onChange={this.handleChange}
 
                 // styles={{
@@ -1003,168 +1030,168 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                 //   },
                 // }}
                 />
-              </div>
-              <div className="form-group col-md-4">
-                <TextField label="Document Code:" name='DocumentCode' required value={this.state.documentCode} disabled={true} onChange={this.handleChange}
-                  styles={{
-                    fieldGroup: {
-                      backgroundColor: this.state.errors.documentcode ? "#ffcccb" : "white",
-                    },
-                  }}
-                />
-              </div>
-              <div className="form-group col-md-4">
-                <TextField label="Issue Number:" name='IssueNumber' required value={this.state.issueNo + ""} disabled={true} onChange={this.handleChange}
-                  styles={{
-                    fieldGroup: {
-                      backgroundColor: this.state.errors.issuenumber ? "#ffcccb" : "white",
-                    },
-                  }}
-                />
-              </div>
-              <div className="form-group col-md-4">
-                <TextField label="Revision Number:" name='RevisionNumber' required value={this.state.revisionNo + ""} disabled={true} onChange={this.handleChange}
-                  styles={{
-                    fieldGroup: {
-                      backgroundColor: this.state.errors.revisionnumber ? "#ffcccb" : "white",
-                    },
-                  }}
-                />
-              </div>
-              <div className="form-group col-md-4">
-                <Dropdown
-                  required
-                  placeholder="Department"
-                  label="Department:"
-                  options={this.state.departmentOption}
-                  defaultSelectedKey={this.state.department}
-                  selectedKey={this.state.department}
-                  onChange={this.changeDepartment}
-                  className={this.state.errors?.department ? 'dropdown-error' : ''}
-                // styles={{
-                //   title: {
-                //     backgroundColor: this.state.errors.department ? "#ffcccb" : "white", // Light red when error
-                //   },
-                // }}
-                />
-              </div>
-              <div className="col-md-4">
-                <TextField label="Criteria:" name='criteria' required value={this.state.criteria} onChange={this.handleChange}
-                  className={this.state.errors?.criteria ? 'textfield-error' : ''}
-                // styles={{
-                //   fieldGroup: {
-                //     border: this.state.errors?.criteria ? '1px solid red !important' : undefined,
-                //     backgroundColor: this.state.errors?.criteria ? '#ffcccb !important' : 'white',
-                //   },
-                //   field: {
-                //     backgroundColor: this.state.errors?.criteria ? '#ffcccb' : 'white',
-                //   },
-                // }}
-                />
+              </div> */}
+                <div className="form-group col-md-4">
+                  <TextField label="Document Code:" name='DocumentCode' required value={this.state.documentCode} disabled={true} onChange={this.handleChange}
+                    styles={{
+                      fieldGroup: {
+                        backgroundColor: this.state.errors.documentcode ? "#ffcccb" : "white",
+                      },
+                    }}
+                  />
+                </div>
+                <div className="form-group col-md-4">
+                  <TextField label="Issue Number:" name='IssueNumber' required value={this.state.issueNo + ""} disabled={true} onChange={this.handleChange}
+                    styles={{
+                      fieldGroup: {
+                        backgroundColor: this.state.errors.issuenumber ? "#ffcccb" : "white",
+                      },
+                    }}
+                  />
+                </div>
+                <div className="form-group col-md-4">
+                  <TextField label="Revision Number:" name='RevisionNumber' required value={this.state.revisionNo + ""} disabled={true} onChange={this.handleChange}
+                    styles={{
+                      fieldGroup: {
+                        backgroundColor: this.state.errors.revisionnumber ? "#ffcccb" : "white",
+                      },
+                    }}
+                  />
+                </div>
+                <div className="form-group col-md-4">
+                  <Dropdown
+                    required
+                    placeholder="Department"
+                    label="Department:"
+                    options={this.state.departmentOption}
+                    defaultSelectedKey={this.state.department}
+                    selectedKey={this.state.department}
+                    onChange={this.changeDepartment}
+                    className={this.state.errors?.department ? 'dropdown-error' : ''}
+                  // styles={{
+                  //   title: {
+                  //     backgroundColor: this.state.errors.department ? "#ffcccb" : "white", // Light red when error
+                  //   },
+                  // }}
+                  />
+                </div>
+                <div className="col-md-4">
+                  <TextField label="Criteria:" name='criteria' required value={this.state.criteria} onChange={this.handleChange}
+                    className={this.state.errors?.criteria ? 'textfield-error' : ''}
+                  // styles={{
+                  //   fieldGroup: {
+                  //     border: this.state.errors?.criteria ? '1px solid red !important' : undefined,
+                  //     backgroundColor: this.state.errors?.criteria ? '#ffcccb !important' : 'white',
+                  //   },
+                  //   field: {
+                  //     backgroundColor: this.state.errors?.criteria ? '#ffcccb' : 'white',
+                  //   },
+                  // }}
+                  />
 
+                </div>
+                <div className="form-group col-md-4">
+                  <TextField label="Close Out Status:" name='closeOutStatus' required value={this.state.closeOutStatus} onChange={this.handleChange}
+                    className={this.state.errors?.closeOutStatus ? 'textfield-error' : ''}
+                  // styles={{
+                  //   fieldGroup: {
+                  //     backgroundColor: this.state.errors.closeOutStatus ? "#ffcccb" : "white",
+                  //   },
+                  // }}
+                  />
+                </div>
               </div>
-              <div className="form-group col-md-4">
-                <TextField label="Close Out Status:" name='closeOutStatus' required value={this.state.closeOutStatus} onChange={this.handleChange}
-                  className={this.state.errors?.closeOutStatus ? 'textfield-error' : ''}
-                // styles={{
-                //   fieldGroup: {
-                //     backgroundColor: this.state.errors.closeOutStatus ? "#ffcccb" : "white",
-                //   },
-                // }}
-                />
+              <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
+                <div className="form-group col-md-4" id="categoryCheckbox">
+                  <label>Category: <span className={styles.textdanger}>*</span></label>
+                  {this.state.categoryCheckOption.map((item: any) => {
+                    return (
+                      <div style={{ margin: "2px", padding: "3px" }}>
+                        <Checkbox label={item.text} onChange={this._handleCheckboxChange("categoryValueIsCheck", item.key as number)} />
+                      </div>
+                    );
+                  }
+                  )}
+                </div>
+                <div className="form-group col-md-4" id="SubCategoryCheckbox">
+                  <label>SubCategory: <span className={styles.textdanger}>*</span></label>
+                  {this.state.subCategoryCheckOption.map((item: any) => {
+                    return (
+                      <div style={{ margin: "2px", padding: "3px" }}>
+                        <Checkbox label={item.text} onChange={this._handleCheckboxChange("subCategoryIsCheck", item.key as number)} />
+                      </div>
+                    );
+                  }
+                  )}
+                </div>
+                <div className="form-group col-md-4" id="locationCheckbox">
+                  <label>Location: <span className={styles.textdanger}>*</span></label>
+                  {this.state.locationCheckOption.map((item: any) => {
+                    return (
+                      <div style={{ margin: "2px", padding: "3px" }}>
+                        <Checkbox label={item.text}
+                          onChange={this._handleCheckboxChange("locationValueIsCheck", item.key as number)}
+                          className={this.state.errors?.criteria ? 'textfield-error' : ''}
+                        />
+                      </div>
+                    );
+                  }
+                  )}
+                </div>
               </div>
-            </div>
-            <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
-              <div className="form-group col-md-4" id="categoryCheckbox">
-                <label>Category: <span className={styles.textdanger}>*</span></label>
-                {this.state.categoryCheckOption.map((item: any) => {
-                  return (
-                    <div style={{ margin: "2px", padding: "3px" }}>
-                      <Checkbox label={item.text} onChange={this._handleCheckboxChange("categoryValueIsCheck", item.key as number)} />
-                    </div>
-                  );
-                }
-                )}
-              </div>
-              <div className="form-group col-md-4" id="SubCategoryCheckbox">
-                <label>SubCategory: <span className={styles.textdanger}>*</span></label>
-                {this.state.subCategoryCheckOption.map((item: any) => {
-                  return (
-                    <div style={{ margin: "2px", padding: "3px" }}>
-                      <Checkbox label={item.text} onChange={this._handleCheckboxChange("subCategoryIsCheck", item.key as number)} />
-                    </div>
-                  );
-                }
-                )}
-              </div>
-              <div className="form-group col-md-4" id="locationCheckbox">
-                <label>Location: <span className={styles.textdanger}>*</span></label>
-                {this.state.locationCheckOption.map((item: any) => {
-                  return (
-                    <div style={{ margin: "2px", padding: "3px" }}>
-                      <Checkbox label={item.text}
-                        onChange={this._handleCheckboxChange("locationValueIsCheck", item.key as number)}
-                        className={this.state.errors?.criteria ? 'textfield-error' : ''}
-                      />
-                    </div>
-                  );
-                }
-                )}
-              </div>
-            </div>
-            <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
-              <div className="form-group col-md-4" id="AssigntoPeoplepicker">
-                <PeoplePicker
-                  context={peoplePickerContext}
-                  titleText="Assigned To:"
-                  personSelectionLimit={1}
-                  required={true}
-                  groupName={""} // Leave this blank in case you want to filter from all users
-                  showtooltip={true}
-                  disabled={false}
-                  ensureUser={true}
-                  onChange={this._handlePeoplePickerChange("assignTo", "assignToId")}
-                  principalTypes={[PrincipalType.User]}
-                  resolveDelay={1000}
-                  styles={{
-                    root: {
-                      backgroundColor: this.state.errors.assignTo ? "#ffcccb" : "white",
-                    },
-                  }}
-                />
-              </div>
-              <div className="form-group col-md-4">
-                <Label>
-                  Due Date <span className={styles.textdanger}>*</span>
-                </Label>
-                <DatePicker
-                  formatDate={(date: Date) => moment(date).format("DD/MMM/YYYY")}
-                  placeholder="Select a Due Date"
-                  value={this.state.dueDate}
-                  onSelectDate={(date: Date) => this.setState({ dueDate: date })}
-                  //styles={this.state.errors.dueDate ? datePickerErrorStyles : {}}
-                  className={this.state.errors?.dueDate ? 'textfield-error' : ''}
-                />
-              </div>
-              <div style={{ position: 'relative' }} className="col-lg-4 mt-1">
-                <label htmlFor="Attchments" style={{ marginRight: "10px" }}>Attachments </label>
+              <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
+                <div className="form-group col-md-4" id="AssigntoPeoplepicker">
+                  <PeoplePicker
+                    context={peoplePickerContext}
+                    titleText="Assigned To:"
+                    personSelectionLimit={1}
+                    required={true}
+                    groupName={""} // Leave this blank in case you want to filter from all users
+                    showtooltip={true}
+                    disabled={false}
+                    ensureUser={true}
+                    onChange={this._handlePeoplePickerChange("assignTo", "assignToId")}
+                    principalTypes={[PrincipalType.User]}
+                    resolveDelay={1000}
+                    styles={{
+                      root: {
+                        backgroundColor: this.state.errors.assignTo ? "#ffcccb" : "white",
+                      },
+                    }}
+                  />
+                </div>
+                <div className="form-group col-md-4">
+                  <Label>
+                    Due Date <span className={styles.textdanger}>*</span>
+                  </Label>
+                  <DatePicker
+                    formatDate={(date: Date) => moment(date).format("DD/MMM/YYYY")}
+                    placeholder="Select a Due Date"
+                    value={this.state.dueDate}
+                    onSelectDate={(date: Date) => this.setState({ dueDate: date })}
+                    //styles={this.state.errors.dueDate ? datePickerErrorStyles : {}}
+                    className={this.state.errors?.dueDate ? 'textfield-error' : ''}
+                  />
+                </div>
+                <div style={{ position: 'relative' }} className="col-lg-4 mt-1">
+                  <label htmlFor="Attchments" style={{ marginRight: "10px" }}>Attachments </label>
 
-                <input
-                  className="form-control"
-                  type="file" name="myFile" onChange={(e) => this.handleFileChange(e, this)} id="newfile" multiple
-                // style={{
-                //   backgroundColor: this.state.errors.Attchments ? "#ffcccb" : "white",
-                //   borderColor: this.state.errors.Attchments ? 'red' : '#dee2e6'
-                // }}
-                //className={`form-control ${this.state.errors?.Attachments} ? 'textfield-error' : ''`}
-                />
-                {this.state.fileCount > 0 ?
-                  (<span style={{ fontSize: '0.875rem' }} onClick={this._OpenModal} className='newpo'>
-                    <FontAwesomeIcon icon={faPaperclip} /> {this.state.fileCount} {this.state.fileCount > 0 ? "files" : "file"} Attached
-                  </span>) : ""
-                }
+                  <input
+                    className="form-control"
+                    type="file" name="myFile" onChange={(e) => this.handleFileChange(e, this)} id="newfile" multiple
+                  // style={{
+                  //   backgroundColor: this.state.errors.Attchments ? "#ffcccb" : "white",
+                  //   borderColor: this.state.errors.Attchments ? 'red' : '#dee2e6'
+                  // }}
+                  //className={`form-control ${this.state.errors?.Attachments} ? 'textfield-error' : ''`}
+                  />
+                  {this.state.fileCount > 0 ?
+                    (<span style={{ fontSize: '0.875rem' }} onClick={this._OpenModal} className='newpo'>
+                      <FontAwesomeIcon icon={faPaperclip} /> {this.state.fileCount} {this.state.fileCount > 0 ? "files" : "file"} Attached
+                    </span>) : ""
+                  }
 
-                {/* {this.state.showDialog && <div id="myModal" className={styles.modal}>
+                  {/* {this.state.showDialog && <div id="myModal" className={styles.modal}>
                   <div className={styles.modalcontent}>
                     <span><b>Attachment Details</b></span>
                     <br />
@@ -1183,67 +1210,68 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                     </table>
                   </div>
                 </div>} */}
-                {this.state.showDialog && (
-                  <div id="myModal" className={styles.modal}>
-                    <div className={styles.modalcontent}>
-                      {/* Close button */}
-                      <span className={styles.close} onClick={() => this._CloseModal()}>&times;</span>
+                  {this.state.showDialog && (
+                    <div id="myModal" className={styles.modal}>
+                      <div className={styles.modalcontent}>
+                        {/* Close button */}
+                        <span className={styles.close} onClick={() => this._CloseModal()}>&times;</span>
 
-                      {/* Modal title and subtitle */}
-                      <h4 className="font-16 text-dark fw-bold mb-1">Attachment Details</h4>
-                      <p className="text-muted font-14 mb-3 fw-400">Below are the attachment details for Non Conformity</p>
+                        {/* Modal title and subtitle */}
+                        <h4 className="font-16 text-dark fw-bold mb-1">Attachment Details</h4>
+                        <p className="text-muted font-14 mb-3 fw-400">Below are the attachment details for Non Conformity</p>
 
-                      {/* Table */}
-                      <table className={styles.mtbalenew}>
-                        <thead>
-                          <tr>
-                            <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
-                            <th>File Name</th>
-                            {/* <th>File Link</th> */}
-                            <th style={{ minWidth: '100px' }} className="text-center">Upload Date</th>
-                            <th className="text-center">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody >
-                          {upFiles}
-                          {fileData}
-                        </tbody>
-                      </table>
+                        {/* Table */}
+                        <table className={styles.mtbalenew}>
+                          <thead>
+                            <tr>
+                              <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                              <th>File Name</th>
+                              {/* <th>File Link</th> */}
+                              <th style={{ minWidth: '100px' }} className="text-center">Upload Date</th>
+                              <th className="text-center">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody >
+                            {upFiles}
+                            {fileData}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-            <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row mb-3'>
-              <div className="form-group col-md-12 newdes">
-                <TextField label="Problem Description:"
-                  required
-                  name='problemDescription'
-                  value={this.state.problemDescription}
-                  multiline rows={5}
-                  onChange={this.handleChange}
-                  //errorMessage={this.state.errors.problemDescription}
-                  className={this.state.errors?.problemDescription ? 'textfield-error' : ''}
-                // styles={{
-                //   fieldGroup: {
-                //     backgroundColor: this.state.errors.problemDescription ? "#ffcccb" : "white", // Red tint for errors
-                //   },
-                // }}
-                />
+              <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row mb-3'>
+                <div className="form-group col-md-12 newdes">
+                  <TextField label="Problem Description:"
+                    required
+                    name='problemDescription'
+                    value={this.state.problemDescription}
+                    multiline rows={5}
+                    onChange={this.handleChange}
+                    //errorMessage={this.state.errors.problemDescription}
+                    className={this.state.errors?.problemDescription ? 'textfield-error' : ''}
+                  // styles={{
+                  //   fieldGroup: {
+                  //     backgroundColor: this.state.errors.problemDescription ? "#ffcccb" : "white", // Red tint for errors
+                  //   },
+                  // }}
+                  />
+                </div>
               </div>
-            </div>
-            {/* Button Section 4 */}
-            <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
+              {/* Button Section 4 */}
+              <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
-              <PrimaryButton text="Save as Draft" onClick={() => this.handleSubmitDraft("draft")} />
+                <PrimaryButton text="Save as Draft" onClick={() => this.handleSubmitDraft("draft")} />
 
-              <PrimaryButton text="Submit" onClick={() => this.handleSubmit("submit")} />
+                <PrimaryButton text="Submit" onClick={() => this.handleSubmit("submit")} />
 
 
-              <DefaultButton text="Cancel" onClick={() => this.cancelRequest()} />
+                <DefaultButton text="Cancel" onClick={() => this.cancelRequest()} />
 
-            </div>
-          </form>
+              </div>
+            </form>
+          }
         </div>
 
       </section>
