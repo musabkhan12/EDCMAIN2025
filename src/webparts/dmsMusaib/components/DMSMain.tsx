@@ -6675,7 +6675,7 @@ const ArgPoc = ({ props }: any) => {
   //     // };
   //     // const FolderUID :any = folderDetails.uniqueId
   //     // console.log(folderDetails.uniqueId , "folderDetails.uniqueId ")
-  //     // console.log(`https://officeindia.sharepoint.com/${currentfolderpath}` , "path")
+  //     // console.log(`https:/officeindia.sharepoint.com/${currentfolderpath}` , "path")
   //     const site = await sp.site.getContextInfo()
   //     console.log(site , "site")
   //     const site2 = await sp.site.getRootWeb()
@@ -6690,8 +6690,8 @@ const ArgPoc = ({ props }: any) => {
   //             const searchQuery = {
   //                   // Querytext: `"${searchText}"`, 
 
-  //                   Querytext:`${searchText} AND (siteId:${currentsiteID2}) AND (webId:${currentsiteID}) AND (ListId:${FolderUID}) AND (path:"https://officeindia.sharepoint.com/${currentfolderpath}" OR ParentLink:"https://officeindia.sharepoint.com/${currentfolderpath}*")`, 
-  //                 // Querytext:`"${searchText}" AND ParentLink:"https://officeindia.sharepoint.com${currentfolderpath}"`,
+  //                   Querytext:`${searchText} AND (siteId:${currentsiteID2}) AND (webId:${currentsiteID}) AND (ListId:${FolderUID}) AND (path:"https:/officeindia.sharepoint.com/${currentfolderpath}" OR ParentLink:"https:/officeindia.sharepoint.com/${currentfolderpath}*")`, 
+  //                 // Querytext:`"${searchText}" AND ParentLink:"https:/officeindia.sharepoint.com${currentfolderpath}"`,
   //                 RowLimit: 500,
   //                 SelectProperties: ["Title", "Path", "FileExtension", "UniqueId", "Size", "Created", "Modified"],  // Additional file properties
   //                 // Refiners: 'FileExtension',
@@ -7041,7 +7041,7 @@ const ArgPoc = ({ props }: any) => {
       try {
         console.log(currentfolderpath, "currentfolderpath")
         // const searchQuery = {
-        //   Querytext: `${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
+        //   Querytext: `${searchText} AND Path:"https:/officeindia.sharepoint.com${currentfolderpath}"`,
         //   // Querytext: `"${searchText}"`,
         //   RowLimit: 500,
         //   SelectProperties: ["Title", "Path", "FileExtension", "UniqueId", "Size", "Created", "Modified"],
@@ -7210,7 +7210,7 @@ const ArgPoc = ({ props }: any) => {
   //     try {
   //       console.log(currentfolderpath, "currentfolderpath")
   //         const searchQuery = {
-  //              Querytext:`${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
+  //              Querytext:`${searchText} AND Path:"https:/officeindia.sharepoint.com${currentfolderpath}"`,
   //             // Querytext: `"${searchText}"`,
   //             RowLimit: 500,
   //             SelectProperties: ["Title", "Path", "FileExtension", "UniqueId", "Size", "Created", "Modified"], 

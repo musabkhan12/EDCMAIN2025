@@ -368,7 +368,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       ChangeRequestID: item.ID,
       IssueDate: item.IssueDate,
       LocationId: item.LocationId,
-      TemplateTypeId:item.TemplateTypeId,
+      TemplateTypeId: item.TemplateTypeId,
       CustodianId: item.CustodianId,
       SerialNumber: item.SerialNumber,
       RevisionDate: item.RevisionDate,
@@ -671,7 +671,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         DocumentCode: selectedList.value,
         DocumentTypeId: selectedList.DocumentTypeId,
         DepartmentId: selectedList.DepartmentId,
-        TemplateTypeId:selectedList.TemplateTypeId,
+        TemplateTypeId: selectedList.TemplateTypeId,
         AttachmentId: selectedList.AttachmentId,
         AttachmentJson: selectedList.AttachmentJson
         // Format as YYYY-MM-DD
@@ -1276,14 +1276,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           setserialNo(serialNo == "" || issueNo == null ? "01" : serialNo);
         }
       } else {
-        issueno = (Number(selectedOption.IssueNumber) + 1).toString();
-        serialno = selectedOption.SerialNumber;
-        revisionno = (Number(selectedOption.RevisionNumber)+1).toString();
+        issueno = (Number(selectedOption?.IssueNumber) + 1).toString();
+        serialno = selectedOption?.SerialNumber;
+        revisionno = (Number(selectedOption?.RevisionNumber) + 1).toString();
         setissueNo(issueno);
         setserialNo(serialno);
         setrevisionNo(revisionno);
       }
-      let doccode = selectedOptionReq.label == "Change Request for New Addition" ? await generateDocCode(serialno) : selectedOption.DocumentCode;
+      let doccode = selectedOptionReq.label == "Change Request for New Addition" ? await generateDocCode(serialno) : selectedOption?.DocumentCode;
       let referencecode = await generateReferenceCode(serialno, issueno);
       console.log("doccode doccode", doccode, referencecode);
       if (editForm) {
@@ -1317,7 +1317,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 const itemId = currentItemId.Id;
                 await currentItemId.update({
                   FileName: documentName, // Assuming FileName is the internal name of the column
-                  DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption.DocumentCode,
+                  DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption?.DocumentCode,
                 });
 
                 // Save the document ID for the attachment field in ChangeRequestList
@@ -1341,7 +1341,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               IssueNumber: Number(issueno),
               RevisionNumber: Number(revisionno),
               //RevisionDate: formData.RevisionDate,
-              DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption.DocumentCode,
+              DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption?.DocumentCode,
               ReferenceNumber: referencecode,
               RequestTypeId: formData.RequestTypeId,
               AmendmentTypeId: formData.AmendmentTypeId,
@@ -1355,8 +1355,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               CurrentUserRole: "OES",
               DocumentName: attachmentIds.length != 0 ? DocumentName : formData.DocumentName,
               DocumentTypeId: formData.DocumentTypeId,
-              //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption.AttachmentId,
-              //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson,
+              //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption?.AttachmentId,
+              //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption?.AttachmentJson,
               AttachmentId: Attachmentidsss,
               AttachmentJson: AttachmentJso
             }
@@ -1412,13 +1412,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
               }
             });
             //sessionStorage.removeItem("ChangeRequestId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             // }, 1000);
             // }
           }
@@ -1457,7 +1457,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 const itemId = currentItemId.Id;
                 await currentItemId.update({
                   FileName: documentName, // Assuming FileName is the internal name of the column
-                  DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption.DocumentCode,
+                  DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption?.DocumentCode,
                 });
 
                 // Save the document ID for the attachment field in ChangeRequestList
@@ -1479,15 +1479,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               SerialNumber: Number(serialno),
               IssueNumber: Number(issueno),
               RevisionNumber: Number(revisionno),
-              //RevisionNumber: selectedOption.RevisionNumber,
+              //RevisionNumber: selectedOption?.RevisionNumber,
               //RevisionDate: new Date().toISOString(),
-              DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption.DocumentCode,
+              DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption?.DocumentCode,
               ReferenceNumber: referencecode,
               AmendmentTypeId: formData.AmendmentTypeId,
               RequestTypeId: formData.RequestTypeId,
               ClassificationId: formData.ClassificationId,
               ChangeRequestTypeId: selectedCheckboxIds,
-              //SubmiitedDate: selectedOption.SubmiitedDate,
+              //SubmiitedDate: selectedOption?.SubmiitedDate,
               SubmiitedDate: new Date().toISOString(),
               SubmitStatus: "Yes",
               Status: "Pending",
@@ -1496,8 +1496,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               CurrentUserRole: "OES",
               DocumentName: DocumentName,
               DocumentTypeId: formData.DocumentTypeId,
-              //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption.AttachmentId,
-              //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson,
+              //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption?.AttachmentId,
+              //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption?.AttachmentJson,
               AttachmentId: Attachmentidsss,
               AttachmentJson: AttachmentJso
             };
@@ -1534,14 +1534,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Submitted successfully.', '', 'success');
             // // sessionStorage.removeItem("bannerId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             // }, 1000);
             // }
 
@@ -1597,16 +1597,19 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     debugger
     scrollToTop();
     let url = window.location.href.split('/sites/')[0];
-    console.log("topp draft", editItemID, cancellReason);
-    let currentReferenceNo = selectedOption.ReferenceNumber ;
-    let arrrr = currentReferenceNo.split('.')
-    for (let i = 0; i < arrrr.length; i++) {
-      if (arrrr[i].includes("RRF")) {
-        arrrr[i] = arrrr[i].replace("RRF", "TMP");
+    console.log("topp draft", editItemID, cancellReason,selectedOption);
+    let currentReferenceNo = selectedOption?.ReferenceNumber;
+    let arrrr =currentReferenceNo && currentReferenceNo.split('.')
+    if(selectedOption!=null){
+      for (let i = 0; i < arrrr && arrrr.length; i++) {
+        if (arrrr[i].includes("RRF")) {
+          arrrr[i] = arrrr[i].replace("RRF", "TMP");
+        }
       }
     }
-    console.log("props.currentItem",props.currentItem);
-    let test = arrrr.join('.');
+
+    console.log("props.currentItem", props.currentItem);
+    let test = arrrr && arrrr.join('.');
     if (await validateForm(FormSubmissionMode.DRAFT)) {
       if (editForm) {
         Swal.fire({
@@ -1657,17 +1660,17 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RequestDate: new Date(formData.RequestDate).toISOString(),
               LocationId: formData.LocationId,
               CustodianId: formData.CustodianId,
-              SerialNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption.SerialNumber) : null,
-              IssueNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption.IssueNumber) : null,
-              RevisionNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption.RevisionNumber) : null,
-              DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? "" : selectedOption && selectedOption.DocumentCode,
+              SerialNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption?.SerialNumber) : null,
+              IssueNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption?.IssueNumber) : null,
+              RevisionNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption?.RevisionNumber) : null,
+              DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? "" : selectedOption && selectedOption?.DocumentCode,
               ReferenceNumber: selectedOptionReq.label == "Change in Existing Content" ? test : "",
               AmendmentTypeId: formData.AmendmentTypeId,
               RequestTypeId: formData.RequestTypeId,
               ClassificationId: formData.ClassificationId,
               //ChangeRequestTypeId: formData.ChangeRequestTypeId,
               ChangeRequestTypeId: selectedCheckboxIds,
-              //SubmiitedDate: selectedOption.SubmiitedDate,
+              //SubmiitedDate: selectedOption?.SubmiitedDate,
               SubmiitedDate: new Date(formData.SubmiitedDate).toISOString(),
               SubmitStatus: "No",
               Status: "Save as draft",
@@ -1676,8 +1679,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               OESSubmitStatus: "No",
               InitiatorSubmitStatus: "No",
               CurrentUserRole: "OES",
-              //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption.AttachmentId,
-              //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson,
+              //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption?.AttachmentId,
+              //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption?.AttachmentJson,
               AttachmentId: Attachmentidsss,
               AttachmentJson: AttachmentJso
 
@@ -1746,14 +1749,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Saved successfully.', '', 'success');
             // sessionStorage.removeItem("ChangeRequestId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             // }, 2000);
             // }
           }
@@ -1810,10 +1813,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               IssueDate: new Date().toISOString(),
               LocationId: formData.LocationId,
               CustodianId: formData.CustodianId,
-              SerialNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption.SerialNumber) : null,
-              IssueNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption.IssueNumber) : null,
-              RevisionNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption.RevisionNumber) : null,
-              DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? "" : selectedOption && selectedOption.DocumentCode,
+              SerialNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption?.SerialNumber) : null,
+              IssueNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption?.IssueNumber) : null,
+              RevisionNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption?.RevisionNumber) : null,
+              DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? "" : selectedOption && selectedOption?.DocumentCode,
               ReferenceNumber: selectedOptionReq.label == "Change in Existing Content" ? test : "",
               RequestTypeId: formData.RequestTypeId,
               AmendmentTypeId: formData.AmendmentTypeId,
@@ -1824,8 +1827,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               Status: "Save as draft",
               DocumentName: DocumentName,
               DocumentTypeId: formData.DocumentTypeId,
-              //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption.AttachmentId,
-              //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption.AttachmentJson,
+              //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption?.AttachmentId,
+              //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption?.AttachmentJson,
               AttachmentId: Attachmentidsss,
               AttachmentJson: AttachmentJso
 
@@ -1870,14 +1873,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Saved successfully.', '', 'success');
             // // sessionStorage.removeItem("bannerId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             // }, 1000);
           }
         })
@@ -1990,11 +1993,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           console.log(result)
           if (result.isConfirmed) {
             setLoading(true);
-
+            debugger
             // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
 
             let arr = {
-              ActionTakenById: currentUser.Id,
+              // ActionTakenById: currentUser.Id,
               ActionTakenOn: new Date().toLocaleDateString("en-CA"),
               // ActionTakenRoleId: formData.RequesterDesignation,
               Status: "Approved",
@@ -2075,11 +2078,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
 
             setLoading(false);
-            Swal.fire(successMessage, '', 'success');
-            sessionStorage.removeItem("ChangeRequestId")
-            setTimeout(() => {
-              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
-            }, 1000);
+            Swal.fire(successMessage, '', 'success').then(async (result) => {
+              if (result.isConfirmed) {
+                sessionStorage.removeItem("ChangeRequestId")
+                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+              }
+            });
+
             // }
           }
 
@@ -2127,7 +2132,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               });
               let arr2 = {
                 Title: currentUser.Title,
-                ContentTitle: selectedOption.ReferenceNumber,
+                ContentTitle: selectedOption?.ReferenceNumber,
                 MainListNameId: ListNameId,
                 ApproverRoleId: item.role,
                 Level: Number(item.level),
@@ -2137,7 +2142,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 Maxlevel: item.approvers?.length,
                 // ContentTitle:,
                 MainListID: String(editItemID),
-                RequestId: selectedOption.DocumentCode,
+                RequestId: selectedOption?.DocumentCode,
                 // RequestId:String(editID.Id),
                 RequesterNameId: currentUser.Id,
                 RequestedDate: new Date().toLocaleDateString("en-CA"),
@@ -2182,11 +2187,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               }
             }
             setLoading(false);
-            Swal.fire(successMessage, '', 'success');
-            sessionStorage.removeItem("ChangeRequestId")
-            setTimeout(() => {
-              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
-            }, 1000);
+            Swal.fire(successMessage, '', 'success').then(async (result) => {
+              if (result.isConfirmed) {
+                sessionStorage.removeItem("ChangeRequestId")
+                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+              }
+            });
             // }
           }
         })
@@ -2254,31 +2260,31 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               TemplateTypeId: formData.TemplateTypeId,
               RequestDate: formData.RequestDate,
               //IssueDate: formData.IssueDate,
-              LocationId: selectedOption.LocationId,
-              CustodianId: selectedOption.CustodianId,
-              SerialNumber: selectedOption.SerialNumber,
-              IssueNumber: selectedOption.IssueNumber,
-              RevisionNumber: selectedOption.RevisionNumber,
-              //RevisionDate: selectedOption.RevisionDate,
-              DocumentCode: selectedOption.value,
-              ReferenceNumber: selectedOption.ReferenceNumber,
-              AmendmentTypeId: selectedOption.AmendmentTypeId,
-              RequestTypeId: selectedOption.RequestTypeId,
-              ClassificationId: selectedOption.ClassificationId,
-              ChangeRequestTypeId: selectedOption.ChangeRequestTypeId,
-              SubmiitedDate: selectedOption.SubmiitedDate,
+              LocationId: selectedOption?.LocationId,
+              CustodianId: selectedOption?.CustodianId,
+              SerialNumber: selectedOption?.SerialNumber,
+              IssueNumber: selectedOption?.IssueNumber,
+              RevisionNumber: selectedOption?.RevisionNumber,
+              //RevisionDate: selectedOption?.RevisionDate,
+              DocumentCode: selectedOption?.value,
+              ReferenceNumber: selectedOption?.ReferenceNumber,
+              AmendmentTypeId: selectedOption?.AmendmentTypeId,
+              RequestTypeId: selectedOption?.RequestTypeId,
+              ClassificationId: selectedOption?.ClassificationId,
+              ChangeRequestTypeId: selectedOption?.ChangeRequestTypeId,
+              SubmiitedDate: selectedOption?.SubmiitedDate,
               SubmitStatus: "Yes",
               Status: "Pending",
               // DocumentName: "",
               // IsRework: false,
               // DigitalSignStatus: false,
               //ChangeRequestIDId: formData.ChangeRequestID,
-              DocumentTypeId: selectedOption.DocumentTypeId,
+              DocumentTypeId: selectedOption?.DocumentTypeId,
               OESSubmitStatus: "No",
               InitiatorSubmitStatus: "Yes",
               CurrentUserRole: "OES",
-              AttachmentId: selectedOption.AttachmentId,
-              AttachmentJson: selectedOption.AttachmentJson
+              AttachmentId: selectedOption?.AttachmentId,
+              AttachmentJson: selectedOption?.AttachmentJson
 
 
             }
@@ -2329,11 +2335,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             }
 
             setLoading(false);
-            Swal.fire(successMessage, '', 'success');
-            sessionStorage.removeItem("ChangeRequestId")
-            setTimeout(() => {
-              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
-            }, 1000);
+            Swal.fire(successMessage, '', 'success').then(async (result) => {
+              if (result.isConfirmed) {
+                sessionStorage.removeItem("ChangeRequestId")
+                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+              }
+            });
+
 
           }
 
@@ -2380,31 +2388,31 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               TemplateTypeId: formData.TemplateTypeId,
               RequestDate: formData.RequestDate,
               IssueDate: formData.IssueDate,
-              LocationId: selectedOption.LocationId,
-              CustodianId: selectedOption.CustodianId,
-              SerialNumber: selectedOption.SerialNumber,
-              IssueNumber: selectedOption.IssueNumber,
-              RevisionNumber: selectedOption.RevisionNumber,
-              //RevisionDate: selectedOption.RevisionDate,
-              DocumentCode: selectedOption.value,
-              ReferenceNumber: selectedOption.ReferenceNumber,
-              AmendmentTypeId: selectedOption.AmendmentTypeId,
-              RequestTypeId: selectedOption.RequestTypeId,
-              ClassificationId: selectedOption.ClassificationId,
-              ChangeRequestTypeId: selectedOption.ChangeRequestTypeId,
-              SubmiitedDate: selectedOption.SubmiitedDate,
+              LocationId: selectedOption?.LocationId,
+              CustodianId: selectedOption?.CustodianId,
+              SerialNumber: selectedOption?.SerialNumber,
+              IssueNumber: selectedOption?.IssueNumber,
+              RevisionNumber: selectedOption?.RevisionNumber,
+              //RevisionDate: selectedOption?.RevisionDate,
+              DocumentCode: selectedOption?.value,
+              ReferenceNumber: selectedOption?.ReferenceNumber,
+              AmendmentTypeId: selectedOption?.AmendmentTypeId,
+              RequestTypeId: selectedOption?.RequestTypeId,
+              ClassificationId: selectedOption?.ClassificationId,
+              ChangeRequestTypeId: selectedOption?.ChangeRequestTypeId,
+              SubmiitedDate: selectedOption?.SubmiitedDate,
               SubmitStatus: "No",
               Status: "Save as draft",
               // DocumentName: "",
               // IsRework: false,
               // DigitalSignStatus: false,
               //ChangeRequestIDId: formData.ChangeRequestID,
-              DocumentTypeId: selectedOption.DocumentTypeId,
+              DocumentTypeId: selectedOption?.DocumentTypeId,
               OESSubmitStatus: "No",
               InitiatorSubmitStatus: "No",
               CurrentUserRole: "OES",
-              AttachmentId: selectedOption.AttachmentId,
-              AttachmentJson: selectedOption.AttachmentJson
+              AttachmentId: selectedOption?.AttachmentId,
+              AttachmentJson: selectedOption?.AttachmentJson
 
 
             }
@@ -2456,11 +2464,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
 
             setLoading(false);
-            Swal.fire(successMessage, '', 'success');
-            sessionStorage.removeItem("ChangeRequestId")
-            setTimeout(() => {
-              window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
-            }, 1000);
+            Swal.fire(successMessage, '', 'success').then(async (result) => {
+              if (result.isConfirmed) {
+                sessionStorage.removeItem("ChangeRequestId")
+                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+              }
+            });
+
             // }
           }
 
@@ -3232,7 +3242,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         className="indexdesign"
                                       >
                                         {index + 1}</div></td>
-                                      <td title ={row.description}>
+                                      <td title={row.description}>
                                         {/* <input type="text" id="simpleinput" disabled={InputDisabled && formData?.Status != "Rework"}
                                         value={row.description}
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -3255,7 +3265,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         />
 
                                       </td>
-                                      <td title ={row.reason}>
+                                      <td title={row.reason}>
                                         {/* <input type="text" id="simpleinput" disabled={InputDisabled && formData?.Status != "Rework"}
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                         value={row.reason}

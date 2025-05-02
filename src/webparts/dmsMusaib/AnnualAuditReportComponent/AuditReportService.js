@@ -118,7 +118,7 @@ export const getItemByID = async (_sp, id) => {
   console.log(arr, 'arr');
   return arr;
 }
-export const getItemsAuditReport = async (_sp) => {
+export const getItemsAuditReportNC = async (_sp) => {
 
   let arr = []
   let arrs = []
@@ -126,11 +126,36 @@ export const getItemsAuditReport = async (_sp) => {
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("AnnualAuditReportList").items
     .select("NCSequence,ID,ObservationSequence,NCNumber,ObservationNumber").expand("")
-    .orderBy("Modified", false)
+    .orderBy("NCSequence", false)
     .top(1)
     ()
     .then((res) => {
       console.log(res, 'ncnumberr let arrs=[]');
+      if (res.length > 0){
+        arr.push(res[0])
+      }
+        //arr.push(res[0])
+      // arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  console.log(arr, 'arr');
+  return arr;
+}
+export const getItemsAuditReportObs = async (_sp) => {
+
+  let arr = []
+  let arrs = []
+  let bannerimg = []
+  const currentUser = await _sp.web.currentUser();
+  await _sp.web.lists.getByTitle("AnnualAuditReportList").items
+    .select("NCSequence,ID,ObservationSequence,NCNumber,ObservationNumber").expand("")
+    .orderBy("ObservationSequence", false)
+    .top(1)
+    ()
+    .then((res) => {
+      console.log(res, 'ObservationSequence let arrs=[]');
       if (res.length > 0){
         arr.push(res[0])
       }

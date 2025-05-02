@@ -48,7 +48,7 @@ const datePickerErrorStyles: Partial<IDatePickerStyles> = {
 
 
 export class IState {
-  Loading:boolean;
+  Loading: boolean;
   departmentOption: IDropdownOption[];
   memonumberOptions: any[];
   memonumberOptionsall: any[];
@@ -100,7 +100,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     const selectedTextDiv = document.getElementById('selectedText');
     selectedTextDiv.style.display = 'none';
     this.state = {
-      Loading:false,
+      Loading: false,
       departmentOption: [],
       memonumberOptions: [],
       memonumberOptionsall: [],
@@ -789,7 +789,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     });
   }
   //Save Function
-  private async _saveData(_submitStatus: string) {
+  private _saveData = async (_submitStatus: string) => {
     debugger
     let mText = "";
     let cText = "";
@@ -835,7 +835,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     }).then(async (result) => {
       if (result.isConfirmed) {
         debugger
-      
+
         this.setState({ Loading: true });
         await sp.web.lists.getByTitle("NonConformityList").items.add({
           NCNumber: this.state.NCNumber,
@@ -886,8 +886,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
               });
             })
           }
+          this.setState({ Loading: false });
         });
-        this.setState({ Loading: false });
+        
         Swal.fire({
           title: cText + " Successfully.",
           icon: "success"

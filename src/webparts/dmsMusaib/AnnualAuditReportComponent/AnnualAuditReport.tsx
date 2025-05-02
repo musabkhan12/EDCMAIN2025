@@ -30,7 +30,7 @@ import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
-import { addAllProcessItem, addItem, addItem2, getAllApprovedAuditplan, getAllAuditType, getAllDepartment, getAllDepartment1, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDocumentLinkByIDPlan, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDocAuditplan, getGeneratedTemplateDocCR, getItemByID, getItemByID2, getItemfromChecklistMaster, getItemsAuditReport, getLatestChangeRequestTemplateType, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles } from './AuditReportService';
+import { addAllProcessItem, addItem, addItem2, getAllApprovedAuditplan, getAllAuditType, getAllDepartment, getAllDepartment1, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDocumentLinkByIDPlan, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDocAuditplan, getGeneratedTemplateDocCR, getItemByID, getItemByID2, getItemfromChecklistMaster, getItemsAuditReportNC, getItemsAuditReportObs, getLatestChangeRequestTemplateType, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles } from './AuditReportService';
 import { TextField } from '@fluentui/react';
 import { isMac } from 'office-ui-fabric-react';
 import moment from 'moment';
@@ -361,14 +361,19 @@ const AnnualAuditReportContext = ({ props }: any) => {
             }));
         }
 
-        const setAuditreportNC = await getItemsAuditReport(sp);
+        const setAuditreportNC = await getItemsAuditReportNC(sp);
+        const setAuditreportObs = await getItemsAuditReportObs(sp);
 
         if (setAuditreportNC.length > 0) {
             setFormData(prevData => ({
                 ...prevData,
-                NCSequence: setAuditreportNC[0].NCSequence,
+                NCSequence: setAuditreportNC[0].NCSequence
+            }));
+        }
+        if (setAuditreportObs.length > 0) {
+            setFormData(prevData => ({
+                ...prevData,
                 ObservationSequence: setAuditreportNC[0].ObservationSequence,
-
             }));
         }
         let formitemid;
@@ -420,12 +425,16 @@ const AnnualAuditReportContext = ({ props }: any) => {
         if (setAuditreportNC.length > 0) {
             setFormData(prevData => ({
                 ...prevData,
-                NCSequence: setAuditreportNC[0].NCSequence,
-                ObservationSequence: setAuditreportNC[0].ObservationSequence,
+                NCSequence: setAuditreportNC[0].NCSequence
 
             }));
         }
-
+        if (setAuditreportObs.length > 0) {
+            setFormData(prevData => ({
+                ...prevData,
+                ObservationSequence: setAuditreportNC[0].ObservationSequence,
+            }));
+        }
         // formitemid =20;
         if (formitemid) {
 
@@ -1321,7 +1330,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId");
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // setTimeout(() => {
@@ -1569,7 +1578,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         //Swal.fire('Submitted successfully.', '', 'success');
@@ -1853,7 +1862,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId")
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -2082,7 +2091,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // sessionStorage.removeItem("bannerId")

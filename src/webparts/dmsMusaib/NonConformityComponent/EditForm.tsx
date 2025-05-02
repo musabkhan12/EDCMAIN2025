@@ -35,6 +35,7 @@ let Approvallistitemid = 0;
 let ApproverEmail = "";
 let CurrentuserEmail = "";
 let RequesterEmail = "";
+let setloading:boolean = false;
 const datePickerErrorStyles: Partial<IDatePickerStyles> = {
   root: {
     border: "1px solid #ffcccb", // Apply red border
@@ -1304,7 +1305,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   }
 
   //Update Function
-  private async _updateSubmitData(_editsubmitStatus: string) {
+  private _updateSubmitData = async (_editsubmitStatus: string) => {
     debugger
     let mText = "";
     let cText = "";
@@ -1425,7 +1426,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     }).then(async (result) => {
       if (result.isConfirmed) {
         debugger
-        this.setState({ Loading: true });
+        setloading = true;
+          this.setState({ Loading: true});
         await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
         if (_editsubmitStatus == "submit") {
           if (currentUserRole == "AnalyzedBy" || currentUserRole == "DelegateTo") {
@@ -1486,16 +1488,18 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             })
           }
         }
-        this.setState({ Loading: false });
-        Swal.fire({
-          title: cText + " Successfully.",
-          icon: "success"
-        }).then(() => {
-          (this.state.editCurrentUserRole == "DelegateTo" || this.state.editCurrentUserRole == "FirstAssignedTo") ?
+        setloading = false;
+        this.setState({ Loading: false }, () => {
+          Swal.fire({
+            title:  cText + " Successfully.",
+            icon: "success"
+          }).then(() => {
+            (this.state.editCurrentUserRole == "DelegateTo" || this.state.editCurrentUserRole == "FirstAssignedTo") ?
             window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx" :
             window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/EDCMAIN.aspx";
-          // window.location.reload();
+          });
         });
+        
       }
     })
       .catch(error => {
@@ -1503,7 +1507,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       });
   }
   //Forward Call
-  public async forwardRequest(_editsubmitStatus: string) {
+  public  forwardRequest = async(_editsubmitStatus: string)=> {
     debugger
     var _self = this;
     //Start Flow condition
@@ -1563,10 +1567,13 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       showCancelButton: true,
       confirmButtonText: 'Yes',
       cancelButtonText: 'No'
-    }).then(async function (val) {
+    })
+    //.then(async function (val) {
+      .then(async (val) => {
       if (val.isConfirmed) {
         debugger
-        this.setState({ Loading: true });
+        setloading = true;
+          this.setState({ Loading: true});
         await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
         sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
           Status: "Approved",
@@ -1632,21 +1639,21 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           });
         }
         //End Forward Button
-        this.setState({ Loading: false });
-        Swal.fire({
-          title: "Forwarded Successfully.",
-          icon: "success"
-        }).then(() => {
-
-          window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
-          // window.location.reload();
+        setloading = false;
+        this.setState({ Loading: false }, () => {
+          Swal.fire({
+            title: "Forwarded Successfully.",
+            icon: "success"
+          }).then(() => {
+            window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+          });
         });
       }
     });
 
   }
   //Approver call
-  public async approveRequest(_editsubmitStatus: string) {
+  public  approveRequest= async(_editsubmitStatus: string)=> {
     //Start Flow condition
     let currentUserRole = "";
     let firstInitiatorSubmitStatus = "";
@@ -1743,9 +1750,13 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       showCancelButton: true,
       confirmButtonText: 'Yes',
       cancelButtonText: 'No'
-    }).then(async function (val) {
+    })
+    //.then(async function (val) {
+      .then(async (val) => {
       if (val.isConfirmed) {
-        this.setState({ Loading: true });
+        debugger
+        setloading = true;
+          this.setState({ Loading: true});
         if (editLastInitiatorSubmitStatus != "Yes") {
           await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
         }
@@ -1760,13 +1771,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             ActionTakenOn: new Date(),
             Remark: remarks,
           });
-          Swal.fire({
-            title: "Approved Successfully.",
-            icon: "success"
-          }).then(() => {
-            window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
-            //window.location.reload();
+          setloading = false;
+          this.setState({ Loading: false }, () => {
+            Swal.fire({
+              title: "Approved Successfully.",
+              icon: "success"
+            }).then(() => {
+              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+            });
           });
+         
         } else {
           sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
 
@@ -1775,13 +1789,14 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             ActionTakenOn: new Date(),
             Remark: remarks,
           });
-          this.setState({ Loading: false });
-          Swal.fire({
-            title: "Approved Successfully.",
-            icon: "success"
-          }).then(() => {
-            window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
-            // window.location.reload();
+          setloading = false;
+          this.setState({ Loading: false }, () => {
+            Swal.fire({
+              title: "Approved Successfully.",
+              icon: "success"
+            }).then(() => {
+              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+            });
           });
         }
 
@@ -1790,7 +1805,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
   }
   //Reject call
-  private async rejectRequest(_editsubmitStatus: string) {
+  private rejectRequest = async(_editsubmitStatus: string)=> {
     const { remarks } = this.state
     const { currentUserID, approvalItemId, context } = this.props
     const sp = spfi().using(SPFx(this.props.context));
@@ -1799,9 +1814,12 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       showCancelButton: true,
       confirmButtonText: 'Yes',
       cancelButtonText: 'No'
-    }).then(function (val) {
+    })
+    .then(async (val) => {
+    //.then(function (val) {
       if (val.isConfirmed) {
-        this.setState({ Loading: true });
+        setloading = true;
+          this.setState({ Loading: true});
         if (approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
           sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
             Status: "Rejected",
@@ -1809,13 +1827,14 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             ActionTakenOn: new Date(),
             Remark: remarks,
           });
-          this.setState({ Loading: false });
-          Swal.fire({
-            title: "Rejected Successfully.",
-            icon: "success"
-          }).then(() => {
-            window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
-            // window.location.reload();
+          setloading = false;
+          this.setState({ Loading: false }, () => {
+            Swal.fire({
+              title: "Rejected Successfully.",
+              icon: "success"
+            }).then(() => {
+              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+            });
           });
         } else {
           sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
@@ -1824,15 +1843,15 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             ActionTakenOn: new Date(),
             Remark: remarks,
           });
-          this.setState({ Loading: false });
-          Swal.fire({
-            title: "Rejected Successfully.",
-            icon: "success"
-          }).then(() => {
-            window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
-            // window.location.reload();
+          setloading = false;
+          this.setState({ Loading: false }, () => {
+            Swal.fire({
+              title: "Rejected Successfully",
+              icon: "success"
+            }).then(() => {
+              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+            });
           });
-
 
         }
 
@@ -1869,7 +1888,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
   }
   //Rework Call
-  private async reworkRequest(_editsubmitStatus: string) {
+  private reworkRequest = async(_editsubmitStatus: string)=> {
     //Start Flow condition
     let currentUserRole = "";
     let firstInitiatorSubmitStatus = "";
@@ -1968,9 +1987,12 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       showCancelButton: true,
       confirmButtonText: 'Yes',
       cancelButtonText: 'No'
-    }).then(async function (val) {
+    })
+    //.then(async function (val) {
+      .then(async (val) => {
       if (val.isConfirmed) {
-        this.setState({ Loading: true });
+        setloading = true;
+          this.setState({ Loading: true});
         await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
         if (approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
 
@@ -1981,14 +2003,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             Remark: remarks,
             IsRework: "Yes"
           });
-          this.setState({ Loading: false });
-          Swal.fire({
-            title: "Sent for Rework.",
-            icon: "success"
-          }).then(() => {
-            window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
-            // window.location.reload();
+          setloading = false;
+          this.setState({ Loading: false }, () => {
+            Swal.fire({
+              title: "Send for Rework.",
+              icon: "success"
+            }).then(() => {
+              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+            });
           });
+         
         } else {
 
           sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
@@ -1998,14 +2022,17 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             Remark: remarks,
             IsRework: "Yes"
           });
-          this.setState({ Loading: false });
-          Swal.fire({
-            title: "Sent for Rework.",
-            icon: "success"
-          }).then(() => {
-            window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
-            // window.location.reload();
+         
+          setloading = false;
+          this.setState({ Loading: false }, () => {
+            Swal.fire({
+              title: "Send for Rework.",
+              icon: "success"
+            }).then(() => {
+              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+            });
           });
+        
         }
 
 
@@ -2212,7 +2239,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             </div>
 
           </div>
-          {this.state.Loading ?
+          {this.state.Loading || setloading ?
 
             <div className="loadernewadd mt-10">
               <div>
@@ -2559,7 +2586,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               </fieldset>
             </section>
           }
-          {this.state.editSubmitStatus == "Yes" && !this.state.Loading ? //this.state.editFirstInitiatorSubmitStatus == "Yes" || this.state.editFirstAssignedToSubmitStatus == "Yes" ?
+          {this.state.editSubmitStatus == "Yes" && (!this.state.Loading || !setloading )? //this.state.editFirstInitiatorSubmitStatus == "Yes" || this.state.editFirstAssignedToSubmitStatus == "Yes" ?
             <section className='card card-body mt-2' >
               <fieldset>
                 <form>
@@ -2784,7 +2811,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               </fieldset>
             </section> : null}
           {/* Approval Table */}
-          {(this.state.editReviewedBySubmitStatus == "Yes" && this.state.editDelegateToId == null && !this.state.Loading) || (this.state.editLastAssignedToSubmitStatus == "Yes" && this.state.editDelegateToId != null && !this.state.Loading) ?
+          {(this.state.editReviewedBySubmitStatus == "Yes" && this.state.editDelegateToId == null &&  (!this.state.Loading || !setloading )) || (this.state.editLastAssignedToSubmitStatus == "Yes" && this.state.editDelegateToId != null &&  (!this.state.Loading || !setloading )) ?
             (<section className={styles.sec}>
               <fieldset disabled={this.state.forwarDisable}>
                 <form>
@@ -2841,7 +2868,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               </fieldset>
             </section>) : null}
 
-          {(this.state.showApprove === true || this.state.showReject === true) && !this.state.Loading ?
+          {(this.state.showApprove === true || this.state.showReject === true) &&  (!this.state.Loading || !setloading ) ?
             <section style={{ justifyContent: 'left', textAlign: 'left' }} id="approvalSection" className='card card-body'>
               <TextField label="Remarks" required name="remarks" value={this.state.remarks} multiline rows={3} onChange={this.handleChange}
 
@@ -2855,7 +2882,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           }
           {/* Vishnu Changes  */}
           {console.log("this.state.showSubmit ", this.state.showSubmit, this.state.showDraft, "show spprove", this.state.showApprove)}
-          {this.state.showSubmit && !this.state.Loading && ((this.state.editSubmitStatus == "No" && RequesterEmail == CurrentuserEmail) ||
+          {this.state.showSubmit &&  (!this.state.Loading || !setloading ) && ((this.state.editSubmitStatus == "No" && RequesterEmail == CurrentuserEmail) ||
             (this.state.editSubmitStatus == "Yes" && this.state.editAssignToEmail == CurrentuserEmail)) &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
@@ -2872,7 +2899,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             </div>
           }
           {console.log("ApproverEmailApproverEmail", ApproverEmail, CurrentuserEmail)}
-          {this.state.showApprove && !this.state.Loading && ApproverEmail == CurrentuserEmail &&
+          {this.state.showApprove &&  (!this.state.Loading || !setloading ) && ApproverEmail == CurrentuserEmail &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
               <PrimaryButton text="Approve" onClick={() => this._approveRequest("Approve")} />
@@ -2886,7 +2913,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             </div>
           }
           {console.log("ApproverEmailforward", ApproverEmail, CurrentuserEmail)}
-          {this.state.showForward && RequesterEmail == CurrentuserEmail && !this.state.Loading &&
+          {this.state.showForward && RequesterEmail == CurrentuserEmail &&  (!this.state.Loading || !setloading ) &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
               <PrimaryButton text="Forward" onClick={() => this.handleForward("Forward")} />
@@ -2897,7 +2924,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             </div>
           }
           {console.log("Approverreject", ApproverEmail, CurrentuserEmail)}
-          {this.state.showReject && ApproverEmail == CurrentuserEmail && !this.state.Loading &&
+          {this.state.showReject && ApproverEmail == CurrentuserEmail &&  (!this.state.Loading || !setloading ) &&
 
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
@@ -2911,7 +2938,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
             </div>
           }
-          {this.state.edType === "view" && !this.state.Loading &&
+          {this.state.edType === "view" &&  (!this.state.Loading || !setloading ) &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
               <DefaultButton text="Cancel" onClick={() => this.cancelRequest("Edcmain")} />
