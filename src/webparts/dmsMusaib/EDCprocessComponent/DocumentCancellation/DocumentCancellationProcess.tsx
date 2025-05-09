@@ -245,8 +245,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
         }));
 
-
-        var DocCodeArr = await getAllDocumentCode(sp);
+        var DocCodeArr = await getAllDocumentCode(sp,UserDept);
+        // var DocCodeArr = await getAllDocumentCode(sp);
         const options = DocCodeArr.map((item: any) => ({
             value: item.DocumentCode,
             label: item.DocumentCode,

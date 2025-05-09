@@ -30,7 +30,7 @@ import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
-import { addAllProcessItem, addItem, addItem2, getAllApprovedAuditplan, getAllAuditType, getAllDepartment, getAllDepartment1, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDocumentLinkByIDPlan, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDocAuditplan, getGeneratedTemplateDocCR, getItemByID, getItemByID2, getItemfromChecklistMaster, getItemsAuditReportNC, getItemsAuditReportObs, getLatestChangeRequestTemplateType, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles } from './AuditReportService';
+import { addAllProcessItem, addItem, addItem2, addItemNC, getAllApprovedAuditplan, getAllAuditType, getAllDepartment, getAllDepartment1, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDocumentLinkByIDPlan, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDocAuditplan, getGeneratedTemplateDocCR, getItemByID, getItemByID2, getItemfromChecklistMaster, getItemsAuditReportNC, getItemsAuditReportObs, getLatestChangeRequestTemplateType, getListNameID, getNCNumberbyID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, updateItemNC, uploadAllFiles } from './AuditReportService';
 import { TextField } from '@fluentui/react';
 import { isMac } from 'office-ui-fabric-react';
 import moment from 'moment';
@@ -94,6 +94,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
     const [selectAuditplan, setselectAuditplan] = React.useState(null);
     const [doccode, setdoccode] = React.useState("");
+    const [auditplandate, setauditplandate] = React.useState("");
     const [AllDept, setAllDept] = React.useState([]);
     const [RowErrors, setRowErrors] = React.useState([]);
     const [DocumentLink, setDocumentLink] = React.useState(null);
@@ -132,11 +133,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
         ObservationNo: "",
         description: "",
         reportCode: "",
-        memoNumber:"",
+        memoNumber: "",
         approvedauditplanId: 0,
         deptId: 0,
         fromdeptId: 0,
         date: "",
+        Auditplandate: "",
         documentCode: "",
         issueNo: "",
         revisionNo: "",
@@ -158,26 +160,275 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
     const handleDepartmentChange = (selectedOption: any) => {
         setselectUserDept(selectedOption);
-        let reportcode = selectedOption.departmentcode + "/" + moment(new Date()).format("DD/MM/YYYY");
+        debugger
+        let reportcode: string = "";
+        if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
+            reportcode = selectedOption.departmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
+        }
         setreportCode(reportcode);
         setFormData({ ...formData, deptId: selectedOption.value, reportCode: reportcode });
     };
+    const handleActualAuditDateChange = (e: any) => {
 
+        debugger
+        let reportcode: string = "";
+        // if ((formData.date != "" || formData.date != null) && (formData.deptId != 0 || formData.deptId != null)) {
+        //     reportcode = selectUserDept?.departmentcode + "/" + moment(new Date(e.target.value)).format("DD/MM/YYYY");
+        // }
+        if ((e.target.value !== "" && e.target.value !== null) && (formData.deptId !== 0 && formData.deptId !== null && selectUserDept != null)) {
+            reportcode = selectUserDept?.departmentcode + "/" + moment(new Date(e.target.value)).format("DD/MM/YYYY");
+        }
+
+        setreportCode(reportcode);
+        setFormData({ ...formData, date: new Date(e.target.value).toLocaleDateString("en-CA"), reportCode: reportcode })
+
+    };
     const handleFromDepartmentChange = (selectedOption: any) => {
         setcurrentUserDept(selectedOption);
-        
-        setFormData({ ...formData, fromdeptId: selectedOption.value});
+
+        setFormData({ ...formData, fromdeptId: selectedOption.value });
     };
     // ////// Recommendation
     const [recommendationRows, setRecommendationRows] = React.useState([
         { id: 0, isoreference: "", imsprocedure: "", inquiries: "", auditorcomments: "", time: "", sharewith: null, sharewithIds: null }
     ]);
-
+    const [NCNumberrows, setNCNumberrows] = React.useState([
+        { id: 0, ncnumberNC: "", observationnumberObs: "", reportcode: "", ncsequenceNC: 0, observationsequenceObs: 0, nctype: "" }
+    ]);
+    const [NCNumberrowsEdit, setNCNumberrowsEdit] = React.useState([]);
     const [recommendationRowsEdit, setRecommendationRowsEdit] = React.useState([]);
 
     const handleAddRecommendationRow = () => {
         setRecommendationRows([...recommendationRows, { id: 0, isoreference: "", imsprocedure: "", inquiries: "", auditorcomments: "", time: "", sharewith: null, sharewithIds: null }]);
     };
+
+    // const handleAddNCNumberRow = () => {
+    //     setNCNumberrows([...NCNumberrows, { id: 0, ncnumberNC: "", observationnumberObs: "", reportcode: "", ncsequenceNC: 0, observationsequenceObs: 0, nctype: "" }]);
+    // };
+    const handleAddNCNumberRow = () => {
+        const newRow = {
+            id: 0,
+            ncnumberNC: "",
+            observationnumberObs: "",
+            reportcode: "",
+            ncsequenceNC: 0,
+            observationsequenceObs: 0,
+            nctype: "NC Number"
+        };
+
+        setNCNumberrows(prev => [...prev, newRow]);
+
+    };
+    const handleAddObservationNumberRow = () => {
+        const newRow = {
+            id: 0,
+            ncnumberNC: "",
+            observationnumberObs: "",
+            reportcode: "",
+            ncsequenceNC: 0,
+            observationsequenceObs: 0,
+            nctype: "Observation Number"
+        };
+
+        setNCNumberrows(prev => [...prev, newRow]);
+    };
+
+    const handleNCNumberChange = (index: number, field: string, value: any) => {
+        debugger
+        let updatedRows;
+
+        updatedRows = NCNumberrows.map((row, i) =>
+            i === index ? { ...row, [field]: value } : row
+        );
+        setNCNumberrows(updatedRows);
+    };
+    // const handleDeleteNCNumberRow = (index: number,nctype:string) => {
+    //     // const updatedRows = NCNumberrows.filter((_, i) => i !== index);
+    //     // setNCNumberrows(updatedRows);
+    //     const updatedRows = [...NCNumberrows];
+    //     updatedRows.pop();
+    //     setNCNumberrows(updatedRows);
+    // };
+    const handleDeleteNCNumberRow = (nctype: string) => {
+        debugger
+        const filteredIndexes = NCNumberrows
+            .map((row, i) => ({ ...row, index: i }))
+            .filter(row => row.nctype === nctype);
+
+        if (filteredIndexes.length === 0) return; // No row of that type to delete
+
+        const lastIndex = filteredIndexes[filteredIndexes.length - 1].index;
+
+        const updatedRows = [...NCNumberrows];
+        updatedRows.splice(lastIndex, 1);
+        setNCNumberrows(updatedRows);
+    };
+
+
+    // const handlenctypeChange = (event: React.ChangeEvent<HTMLSelectElement>, lvl: number, index: any) => {
+    //     if (event.target.value == "NC Number") {
+    //         setNCNumberrows([{ id: 0, ncnumberNC: formData.NCNo, observationnumberObs: "", reportcode: "", ncsequenceNC: 0, observationsequenceObs: 0, nctype: "" }]);
+    //     } else if (event.target.value == "Observation Number") {
+    //         setNCNumberrows([{ id: 0, ncnumberNC: "", observationnumberObs: formData.ObservationNo, reportcode: "", ncsequenceNC: 0, observationsequenceObs: 0, nctype: "" }]);
+    //     }
+    //     const updatedArr = NCNumberrows.map((row, i) =>
+    //         i === index ? { ...row, nctype: event.target.value } : row
+    //     );
+    //     console.log("uuuu", updatedArr);
+    //     setNCNumberrows(updatedArr);
+    // };
+    // const handlenctypeChange = (
+    //     event: React.ChangeEvent<HTMLSelectElement>,
+    //     lvl: number,
+    //     index: number
+    // ) => {
+    //     const type = event.target.value;
+
+    //     const updatedArr = NCNumberrows.map((row, i) => {
+    //         if (i === index) {
+    //             let updatedRow = { ...row, nctype: type };
+
+    //             if (type === "NC Number" && formData.NCNo) {
+    //                 const existingCount = NCNumberrows.filter(r => r.nctype === "NC Number" && r.ncnumberNC).length;
+    //                 updatedRow.ncnumberNC = (parseInt(formData.NCNo) + existingCount).toString().padStart(3, "0");
+    //                 updatedRow.observationnumberObs = "";
+    //                 updatedRow.ncsequenceNC = parseInt(formData.NCNo) + existingCount
+    //             } else if (type === "Observation Number" && formData.ObservationNo) {
+    //                 const existingCount = NCNumberrows.filter(r => r.nctype === "Observation Number" && r.observationnumberObs).length;
+    //                 updatedRow.observationnumberObs = (parseInt(formData.ObservationNo) + existingCount).toString().padStart(3, "0");
+    //                 updatedRow.ncnumberNC = "";
+    //                 updatedRow.observationsequenceObs = parseInt(formData.ObservationNo) + existingCount
+    //             }
+
+    //             return updatedRow;
+    //         }
+
+    //         return row;
+    //     });
+    //     setFormData(prevData => ({
+    //         ...prevData,
+    //         NCSequence: setAuditreportNC[0].ncsequenceNC,
+    //         ObservationSequence:
+    //             NCNo:
+    //         ObservationNo:
+    //     }));
+    //     setNCNumberrows(updatedArr);
+    // };
+    // const handleaddncrows = (ncobstype: string) => {
+    //     const type = ncobstype;
+
+    //     let newRow = {
+    //         id: 0,
+    //         ncnumberNC: "",
+    //         observationnumberObs: "",
+    //         reportcode: "",
+    //         ncsequenceNC: 0,
+    //         observationsequenceObs: 0,
+    //         nctype: type
+    //     };
+
+    //     if (type === "NC Number") {
+    //         const ncCount = NCNumberrows.filter(row => row.nctype === "NC Number").length;
+    //         const nextNCNumber = formData.NCSequence + 1 + ncCount;
+    //         newRow.ncnumberNC = nextNCNumber.toString().padStart(3, "0");
+    //         newRow.ncsequenceNC = nextNCNumber;
+    //     } else if (type === "Observation Number") {
+    //         const obsCount = NCNumberrows.filter(row => row.nctype === "Observation Number").length;
+    //         const nextObsNumber = formData.ObservationSequence + 1 + obsCount;
+    //         newRow.observationnumberObs = nextObsNumber.toString().padStart(3, "0");
+    //         newRow.observationsequenceObs = nextObsNumber;
+    //     }
+
+    //     setNCNumberrows(prev => [...prev, newRow]);
+    // };
+    const removeBlankNCNumberRows = () => {
+        const cleanedRows = NCNumberrows.filter(
+            row => row.ncnumberNC.trim() !== "" || row.observationnumberObs.trim() !== ""
+        );
+        setNCNumberrows(cleanedRows);
+    };
+
+    // const handleaddncrows = (ncobstype: string) => {
+    //     debugger
+    //     const type = ncobstype;
+
+    //     // Filter only the rows with the same nctype to count valid ones
+    //     const sameTypeRows = NCNumberrows.filter(row => row.nctype === type);
+
+    //     // Determine base sequence number from formData and calculate next number
+    //     const baseSequence =
+    //         type === "NC Number" ? formData.NCSequence : formData.ObservationSequence;
+    //     const nextSequenceNumber = baseSequence + 1 + sameTypeRows.length;
+
+    //     // Build the new row
+    //     const newRow = {
+    //         id: 0, // Unique ID
+    //         ncnumberNC: type === "NC Number" ? nextSequenceNumber.toString().padStart(3, "0") : "",
+    //         observationnumberObs:
+    //             type === "Observation Number" ? nextSequenceNumber.toString().padStart(3, "0") : "",
+    //         reportcode: "",
+    //         ncsequenceNC: type === "NC Number" ? nextSequenceNumber : 0,
+    //         observationsequenceObs: type === "Observation Number" ? nextSequenceNumber : 0,
+    //         nctype: type
+    //     };
+
+    //     // Add the row
+    //     setNCNumberrows(prev => [...prev, newRow]);
+    // };
+    const handleaddncrows = (ncobstype: string) => {
+        const type = ncobstype;
+
+        // Find the max sequence number from existing rows of this type
+        const existingRows = NCNumberrows.filter(row => row.nctype === type);
+
+        let maxSequence = 0;
+
+        if (type === "NC Number") {
+            maxSequence = Math.max(formData.NCSequence, ...existingRows.map(r => r.ncsequenceNC || 0));
+        } else if (type === "Observation Number") {
+            maxSequence = Math.max(formData.ObservationSequence, ...existingRows.map(r => r.observationsequenceObs || 0));
+        }
+
+        const nextSequenceNumber = maxSequence + 1;
+
+        const newRow = {
+            id: 0,
+            ncnumberNC: type === "NC Number" ? nextSequenceNumber.toString().padStart(3, "0") : "",
+            observationnumberObs:
+                type === "Observation Number" ? nextSequenceNumber.toString().padStart(3, "0") : "",
+            reportcode: "",
+            ncsequenceNC: type === "NC Number" ? nextSequenceNumber : 0,
+            observationsequenceObs: type === "Observation Number" ? nextSequenceNumber : 0,
+            nctype: type
+        };
+
+        setNCNumberrows(prev => [...prev, newRow]);
+    };
+
+    React.useEffect(() => {
+        debugger
+        if (checkboxValues["FailureofIntentNonconformity"]) {
+            const hasNCRow = NCNumberrows.some(row => row.nctype === "NC Number");
+            if (!hasNCRow) {
+                handleaddncrows("NC Number");
+            }
+        }
+    }, [checkboxValues.FailureofIntentNonconformity]);
+
+    React.useEffect(() => {
+        if (checkboxValues["Observations"]) {
+            const hasObsRow = NCNumberrows.some(row => row.nctype === "Observation Number");
+            if (!hasObsRow) {
+                handleaddncrows("Observation Number");
+            }
+        }
+    }, [checkboxValues.Observations]);
+
+    // React.useEffect(() => {
+    //     if (!checkboxValues["FailureofIntentNonconformity"] || !checkboxValues["Observations"]) {
+    //         removeBlankNCNumberRows();
+    //     }
+    // }, [checkboxValues]);
 
     const handleRecommendationChange = (index: number, field: string, value: any) => {
         debugger
@@ -260,6 +511,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
             //IssueNumber: item.IssueNumber,
             ReferenceNumber: item.ReferenceNumber,
             //RevisionNumber: item.RevisionNumber,
+            Date: item.Date,
             SubmiitedDate: item.SubmiitedDate,
             SubmitStatus: item.SubmitStatus,
             MemoNumber: item.MemoNumber,
@@ -373,7 +625,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         if (setAuditreportObs.length > 0) {
             setFormData(prevData => ({
                 ...prevData,
-                ObservationSequence: setAuditreportNC[0].ObservationSequence,
+                ObservationSequence: setAuditreportObs[0].ObservationSequence,
             }));
         }
         let formitemid;
@@ -432,7 +684,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         if (setAuditreportObs.length > 0) {
             setFormData(prevData => ({
                 ...prevData,
-                ObservationSequence: setAuditreportNC[0].ObservationSequence,
+                ObservationSequence: setAuditreportObs[0].ObservationSequence,
             }));
         }
         // formitemid =20;
@@ -457,8 +709,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     reportCode: setBannerById[0].ReportCode,
                     NCNo: setBannerById[0].NCNumber,
                     ObservationNo: setBannerById[0].ObservationNumber,
-                    ObservationSequence: setBannerById[0].ObservationSequence,
-                    NCSequence: setBannerById[0].NCSequence,
+                    //ObservationSequence: setBannerById[0].ObservationSequence,
+                    //NCSequence: setBannerById[0].NCSequence,
                     memoNumber: setBannerById[0].MemoNumber,
                     description: setBannerById[0].Description,
                     deptId: setBannerById[0].DepartmentAuditedId,
@@ -468,6 +720,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     revisionDate: setBannerById[0].RevisionDate == null ? null : new Date(setBannerById[0].RevisionDate).toLocaleDateString("en-CA") || null,
                     issueDate: setBannerById[0].IssueDate == null ? null : new Date(setBannerById[0].IssueDate).toLocaleDateString("en-CA") || null,
                     date: new Date(setBannerById[0].Date).toLocaleDateString("en-CA"),
+                    Auditplandate: setBannerById[0].AuditPlanDate && new Date(setBannerById[0].AuditPlanDate).toLocaleDateString("en-CA"),
                     approvedauditplanId: setBannerById[0].ApprovedAuditPlanId,
                     documentcode: setBannerById[0].DocumentCode,
                     //Description: setBannerById[0].description,
@@ -482,13 +735,14 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     attachmentIds: setBannerById[0].AttachmentId || null,
                     attachmentJson: setBannerById[0].AttachmentJson || null
                 }));
+                setauditplandate(setBannerById[0].AuditPlanDate && new Date(setBannerById[0].AuditPlanDate).toLocaleDateString("en-CA"))
                 setFormData(prevData => ({
                     ...prevData,
                     reportCode: setBannerById[0].ReportCode,
                     NCNo: setBannerById[0].NCNumber,
                     ObservationNo: setBannerById[0].ObservationNumber,
-                    ObservationSequence: setBannerById[0].ObservationSequence,
-                    NCSequence: setBannerById[0].NCSequence,
+                    //ObservationSequence: setBannerById[0].ObservationSequence,
+                    //NCSequence: setBannerById[0].NCSequence,
                     description: setBannerById[0].Description
                 }));
                 const newValues: any = {};
@@ -551,6 +805,24 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     setForwardToArr(EditApprowData);
                     setForwardToArrEdit(EditApprowData);
 
+                }
+
+                const rowDataNC: any[] = await getNCNumberbyID(sp, Number(formitemid)) //baseUrl
+                if (rowDataNC.length > 0) {
+                    const initialRows = rowDataNC.map((item: any) => ({
+                        id: item.Id,
+                        ncnumberNC: item.NCType == "NC Number" ? item.NCNumber : "",
+                        observationnumberObs: item.NCType == "NC Number" ? "" : item.NCNumber,
+                        reportcode: item.ReportCode,
+                        ncsequenceNC: item.NCType == "NC Number" ? item.NCSequence : 0,
+                        observationsequenceObs: item.NCType == "NC Number" ? 0 : item.NCSequence,
+                        nctype: item.NCType
+                    }));
+                    setNCNumberrows(initialRows);
+                    setNCNumberrowsEdit(initialRows);
+                } else {
+                    setNCNumberrowsEdit([{ id: 0, ncnumberNC: "", observationnumberObs: "", reportcode: "", ncsequenceNC: 0, observationsequenceObs: 0, nctype: "" }])
+                    setNCNumberrows([{ id: 0, ncnumberNC: "", observationnumberObs: "", reportcode: "", ncsequenceNC: 0, observationsequenceObs: 0, nctype: "" }])
                 }
                 const rowData1: any[] = await getItemByID2(sp, Number(formitemid));
                 const rowData: any[] = await getItemfromChecklistMaster(sp) //baseUrl
@@ -719,6 +991,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 attachmentIds: selectedList.AttachmentId,
                 attachmentJson: selectedList.AttachmentJson,
                 ApprovedAuditPlanId: selectedList.ID,
+                Auditplandate: new Date(selectedList.Date).toLocaleDateString("en-CA"),
                 //documentCode: selectedList.MemoNumber
                 // Format as YYYY-MM-DD
             }));
@@ -728,6 +1001,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 deptId: selectedList.DepartmentId
             }));
             setdoccode(selectedList.MemoNumber);
+            setauditplandate(new Date(selectedList.Date).toLocaleDateString("en-CA"))
             //const rowData: any[] = await getItemByID2(sp, Number(selectedList.ID)) //baseUrl
             // const rowData: any[] = await getItemfromChecklistMaster(sp) //baseUrl
             // if (rowData.length > 0) {
@@ -751,9 +1025,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
 
             const selecteddepart = AllDept.filter((cust: { value: any; }) => cust.value === selectedList.DepartmentId)[0] || null;
-            let reportcodeaudit = selecteddepart.departmentcode + "/" + moment(new Date()).format("DD/MM/YYYY");
-            setreportCode(reportcodeaudit);
-            setFormData({ ...formData, reportCode: reportcodeaudit, deptId: selectedList.DepartmentId });
+            //let reportcodeaudit = selecteddepart.departmentcode + "/" + moment(new Date()).format("DD/MM/YYYY");
+            //setreportCode(reportcodeaudit);
+            setFormData({ ...formData, deptId: selectedList.DepartmentId });
             //setselectUserDept(selecteddepart);
             console.log("alllldept", AllDept, selecteddepart);
             const selectedauditplan = rows.filter((cust: { value: any; }) => cust.value === selectedList.ID)[0] || null;
@@ -1034,6 +1308,21 @@ const AnnualAuditReportContext = ({ props }: any) => {
     };
     const handleFormSubmit = async () => {
         debugger
+        // Get max sequence/number from the updated array
+        const maxNCSequence = Math.max(...NCNumberrows.map(r => r.ncsequenceNC || 0), 0);
+        const maxObsSequence = Math.max(...NCNumberrows.map(r => r.observationsequenceObs || 0), 0);
+        const maxNCNo = maxNCSequence.toString().padStart(3, "0");
+        const maxObsNo = maxObsSequence.toString().padStart(3, "0");
+        debugger
+        console.log("maxNCSequencemaxNCSequence", maxNCSequence, maxObsSequence, "maxNCNo", maxNCNo, maxObsNo);
+        console.log("updatedArr", NCNumberrows);
+        // setFormData(prev => ({
+        //     ...prev,
+        //     NCSequence: maxNCSequence,
+        //     ObservationSequence: maxObsSequence,
+        //     NCNo: maxNCNo,
+        //     ObservationNo: maxObsNo,
+        // }));
         if (await validateForm(FormSubmissionMode.SUBMIT)) {
             if (editForm) {
                 Swal.fire({
@@ -1061,17 +1350,17 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         });
                         let newNCsequence: number = formData.NCSequence;
                         let newOnservationsequence: number = formData.ObservationSequence;
-                        let newncnumber:string = formData.NCNo;
-                        let newobservationNo:string = formData.ObservationNo;
+                        let newncnumber: string = formData.NCNo;
+                        let newobservationNo: string = formData.ObservationNo;
                         if (checkboxValues["FailureofIntentNonconformity"]) {
                             newNCsequence = (formData.NCSequence || 0) + 1;
-                        }else{
+                        } else {
                             newncnumber = "";
                         }
                         if (checkboxValues["Observations"]) {
                             newOnservationsequence = (formData.ObservationSequence || 0) + 1;
-                            
-                        }else{
+
+                        } else {
                             newobservationNo = "";
                         }
                         console.log("updateddatatatata", formData.NCSequence, formData.ObservationSequence)
@@ -1129,15 +1418,20 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             // IssueNumber:,
                             // RevisionNumber:,
                             ReportCode: formData.reportCode,
-                            NCNumber: checkboxValues["FailureofIntentNonconformity"]? formData.NCNo :"",
-                            ObservationNumber: checkboxValues["Observations"]? formData.ObservationNo:"",
-                            ObservationSequence: newOnservationsequence,
-                            NCSequence: newNCsequence,
+                            NCNumber: checkboxValues["FailureofIntentNonconformity"] ? maxNCNo : "",
+                            ObservationNumber: checkboxValues["Observations"] ? maxObsNo : "",
+                            ObservationSequence: maxObsSequence,
+                            NCSequence: maxNCSequence,
+                            // NCNumber: checkboxValues["FailureofIntentNonconformity"] ? formData.NCNo : "",
+                            // ObservationNumber:  formData.ObservationNo : "",
+                            // ObservationSequence: newOnservationsequence,
+                            // NCSequence: newNCsequence,
                             Title: doccode,
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
                             DepartmentAuditedId: formData.deptId,
                             Date: formData.date,
+                            AuditPlanDate: auditplandate,
                             DocumentCode: formData.documentCode,
                             IssueNumber: Number(formData.issueNo),
                             RevisionNumber: Number(formData.revisionNo),
@@ -1162,6 +1456,28 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         const postResult = await updateItem(arr, sp, editItemID);
                         const postId = postResult?.data?.ID;
                         debugger
+                        const cleanedRows = NCNumberrows.filter(
+                            row => row.ncnumberNC.trim() !== "" || row.observationnumberObs.trim() !== ""
+                        );
+                        for (const row of cleanedRows) {
+                            // if ((row.ncnumberNC.trim() == "" && row.observationnumberObs.trim() == "") == false) {
+                            const postPayloadNC = {
+                                AnnualAuditReportListId: editItemID, // Assuming "Title" column exists
+                                NCNumber: row.nctype == "NC Number" ? row.ncnumberNC : row.observationnumberObs,
+                                NCSequence: row.nctype == "NC Number" ? row.ncsequenceNC : row.observationsequenceObs,
+                                ReportCode: formData.reportCode,
+                                NCType: row.nctype
+                            }
+                            if (row.id) {
+                                const postResultNC = await updateItemNC(postPayloadNC, sp, row.id);
+                                const postIdNCAdd = postResultNC?.data?.ID;
+                            }
+                            else {
+                                const postResultNC = await addItemNC(postPayloadNC, sp);
+                                const postIdNCupdate = postResultNC?.data?.ID;
+                            }
+
+                        }
                         for (const row of recommendationRows) {
 
                             const postPayload2 = {
@@ -1242,7 +1558,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                     // MainListID: String(editItemID),
                                     MainListID: String(editItemID),
-                                    ContentTitle: formData.memoNumber,
+                                    ContentTitle: doccode,
                                     RequestId: formData.reportCode,
                                     // RequestId:String(editID.Id),
                                     RequesterNameId: currentUser.Id,
@@ -1304,6 +1620,19 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 console.error(`Error deleting item with ID: ${item.id}`, error);
                             }
                         }
+                        const toDeleteNC = NCNumberrowsEdit.filter(
+                            (itemEdit) => !NCNumberrows.some(item => item.id === itemEdit.id) // Assuming ID is the unique key
+                        );
+
+                        // Delete each item from SharePoint
+                        for (const item of toDeleteNC) {
+                            try {
+                                await sp.web.lists.getByTitle("AuditReportNCNumber").items.getById(item.id).delete();
+                                // console.log(`Deleted item with ID: ${item.ID}`);
+                            } catch (error) {
+                                console.error(`Error deleting item with ID: ${item.id}`, error);
+                            }
+                        }
 
 
                         if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
@@ -1330,7 +1659,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId");
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // setTimeout(() => {
@@ -1430,16 +1759,17 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let arr = {
                             ...formattedData,
                             ReportCode: formData.reportCode,
-                            NCNumber: checkboxValues["FailureofIntentNonconformity"] ? formData.NCNo : "",
-                            ObservationNumber: checkboxValues["Observations"] ? formData.ObservationNo : "",
-                            ObservationSequence: newOnservationsequence1,
-                            NCSequence: newNCsequence1,
+                            NCNumber: checkboxValues["FailureofIntentNonconformity"] ? maxNCNo : "",
+                            ObservationNumber: checkboxValues["Observations"] ? maxObsNo : "",
+                            ObservationSequence: maxObsSequence,
+                            NCSequence: maxNCSequence,
                             MemoNumber: doccode,
                             Title: doccode,
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
                             DepartmentAuditedId: formData.deptId,
                             Date: formData.date,
+                            AuditPlanDate: auditplandate,
                             DocumentCode: formData.documentCode,
                             IssueNumber: Number(formData.issueNo),
                             RevisionNumber: Number(formData.revisionNo),
@@ -1472,6 +1802,28 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             return;
                         }
                         debugger
+                        const cleanedRows = NCNumberrows.filter(
+                            row => row.ncnumberNC.trim() !== "" || row.observationnumberObs.trim() !== ""
+                        );
+                        for (const row of cleanedRows) {
+                            //if ((row.ncnumberNC.trim() == "" && row.observationnumberObs.trim() == "") == false) {
+                            const postPayloadNC = {
+                                AnnualAuditReportListId: postId, // Assuming "Title" column exists
+                                NCNumber: row.nctype == "NC Number" ? row.ncnumberNC : row.observationnumberObs,
+                                NCSequence: row.nctype == "NC Number" ? row.ncsequenceNC : row.observationsequenceObs,
+                                ReportCode: formData.reportCode,
+                                NCType: row.nctype
+                            }
+                            if (row.id) {
+                                const postResultNC = await updateItemNC(postPayloadNC, sp, row.id);
+                                const postIdNCAdd = postResultNC?.data?.ID;
+                            }
+                            else {
+                                const postResultNC = await addItemNC(postPayloadNC, sp);
+                                const postIdNCupdate = postResultNC?.data?.ID;
+                            }
+
+                        }
                         for (const row of recommendationRows) {
 
                             const postPayload2 = {
@@ -1528,7 +1880,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 let arr2 = {
                                     Title: currentUser.Title,
                                     // ContentTitle: selectedOption.ReferenceNumber,
-                                    ContentTitle: formData.memoNumber,
+                                    ContentTitle:doccode,
                                     RequestId: formData.reportCode,
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role,
@@ -1578,7 +1930,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         //Swal.fire('Submitted successfully.', '', 'success');
@@ -1599,6 +1951,14 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
     const handleSaveAsDraft = async () => {
         debugger
+
+        const maxNCSequence = Math.max(...NCNumberrows.map(r => r.ncsequenceNC || 0), 0);
+        const maxObsSequence = Math.max(...NCNumberrows.map(r => r.observationsequenceObs || 0), 0);
+        const maxNCNo = maxNCSequence.toString().padStart(3, "0");
+        const maxObsNo = maxObsSequence.toString().padStart(3, "0");
+        debugger
+        console.log("maxNCSequencemaxNCSequence", maxNCSequence, maxObsSequence, "maxNCNo", maxNCNo, maxObsNo);
+        console.log("updatedArr", NCNumberrows);
         console.log("checkboxvalueee", checkboxValues);
         if (await validateForm(FormSubmissionMode.DRAFT)) {
             if (editForm) {
@@ -1665,14 +2025,15 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let arr = {
                             ...formattedData,
                             ReportCode: formData.reportCode,
-                            NCNumber: formData.NCNo,
-                            ObservationNumber: formData.ObservationNo,
-                            ObservationSequence: formData.ObservationSequence,
-                            NCSequence: formData.NCSequence,
+                            NCNumber: checkboxValues["FailureofIntentNonconformity"] ? maxNCNo : "",
+                            ObservationNumber: checkboxValues["Observations"] ? maxObsNo : "",
+                            ObservationSequence: maxObsSequence,
+                            NCSequence: maxNCSequence,
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
                             DepartmentAuditedId: formData.deptId,
                             Date: formData.date,
+                            AuditPlanDate: auditplandate,
                             DocumentCode: formData.documentCode,
                             IssueNumber: Number(formData.issueNo),
                             RevisionNumber: Number(formData.revisionNo),
@@ -1698,6 +2059,32 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         const postId = postResult?.data?.ID;
                         //  ////////////////////////////
                         debugger
+
+                        const cleanedRows = NCNumberrows.filter(
+                            row => row.ncnumberNC.trim() !== "" || row.observationnumberObs.trim() !== ""
+                        );
+
+                        for (const row of cleanedRows) {
+                            //if ((row.ncnumberNC.trim() == "" && row.observationnumberObs.trim() == "") == false) {
+                            const postPayloadNC = {
+                                AnnualAuditReportListId: editItemID, // Assuming "Title" column exists
+                                NCNumber: row.nctype == "NC Number" ? row.ncnumberNC : row.observationnumberObs,
+                                NCSequence: row.nctype == "NC Number" ? row.ncsequenceNC : row.observationsequenceObs,
+                                ReportCode: formData.reportCode,
+                                NCType: row.nctype
+                            }
+                            if (row.id) {
+                                const postResultNC = await updateItemNC(postPayloadNC, sp, row.id);
+                                const postIdNCAdd = postResultNC?.data?.ID;
+                            }
+                            else {
+                                if ((row.ncnumberNC.trim() == "") == false) {
+                                    const postResultNC = await addItemNC(postPayloadNC, sp);
+                                    const postIdNCupdate = postResultNC?.data?.ID;
+                                }
+                            }
+
+                        }
                         for (const row of recommendationRows) {
 
                             const postPayload2 = {
@@ -1762,7 +2149,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             let arr2 = {
                                 Title: currentUser.Title,
                                 // ContentTitle: selectedOption.ReferenceNumber,
-                                ContentTitle: formData.memoNumber,
+                                ContentTitle: doccode,
                                 RequestId: formData.reportCode,
                                 MainListNameId: ListNameId,
                                 ApproverRoleId: item.role || 0,
@@ -1838,6 +2225,19 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 console.error(`Error deleting item with ID: ${item.id}`, error);
                             }
                         }
+                        const toDeleteNC = NCNumberrowsEdit.filter(
+                            (itemEdit) => !NCNumberrows.some(item => item.id === itemEdit.id) // Assuming ID is the unique key
+                        );
+
+                        // Delete each item from SharePoint
+                        for (const item of toDeleteNC) {
+                            try {
+                                await sp.web.lists.getByTitle("AuditReportNCNumber").items.getById(item.id).delete();
+                                // console.log(`Deleted item with ID: ${item.ID}`);
+                            } catch (error) {
+                                console.error(`Error deleting item with ID: ${item.id}`, error);
+                            }
+                        }
 
                         if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
 
@@ -1862,7 +2262,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId")
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -1948,10 +2348,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             // IssueNumber:,
                             // RevisionNumber:,
                             ...formattedData,
-                            NCNumber: formData.NCNo,
-                            ObservationNumber: formData.ObservationNo,
-                            ObservationSequence: formData.ObservationSequence,
-                            NCSequence: formData.NCSequence,
+                            NCNumber: checkboxValues["FailureofIntentNonconformity"] ? maxNCNo : "",
+                            ObservationNumber: checkboxValues["Observations"] ? maxObsNo : "",
+                            ObservationSequence: maxObsSequence,
+                            NCSequence: maxNCSequence,
                             ReportCode: formData.reportCode,
                             MemoNumber: doccode,
                             Title: doccode,
@@ -1959,6 +2359,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             DepartmentId: formData.fromdeptId,
                             DepartmentAuditedId: formData.deptId,
                             Date: formData.date,
+                            AuditPlanDate: auditplandate,
                             DocumentCode: formData.documentCode,
                             IssueNumber: Number(formData.issueNo),
                             RevisionNumber: Number(formData.revisionNo),
@@ -1988,7 +2389,29 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             console.error("Post creation failed.");
                             return;
                         }
+                        debugger
+                        const cleanedRows = NCNumberrows.filter(
+                            row => row.ncnumberNC.trim() !== "" || row.observationnumberObs.trim() !== ""
+                        );
+                        for (const row of cleanedRows) {
+                            //if ((row.ncnumberNC.trim() == "" && row.observationnumberObs.trim() == "") == false) {
+                            debugger
+                            const postPayloadNC = {
+                                AnnualAuditReportListId: postId, // Assuming "Title" column exists
+                                NCNumber: row.nctype == "NC Number" ? row.ncnumberNC : row.observationnumberObs,
+                                NCSequence: row.nctype == "NC Number" ? row.ncsequenceNC : row.observationsequenceObs,
+                                ReportCode: formData.reportCode,
+                                NCType: row.nctype
+                            }
+                            const postResultNC = await addItemNC(postPayloadNC, sp);
+                            const postId2 = postResultNC?.data?.ID;
+                            // debugger
+                            if (!postId2) {
+                                console.error("Post creation failed.");
+                                return;
+                            }
 
+                        }
                         for (const row of recommendationRows) {
                             if ((row.isoreference.trim() == "" && row.imsprocedure.trim() == "" && row.inquiries.trim() == "" && row.auditorcomments.trim() == "" &&
                                 row.time.trim() == "" && (row.sharewith == null || row.sharewith.length == 0)) == false) {
@@ -2042,7 +2465,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 let arr2 = {
                                     Title: currentUser.Title,
                                     // ContentTitle: selectedOption.ReferenceNumber,
-                                    ContentTitle: formData.memoNumber,
+                                    ContentTitle: doccode,
                                     RequestId: formData.reportCode,
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role ? item.role : 0,
@@ -2091,7 +2514,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // sessionStorage.removeItem("bannerId")
@@ -2219,6 +2642,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         <label htmlFor="Description" className="col-form-label">Description</label>
                         <div>
                             <textarea
+                                title={formData.description}
                                 id="simpleinput"
                                 disabled={InputDisabled}
                                 value={formData.description}
@@ -2229,7 +2653,277 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         </div>
                     </div>
                 </div>
-                {checkboxValues["FailureofIntentNonconformity"] &&
+                {/* {checkboxValues["FailureofIntentNonconformity"] &&
+                    <><div className='row'>
+                        <div className='col-sm-6'>
+                            <h3 className='text-dark font-16 fw-bold mb-3'>NC Number</h3>
+                        </div>
+                        <div style={{ textAlign: 'right' }} className='col-sm-6'>
+                            {!InputDisabled && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-0' src={require("../assets/plus.png")}
+                                onClick={() => handleaddncrows("NC Number")}></img>}
+                            {!InputDisabled && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-0' src={require("../assets/minus.png")}
+                                onClick={() => handleDeleteNCNumberRow("NC Number")}></img>}
+
+
+                        </div>
+                    </div><div style={{ display: 'grid', overflow: 'auto' }}>
+                            <table id="tabRec" className='mtbalenew overhi'>
+                                <thead>
+                                    <tr><th>Type</th>
+                                        <th>NC</th>
+                                        {/* <th style={{ minWidth: '60px', maxWidth: '60px' }}>Action</th> */}
+                                    {/* </tr>
+                                </thead>
+
+                                <tbody>
+                                    {console.log("validNCNumberrows", NCNumberrows)}
+                                    {NCNumberrows.filter(row => row.nctype === "NC Number").map((row, index) => (
+                                        <tr key={index}>
+                                            <td title={"NC Number"}
+                                                style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
+                                                {/* <label htmlFor="approvalType">Approval Type: </label> */}
+                                                {/* <select
+                                                    id="approvalType"
+                                                    value="NC Number"
+                                                    className={`newse form-select`}
+                                                    disabled
+                                                >
+                                                    <option value="NC Number">NC</option>
+                                                </select>
+
+                                            </td> */} 
+                                            {/* <td title={row?.ncnumberNC ? row?.ncnumberNC : row?.ncnumberNC}>
+                                                <input
+                                                    type="number"
+                                                    className={`form-control ${(RowErrors[index]?.ncnumberNC) ? "border-on-error" : ""}`}
+                                                    // className="form-control"
+                                                    value={row.nctype === "NC Number"
+                                                        ? row.ncnumberNC
+                                                        : row.nctype === "Observation Number"
+                                                            ? row.observationnumberObs
+                                                            : ""}
+                                                    onChange={(e) => handleNCNumberChange(index, row.nctype === "NC Number"
+                                                        ? "ncnumberNC"
+                                                        : row.nctype === "Observation Number"
+                                                            ? "observationnumberObs"
+                                                            : "", e.target.value)}
+                                                    disabled={true} />
+                                            </td> */}
+
+                                            {/* {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '60px', maxWidth: '60px' }}>
+                                                <img src={require("../assets/del.png")} onClick={() => handleDeleteNCNumberRow(index, row.nctype)} />
+
+                                            </td>} */}
+                                        {/* </tr>
+                                    ))}
+                                </tbody>
+
+                            </table>
+                        </div></> */}
+                {/* }  */}
+                {/* {checkboxValues["Observations"] &&
+                    <><div className='row'>
+                        <div className='col-sm-6'>
+                            <h3 className='text-dark font-16 fw-bold mb-3'>Observation</h3>
+                        </div>
+                        <div style={{ textAlign: 'right' }} className='col-sm-6'>
+                            {!InputDisabled && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-0' src={require("../assets/plus.png")}
+                                onClick={() => handleaddncrows("Observation Number")}></img>}
+                            {!InputDisabled && <img style={{ width: '30px', cursor: 'pointer' }} className='mt-0' src={require("../assets/minus.png")}
+                                onClick={() => handleDeleteNCNumberRow("Observation Number")}></img>}
+
+
+                        </div>
+                    </div><div style={{ display: 'grid', overflow: 'auto' }}>
+                            <table id="tabRec" className='mtbalenew overhi'>
+                                <thead>
+                                    <tr><th>Type</th>
+                                        <th>Observation</th>
+                                        {/* <th style={{ minWidth: '60px', maxWidth: '60px' }}>Action</th> */}
+                                    {/* </tr>
+                                </thead>
+
+                                <tbody>
+                                    {console.log("validNCNumberrows", NCNumberrows)}
+                                    {NCNumberrows.filter(row => row.nctype === "Observation Number").map((row, index) => (
+                                        <tr key={index}>
+                                            <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
+                                                {/* <label htmlFor="approvalType">Approval Type: </label> */}
+                                                {/* <select
+                                                    id="approvalType"
+                                                    value="Observation Number"
+                                                    className={`newse form-select`}
+                                                    disabled
+                                                >
+                                                    <option value="Observation Number">Observation Number</option>
+                                                </select>
+
+
+                                            </td>
+                                            <td title={row?.ncnumberNC ? row?.ncnumberNC : row?.ncnumberNC}>
+                                                <input */}
+                                                    {/* type="number"
+                                                    className={`form-control ${(RowErrors[index]?.ncnumberNC) ? "border-on-error" : ""}`}
+                                                    // className="form-control"
+                                                    value={row.nctype === "NC Number"
+                                                        ? row.ncnumberNC
+                                                        : row.nctype === "Observation Number"
+                                                            ? row.observationnumberObs
+                                                            : ""}
+                                                    onChange={(e) => handleNCNumberChange(index, row.nctype === "NC Number"
+                                                        ? "ncnumberNC"
+                                                        : row.nctype === "Observation Number"
+                                                            ? "observationnumberObs"
+                                                            : "", e.target.value)}
+                                                    disabled={true} />
+                                            </td>
+
+                                            {/* {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '60px', maxWidth: '60px' }}>
+                                                <img src={require("../assets/del.png")} onClick={() => handleDeleteNCNumberRow(index, row.nctype)} />
+
+                                            </td>} */}
+                                        {/* </tr>
+                                    ))}
+                                </tbody>
+
+                            </table>
+                        </div></> */}
+                {/* }  */}
+                <div className="d-flex justify-content-between" style={{ gap: '20px' }}>
+                    {/* NC Number Table */}
+                    {checkboxValues["FailureofIntentNonconformity"] && (
+                        <div style={{ width: '50%' }}>
+                            <div className='row'>
+                                <div className='col-sm-6'>
+                                    <h3 className='text-dark font-16 fw-bold mb-3'>NC Number</h3>
+                                </div>
+                                <div style={{ textAlign: 'right' }} className='col-sm-6'>
+                                    {!InputDisabled && (
+                                        <>
+                                            <img
+                                                style={{ width: '30px', cursor: 'pointer' }}
+                                                className='mt-0'
+                                                src={require("../assets/plus.png")}
+                                                onClick={() => handleaddncrows("NC Number")}
+                                            />
+                                            <img
+                                                style={{ width: '30px', cursor: 'pointer', marginLeft: '10px' }}
+                                                className='mt-0'
+                                                src={require("../assets/minus.png")}
+                                                onClick={() => handleDeleteNCNumberRow("NC Number")}
+                                            />
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                            <div style={{ overflow: 'auto' }}>
+                                <table id="tabRec" className='mtbalenew overhi'>
+                                    <thead>
+                                        <tr>
+                                            <th>Type</th>
+                                            <th>NC</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {NCNumberrows.filter(row => row.nctype === "NC Number").map((row, index) => (
+                                            <tr key={index}>
+                                                <td>
+                                                    <select
+                                                        id="approvalType"
+                                                        value="NC Number"
+                                                        className="newse form-select"
+                                                        disabled
+                                                    >
+                                                        <option value="NC Number">NC</option>
+                                                    </select>
+                                                </td>
+                                                <td title={row.ncnumberNC}>
+                                                    <input
+                                                        type="number"
+                                                        className={`form-control ${(RowErrors[index]?.ncnumberNC) ? "border-on-error" : ""}`}
+                                                        value={row.ncnumberNC}
+                                                        onChange={(e) =>
+                                                            handleNCNumberChange(index, "ncnumberNC", e.target.value)
+                                                        }
+                                                        disabled={true}
+                                                    />
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Observation Table */}
+                    {checkboxValues["Observations"] && (
+                        <div style={{ width: '50%' }}>
+                            <div className='row'>
+                                <div className='col-sm-6'>
+                                    <h3 className='text-dark font-16 fw-bold mb-3'>Observation</h3>
+                                </div>
+                                <div style={{ textAlign: 'right' }} className='col-sm-6'>
+                                    {!InputDisabled && (
+                                        <>
+                                            <img
+                                                style={{ width: '30px', cursor: 'pointer' }}
+                                                className='mt-0'
+                                                src={require("../assets/plus.png")}
+                                                onClick={() => handleaddncrows("Observation Number")}
+                                            />
+                                            <img
+                                                style={{ width: '30px', cursor: 'pointer', marginLeft: '10px' }}
+                                                className='mt-0'
+                                                src={require("../assets/minus.png")}
+                                                onClick={() => handleDeleteNCNumberRow("Observation Number")}
+                                            />
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                            <div style={{ overflow: 'auto' }}>
+                                <table id="tabRec" className='mtbalenew overhi'>
+                                    <thead>
+                                        <tr>
+                                            <th>Type</th>
+                                            <th>Observation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {NCNumberrows.filter(row => row.nctype === "Observation Number").map((row, index) => (
+                                            <tr key={index}>
+                                                <td>
+                                                    <select
+                                                        id="approvalType"
+                                                        value="Observation Number"
+                                                        className="newse form-select"
+                                                        disabled
+                                                    >
+                                                        <option value="Observation Number">Observation</option>
+                                                    </select>
+                                                </td>
+                                                <td title={row.observationnumberObs}>
+                                                    <input
+                                                        type="number"
+                                                        className={`form-control ${(RowErrors[index]?.observationnumberObs) ? "border-on-error" : ""}`}
+                                                        value={row.observationnumberObs}
+                                                        onChange={(e) =>
+                                                            handleNCNumberChange(index, "observationnumberObs", e.target.value)
+                                                        }
+                                                        disabled={true}
+                                                    />
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* {checkboxValues["FailureofIntentNonconformity"] &&
                     <div className="col-lg-6">
                         <div className="mb-3">
                             <label htmlFor="NCNo" className="col-form-label">NC Number</label>
@@ -2264,7 +2958,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             </div>
                         </div>
                     </div>
-                }
+                } */}
 
             </div>
         );
@@ -2326,41 +3020,77 @@ const AnnualAuditReportContext = ({ props }: any) => {
     //         return updatedValues;
     //     });
     // };
+    // const handleCheckboxChange = (label: CheckboxLabel) => {
+    //     const columnKey = CheckboxFieldMap[label];
+
+    //     setCheckboxValues((prevValues) => {
+    //         const isChecked = !prevValues[columnKey];
+    //         const updatedValues = {
+    //             ...prevValues,
+    //             [columnKey]: isChecked,
+    //         };
+
+    //         setFormData((prevData) => {
+    //             const updatedFormData = { ...prevData };
+    //             console.log("prevDataprevData", prevData, formData)
+    //             // NC Logic
+    //             if (columnKey === "FailureofIntentNonconformity") {
+    //                 const baseNCSeq = formData.NCSequence || 0;
+    //                 updatedFormData.NCNo = isChecked
+    //                     ? (baseNCSeq + 1).toString().padStart(3, "0")
+    //                     : baseNCSeq.toString().padStart(3, "0");
+
+    //             }
+
+    //             // Observation Logic
+    //             if (columnKey === "Observations") {
+    //                 const baseObsSeq = formData.ObservationSequence || 0;
+    //                 updatedFormData.ObservationNo = isChecked
+    //                     ? (baseObsSeq + 1).toString().padStart(3, "0")
+    //                     : baseObsSeq.toString().padStart(3, "0");
+
+    //             }
+
+    //             return updatedFormData;
+    //         });
+
+    //         return updatedValues;
+    //     });
+    // };
+    // const handleCheckboxChange = (label: CheckboxLabel) => {
+    //     const columnKey = CheckboxFieldMap[label];
+
+    //     setCheckboxValues((prevValues) => ({
+    //         ...prevValues,
+    //         [columnKey]: !prevValues[columnKey],
+    //     }));
+    // };
     const handleCheckboxChange = (label: CheckboxLabel) => {
         const columnKey = CheckboxFieldMap[label];
 
         setCheckboxValues((prevValues) => {
             const isChecked = !prevValues[columnKey];
-            const updatedValues = {
+
+            // If checkbox is being unchecked, remove corresponding rows
+            if (!isChecked) {
+                const typeToRemove =
+                    columnKey === "Observations"
+                        ? "Observation Number"
+                        : columnKey === "FailureofIntentNonconformity"
+                            ? "NC Number"
+                            : null;
+
+                if (typeToRemove) {
+                    setNCNumberrows((prevRows) =>
+                        prevRows.filter((row) => row.nctype !== typeToRemove)
+                    );
+                }
+            }
+
+            return {
                 ...prevValues,
                 [columnKey]: isChecked,
             };
-
-            setFormData((prevData) => {
-                const updatedFormData = { ...prevData };
-                console.log("prevDataprevData", prevData, formData)
-                // NC Logic
-                if (columnKey === "FailureofIntentNonconformity") {
-                    const baseNCSeq = formData.NCSequence || 0;
-                    updatedFormData.NCNo = isChecked
-                        ? (baseNCSeq + 1).toString().padStart(3, "0")
-                        : baseNCSeq.toString().padStart(3, "0");
-
-                }
-
-                // Observation Logic
-                if (columnKey === "Observations") {
-                    const baseObsSeq = formData.ObservationSequence || 0;
-                    updatedFormData.ObservationNo = isChecked
-                        ? (baseObsSeq + 1).toString().padStart(3, "0")
-                        : baseObsSeq.toString().padStart(3, "0");
-
-                }
-
-                return updatedFormData;
-            });
-
-            return updatedValues;
         });
     };
 
@@ -2489,50 +3219,13 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div className="col-lg-4">
-                                                                    <div className="row mb-3">
-                                                                        <label htmlFor="date" className="col-form-label">Date<span className="text-danger1"> *</span></label>
-                                                                        <div >
-                                                                            <input
-                                                                                type="date"
-                                                                                className={`form-control ${(!ValidSubmit && dateerr) ? "border-on-error" : ""}${(!ValidDraft && dateerr) ? "border-on-error" : ""}`}
-                                                                                // className="form-control"
-                                                                                id="date"
-                                                                                value={formData.date}
-                                                                                onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value).toLocaleDateString("en-CA") })}
-                                                                                disabled={InputDisabled}
-                                                                            />
-                                                                            {/* {(modeValue === "" || modeValue === "edit" || InputDisabled != true) ||
-                                                                             (modeValue == "approve" && formData?.Status == "Rework") ?
-                                                                                <input
-                                                                                    type="date"
-                                                                                    className={`form-control ${(!ValidSubmit && dateerr) ? "border-on-error" : ""}${(!ValidDraft && dateerr) ? "border-on-error" : ""}`}
-                                                                                    // className="form-control"
-                                                                                    id="date"
-                                                                                    value={formData.date}
-                                                                                    onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value).toLocaleDateString("en-CA") })}
-                                                                                    disabled={InputDisabled}
-                                                                                />
-                                                                                :
-                                                                                <input
-                                                                                    type="text"
-                                                                                    className={`form-control ${(!ValidSubmit && dateerr) ? "border-on-error" : ""}${(!ValidDraft && dateerr) ? "border-on-error" : ""}`}
-                                                                                    // className="form-control"
-                                                                                    id="date"
-                                                                                    value={new Date(formData.date).toLocaleDateString("en-GB")  }
-                                                                                    //onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value).toLocaleDateString("en-CA") })}
-                                                                                    disabled={true}
-                                                                                />
-                                                                            } */}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
+
 
                                                                 {console.log("doccodedoccodedoccode", formData, doccode, reportCode)}
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="memoNo" className="col-form-label">Report Code<span className="text-danger1"> *</span></label>
-                                                                        <div >
+                                                                        <div title={formData.reportCode || "Select a report code"}>
                                                                             <input
                                                                                 disabled
                                                                                 type="text"
@@ -2549,7 +3242,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="memoNo" className="col-form-label">Document Code<span className="text-danger1"> *</span></label>
-                                                                        <div className="">
+                                                                        <div className="" title={formData.documentCode || "Select a document code"}>
                                                                             <input
                                                                                 disabled
                                                                                 type="text"
@@ -2566,7 +3259,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="issueNo" className="col-form-label">Issue No<span className="text-danger1"> *</span></label>
-                                                                        <div >
+                                                                        <div title={formData.issueNo || "Select a issue no"}>
                                                                             <input
 
                                                                                 type="text"
@@ -2599,7 +3292,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="revisionNo" className="col-form-label">Revision No<span className="text-danger1"> *</span></label>
-                                                                        <div>
+                                                                        <div title={formData.revisionNo || "Select a revision no"}>
                                                                             <input
                                                                                 disabled
                                                                                 type="text"
@@ -2674,6 +3367,25 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         }
                                                                     </div>
                                                                 </div>
+                                                                {console.log("auditplandate", auditplandate)}
+                                                                <div className="col-lg-4">
+                                                                    <div className="row mb-3">
+                                                                        <label htmlFor="date" className="col-form-label">Audit Plan Date<span className="text-danger1"> *</span></label>
+                                                                        <div title={auditplandate}>
+                                                                            <input
+
+                                                                                type="date"
+                                                                                className={`form-control`}
+                                                                                // className="form-control"
+                                                                                id="date"
+                                                                                value={auditplandate}
+                                                                                //onChange={(e) => setFormData({ ...formData, Auditplandate: new Date(e.target.value).toLocaleDateString("en-CA") })}
+                                                                                disabled={true}
+                                                                            />
+
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="Department" className="col-form-label">Department Audited<span className="text-danger1"> *</span></label>
@@ -2695,6 +3407,23 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     placeholder="Select Department"
                                                                                 />
                                                                             </div>
+
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="col-lg-4">
+                                                                    <div className="row mb-3">
+                                                                        <label htmlFor="date" className="col-form-label">Actual Audit Date<span className="text-danger1"> *</span></label>
+                                                                        <div title={formData.date}>
+                                                                            <input
+                                                                                type="date"
+                                                                                className={`form-control ${(!ValidSubmit && dateerr) ? "border-on-error" : ""}${(!ValidDraft && dateerr) ? "border-on-error" : ""}`}
+                                                                                // className="form-control"
+                                                                                id="date"
+                                                                                value={formData.date}
+                                                                                onChange={(e) => handleActualAuditDateChange(e)}
+                                                                                disabled={InputDisabled}
+                                                                            />
 
                                                                         </div>
                                                                     </div>
@@ -2734,7 +3463,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="revisionNo" className="col-form-label">Share With<span className="text-danger1"> *</span></label>
-                                                                        <div >
+                                                                        <div title={sharewithusers.map(user => user.label).join(', ')}>
                                                                             <Select
                                                                                 options={rows1}
                                                                                 isMulti
@@ -2932,7 +3661,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                             >
                                                                                 {index + 1}</div>
                                                                             </td>
-                                                                            <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding">
+                                                                            <td title={UserRoles.find((opt: any) => opt.value === row.role)?.label} style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding">
                                                                                 <select
                                                                                     // className="form-select"
                                                                                     className={`form-select newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
@@ -2955,7 +3684,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                                             </td>
                                                                             <td style={{ minWidth: '40px', maxWidth: '40px', overflow: 'inherit' }}>Level {index + 1}</td>
-                                                                            <td style={{ overflow: 'inherit' }}>
+                                                                            <td title={row.approvers.map(user => user.label).join(', ')} style={{ overflow: 'inherit' }}>
 
                                                                                 <Select
                                                                                     options={rows1}

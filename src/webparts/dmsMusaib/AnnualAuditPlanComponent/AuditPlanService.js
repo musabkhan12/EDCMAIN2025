@@ -136,6 +136,7 @@ export const getDataRoles = async (_sp) => {
             label: item.Department,
             Department:item.Department,
             DepartmentCode:item.DepartmentCode,
+            ADDepartmentName:item.ADDepartmentName,
             ToUsers:item.ToUsersId||[],
             CCUsers:item.CCUsersId||[],
             ToUsersTitle:item.ToUsers||[],

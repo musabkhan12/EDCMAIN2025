@@ -2252,7 +2252,7 @@ const ArgPoc = ({ props }: any) => {
     //       console.log(currentfolderpath, "currentfolderpath");
     //       console.log(searchQueryPath, "currentfolderpath");
     //         const searchQuery:SearchQueryInit = {
-    //              //Querytext:`${searchText} AND Path:"https:/officeindia.sharepoint.com${currentfolderpath}"`,
+    //              //Querytext:`${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
     //             Querytext:`${searchText} AND Path:"${searchQueryPath}"`,
     //             // Querytext: `"${searchText}"`,
     //             RowLimit: 500,
@@ -2377,7 +2377,7 @@ const ArgPoc = ({ props }: any) => {
     try {
 
       // const searchQuery: SearchQueryInit = {
-      //   //Querytext:`${searchText} AND Path:"https:/officeindia.sharepoint.com${currentfolderpath}"`,
+      //   //Querytext:`${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
       //   // Querytext: `${searchText} IsDocument:True Path:"${(searhcpath) ? searhcpath : searchQueryPath}"`,
 
       //   Querytext:"",
@@ -2431,7 +2431,7 @@ const ArgPoc = ({ props }: any) => {
       console.log(currentfolderpath, "currentfolderpath");
       console.log(searchQueryPath, "currentfolderpath");
       const searchQuery: SearchQueryInit = {
-        //Querytext:`${searchText} AND Path:"https:/officeindia.sharepoint.com${currentfolderpath}"`,
+        //Querytext:`${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
         Querytext: `${searchText} IsDocument:True Path:"${searchQueryPath}"`,
         // Querytext: `"${searchText}"`,
         RowLimit: 5000,

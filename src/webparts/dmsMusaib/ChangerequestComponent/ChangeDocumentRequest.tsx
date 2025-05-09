@@ -1412,13 +1412,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
               }
             });
             //sessionStorage.removeItem("ChangeRequestId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             // }, 1000);
             // }
           }
@@ -1534,14 +1534,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Submitted successfully.', '', 'success');
             // // sessionStorage.removeItem("bannerId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             // }, 1000);
             // }
 
@@ -1749,14 +1749,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Saved successfully.', '', 'success');
             // sessionStorage.removeItem("ChangeRequestId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             // }, 2000);
             // }
           }
@@ -1873,14 +1873,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Saved successfully.', '', 'success');
             // // sessionStorage.removeItem("bannerId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
             // }, 1000);
           }
         })
@@ -2081,7 +2081,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
               }
             });
 
@@ -2190,7 +2190,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
               }
             });
             // }
@@ -2338,7 +2338,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -2467,7 +2467,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https:/officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
               }
             });
 

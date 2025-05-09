@@ -462,7 +462,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         const userProfile = await sp.profiles.myProperties();
         setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
         const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
-        setselectUserDept(setAllDept1.filter(user => user.label === UserDept));
+        // setselectUserDept(setAllDept1.filter(user => user.label === UserDept));
+        setselectUserDept(setAllDept1.filter(user => user.ADDepartmentName === UserDept));
         const recommendationTypes = await getRecommendationTypes(sp);
         setRecommType(recommendationTypes);
         var ClassificationArr = await getAllClassificationMaster(sp);
@@ -577,7 +578,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
             // }
 
-            const onloadDeptId = setAllDept1.filter((user: any) => user.label === UserDept)[0]?.value || 0;
+           // const onloadDeptId = setAllDept1.filter((user: any) => user.label === UserDept)[0]?.value || 0;
+            const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0;
 
             const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).top(1)();
             if (listItems.length > 0) {
@@ -607,9 +609,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 MemoListId: memoId,
                 memoSerialNo: memo,
                 deptId: onloadDeptId,
-                // memoNo: `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-                memoNo: setAllDept1.filter(user => user.label === UserDept)[0]
-                    ? `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+                // memoNo: setAllDept1.filter(user => user.label === UserDept)[0]
+                //     ? `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+                //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+                memoNo: setAllDept1.filter(user => user.ADDepartmentName === UserDept)[0]
+                    ? `${setAllDept1.filter(user => user.ADDepartmentName === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
                     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
             }));
 
@@ -1129,18 +1133,47 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             }
             if (!date) {
                 document.getElementById("date")?.classList.add("border-on-error");
+                // Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
+                //     if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "" || element.textContent?.trim() === "")) {
+                //       element.classList.add("border-on-error");
+                //     }
+                //   });
                 Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
-                    if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "" || element.textContent?.trim() === "")) {
-                      element.classList.add("border-on-error");
+                    // Skip if the current element or any of its ancestors has the class "Exclude-date-picker"
+                    if ((element as HTMLElement).closest(".Exclude-date-picker")) {
+                        return;
+                    }
+               
+                    const text = element.textContent?.trim();
+                    if (
+                        element.tagName === "DIV" &&
+                        (text === "Select" || text === "" || text === "")
+                    ) {
+                        element.classList.add("border-on-error");
                     }
                   });
                 valid = false;
             }
             if (date == "Invalid Date") {
                 document.getElementById("date")?.classList.add("border-on-error");
+                // Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
+                //     if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "" || element.textContent?.trim() === "")) {
+                //       element.classList.add("border-on-error");
+                //     }
+                //   });
+
                 Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
-                    if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "" || element.textContent?.trim() === "")) {
-                      element.classList.add("border-on-error");
+                    // Skip if the current element or any of its ancestors has the class "Exclude-date-picker"
+                    if ((element as HTMLElement).closest(".Exclude-date-picker")) {
+                        return;
+                    }
+               
+                    const text = element.textContent?.trim();
+                    if (
+                        element.tagName === "DIV" &&
+                        (text === "Select" || text === "" || text === "")
+                    ) {
+                        element.classList.add("border-on-error");
                     }
                   });
                 valid = false;
@@ -1204,9 +1237,23 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                     });
 
+                    // Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
+                    //     if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "" || element.textContent?.trim() === "")) {
+                    //       element.classList.add("border-on-error");
+                    //     }
+                    //   });
                     Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
-                        if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "" || element.textContent?.trim() === "")) {
-                          element.classList.add("border-on-error");
+                        // Skip if the current element or any of its ancestors has the class "Exclude-date-picker"
+                        if ((element as HTMLElement).closest(".Exclude-date-picker")) {
+                            return;
+                        }
+                   
+                        const text = element.textContent?.trim();
+                        if (
+                            element.tagName === "DIV" &&
+                            (text === "Select" || text === "" || text === "")
+                        ) {
+                            element.classList.add("border-on-error");
                         }
                       });
                 }

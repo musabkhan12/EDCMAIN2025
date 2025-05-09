@@ -25,7 +25,7 @@ import Swal from 'sweetalert2';
 import moment from 'moment';
 import CustomBreadcrumb from '../ChangerequestComponent/CustomBreadcrumb/CustomBreadcrumb';
 //import { CONTENTTYPE_NonComformity } from '../../../Shared/Constants';
-import { getLatestChangeRequestTemplateType, getMemoNumberAuditReport } from '../AnnualAuditReportComponent/AuditReportService';
+import { getLatestChangeRequestTemplateType, getMemoNumberAuditReport, getNCNumbers } from '../AnnualAuditReportComponent/AuditReportService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import "./nonconformity.scss";
@@ -51,6 +51,8 @@ export class IState {
   Loading: boolean;
   departmentOption: IDropdownOption[];
   memonumberOptions: any[];
+  typeoptions: any[];
+  ncType: any;
   memonumberOptionsall: any[];
   NCNumberOptions: any[];
   NCNumber: string;
@@ -93,7 +95,8 @@ export class IState {
   files: FileList;
   siteurl: any;
 }
-
+let optionsmemoNumbernewnc: any[] = [];
+let optionsmemoNumbernewobs: any[] = [];
 export default class AuditPlan extends React.Component<IAuditPlanProps, IState> {
   constructor(props: IAuditPlanProps) {
     super(props);
@@ -103,6 +106,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       Loading: false,
       departmentOption: [],
       memonumberOptions: [],
+      typeoptions: [],
+      ncType: "",
       memonumberOptionsall: [],
       NCNumberOptions: [],
       NCNumber: "",
@@ -218,19 +223,45 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
   public changeDepartment = (_event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void => {
     this.setState({ department: item.key, departmentCode: item.data.departmentCode });
   };
+  // private onChangenctype = (name: string, value: string) => {
+  //   debugger
+  //   this.setState({ ncType: value })
+  // }
+  private onChangenctype = (event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption): void => {
+    if (option) {
+      this.setState({
+        ncType: option.key as string,
+        memonumberOptions: option?.text == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs
+      });
+    }
+
+  };
 
   public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: any): Promise<void> => {
-    debugger
-    const optionsNCNumber = this.state.memonumberOptionsall.filter((x) => x.memoNumber == item.text).map((item: any) => ({
-      key: item.key,
-      text: item.ncNo,
-      ncNo: item.ncNo
-    }));
-    let optionsNCNumbernew: any[] = [];
-    optionsNCNumbernew = await this.getUniqueBy(optionsNCNumber, "ncNo")
-    this.setState({ NCNumberOptions: optionsNCNumber })
-    this.setState({ ApprovedAuditReport: Number(item.key), MemoNumber: item.memoNumber });
+    const sp = spfi().using(SPFx(this.props.context));
+    const nctypenew: string = this.state.ncType === "NC" ? "NC Number" : "Observation Number";
+    let optionsNCNumber:any =[];
+    const NCNumberoptionnew = await getNCNumbers(sp, item.text, nctypenew);
+    if (NCNumberoptionnew.length > 0 ){
+       optionsNCNumber = NCNumberoptionnew[0].map((entry: any) => ({
+        key: entry.ID,
+        text: entry.NCNumber,
+        ncNo: entry.NCNumber,
+        reportcode: entry.ReportCode,
+        nctype: entry.NCType
+      }));
+    }
+    
+
+    const uniqueOptions = await this.getUniqueBy(optionsNCNumber, "ncNo");
+
+    this.setState({
+      NCNumberOptions: uniqueOptions,
+      ApprovedAuditReport: Number(item.key),
+      MemoNumber: item.reportCode
+    });
   };
+
   // public changeMemoNumber = (_event: React.FormEvent<HTMLDivElement>, item: any): void => {
   //   const seen = new Set<string>(); // to track unique NC numbers
   //   debugger
@@ -261,13 +292,21 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     this.setState({ NCNumber: item.text, NCNumberID: item.key });
   };
   public handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    debugger
     const { name, value } = event.target;
     this.setState((prevState) => ({
       ...prevState,
       [name]: value,
     }));
   };
-
+  public handleChangeobsdescriptiob = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    debugger
+    const { name, value } = event.target;
+    this.setState((prevState) => ({
+      ...prevState,
+      problemDescription: value,
+    }));
+  };
   private _handlePeoplePickerChange = (field: keyof IState, idField: keyof IState) => (items: any[]) => {
     if (items.length > 0) {
       this.setState({
@@ -298,6 +337,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     await this.getchangerequestdetails();
     //await this.getDepartment();
     await this.getAuditreport();
+    await this.getnctypeoptions();
+
   }
 
   public async getchangerequestdetails() {
@@ -343,28 +384,72 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
 
     return result;
   }
+  // private getnctypeoptions = async () => {
+  //   let arr = []
+  //   const _sp = spfi().using(SPFx(this.props.context));
+  //   const field2 = await _sp.web.lists.getByTitle("NonConformityList").fields.getByInternalNameOrTitle("NCType")()
+  //   console.log(field2, 'field2');
+  //   arr = field2["Choices"];
+  //   this.setState({ typeoptions: arr })
+  //   return arr;
+  // }
+  private getnctypeoptions = async () => {
+    const _sp = spfi().using(SPFx(this.props.context));
+    const field2 = await _sp.web.lists.getByTitle("NonConformityList").fields.getByInternalNameOrTitle("NCType")();
+    const choices: string[] = field2["Choices"];
+
+    // Convert string array to dropdown option objects
+    const dropdownOptions = choices.map(choice => ({
+      key: choice,
+      text: choice
+    }));
+
+    this.setState({ typeoptions: dropdownOptions });
+  };
+
   public async getAuditreport() {
     const sp = spfi().using(SPFx(this.props.context));
     debugger
     try {
       const memoItems = await getMemoNumberAuditReport(sp);
-      let optionsmemoNumber: any = [];
+      let optionsNCNumber: any = [];
+      let optionsObservationNumber: any = [];
       if (memoItems.length > 0) {
-        optionsmemoNumber = memoItems[0].map((item: any) => ({
-          key: item.ID,
-          text: item.MemoNumber,
-          itemId: item.ID,
-          memoNumber: item.MemoNumber,
-          ncNo: item.NCNumber
-        }));
+        const filteredItemsNC = memoItems[0].filter((item: any) => item.FailureofIntentNonconformity === "Yes");
+        const filteredItemsObs = memoItems[0].filter((item: any) => item.Observations === "Yes");
+        if (filteredItemsNC.length > 0) {
+          optionsNCNumber = filteredItemsNC.map((item: any) => ({
+            key: item.ID,
+            text: item.ReportCode,
+            itemId: item.ID,
+            reportCode: item.ReportCode,
+            ncNo: item.NCNumber
+          }));
+        }
+        if (filteredItemsObs.length > 0) {
+          optionsObservationNumber = filteredItemsObs.map((item: any) => ({
+            key: item.ID,
+            text: item.ReportCode,
+            itemId: item.ID,
+            reportCode: item.ReportCode,
+            ncNo: item.NCNumber
+          }));
+        }
       }
-      let optionsmemoNumbernew: any[] = [];
-      optionsmemoNumbernew = await this.getUniqueBy(optionsmemoNumber, "memoNumber");
-      this.setState({ memonumberOptions: optionsmemoNumbernew, memonumberOptionsall: optionsmemoNumber });
+      //this.state.ncType
+      //let optionsmemoNumbernewnc: any[] = [];
+      optionsmemoNumbernewnc = await this.getUniqueBy(optionsNCNumber, "reportCode");
+      //let optionsmemoNumbernewobs: any[] = [];
+      optionsmemoNumbernewobs = await this.getUniqueBy(optionsObservationNumber, "reportCode");
+      this.setState({
+        memonumberOptions: this.state.ncType == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
+        memonumberOptionsall: memoItems.length > 0 ? memoItems : []
+      });
     } catch (e) {
       console.error(e);
     }
   }
+
   // public async getAuditreport() {
   //   debugger
   //   const sp = spfi().using(SPFx(this.props.context));
@@ -575,7 +660,18 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
   public validateFormSubmit = (): boolean => {
     let errors: { [key: string]: string } = {};
     let isValid = true;
-
+    if (!this.state.ncType) {
+      errors.nctype = "NC Type is required";
+      isValid = false;
+    }
+    if (!this.state.ApprovedAuditReport) {
+      errors.approvedauditreport = "Approved Report code is required";
+      isValid = false;
+    }
+    if (!this.state.NCNumber) {
+      errors.ncnumber = "NC/Observation number is required";
+      isValid = false;
+    }
     if (!this.state.department) {
       errors.department = "Department is required";
       isValid = false;
@@ -672,6 +768,18 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     let errors: { [key: string]: string } = {};
 
     // Allow Save as Draft if at least department is selected
+    if (!this.state.ncType) {
+      errors.nctype = "NC Type is required";
+
+    }
+    if (!this.state.ApprovedAuditReport) {
+      errors.approvedauditreport = "Approved Report code is required";
+     
+    }
+    if (!this.state.NCNumber) {
+      errors.ncnumber = "NC/Observation number is required";
+      
+    }
     if (!this.state.department) {
       errors.department = "Department is required";
       Swal.fire('Please select a Department.');
@@ -839,6 +947,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
         this.setState({ Loading: true });
         await sp.web.lists.getByTitle("NonConformityList").items.add({
           NCNumber: this.state.NCNumber,
+          NCType:this.state.ncType,
           NCNumberID: Number(this.state.NCNumberID),
           ApprovedAuditReportId: this.state.ApprovedAuditReport || null,
           ApprovedAuditReportMemoNumber: this.state.MemoNumber,
@@ -888,7 +997,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
           }
           this.setState({ Loading: false });
         });
-        
+
         Swal.fire({
           title: cText + " Successfully.",
           icon: "success"
@@ -986,6 +1095,40 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                 <div className="form-group col-md-12"><h3 className='text-dark font-16 text-left fw-bold mb-3'>Problem Details</h3></div>
               </div>
               <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
+                {console.log("this.state.typeoptions", this.state.typeoptions)}
+                <div className="form-group col-md-4">
+                  <TooltipHost
+                    content={this.state.ncType || ""}
+                    calloutProps={{ gapSpace: 0 }}
+                    styles={{ root: { display: 'inline-block', width: '100%' } }}
+                  >
+                    <Dropdown
+                      required
+                      placeholder="Type"
+                      label="Type:"
+                      options={this.state.typeoptions}
+                      selectedKey={this.state.ncType}
+                      onChange={this.onChangenctype}
+                      className={this.state.errors?.nctype ? 'dropdown-error' : ''}
+                    />
+
+                    {/* <Dropdown
+                      required
+                      placeholder="Type"
+                      label="Type:"
+                      options={this.state.typeoptions}
+                      defaultSelectedKey={this.state.ncType}
+                      selectedKey={this.state.ncType}
+                      onChange={(event, option) =>
+                        this.onChangenctype("ncType", option?.key)
+                      }
+                      onChange={(e: any) =>
+                        this.onChangenctype(e.target.name, e.target.value)
+                      }
+                      className={this.state.errors?.nctype ? 'dropdown-error' : ''}
+                    /> */}
+                  </TooltipHost>
+                </div>
                 <div className="form-group col-md-4">
                   <TooltipHost
                     content={this.state.memonumberOptions.filter((item: any) => item.key == this.state.ApprovedAuditReport)[0]?.text || ""}
@@ -994,13 +1137,13 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                   >
                     <Dropdown
                       required
-                      placeholder="Approved Audit Report/Memo Number"
-                      label="Approved Audit Report/Memo Number:"
+                      placeholder="Approved Report Code"
+                      label="Approved Report Code:"
                       options={this.state.memonumberOptions}
                       defaultSelectedKey={this.state.ApprovedAuditReport}
                       selectedKey={this.state.ApprovedAuditReport}
                       onChange={this.changeMemoNumber}
-                      className={this.state.errors?.department ? 'dropdown-error' : ''}
+                      className={this.state.errors?.approvedauditreport ? 'dropdown-error' : ''}
                     />
                   </TooltipHost>
                 </div>
@@ -1012,13 +1155,13 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                   >
                     <Dropdown
                       required
-                      placeholder="NCR Number"
-                      label="NCR Number:"
+                      placeholder="NC/Observation Number"
+                      label="NC/Observation Number:"
                       options={this.state.NCNumberOptions}
                       defaultSelectedKey={this.state.NCNumberID}
                       selectedKey={this.state.NCNumberID}
                       onChange={this.changeNCNumber}
-                      className={this.state.errors?.department ? 'dropdown-error' : ''}
+                      className={this.state.errors?.ncnumber ? 'dropdown-error' : ''}
                     />
                   </TooltipHost>
                 </div>
@@ -1144,7 +1287,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                 <div className="form-group col-md-4" id="AssigntoPeoplepicker">
                   <PeoplePicker
                     context={peoplePickerContext}
-                    titleText="Assigned To:"
+                    titleText="Auditee:"
                     personSelectionLimit={1}
                     required={true}
                     groupName={""} // Leave this blank in case you want to filter from all users
@@ -1244,12 +1387,13 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
               </div>
               <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row mb-3'>
                 <div className="form-group col-md-12 newdes">
-                  <TextField label="Problem Description:"
+                  <TextField label="NC/Observation Description:"
                     required
                     name='problemDescription'
                     value={this.state.problemDescription}
                     multiline rows={5}
-                    onChange={this.handleChange}
+                    //onChange={(e) => this.setState({ ...formData, issueNo: e.target.value })}
+                    onChange={this.handleChangeobsdescriptiob}
                     //errorMessage={this.state.errors.problemDescription}
                     className={this.state.errors?.problemDescription ? 'textfield-error' : ''}
                   // styles={{

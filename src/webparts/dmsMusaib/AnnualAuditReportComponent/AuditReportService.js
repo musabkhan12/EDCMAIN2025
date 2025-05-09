@@ -177,11 +177,35 @@ export const getMemoNumberAuditReport = async (_sp) => {
   await _sp.web.lists.getByTitle("AnnualAuditReportList").items
     .select("*,ApprovedAuditPlan/MemoNumber,ApprovedAuditPlan/ID,FailureofIntentNonconformity")
     .expand("ApprovedAuditPlan")
-    .filter(`FailureofIntentNonconformity eq 'Yes'`)
+    .filter(`FailureofIntentNonconformity eq 'Yes' or Observations eq 'Yes'`)
     .orderBy("Modified", false)
     ()
     .then((res) => {
       console.log(res, 'Memonumbers from audit report');
+
+      arr.push(res)
+      // arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  console.log(arr, 'arr');
+  return arr;
+}
+export const getNCNumbers = async (_sp,Reportcode, type) => {
+
+  let arr = []
+  let arrs = []
+  let bannerimg = []
+  const currentUser = await _sp.web.currentUser();
+  await _sp.web.lists.getByTitle("AuditReportNCNumber").items
+    .select("*")
+    .expand("")
+    .filter(`ReportCode eq '${Reportcode}' and NCType eq '${type}'`)
+    .orderBy("NCSequence", false)
+    ()
+    .then((res) => {
+      console.log(res, 'Reportcode from audit repor NC Numbert');
 
       arr.push(res)
       // arr = res;
@@ -369,7 +393,39 @@ export const updateItem2 = async (itemData, _sp, id) => {
   }
   return resultArr;
 };
+export const addItemNC = async (itemData, _sp) => {
 
+  let resultArr = []
+  try {
+    const newItem = await _sp.web.lists.getByTitle('AuditReportNCNumber').items.add(itemData);
+
+    console.log('Item added successfully:', newItem);
+    // Swal.fire('Item added successfully', '', 'success');
+
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+    Swal.fire(' Cancelled', '', 'error')
+  }
+  return resultArr;
+};
+export const updateItemNC = async (itemData, _sp, id) => {
+  let resultArr = []
+  try {
+    const newItem = await _sp.web.lists.getByTitle('AuditReportNCNumber').items.getById(id).update(itemData);
+    console.log('Item added successfully:', newItem);
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+  }
+  return resultArr;
+};
 export const getAllAuditType = async (_sp) => {
 
   let arr = []
@@ -515,6 +571,17 @@ export const getItemByID2 = async (sp, AuditID) => {
   let arr = []
   let sampleDataArray = []
   arr = await sp.web.lists.getByTitle("AnnualAuditReportCheckList").items.select("*,AnnualAuditReportID/ID,Sharewith/ID,Sharewith/Title").expand("AnnualAuditReportID,Sharewith").filter(`AnnualAuditReportID/ID eq ${AuditID}`).getAll();
+  // .then((res) => {
+  //   arr = res
+  //   console.log(arr, 'arr');
+  // })
+  return arr
+}
+export const getNCNumberbyID = async (sp, AuditID) => {
+  debugger
+  let arr = []
+  let sampleDataArray = []
+  arr = await sp.web.lists.getByTitle("AuditReportNCNumber").items.select("*,AnnualAuditReportList/ID").expand("AnnualAuditReportList").filter(`AnnualAuditReportList/ID eq ${AuditID}`).getAll();
   // .then((res) => {
   //   arr = res
   //   console.log(arr, 'arr');

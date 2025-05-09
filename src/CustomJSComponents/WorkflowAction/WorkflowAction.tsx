@@ -30,7 +30,8 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
   const [formData, setFormData] = React.useState({
     Remark: '',
-  })
+  });
+    const [ValidRemark, setValidRemark] = React.useState(true);
 
   const onChange = (name: string, value: string) => {
 
@@ -51,8 +52,14 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
   const handleFromSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, Status: string) => {
 
     e.preventDefault();
+    setValidRemark(true);
     let postPayload = {}
     let postPayload2 = {}
+    if ((Status === 'Rework' || Status === 'Rejected') && formData.Remark === "") {
+      setValidRemark(false);
+      Swal.fire('Please fill the mandatory fields', '', 'warning');
+      return;
+    }
 
 
     if (props.ContentType == "Document Cancellation" || props.ContentType == "Change Request" || props.ContentType == "Annual Audit Plan" || props.ContentType == "Annual Audit Report"|| props.ContentType == "Annual Audit Program"|| props.ContentType == "Memorandum") {
@@ -176,9 +183,9 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
               <div className="mb-0" >
 
-                <label htmlFor="example-textarea" className="form-label text-dark font-14">Remarks:</label>
+                <label htmlFor="example-textarea" className="form-label text-dark font-14">Remarks <span className="text-danger1"> *</span></label>
 
-                <textarea style={{ height: '80px' }} className="form-control" id="example-textarea" rows={5} name="Remark" value={formData.Remark}
+                <textarea style={{ height: '80px' }} className={`form-control ${(!ValidRemark) ? "border-on-error" : ""}`} id="example-textarea" rows={5} name="Remark" value={formData.Remark}
 
                   onChange={(e) => onChange(e.target.name, e.target.value)}></textarea>
 

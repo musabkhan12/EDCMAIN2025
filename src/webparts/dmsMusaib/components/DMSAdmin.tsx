@@ -511,7 +511,7 @@ const handleReturnToMain = (Name:any) => {
                     const itemid = String(item.Id);
                     console.log(itemid, "itemsid");
                     console.log(imageData, "imagedata");
-                    const imageUrl = `https:/officeindia.sharepoint.com//_api/v2.1/sites('338f2337-8cbb-4cd1-bed1-593e9336cd0e,e2837b3f-b207-41eb-940b-71c74da3d214')/lists('3f31e4eb-27b3-4370-b5cd-8cf594981912')/items('${itemid}')/attachments('${imageData.fileName}')/thumbnails/0/c3000x2000/content?prefer=noredirect,closestavailablesize`;
+                    const imageUrl = `https://officeindia.sharepoint.com//_api/v2.1/sites('338f2337-8cbb-4cd1-bed1-593e9336cd0e,e2837b3f-b207-41eb-940b-71c74da3d214')/lists('3f31e4eb-27b3-4370-b5cd-8cf594981912')/items('${itemid}')/attachments('${imageData.fileName}')/thumbnails/0/c3000x2000/content?prefer=noredirect,closestavailablesize`;
                     console.log(imageUrl, "imageurl");
                     return (
                       <div className="col-sm-3 col-md-3 mt-2">

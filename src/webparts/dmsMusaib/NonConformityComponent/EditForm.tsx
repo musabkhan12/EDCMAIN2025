@@ -30,12 +30,20 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDownload, faEye, faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Item } from '@pnp/sp/items';
 import { redirect } from 'react-router-dom';
-import { getMemoNumberAuditReport } from '../AnnualAuditReportComponent/AuditReportService';
+import { getMemoNumberAuditReport, getNCNumbers } from '../AnnualAuditReportComponent/AuditReportService';
 let Approvallistitemid = 0;
 let ApproverEmail = "";
+let IsAnalyzedBy: boolean = false;
+let showimsupdated: boolean = false;
+let showfinalapproval: boolean = false;
+let isdisablefinal: boolean = false;
+let showcorrectionappicable: boolean = false;
+let isdisableims: boolean = false;
 let CurrentuserEmail = "";
 let RequesterEmail = "";
-let setloading:boolean = false;
+let setloading: boolean = false;
+let optionsmemoNumbernewnc: any[] = [];
+let optionsmemoNumbernewobs: any[] = [];
 const datePickerErrorStyles: Partial<IDatePickerStyles> = {
   root: {
     border: "1px solid #ffcccb", // Apply red border
@@ -61,6 +69,8 @@ export interface IEditState {
   editDepartmentOption: IDropdownOption[];
   editmemonumberOptions: any[];
   editmemonumberOptionsall: any[];
+  edittypeoptions: any[];
+  editncType: any;
   editMemoNumber: string;
   editNCNumberOptions: any[];
   editNCNumber: string;
@@ -79,6 +89,14 @@ export interface IEditState {
   editIssueDate: any;
   editRevisionDate: any;
   TemplateDoc: any[];
+  isIMSUpdated: any;
+  riskandopportunitiesUpdated: any;
+  correctionApplicable: any;
+  notEffective: any;
+  effectiveClosed: any;
+  NotEffective: any;
+  EffectiveandProblemClosed: any;
+  IsFinalapprover: boolean;
   editCriteria: string;
   editCloseOutStatus: string;
   editCategoryCheckOption: IDropdownOption[];
@@ -141,12 +159,18 @@ export interface IEditState {
   ncItemId: number | null;
   remarks: string;
   showDialog: boolean;
+  showDialogauditee: boolean;
   copyFil: any[];
+  copyFilauditee: any[];
   fileCount: number;
   exFiles: any[];
   ShowDeleteicon: boolean;
   fileDeleteId: any[];
+  fileDeleteIdauditee: any[];
   files: FileList;
+  filesauditee: FileList;
+  fileCountauditee: number;
+  exFilesauditee: any[];
   apprItems: any[];
   isDisabled: boolean;
   showApprove: boolean;
@@ -183,6 +207,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       editDepartmentOption: [],
       editmemonumberOptions: [],
       editmemonumberOptionsall: [],
+      edittypeoptions: [],
+      editncType: "",
+      isIMSUpdated: "No",
+      riskandopportunitiesUpdated: "No",
+      correctionApplicable: "",
+      notEffective: "",
+      effectiveClosed: "",
+      NotEffective: "",
+      EffectiveandProblemClosed: "",
+      IsFinalapprover: false,
       editMemoNumber: "",
       editNCNumberOptions: [],
       editNCNumber: "",
@@ -253,7 +287,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       editProcessActionTakenById: null,
       editProcessActionTakenBy: "",
       processListItemID: null,
-      approvers: [{ Role: "", Level: "", Name: "", Type: "Anyone", Index: 0, appEx: "", itemId: "" }],
+      approvers: [{ Role: "", Level: "", Name: "", Type: "One", Index: 0, appEx: "", itemId: "" }],
       optionsRole: [],
       apprDelId: [],
       indApp: 0,
@@ -263,12 +297,18 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       ncItemId: null,
       remarks: "",
       showDialog: false,
+      showDialogauditee: false,
       copyFil: [],
       fileCount: 0,
       exFiles: [],
       ShowDeleteicon: false,
       fileDeleteId: [],
+      fileDeleteIdauditee: [],
       files: {} as FileList,
+      copyFilauditee: [],
+      filesauditee: {} as FileList,
+      fileCountauditee: 0,
+      exFilesauditee: [],
       apprItems: [],
       isDisabled: false,
       showApprove: false,
@@ -288,7 +328,12 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     this._OpenModal = this._OpenModal.bind(this);
     this._CloseModal = this._CloseModal.bind(this);
     this.removeFiles = this.removeFiles.bind(this);
+    this._OpenModalauditee = this._OpenModalauditee.bind(this);
+    this._CloseModalauditee = this._CloseModalauditee.bind(this);
+    this.removeFilesAuditee = this.removeFilesAuditee.bind(this);
     this.toBeDeleted = this.toBeDeleted.bind(this);
+    this.toBeDeletedauditee = this.toBeDeletedauditee.bind(this);
+
     this.handleFileChange = this.handleFileChange.bind(this);
     this.updateData = this.updateData.bind(this);
   }
@@ -366,6 +411,18 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       _self.setState({ copyFil: allfiles });
     }
   };
+  private handleAuditeeFileChange(e: React.ChangeEvent<HTMLInputElement>, _self: any) {
+    if (e.target.files) {
+      _self.setState({ fileCountauditee: e.target.files.length });
+      _self.setState({ filesauditee: e.target.files });
+      var allfiles: any[] = [];
+      [].forEach.call(e.target.files, function (file: File) {
+        allfiles.push(file);
+      })
+      _self.setState({ copyFilauditee: allfiles });
+    }
+  };
+
   private Breadcrumb = [
     {
       MainComponent: "My Request",
@@ -386,6 +443,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       showDialog: false
     });
   }
+  private _OpenModalauditee() {
+    this.setState({
+      showDialogauditee: true
+    });
+  }
+  private _CloseModalauditee() {
+    this.setState({
+      showDialogauditee: false
+    });
+  }
   private removeFiles(i: number) {
     var items = this.state.copyFil.filter(function (it, val) {
       if (val != i) {
@@ -393,6 +460,20 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       }
     })
     this.setState({ copyFil: items, fileCount: items.length });
+    if (items.length === 0) {
+      const fileInput = document.getElementById("newfile") as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = "";
+      }
+    }
+  }
+  private removeFilesAuditee(i: number) {
+    var items = this.state.copyFilauditee.filter(function (it, val) {
+      if (val != i) {
+        return it;
+      }
+    })
+    this.setState({ copyFilauditee: items, fileCountauditee: items.length });
     if (items.length === 0) {
       const fileInput = document.getElementById("newfile") as HTMLInputElement;
       if (fileInput) {
@@ -412,6 +493,25 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     this.state.fileDeleteId.push(itemId[0].Id)
     this.setState({ fileDeleteId: this.state.fileDeleteId });
     this.setState({ exFiles: remFiles, fileCount: remFiles.length });
+    if (remFiles.length === 0) {
+      const fileInput = document.getElementById("newfile") as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = "";
+      }
+    }
+  }
+  private toBeDeletedauditee(i: number) {
+    var itemId = this.state.exFilesauditee.filter(function (it, val) {
+      return val == i
+    })
+
+    var remFiles = this.state.exFilesauditee.filter(function (it, val) {
+      return val != i
+    })
+    //var exFiles:any[]= 
+    this.state.fileDeleteIdauditee.push(itemId[0].Id)
+    this.setState({ fileDeleteIdauditee: this.state.fileDeleteIdauditee });
+    this.setState({ exFilesauditee: remFiles, fileCountauditee: remFiles.length });
     if (remFiles.length === 0) {
       const fileInput = document.getElementById("newfile") as HTMLInputElement;
       if (fileInput) {
@@ -439,16 +539,25 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   }
   public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: any): Promise<void> => {
     debugger
-    const optionsNCNumber = this.state.editmemonumberOptionsall.filter((x) => x.memoNumber == item.text).map((item: any) => ({
-      key: item.key,
-      text: item.ncNo,
-      ncNo: item.ncNo
-    }));
+    const sp = spfi().using(SPFx(this.props.context));
+    let nctypenew: string = this.state.editncType == "NC" ? "NC Number" : "Observation NUmber";
+    let NCNumberoptionnew = await getNCNumbers(sp, item.text, nctypenew);
+    let optionsNCNumber: any = [];
+    if (NCNumberoptionnew.length > 0) {
+      optionsNCNumber = NCNumberoptionnew[0].map((item: any) => ({
+        key: item.key,
+        text: item.NCNumber,
+        ncNo: item.NCNumber,
+        reportcode: item.ReportCode,
+        nctype: item.NCType
+      }));
+    }
     let optionsNCNumbernew: any[] = [];
     optionsNCNumbernew = await this.getUniqueBy(optionsNCNumber, "ncNo")
     this.setState({ editNCNumberOptions: optionsNCNumbernew })
     this.setState({ editApprovedAuditReport: item.key, editMemoNumber: item.memoNumber });
   };
+
   public changeNCNumber = (_event: React.FormEvent<HTMLDivElement>, item: any): void => {
 
     this.setState({ editNCNumber: item.text, editNCNumberID: item.key });
@@ -460,7 +569,14 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       [name]: value,
     }));
   };
-
+  public handleChangeobsdescription = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    debugger
+    const { name, value } = event.target;
+    this.setState((prevState) => ({
+      ...prevState,
+      editProblemDescription: value,
+    }));
+  };
   private _handlePeoplePickerChange = (field: keyof IEditState, idField: keyof IEditState) => (items: any[]) => {
     if (items.length > 0) {
       this.setState({
@@ -484,7 +600,19 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         return { [stateKey]: updatedValues } as unknown as Pick<IEditState, keyof IEditState>;
       });
     };
+  private getnctypeoptions = async () => {
+    const _sp = spfi().using(SPFx(this.props.context));
+    const field2 = await _sp.web.lists.getByTitle("NonConformityList").fields.getByInternalNameOrTitle("NCType")();
+    const choices: string[] = field2["Choices"];
 
+    // Convert string array to dropdown option objects
+    const dropdownOptions = choices.map(choice => ({
+      key: choice,
+      text: choice
+    }));
+
+    this.setState({ edittypeoptions: dropdownOptions });
+  };
   public async componentDidMount() {
     debugger
     const _sp = spfi().using(SPFx(this.props.context));
@@ -510,6 +638,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     debugger
     if (id) {
       this.setState({ mainItemId: id }, async () => {
+        // this.getAllapprovalitems(Number(id));
         // This will run AFTER the state update is completed
         // alert("Updated mainItemId: " + this.state.mainItemId);
         await this.getListData(); // Fetch list data after updating state
@@ -520,6 +649,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       this.setState({ edType: editType })
     }
     // await this.getListData();
+    await this.getnctypeoptions();
     await this.getDepartment();
     await this.getAuditreport();
     await this.getDataRoles();
@@ -642,6 +772,12 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       this.setState({
         ncItemId: Items.Id,
         editDepartment: Items.DepartmentId,
+        editncType: Items.NCType,
+        isIMSUpdated: Items.IMSUpdated,
+        riskandopportunitiesUpdated: Items.RiskOpportunitiesUpdated,
+        correctionApplicable: Items.Correctionapplicable == "Yes" ? true : false,
+        notEffective: Items.NotEffective == "Yes" ? true : false,
+        effectiveClosed: Items.EffectiveandProblemClosed == "Yes" ? true : false,
         editMemoNumber: Items.ApprovedAuditReportMemoNumber,
         editNCNumber: Items.NCNumber,
         editApprovedAuditReport: Items.ApprovedAuditReportId,
@@ -692,17 +828,41 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         notUpdateDepartmentCode: Items.NCRNo,
         notUpdateSerialNo: Items.SerialNumber,
         Requester: Items.Author,
+        remarks: Items.FinalRemarks
       });
-      const optionsNCNumberEdit = this.state.editmemonumberOptionsall.filter((x) => x.memoNumber == Items.ApprovedAuditReportMemoNumber).map((item: any) => ({
-        key: item.key,
-        text: item.ncNo,
-        ncNo: item.ncNo
-      }));
-      console.log("optionsNCNumbernewoptionsNCNumbernew", this.state.editmemonumberOptionsall, memoopt)
-      let optionsNCNumbernew: any[] = [];
-      optionsNCNumbernew = await this.getUniqueBy(optionsNCNumberEdit, "ncNo")
-      this.setState({ editNCNumberOptions: optionsNCNumbernew })
+
+      // const optionsNCNumberEdit = this.state.editmemonumberOptionsall.filter((x) => x.memoNumber == Items.ApprovedAuditReportMemoNumber).map((item: any) => ({
+      //   key: item.key,
+      //   text: item.ncNo,
+      //   ncNo: item.ncNo
+      // }));
+      // console.log("optionsNCNumbernewoptionsNCNumbernew", this.state.editmemonumberOptionsall, memoopt)
+      // let optionsNCNumbernew: any[] = [];
+      // optionsNCNumbernew = await this.getUniqueBy(optionsNCNumberEdit, "ncNo")
+      // this.setState({ editNCNumberOptions: optionsNCNumbernew })
       //Process Approval List
+      if (Items?.NCType) {
+        this.setState({
+          editncType: Items?.NCType,
+          editmemonumberOptions: Items?.NCType == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs
+        });
+      }
+      let nctypenew: string = Items.NCType == "NC" ? "NC Number" : "Observation NUmber";
+      let NCNumberoptionnew = await getNCNumbers(sp, Items.ApprovedAuditReportMemoNumber, nctypenew);
+      let optionsNCNumber: any = [];
+      if (NCNumberoptionnew.length > 0) {
+        optionsNCNumber = NCNumberoptionnew[0].map((item: any) => ({
+          key: item.ID,
+          text: item.NCNumber,
+          ncNo: item.NCNumber,
+          reportcode: item.ReportCode,
+          nctype: item.NCType
+        }));
+      }
+      let optionsNCNumbernew: any[] = [];
+      optionsNCNumbernew = await this.getUniqueBy(optionsNCNumber, "ncNo")
+      this.setState({ editNCNumberOptions: optionsNCNumbernew })
+      //this.setState({ editApprovedAuditReport: item.key, editMemoNumber: item.memoNumber });
       RequesterEmail = Items.Author.EMail;
       const apprItems = await sp.web.lists
         .getByTitle("ProcessApprovalList")
@@ -722,19 +882,60 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       let parts = url.split("#/")[1].split("/");
       let editType = parts[1]; // "edit"
       let id = parts[2];
+      let currentlevel: any;
       if (editType === "approve") {
 
         let approvalItemIdnew = parts[3];
         let Approverdata = await this.getapprovalbyID(Number(approvalItemIdnew), "Non Conformity");
         console.log("Approverdata", Approverdata, "Approverdata0", Approverdata && Approverdata[0], Approvallistitemid, approvalItemIdnew);
-        if (Approverdata.length > 0) {
 
-          ApproverEmail = Approverdata[0].AssignedTo?.EMail;
+        if (Approverdata.length > 0) {
+          const currentApprover = Approverdata[0];
+          const isAnalyzedRole = currentApprover.CurrentUserRole === "AnalyzedBy";
+          const isFirstAssigned = currentApprover.CurrentUserRole === "FirstAssignedTo";
+          const isCurrentUser = currentApprover.AssignedTo?.EMail === CurrentuserEmail;
+          const currentstatus = currentApprover.Status == "Approved";
+          const finalstatus = Items.Status == "Approved";
+          currentlevel == currentApprover.level;
+          ApproverEmail = currentApprover.AssignedTo?.EMail;
+
+          if (isAnalyzedRole && isCurrentUser) {
+            IsAnalyzedBy = true;
+            showimsupdated = true;
+            isdisableims = false;
+          }
+
+          // This will override previous value only if role is "FirstAssignedTo"
+          if (!isFirstAssigned && Items.IMSUpdated != "" && Items.IMSUpdated != null && Items.RiskOpportunitiesUpdated != "" && Items.RiskOpportunitiesUpdated != null) {
+            showimsupdated = true;
+            isdisableims = true;
+          }
+
+          if (Items.Status == "Approved") {
+            showcorrectionappicable = true;
+            isdisablefinal = true;
+          }
+
+          // showfinalapproval = currentstatus;
+          // isdisablefinal = finalstatus;
+        }
+
+      }
+      if (editType == "view") {
+
+        if (Items.IMSUpdated != "" && Items.RiskOpportunitiesUpdated != "") {
+          showimsupdated = true;
+          isdisableims = true;
+        }
+
+        if (Items.Status == "Approved") {
+          showcorrectionappicable = true;
+          isdisablefinal = true;
         }
       }
       var cnt: any = 0;
       var appItems: any[] = [];
-      console.log("apprItems111", apprItems)
+      console.log("apprItems111", apprItems);
       if (apprItems.length > 0) {
         if (Items.SubmitStatus == "Yes" && Items.CurrentUserRole == "FirstAssignedTo" && apprItems.length == 1) {
           //this.setState({ approvalItemId: apprItems[0].ID })
@@ -793,14 +994,33 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         fCount = upFiles.length;
         this.setState({ exFiles: obJFiles, fileCount: fCount });
       }
+      const upFilesauditee = await sp.web.lists.getByTitle("AuditeeAttachmentDocs").items.select("*", "File/Name,FileLeafRef,FileRef,EncodedAbsUrl").expand("File")
+        .filter("NonConformityId eq '" + this.state.mainItemId + "'")();
+      if (upFilesauditee.length > 0) {
+        var obJFiles: any[] = [];
+        let fCount: number = 0;
+        upFilesauditee.forEach(function (item: any) {
+          obJFiles.push({
+            "Name": item.File.Name,
+            "type": "old",
+            "Id": item.Id,
+            "FileRef": item.FileRef,
+            "FileLeafRef": item.FileLeafRef,
+            "Uploaded": item.Modified,
+            "Path": item.EncodedAbsUrl
+          })
+        })
+        fCount = upFilesauditee.length;
+        this.setState({ exFilesauditee: obJFiles, fileCountauditee: fCount });
+      }
       if (Items.substatus == "No") {
         this.setState({ ShowDeleteicon: true })
       }
       //AllProcessApproval Table data
       debugger
-      const approvalItems = await sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.select("*", "Approvers/Name").expand("Approvers")
+      const approvalItems = await sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.select("*", "Approvers/Name", "Approvers/EMail", "Approvers/ID").expand("Approvers")
         .filter("MainListID eq '" + this.state.mainItemId + "'and ProcessName eq 'Non Conformity'")
-        .orderBy("Level")();
+        .orderBy("Level", false)();
       var allApp: any[] = [];
       var cnt: any = 0;
       if (approvalItems.length > 0) {
@@ -823,7 +1043,26 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           cnt = cnt + 1;
         });
         this.setState({ approvers: allApp });
+        const approvers = approvalItems[0]?.Approvers || [];
+        const currentUserEmail = this.props.context.pageContext.user.email;
+
+        const finalApprover = approvers.map((user: any) => ({
+          id: user.ID,
+          email: user.EMail
+        }));
+        const isFinalApprover = finalApprover.some(
+          (approver: any) => approver.email?.toLowerCase() === currentUserEmail?.toLowerCase()
+        );
+        if (editType === "approve") {
+          if (Items.Status != "Approved" && isFinalApprover && approvalItems[0]?.Level == currentlevel) {
+            showcorrectionappicable = true;
+            isdisablefinal = false;
+            this.setState({ IsFinalapprover: isFinalApprover });
+          }
+        }
+        
       }
+
       //Get latest last rec the NC list   
       const latestItem = await sp.web.lists
         .getByTitle("NonConformityList").items.select("Id", "SerialNumber", "Created", "SubmitStatus")
@@ -903,23 +1142,65 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     debugger
     try {
       const memoItems = await getMemoNumberAuditReport(sp);
-      let optionsmemoNumber: any = [];
+      let optionsNCNumber: any = [];
+      let optionsObservationNumber: any = [];
       if (memoItems.length > 0) {
-        optionsmemoNumber = memoItems[0].map((item: any) => ({
-          key: item.ID,
-          text: item.MemoNumber,
-          itemId: item.ID,
-          memoNumber: item.MemoNumber,
-          ncNo: item.NCNumber
-        }));
+        const filteredItemsNC = memoItems[0].filter((item: any) => item.FailureofIntentNonconformity === "Yes");
+        const filteredItemsObs = memoItems[0].filter((item: any) => item.Observations === "Yes");
+        if (filteredItemsNC.length > 0) {
+          optionsNCNumber = filteredItemsNC.map((item: any) => ({
+            key: item.ID,
+            text: item.ReportCode,
+            itemId: item.ID,
+            reportCode: item.ReportCode,
+            ncNo: item.NCNumber
+          }));
+        }
+        if (filteredItemsObs.length > 0) {
+          optionsObservationNumber = filteredItemsObs.map((item: any) => ({
+            key: item.ID,
+            text: item.ReportCode,
+            itemId: item.ID,
+            reportCode: item.ReportCode,
+            ncNo: item.NCNumber
+          }));
+        }
       }
-      let optionsmemoNumbernew: any[] = [];
-      optionsmemoNumbernew = await this.getUniqueBy(optionsmemoNumber, "memoNumber");
-      this.setState({ editmemonumberOptions: optionsmemoNumbernew, editmemonumberOptionsall: optionsmemoNumber });
+      //this.state.ncType
+      //let optionsmemoNumbernewnc: any[] = [];
+      optionsmemoNumbernewnc = await this.getUniqueBy(optionsNCNumber, "reportCode");
+      //let optionsmemoNumbernewobs: any[] = [];
+      optionsmemoNumbernewobs = await this.getUniqueBy(optionsObservationNumber, "reportCode");
+      this.setState({
+        editmemonumberOptions: this.state.editncType == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
+        editmemonumberOptionsall: this.state.editncType == "NC" ? optionsNCNumber : optionsObservationNumber
+      });
     } catch (e) {
       console.error(e);
     }
   }
+  // public async getAuditreport() {
+  //   const sp = spfi().using(SPFx(this.props.context));
+  //   debugger
+  //   try {
+  //     const memoItems = await getMemoNumberAuditReport(sp);
+  //     let optionsmemoNumber: any = [];
+  //     if (memoItems.length > 0) {
+  //       optionsmemoNumber = memoItems[0].map((item: any) => ({
+  //         key: item.ID,
+  //         text: item.MemoNumber,
+  //         itemId: item.ID,
+  //         memoNumber: item.MemoNumber,
+  //         ncNo: item.NCNumber
+  //       }));
+  //     }
+  //     let optionsmemoNumbernew: any[] = [];
+  //     optionsmemoNumbernew = await this.getUniqueBy(optionsmemoNumber, "memoNumber");
+  //     this.setState({ editmemonumberOptions: optionsmemoNumbernew, editmemonumberOptionsall: optionsmemoNumber });
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // }
   public async getDepartment() {
     const sp = spfi().using(SPFx(this.props.context));
     try {
@@ -1000,8 +1281,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   public validateFormSubmit = (): boolean => {
     let editErrors: { [key: string]: string } = {};
     if (this.state.editSubmitStatus == "No") {
+      if (!this.state.editncType) editErrors.editncType = "editncType is required";
       if (!this.state.editDepartment) editErrors.editDepartment = "Department is required";
-      if (!this.state.editApprovedAuditReport) editErrors.editApprovedAuditReport = "Memo number is required";
+      if (!this.state.editApprovedAuditReport) editErrors.editApprovedAuditReport = "Report code is required";
       if (!this.state.editNCNumber) editErrors.editNCNumber = "NCR number is required";
       if (!this.state.editCriteria) editErrors.editCriteria = "Criteria is required";
       if (!this.state.editCloseOutStatus) editErrors.editCloseOutStatus = "Close Out Status is required";
@@ -1254,6 +1536,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   public async updateData(_editsubmitStatus: string, firstInitiatorSubmitStatus: string, firstAssignedToSubmitStatus: string, delegateToSubmitStatus: string, analyzedBySubmitStatus: string, reviewedBySubmitStatus: string, lastAssignedToSubmitStatus: string, lastInitiatorSubmitStatus: string, currentUserRole: string, reworkById: any, serialNumber: number, documentCode: string, ncrnumber: String) {
     debugger
     const sp = spfi().using(SPFx(this.props.context));
+    let test1 = this.state.correctionApplicable ? "Yes" : "No";
+    let test2 = this.state.notEffective ? "Yes" : "No";
+    let test3 = this.state.effectiveClosed ? "Yes" : "No";
     await sp.web.lists.getByTitle("NonConformityList").items.getById(this.state.mainItemId).update({
       NCNumber: this.state.editNCNumber,
       NCNumberID: this.state.editNCNumberID,
@@ -1301,6 +1586,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       SerialNumber: serialNumber,
       NCRNo: ncrnumber,
       DocumentCode: this.state.editDocumentCode,
+      IMSUpdated: this.state.isIMSUpdated,
+      RiskOpportunitiesUpdated: this.state.riskandopportunitiesUpdated,
+
     })
   }
 
@@ -1427,11 +1715,65 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       if (result.isConfirmed) {
         debugger
         setloading = true;
-          this.setState({ Loading: true});
+        this.setState({ Loading: true });
         await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
         if (_editsubmitStatus == "submit") {
           if (currentUserRole == "AnalyzedBy" || currentUserRole == "DelegateTo") {
             // alert("Approval Item ID" + approvalItemId)
+            let uploadedIds: number[] = [];
+
+            // 1. Delete removed files
+            if (this.state.fileDeleteIdauditee.length > 0) {
+              this.state.fileDeleteIdauditee.forEach(function (ids) {
+                sp.web.lists.getByTitle("AuditeeAttachmentDocs").items.getById(ids).delete();
+              });
+            }
+
+            // 2. Upload new files
+            if (this.state.copyFilauditee.length > 0) {
+              const uploadPromises = this.state.copyFilauditee.map((file) => {
+                const fileNamePath = encodeURI(file.name);
+                return sp.web.getFolderByServerRelativePath("AuditeeAttachmentDocs").files
+                  .addUsingPath(fileNamePath, file, { Overwrite: true })
+                  .then((response) => {
+                    return response.file.getItem().then((fileItem: any) => {
+                      uploadedIds.push(fileItem.Id); // Store ID of uploaded file
+                      return fileItem.update({
+                        NonConformityId: itemid // Optional: link document to current item
+                      });
+                    });
+                  });
+              });
+
+              // 3. Once all uploads are done, update multi-lookup
+              Promise.all(uploadPromises).then(() => {
+                if (uploadedIds.length > 0) {
+                  const lookupValues = uploadedIds.map((id) => ({ Id: id }));
+
+                  sp.web.lists.getByTitle("NonConformityList").items.getById(itemid).update({
+                    AuditeeAttachmentId: { results: lookupValues } // This field must be a multi-lookup pointing to AuditeeAttachmentDocs
+                  });
+                }
+              });
+            }
+
+            // if (this.state.fileDeleteIdauditee.length > 0) {
+            //   this.state.fileDeleteIdauditee.forEach(function (ids) {
+            //     sp.web.lists.getByTitle("AuditeeAttachmentDocs").items.getById(ids).delete();
+            //   });
+            // }
+            // if (this.state.copyFilauditee.length > 0) {
+            //   this.state.copyFilauditee.forEach(function (file) {
+            //     var fileNamePath = encodeURI(file.name);
+            //     sp.web.getFolderByServerRelativePath("AuditeeAttachmentDocs").files.addUsingPath(fileNamePath, file, { Overwrite: true }).then(function (response) {
+            //       response.file.getItem().then(function (fileItem) {
+            //         fileItem.update({
+            //           NonConformityId: itemid
+            //         });
+            //       });
+            //     });
+            //   })
+            // }
             if (approvalItemId == null || approvalItemId == undefined || approvalItemId == "") {
               sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
                 Status: "Approved",
@@ -1467,6 +1809,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 });
               })
             }
+
           }
         }
         else if (_editsubmitStatus == "draft") {
@@ -1487,19 +1830,20 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               });
             })
           }
+
         }
         setloading = false;
         this.setState({ Loading: false }, () => {
           Swal.fire({
-            title:  cText + " Successfully.",
+            title: cText + " Successfully.",
             icon: "success"
           }).then(() => {
             (this.state.editCurrentUserRole == "DelegateTo" || this.state.editCurrentUserRole == "FirstAssignedTo") ?
-            window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx" :
-            window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/EDCMAIN.aspx";
+              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx" :
+              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/EDCMAIN.aspx";
           });
         });
-        
+
       }
     })
       .catch(error => {
@@ -1507,7 +1851,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       });
   }
   //Forward Call
-  public  forwardRequest = async(_editsubmitStatus: string)=> {
+  public forwardRequest = async (_editsubmitStatus: string) => {
     debugger
     var _self = this;
     //Start Flow condition
@@ -1568,92 +1912,92 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       confirmButtonText: 'Yes',
       cancelButtonText: 'No'
     })
-    //.then(async function (val) {
+      //.then(async function (val) {
       .then(async (val) => {
-      if (val.isConfirmed) {
-        debugger
-        setloading = true;
-          this.setState({ Loading: true});
-        await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
-        sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
-          Status: "Approved",
-          ActionTakenById: currentUserID,
-          ActionTakenOn: new Date(),
-          Remark: remarks,
-        });
-        //Forward Button
-        if (approvers.length > 0) {
-          var maxLength = approvers.length;
-          approvers.forEach(function (it: any, val: any) {
-            if (it.itemId == 0) {
-              sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.add({
-                Title: "Title",
-                MainListNameId: _self.state.mainListId,
-                ApproverRoleId: it.Role,
-                Level: val + 1,
-                LevelType: it.Type,
-                SubmitStatus: "Yes",
-                Maxlevel: maxLength,
-                ContentTitle: _self.state.editProblemDescription,
-                RequestId: _self.state.editNCNumber,
-                RequesterNameId: _self.props.currentUserID,
-                RequestedDate: new Date(),
-                ProcessName: "Non Conformity",
-                FormNameId: _self.state.formNameId,
-                MainListID: _self.state.ncItemId,
-                RequesterRoleId: _self.state.reqRolId,
-                ApproversId: it.Name,
-                ApprovalType: "Approval",
-              }).catch(function (ex) {
-                console.log(ex.errorMessage);
-              })
-            }
-            else {
-              sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.getById(it.itemId).update({
-                Title: "Title",
-                MainListNameId: _self.state.mainListId,
-                ApproverRoleId: it.Role,
-                Level: val + 1,
-                LevelType: it.Type,
-                SubmitStatus: "Yes",
-                Maxlevel: maxLength,
-                ContentTitle: _self.state.editProblemDescription,
-                RequestId: _self.state.editNCNumber,
-                RequesterNameId: _self.props.currentUserID,
-                RequestedDate: new Date(),
-                ProcessName: "Non Conformity",
-                FormNameId: _self.state.formNameId,
-                MainListID: _self.state.ncItemId,
-                RequesterRoleId: _self.state.reqRolId,
-                ApproversId: it.Name,
-                ApprovalType: "Approval",
-              }).catch(function (ex) {
-                console.log(ex.errorMessage);
-              })
-            }
+        if (val.isConfirmed) {
+          debugger
+          setloading = true;
+          this.setState({ Loading: true });
+          await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
+          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
+            Status: "Approved",
+            ActionTakenById: currentUserID,
+            ActionTakenOn: new Date(),
+            Remark: remarks,
+          });
+          //Forward Button
+          if (approvers.length > 0) {
+            var maxLength = approvers.length;
+            approvers.forEach(function (it: any, val: any) {
+              if (it.itemId == 0) {
+                sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.add({
+                  Title: "Title",
+                  MainListNameId: _self.state.mainListId,
+                  ApproverRoleId: it.Role,
+                  Level: val + 1,
+                  LevelType: it.Type || "One",
+                  SubmitStatus: "Yes",
+                  Maxlevel: maxLength,
+                  ContentTitle: _self.state.editProblemDescription,
+                  RequestId: _self.state.editNCNumber,
+                  RequesterNameId: _self.props.currentUserID,
+                  RequestedDate: new Date(),
+                  ProcessName: "Non Conformity",
+                  FormNameId: _self.state.formNameId,
+                  MainListID: _self.state.ncItemId,
+                  RequesterRoleId: _self.state.reqRolId,
+                  ApproversId: it.Name,
+                  ApprovalType: "Approval",
+                }).catch(function (ex) {
+                  console.log(ex.errorMessage);
+                })
+              }
+              else {
+                sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.getById(it.itemId).update({
+                  Title: "Title",
+                  MainListNameId: _self.state.mainListId,
+                  ApproverRoleId: it.Role,
+                  Level: val + 1,
+                  LevelType: it.Type || "One",
+                  SubmitStatus: "Yes",
+                  Maxlevel: maxLength,
+                  ContentTitle: _self.state.editProblemDescription,
+                  RequestId: _self.state.editNCNumber,
+                  RequesterNameId: _self.props.currentUserID,
+                  RequestedDate: new Date(),
+                  ProcessName: "Non Conformity",
+                  FormNameId: _self.state.formNameId,
+                  MainListID: _self.state.ncItemId,
+                  RequesterRoleId: _self.state.reqRolId,
+                  ApproversId: it.Name,
+                  ApprovalType: "Approval",
+                }).catch(function (ex) {
+                  console.log(ex.errorMessage);
+                })
+              }
+            });
+          }
+          if (apprDelId.length > 0) {
+            apprDelId.forEach(function (ids: number) {
+              spfi(this._sp).web.lists.getByTitle("AllProcessApprovalLevelList").items.getById(ids).delete();
+            });
+          }
+          //End Forward Button
+          setloading = false;
+          this.setState({ Loading: false }, () => {
+            Swal.fire({
+              title: "Forwarded Successfully.",
+              icon: "success"
+            }).then(() => {
+              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+            });
           });
         }
-        if (apprDelId.length > 0) {
-          apprDelId.forEach(function (ids: number) {
-            spfi(this._sp).web.lists.getByTitle("AllProcessApprovalLevelList").items.getById(ids).delete();
-          });
-        }
-        //End Forward Button
-        setloading = false;
-        this.setState({ Loading: false }, () => {
-          Swal.fire({
-            title: "Forwarded Successfully.",
-            icon: "success"
-          }).then(() => {
-            window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
-          });
-        });
-      }
-    });
+      });
 
   }
   //Approver call
-  public  approveRequest= async(_editsubmitStatus: string)=> {
+  public approveRequest = async (_editsubmitStatus: string) => {
     //Start Flow condition
     let currentUserRole = "";
     let firstInitiatorSubmitStatus = "";
@@ -1751,61 +2095,81 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       confirmButtonText: 'Yes',
       cancelButtonText: 'No'
     })
-    //.then(async function (val) {
+      //.then(async function (val) {
       .then(async (val) => {
-      if (val.isConfirmed) {
-        debugger
-        setloading = true;
-          this.setState({ Loading: true});
-        if (editLastInitiatorSubmitStatus != "Yes") {
-          await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
-        }
-        // alert("Approved" + approvalItemId + typeof(approvalItemId));
-        // alert("Approved" + Approvallistitemid + typeof(Approvallistitemid));
+        if (val.isConfirmed) {
+          debugger
+          setloading = true;
+          this.setState({ Loading: true });
+          if (editLastInitiatorSubmitStatus != "Yes") {
+            await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
+          }
+          const sp = spfi().using(SPFx(this.props.context));
+          if (this.state.IsFinalapprover) {
+            let test1 = this.state.correctionApplicable ? "Yes" : "No";
+            let test2 = this.state.notEffective ? "Yes" : "No";
+            let test3 = this.state.effectiveClosed ? "Yes" : "No";
+            await sp.web.lists.getByTitle("NonConformityList").items.getById(this.state.mainItemId).update({
+              Correctionapplicable: this.state.IsFinalapprover
+                ? test1
+                : "",
+              NotEffective: this.state.IsFinalapprover
+                ? test2
+                : "",
+              EffectiveandProblemClosed: this.state.IsFinalapprover
+                ? test3
+                : "",
+              FinalRemarks: this.state.IsFinalapprover
+                ? this.state.remarks : "",
+            })
+          }
 
-        if (approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
-          // sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
-          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
-            Status: "Approved",
-            ActionTakenById: currentUserID,
-            ActionTakenOn: new Date(),
-            Remark: remarks,
-          });
-          setloading = false;
-          this.setState({ Loading: false }, () => {
-            Swal.fire({
-              title: "Approved Successfully.",
-              icon: "success"
-            }).then(() => {
-              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+          // alert("Approved" + approvalItemId + typeof(approvalItemId));
+          // alert("Approved" + Approvallistitemid + typeof(Approvallistitemid));
+
+          if (approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
+            // sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(approvalItemId)).update({
+            sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
+              Status: "Approved",
+              ActionTakenById: currentUserID,
+              ActionTakenOn: new Date(),
+              Remark: remarks,
             });
-          });
-         
-        } else {
-          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
-
-            Status: "Approved",
-            ActionTakenById: currentUserID,
-            ActionTakenOn: new Date(),
-            Remark: remarks,
-          });
-          setloading = false;
-          this.setState({ Loading: false }, () => {
-            Swal.fire({
-              title: "Approved Successfully.",
-              icon: "success"
-            }).then(() => {
-              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+            setloading = false;
+            this.setState({ Loading: false }, () => {
+              Swal.fire({
+                title: "Approved Successfully.",
+                icon: "success"
+              }).then(() => {
+                window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+              });
             });
-          });
-        }
 
-      }
-    });
+          } else {
+            sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
+
+              Status: "Approved",
+              ActionTakenById: currentUserID,
+              ActionTakenOn: new Date(),
+              Remark: remarks,
+            });
+            setloading = false;
+            this.setState({ Loading: false }, () => {
+              Swal.fire({
+                title: "Approved Successfully.",
+                icon: "success"
+              }).then(() => {
+                window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+              });
+            });
+          }
+
+        }
+      });
 
   }
   //Reject call
-  private rejectRequest = async(_editsubmitStatus: string)=> {
+  private rejectRequest = async (_editsubmitStatus: string) => {
     const { remarks } = this.state
     const { currentUserID, approvalItemId, context } = this.props
     const sp = spfi().using(SPFx(this.props.context));
@@ -1815,48 +2179,48 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       confirmButtonText: 'Yes',
       cancelButtonText: 'No'
     })
-    .then(async (val) => {
-    //.then(function (val) {
-      if (val.isConfirmed) {
-        setloading = true;
-          this.setState({ Loading: true});
-        if (approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
-          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
-            Status: "Rejected",
-            ActionTakenById: currentUserID,
-            ActionTakenOn: new Date(),
-            Remark: remarks,
-          });
-          setloading = false;
-          this.setState({ Loading: false }, () => {
-            Swal.fire({
-              title: "Rejected Successfully.",
-              icon: "success"
-            }).then(() => {
-              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+      .then(async (val) => {
+        //.then(function (val) {
+        if (val.isConfirmed) {
+          setloading = true;
+          this.setState({ Loading: true });
+          if (approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
+            sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
+              Status: "Rejected",
+              ActionTakenById: currentUserID,
+              ActionTakenOn: new Date(),
+              Remark: remarks,
             });
-          });
-        } else {
-          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
-            Status: "Rejected",
-            ActionTakenById: currentUserID,
-            ActionTakenOn: new Date(),
-            Remark: remarks,
-          });
-          setloading = false;
-          this.setState({ Loading: false }, () => {
-            Swal.fire({
-              title: "Rejected Successfully",
-              icon: "success"
-            }).then(() => {
-              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+            setloading = false;
+            this.setState({ Loading: false }, () => {
+              Swal.fire({
+                title: "Rejected Successfully.",
+                icon: "success"
+              }).then(() => {
+                window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+              });
             });
-          });
+          } else {
+            sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
+              Status: "Rejected",
+              ActionTakenById: currentUserID,
+              ActionTakenOn: new Date(),
+              Remark: remarks,
+            });
+            setloading = false;
+            this.setState({ Loading: false }, () => {
+              Swal.fire({
+                title: "Rejected Successfully",
+                icon: "success"
+              }).then(() => {
+                window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+              });
+            });
+
+          }
 
         }
-
-      }
-    });
+      });
 
   }
   private OpenFile = (obj: any, sts: string) => {
@@ -1888,7 +2252,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
   }
   //Rework Call
-  private reworkRequest = async(_editsubmitStatus: string)=> {
+  private reworkRequest = async (_editsubmitStatus: string) => {
     //Start Flow condition
     let currentUserRole = "";
     let firstInitiatorSubmitStatus = "";
@@ -1988,83 +2352,116 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       confirmButtonText: 'Yes',
       cancelButtonText: 'No'
     })
-    //.then(async function (val) {
+      //.then(async function (val) {
       .then(async (val) => {
-      if (val.isConfirmed) {
-        setloading = true;
-          this.setState({ Loading: true});
-        await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
-        if (approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
+        if (val.isConfirmed) {
+          setloading = true;
+          this.setState({ Loading: true });
+          await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
+          if (approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
 
-          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
-            Status: "Rework",
-            ActionTakenById: currentUserID,
-            ActionTakenOn: new Date(),
-            Remark: remarks,
-            IsRework: "Yes"
-          });
-          setloading = false;
-          this.setState({ Loading: false }, () => {
-            Swal.fire({
-              title: "Send for Rework.",
-              icon: "success"
-            }).then(() => {
-              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+            sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
+              Status: "Rework",
+              ActionTakenById: currentUserID,
+              ActionTakenOn: new Date(),
+              Remark: remarks,
+              IsRework: "Yes"
             });
-          });
-         
-        } else {
+            setloading = false;
+            this.setState({ Loading: false }, () => {
+              Swal.fire({
+                title: "Send for Rework.",
+                icon: "success"
+              }).then(() => {
+                window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+              });
+            });
 
-          sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
-            Status: "Rework",
-            ActionTakenById: currentUserID,
-            ActionTakenOn: new Date(),
-            Remark: remarks,
-            IsRework: "Yes"
-          });
-         
-          setloading = false;
-          this.setState({ Loading: false }, () => {
-            Swal.fire({
-              title: "Send for Rework.",
-              icon: "success"
-            }).then(() => {
-              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+          } else {
+
+            sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
+              Status: "Rework",
+              ActionTakenById: currentUserID,
+              ActionTakenOn: new Date(),
+              Remark: remarks,
+              IsRework: "Yes"
             });
-          });
-        
+
+            setloading = false;
+            this.setState({ Loading: false }, () => {
+              Swal.fire({
+                title: "Send for Rework.",
+                icon: "success"
+              }).then(() => {
+                window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+              });
+            });
+
+          }
+
+
         }
-
-
-      }
-    });
+      });
   }
+  private onChangenctype = (event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption): void => {
+    if (option) {
+      this.setState({
+        editncType: option.key as string,
+        editmemonumberOptions: option?.text == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs
+      });
+    }
+  };
+  private handleChangecheckbox = (value: any, field: string) => {
+    if (field == "IMSUpdated") {
+      this.setState((prevState) => ({
+        ...prevState,
+        isIMSUpdated: value
+      }))
+    } else {
+      this.setState((prevState) => ({
+        ...prevState,
+        riskandopportunitiesUpdated: value
+      }))
+    }
 
+  };
+  private handleChangecheckboxsingle = (field: string, event: any) => {
+    if (field == "correctionApplicable") {
+      this.setState({ correctionApplicable: event.target.checked });
+    }
+    if (field == "notEffective") {
+      this.setState({ notEffective: event.target.checked });
+    }
+    if (field == "effectiveClosed") {
+      this.setState({ effectiveClosed: event.target.checked });
+    }
 
+  }
   public render(): React.ReactElement<IAuditPlanProps> {
     const peoplePickerContext: IPeoplePickerContext = {
       absoluteUrl: this.props.context.pageContext.web.absoluteUrl,
       msGraphClientFactory: this.props.context.msGraphClientFactory,
       spHttpClient: this.props.context.spHttpClient
     };
-    document.querySelectorAll("#AssigntoPeoplepicker .ms-BasePicker-text").forEach((el) => {
-      el.classList.add(styles.peoplepickerstyle);
-    });
-    document.querySelectorAll("#approverpeoplepicker .ms-BasePicker-text").forEach((el) => {
-      el.classList.add(styles.peoplepickerstyle);
-    });
-    document.querySelectorAll("#reviewedBypeoplepicker .ms-BasePicker-text").forEach((el) => {
-      el.classList.add(styles.peoplepickerstyle);
-    });
-    document.querySelectorAll("#analyzedBypeoplepicker .ms-BasePicker-text").forEach((el) => {
-      el.classList.add(styles.peoplepickerstyle);
-    });
+    // document.querySelectorAll("#AssigntoPeoplepicker .ms-BasePicker-text").forEach((el) => {
+    //   el.classList.add(styles.peoplepickerstyle);
+    // });
+    // document.querySelectorAll("#approverpeoplepicker .ms-BasePicker-text").forEach((el) => {
+    //   el.classList.add(styles.peoplepickerstyle);
+    // });
+    // document.querySelectorAll("#reviewedBypeoplepicker .ms-BasePicker-text").forEach((el) => {
+    //   el.classList.add(styles.peoplepickerstyle);
+    // });
+    // document.querySelectorAll("#analyzedBypeoplepicker .ms-BasePicker-text").forEach((el) => {
+    //   el.classList.add(styles.peoplepickerstyle);
+    // });
 
     const selectedTextDiv = document.getElementById('selectedText');
     if (selectedTextDiv) {
       selectedTextDiv.style.display = 'none';
     }
     var approval = this.state.approvers.map((item: any, i: number) => {
+      console.log(this.state.approvers,"this.state.approvers")
       return (
         <tr key={i} className='tblCls'>
           {/* <td>
@@ -2077,7 +2474,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             >
               {i + 1}</div>
           </td>
-          <td title={this.state.approvers[i].Role || "select role"} style={{ overflow: 'inherit' }} className="ng-binding">
+          <td title={this.state.optionsRole.find(opt => opt.key === this.state.approvers[i].Role)?.text || "Select role"} style={{ overflow: 'inherit' }} className="ng-binding">
             <Dropdown disabled={this.state.forwarDisable} placeholder="Select options"
 
               selectedKey={this.state.approvers[i].Role}
@@ -2087,17 +2484,15 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 )}
               onChange={(e, itm: IDropdownOption) => this.onRoleChange(e, itm, i)}
               className={this.state.editErrors?.approvers ? 'dropdown-error' : ''}
-            // styles={{
-            //   title: {
-            //     backgroundColor: this.state.editErrors.approvers ? "#ffe6e6" : "white", // Light red when error
-            //   }
-            // }} 
             />
           </td>
           <td title={`Level ${(i + 1).toString()}` || "Level "} style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>
             <TextField value={`Level ${(i + 1).toString()}`} disabled={true}></TextField>
           </td>
-          <td title={this.state.approvers[i].appEx || "select approver"} style={{ overflow: 'inherit' }} id='approverpeoplepicker'>
+          <td title={this.state.approvers[i].appEx && this.state.approvers[i].appEx.length > 0
+            ? this.state.approvers[i].appEx.map((user: any) => user).join(', ')
+            : "Select approver"}
+            style={{ overflow: 'inherit' }} id='approverpeoplepicker'>
 
             <PeoplePicker
               context={peoplePickerContext}
@@ -2117,7 +2512,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               }}
             />
           </td>
-          <td title={this.state.approvers[i].Type || "select Type"} style={{ overflow: 'inherit' }} className="ng-binding">
+          <td title={optionsApp.find(opt => opt.key === this.state.approvers[i].Type)?.text || "Select Type"} style={{ overflow: 'inherit' }} className="ng-binding">
             <Dropdown disabled={this.state.forwarDisable} placeholder="Select options"
               selectedKey={this.state.approvers[i].Type || 'One'}
               options={optionsApp} onChange={(e, itm: IDropdownOption) => this.onTypeChange(e, itm, i)}
@@ -2185,6 +2580,57 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           {this.state.ShowDeleteicon &&
             <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
               <img src={require("../assets/del.png")} className='' onClick={() => this.toBeDeleted(i)}></img>
+            </td>
+          }
+        </tr>
+      )
+    });
+    var fileDataAuditee = this.state.copyFilauditee.map((item: any, i: number) => {
+      return (
+        <tr >
+          <td>{i + 1}</td>
+          <td>
+            {item.name}
+          </td>
+
+          <td>{new Date().toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+          }).replace(/ /g, "/")}</td>
+          <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
+            <img src={require("../assets/del.png")} className='' onClick={() => this.removeFilesAuditee(i)}></img>
+          </td>
+          {/* <td>
+            <button type="button" onClick={(e) => this.removeFiles(i)}>Delete</button>
+          </td> */}
+        </tr>
+      )
+    });
+    var upFilesauditee = this.state.exFilesauditee.map((item: any, i: number) => {
+      return (
+        <tr >
+          <td style={{ minWidth: '50px', maxWidth: '50px' }}>
+            {i + 1}
+          </td>
+          <td title={item.Name}>
+            {item.Name}
+          </td>
+
+          <td style={{ textAlign: 'center' }}>
+            <span onClick={() => this.OpenFile(item && item, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+              <FontAwesomeIcon icon={faEye} /></span>
+            <span onClick={() => this.OpenFile(item && item, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+              <FontAwesomeIcon icon={faDownload} /></span>
+
+            {/* {<a href={item.Path} target="_blank">Link</a>} */}
+          </td>
+          <td title={moment(new Date(item.Uploaded)).format("DD/MMM/YYYY")} style={{ minWidth: '100px' }} className="text-center">
+            {moment(new Date(item.Uploaded)).format("DD/MMM/YYYY")}
+          </td>
+          {this.state.ShowDeleteicon &&
+            <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
+              <img src={require("../assets/del.png")} className='' onClick={() => this.toBeDeletedauditee(i)}></img>
             </td>
           }
         </tr>
@@ -2279,6 +2725,25 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                   </div>
 
                   <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
+
+                    <div className="form-group col-md-4">
+                      <TooltipHost
+                        content={this.state.editncType || ""}
+                        calloutProps={{ gapSpace: 0 }}
+                        styles={{ root: { display: 'inline-block', width: '100%' } }}
+                      >
+                        <Dropdown
+                          required
+                          placeholder="Type"
+                          label="Type:"
+                          disabled={this.state.isDisabled}
+                          options={this.state.edittypeoptions}
+                          selectedKey={this.state.editncType}
+                          onChange={this.onChangenctype}
+                          className={this.state.editErrors?.editnctype ? 'dropdown-error' : ''}
+                        />
+                      </TooltipHost>
+                    </div>
                     <div className="form-group col-md-4">
                       <TooltipHost
                         content={this.state.editmemonumberOptions.filter((item: any) => item.key == this.state.editApprovedAuditReport)[0]?.text || ""}
@@ -2288,8 +2753,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                         <Dropdown
                           disabled={this.state.isDisabled}
                           required
-                          placeholder="Approved Audit Report/Memo Number"
-                          label="Approved Audit Report/Memo Number:"
+                          placeholder="Approved Report Code"
+                          label="Approved Report Code:"
                           options={this.state.editmemonumberOptions}
                           defaultSelectedKey={this.state.editApprovedAuditReport}
                           selectedKey={this.state.editApprovedAuditReport}
@@ -2308,8 +2773,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                         <Dropdown
                           disabled={this.state.isDisabled}
                           required
-                          placeholder="NCR Number"
-                          label="NCR Number:"
+                          placeholder="NC/Observation Number"
+                          label="NC/Observation Number:"
                           options={this.state.editNCNumberOptions}
                           defaultSelectedKey={this.state.editNCNumberID}
                           selectedKey={this.state.editNCNumberID}
@@ -2329,6 +2794,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       />
                     </TooltipHost>
                   </div> */}
+
+                  </div>
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                     <div className="form-group col-md-4">
                       <TooltipHost
                         content={this.state.editDocumentCode}
@@ -2340,9 +2808,6 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                         />
                       </TooltipHost>
                     </div>
-                  </div>
-                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
-
                     <div className="form-group col-md-4">
                       <TooltipHost
                         content={this.state.editIssueNo}
@@ -2364,6 +2829,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
                         /></TooltipHost>
                     </div>
+
+                  </div>
+
+                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                     <div className="form-group col-md-4">
                       <TooltipHost
                         content={this.state.editDepartmentOption.filter((item: any) => item.key == this.state.editDepartment)[0]?.text || ""}
@@ -2379,22 +2848,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                           selectedKey={this.state.editDepartment}
                           onChange={this.changeDepartment}
                           className={this.state.editErrors?.editdepartment ? 'dropdown-error' : ''}
-                        // styles={{
-                        //   title: {
-                        //     backgroundColor: this.state.editErrors.editDepartment
-                        //       ? "#ffcccb"
-                        //       : this.state.isDisabled
-                        //         ? "#f3f2f1!important"
-                        //         : "white", // Light red when error
-                        //   }
-                        // }}
+
                         />
                       </TooltipHost>
                     </div>
-                  </div>
-
-                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
-
                     <div className="form-group col-md-4">
                       <TooltipHost
                         content={this.state.editCriteria}
@@ -2474,7 +2931,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       >
                         <PeoplePicker
                           context={peoplePickerContext}
-                          titleText="Assigned To:"
+                          titleText="Auditee:"
                           personSelectionLimit={1}
                           required={true}
                           groupName={""} // Leave this blank in case you want to filter from all users
@@ -2566,18 +3023,15 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       >
                         <TextField label="Problem Description:"
                           required
-                          name='editProblemDescription'
+                          name='problemDescription'
                           value={this.state.editProblemDescription}
                           multiline rows={5}
-                          onChange={this.handleChange}
+                          onChange={this.handleChangeobsdescription}
                           disabled={this.state.isDisabled}
+                          //errorMessage={this.state.errors.problemDescription}
                           className={this.state.editErrors?.editProblemDescription ? 'textfield-error' : ''}
-                        // styles={{
-                        //   fieldGroup: {
-                        //     backgroundColor: this.state.editErrors.editProblemDescription ? "#ffcccb" : "white", // Red tint for errors
-                        //   }
-                        // }}
-                        />
+                        ></TextField>
+
                       </TooltipHost>
                     </div>
                   </div>
@@ -2586,7 +3040,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               </fieldset>
             </section>
           }
-          {this.state.editSubmitStatus == "Yes" && (!this.state.Loading || !setloading )? //this.state.editFirstInitiatorSubmitStatus == "Yes" || this.state.editFirstAssignedToSubmitStatus == "Yes" ?
+          {this.state.editSubmitStatus == "Yes" && (!this.state.Loading || !setloading) ? //this.state.editFirstInitiatorSubmitStatus == "Yes" || this.state.editFirstAssignedToSubmitStatus == "Yes" ?
             <section className='card card-body mt-2' >
               <fieldset>
                 <form>
@@ -2600,7 +3054,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                         context={peoplePickerContext}
                         //disabled={this.state.showDelegate}
                         disabled={true}
-                        titleText="Person Assigned:"
+                        titleText="Auditee:"
                         personSelectionLimit={1}
                         required={true}
                         onChange={this._handlePeoplePickerChange("editPersonAssigned", "editPersonAssignedId")}
@@ -2779,6 +3233,50 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                         />
                       </TooltipHost>
                     </div>
+                    <div style={{ position: 'relative' }} className="col-lg-4 mt-1">
+                      <label htmlFor="Attchments" style={{ marginRight: "10px" }}>Auditee Attachments </label>
+
+                      <input
+                        disabled={this.state.deptSectionDisable}
+                        className="form-control"
+                        type="file" name="myFile" onChange={(e) => this.handleAuditeeFileChange(e, this)} id="newfile" multiple
+                      //className={`form-control ${this.state.errors?.Attachments} ? 'textfield-error' : ''`}
+                      />
+                      {this.state.fileCountauditee > 0 ?
+                        (<span style={{ fontSize: '0.875rem' }} onClick={this._OpenModalauditee} className='newpo'>
+                          <FontAwesomeIcon icon={faPaperclip} /> {this.state.fileCountauditee} {this.state.fileCountauditee > 0 ? "files" : "file"} Attached
+                        </span>) : ""
+                      }
+                      {this.state.showDialogauditee && (
+                        <div id="myModal" className={styles.modal}>
+                          <div className={styles.modalcontent}>
+                            {/* Close button */}
+                            <span className={styles.close} onClick={() => this._CloseModalauditee()}>&times;</span>
+
+                            {/* Modal title and subtitle */}
+                            <h4 className="font-16 text-dark fw-bold mb-1">Attachment Details</h4>
+                            <p className="text-muted font-14 mb-3 fw-400">Below are the attachment details for Non Conformity</p>
+
+                            {/* Table */}
+                            <table className={styles.mtbalenew}>
+                              <thead>
+                                <tr>
+                                  <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                                  <th>File Name</th>
+                                  {/* <th>File Link</th> */}
+                                  <th style={{ minWidth: '100px' }} className="text-center">Upload Date</th>
+                                  <th className="text-center">Action</th>
+                                </tr>
+                              </thead>
+                              <tbody >
+                                {upFilesauditee}
+                                {fileDataAuditee}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                     <div className="form-group col-md-12"><h3 style={{ textAlign: 'left' }} className='text-dark text-left font-16 fw-bold mb-0'>Problem Close Out Details</h3></div>
@@ -2806,12 +3304,119 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       </TooltipHost>
                     </div>
                   </div>
+                  {(showimsupdated && isdisableims) &&
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', marginTop: '1rem' }}>
+
+                      {/* IMS Updated */}
+                      <div style={{ flex: 1 }}>
+                        <div style={{ marginBottom: '0.3rem' }}>
+                          <strong>IMS Updated</strong>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                          <label style={{ display: 'flex', alignItems: 'center' }}>
+                            <input
+                              disabled={isdisableims}
+                              type="checkbox"
+                              checked={this.state.isIMSUpdated === 'Yes'}
+                              onChange={() => this.handleChangecheckbox('Yes', "IMSUpdated")}
+                              style={{ marginRight: '0.4rem' }}
+                            />
+                            Yes
+                          </label>
+
+                          <label style={{ display: 'flex', alignItems: 'center' }}>
+                            <input
+                              disabled={isdisableims}
+                              type="checkbox"
+                              checked={this.state.isIMSUpdated === 'No'}
+                              onChange={() => this.handleChangecheckbox('No', "IMSUpdated")}
+                              style={{ marginRight: '0.4rem' }}
+                            />
+                            No
+                          </label>
+                        </div>
+                      </div>
+                      {/* Risk & Opportunities Updated */}
+                      <div style={{ flex: 1 }}>
+                        <div style={{ marginBottom: '0.3rem' }}><strong>Risk & Opportunities Updated:</strong></div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                          <label style={{ display: 'flex', alignItems: 'center' }}>
+                            <input
+                              disabled={isdisableims}
+                              type="checkbox"
+                              checked={this.state.riskandopportunitiesUpdated === 'Yes'}
+                              onChange={() => this.handleChangecheckbox('Yes', "RiskOpportunities")}
+                              style={{ marginRight: '0.4rem' }}
+                            />
+                            Yes
+                          </label>
+
+                          <label style={{ display: 'flex', alignItems: 'center' }}>
+                            <input
+                              disabled={isdisableims}
+                              type="checkbox"
+                              checked={this.state.riskandopportunitiesUpdated === 'No'}
+                              onChange={() => this.handleChangecheckbox('No', "RiskOpportunities")}
+                              style={{ marginRight: '0.4rem' }}
+                            />
+                            No
+                          </label>
+                        </div>
+                      </div>
+
+                    </div>
+                  }
+                  {console.log("isFinalApprover", this.state.IsFinalapprover, IsAnalyzedBy, isdisablefinal)}
+                  {showcorrectionappicable && isdisablefinal &&
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginTop: '0.5rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
+                        <input
+                          disabled={isdisablefinal}
+                          type="checkbox"
+                          checked={this.state.correctionApplicable}
+                          onChange={(e) =>
+                            this.handleChangecheckboxsingle("correctionApplicable", e)
+                          }
+                          style={{ marginRight: '0.3rem' }}
+                        />
+                        Correction Applicable
+                      </label>
+
+                      <label style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
+                        <input
+                          disabled={isdisablefinal}
+                          type="checkbox"
+                          checked={this.state.notEffective}
+                          onChange={(e) =>
+                            this.handleChangecheckboxsingle("notEffective", e)
+                          }
+                          style={{ marginRight: '0.3rem' }}
+                        />
+                        Not Effective
+                      </label>
+
+                      <label style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
+                        <input
+                          disabled={isdisablefinal}
+                          type="checkbox"
+                          checked={this.state.effectiveClosed}
+                          onChange={(e) =>
+                            this.handleChangecheckboxsingle("effectiveClosed", e)
+                          }
+                          style={{ marginRight: '0.3rem' }}
+                        />
+                        Effective & Problem Closed
+                      </label>
+                    </div>
+
+                  }
                   {/* Approve/Rework */}
                 </form>
               </fieldset>
             </section> : null}
           {/* Approval Table */}
-          {(this.state.editReviewedBySubmitStatus == "Yes" && this.state.editDelegateToId == null &&  (!this.state.Loading || !setloading )) || (this.state.editLastAssignedToSubmitStatus == "Yes" && this.state.editDelegateToId != null &&  (!this.state.Loading || !setloading )) ?
+          {(this.state.editReviewedBySubmitStatus == "Yes" && this.state.editDelegateToId == null && (!this.state.Loading || !setloading)) || (this.state.editLastAssignedToSubmitStatus == "Yes" && this.state.editDelegateToId != null && (!this.state.Loading || !setloading)) ?
             (<section className={styles.sec}>
               <fieldset disabled={this.state.forwarDisable}>
                 <form>
@@ -2850,14 +3455,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                             </tr>
                           </thead>
                           <tbody>
-                            {/* <tr>
-                          <td>SI No.</td>
-                          <td>Role</td>
-                          <td>Approver Level</td>
-                          <td>Approver Name</td>
-                          <td>Approval Type</td>
-                          <td>Delete</td>
-                        </tr> */}
+                   
                             {approval}
                           </tbody>
                         </table>
@@ -2868,21 +3466,127 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               </fieldset>
             </section>) : null}
 
-          {(this.state.showApprove === true || this.state.showReject === true) &&  (!this.state.Loading || !setloading ) ?
+          {(this.state.showApprove === true || this.state.showReject === true || (showimsupdated && !isdisableims) || (showcorrectionappicable && !isdisablefinal)) && (!this.state.Loading || !setloading) ?
             <section style={{ justifyContent: 'left', textAlign: 'left' }} id="approvalSection" className='card card-body'>
+
               <TextField label="Remarks" required name="remarks" value={this.state.remarks} multiline rows={3} onChange={this.handleChange}
 
                 className={this.state.editErrors?.remarks ? 'textfield-error' : ''}// styles={{
-              //   fieldGroup: {
-              //     backgroundColor: this.state.editErrors.remarks ? "#ffcccb" : "white", // Red tint for errors
-              //   }
-              // }} 
               />
+             
+              {(showimsupdated && !isdisableims) &&
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', marginTop: '1rem' }}>
+
+                  {/* IMS Updated */}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ marginBottom: '0.3rem' }}>
+                      <strong>IMS Updated</strong>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center' }}>
+                        <input
+                          disabled={isdisableims}
+                          type="checkbox"
+                          checked={this.state.isIMSUpdated === 'Yes'}
+                          onChange={() => this.handleChangecheckbox('Yes', "IMSUpdated")}
+                          style={{ marginRight: '0.4rem' }}
+                        />
+                        Yes
+                      </label>
+
+                      <label style={{ display: 'flex', alignItems: 'center' }}>
+                        <input
+                          disabled={isdisableims}
+                          type="checkbox"
+                          checked={this.state.isIMSUpdated === 'No'}
+                          onChange={() => this.handleChangecheckbox('No', "IMSUpdated")}
+                          style={{ marginRight: '0.4rem' }}
+                        />
+                        No
+                      </label>
+                    </div>
+                  </div>
+                  {/* Risk & Opportunities Updated */}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ marginBottom: '0.3rem' }}><strong>Risk & Opportunities Updated:</strong></div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center' }}>
+                        <input
+                          disabled={isdisableims}
+                          type="checkbox"
+                          checked={this.state.riskandopportunitiesUpdated === 'Yes'}
+                          onChange={() => this.handleChangecheckbox('Yes', "RiskOpportunities")}
+                          style={{ marginRight: '0.4rem' }}
+                        />
+                        Yes
+                      </label>
+
+                      <label style={{ display: 'flex', alignItems: 'center' }}>
+                        <input
+                          disabled={isdisableims}
+                          type="checkbox"
+                          checked={this.state.riskandopportunitiesUpdated === 'No'}
+                          onChange={() => this.handleChangecheckbox('No', "RiskOpportunities")}
+                          style={{ marginRight: '0.4rem' }}
+                        />
+                        No
+                      </label>
+                    </div>
+                  </div>
+
+                </div>
+              }
+              {console.log("isFinalApprover", this.state.IsFinalapprover, IsAnalyzedBy, isdisablefinal)}
+              {showcorrectionappicable && !isdisablefinal &&
+               <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginTop: '0.5rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
+                    <input
+                      disabled={isdisablefinal}
+                      type="checkbox"
+                      checked={this.state.correctionApplicable}
+                      onChange={(e) =>
+                        this.handleChangecheckboxsingle("correctionApplicable", e)
+                      }
+                      style={{ marginRight: '0.3rem' }}
+                    />
+                    Correction Applicable
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
+                    <input
+                      disabled={isdisablefinal}
+                      type="checkbox"
+                      checked={this.state.notEffective}
+                      onChange={(e) =>
+                        this.handleChangecheckboxsingle("notEffective", e)
+                      }
+                      style={{ marginRight: '0.3rem' }}
+                    />
+                    Not Effective
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
+                    <input
+                      disabled={isdisablefinal}
+                      type="checkbox"
+                      checked={this.state.effectiveClosed}
+                      onChange={(e) =>
+                        this.handleChangecheckboxsingle("effectiveClosed", e)
+                      }
+                      style={{ marginRight: '0.3rem' }}
+                    />
+                    Effective & Problem Closed
+                  </label>
+                </div>
+
+              }
+
             </section> : null
           }
           {/* Vishnu Changes  */}
-          {console.log("this.state.showSubmit ", this.state.showSubmit, this.state.showDraft, "show spprove", this.state.showApprove)}
-          {this.state.showSubmit &&  (!this.state.Loading || !setloading ) && ((this.state.editSubmitStatus == "No" && RequesterEmail == CurrentuserEmail) ||
+         
+          {this.state.showSubmit && (!this.state.Loading || !setloading) && ((this.state.editSubmitStatus == "No" && RequesterEmail == CurrentuserEmail) ||
             (this.state.editSubmitStatus == "Yes" && this.state.editAssignToEmail == CurrentuserEmail)) &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
@@ -2899,7 +3603,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             </div>
           }
           {console.log("ApproverEmailApproverEmail", ApproverEmail, CurrentuserEmail)}
-          {this.state.showApprove &&  (!this.state.Loading || !setloading ) && ApproverEmail == CurrentuserEmail &&
+          {this.state.showApprove && (!this.state.Loading || !setloading) && ApproverEmail == CurrentuserEmail &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
               <PrimaryButton text="Approve" onClick={() => this._approveRequest("Approve")} />
@@ -2913,7 +3617,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             </div>
           }
           {console.log("ApproverEmailforward", ApproverEmail, CurrentuserEmail)}
-          {this.state.showForward && RequesterEmail == CurrentuserEmail &&  (!this.state.Loading || !setloading ) &&
+          {this.state.showForward && RequesterEmail == CurrentuserEmail && (!this.state.Loading || !setloading) &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
               <PrimaryButton text="Forward" onClick={() => this.handleForward("Forward")} />
@@ -2924,7 +3628,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             </div>
           }
           {console.log("Approverreject", ApproverEmail, CurrentuserEmail)}
-          {this.state.showReject && ApproverEmail == CurrentuserEmail &&  (!this.state.Loading || !setloading ) &&
+          {this.state.showReject && ApproverEmail == CurrentuserEmail && (!this.state.Loading || !setloading) &&
 
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
@@ -2938,7 +3642,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
             </div>
           }
-          {this.state.edType === "view" &&  (!this.state.Loading || !setloading ) &&
+          {this.state.edType === "view" && (!this.state.Loading || !setloading) &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
               <DefaultButton text="Cancel" onClick={() => this.cancelRequest("Edcmain")} />
@@ -2946,7 +3650,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             </div>
           }
 
-          {this.state.editSubmitStatus == "Yes" ?
+          {this.state.editSubmitStatus == "Yes" && (!this.state.Loading || !setloading) ?
             <section className='card card-body mt-2'>
               <form>
                 <div

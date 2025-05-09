@@ -399,7 +399,8 @@ const FormContext = ({ props }: any) => {
     const userProfile = await sp.profiles.myProperties();
     setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
     const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
-    setselectUserDept(setAllDept1.filter((user: any) => user.label === UserDept));
+    // setselectUserDept(setAllDept1.filter((user: any) => user.label === UserDept));
+    setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept));
     var allAuditTypes = await getAuditTypes(sp);
     setauditTypes(allAuditTypes);
     const recommendationTypes = await getRecommendationTypes(sp);
@@ -429,7 +430,8 @@ const FormContext = ({ props }: any) => {
         }
       }
 
-      const onloadDeptId = setAllDept1.filter((user: any) => user.label === UserDept)[0]?.value || 0;
+      // const onloadDeptId = setAllDept1.filter((user: any) => user.label === UserDept)[0]?.value || 0;
+      const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0;
 
       const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).top(1)();
       if (listItems.length > 0) {
@@ -459,8 +461,12 @@ const FormContext = ({ props }: any) => {
         MemoListId: memoId,
         memoSerialNo: memo,
         deptId: onloadDeptId,
-        memoNo: setAllDept1.filter((user: any) => user.label === UserDept)[0]
-          ? `${setAllDept1.filter((user: any) => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        // memoNo: setAllDept1.filter((user: any) => user.label === UserDept)[0]
+        //   ? `${setAllDept1.filter((user: any) => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        //   : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+
+        memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]
+          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
           : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
       }));
 
