@@ -179,7 +179,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       MainComponentURl: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/EDCMAIN.aspx`,
     },
     {
-      ChildComponent: "Non Conformity \ Observation",
+      ChildComponent: "Non Conformity" + " / " + "Observation",
       ChildComponentURl: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/EDCMAIN.aspx#/NonConformity`,
     },
   ];

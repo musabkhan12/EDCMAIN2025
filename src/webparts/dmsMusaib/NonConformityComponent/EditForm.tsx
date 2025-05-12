@@ -435,7 +435,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       MainComponentURl: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/EDCMAIN.aspx`,
     },
     {
-      ChildComponent: "Non Conformity / Observation",
+      ChildComponent: "Non Conformity"+ " / " + "Observation",
       ChildComponentURl: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/EDCMAIN.aspx#/NonConformity`,
     },
   ];
