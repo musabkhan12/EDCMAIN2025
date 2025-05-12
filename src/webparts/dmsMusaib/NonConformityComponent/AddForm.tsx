@@ -179,7 +179,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       MainComponentURl: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/EDCMAIN.aspx`,
     },
     {
-      ChildComponent: "Non Conformity",
+      ChildComponent: "Non Conformity \ Observation",
       ChildComponentURl: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/EDCMAIN.aspx#/NonConformity`,
     },
   ];
@@ -240,18 +240,26 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
   public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: any): Promise<void> => {
     const sp = spfi().using(SPFx(this.props.context));
     const nctypenew: string = this.state.ncType === "NC" ? "NC Number" : "Observation Number";
-    let optionsNCNumber:any =[];
+    let optionsNCNumber: any = [];
     const NCNumberoptionnew = await getNCNumbers(sp, item.text, nctypenew);
-    if (NCNumberoptionnew.length > 0 ){
-       optionsNCNumber = NCNumberoptionnew[0].map((entry: any) => ({
-        key: entry.ID,
-        text: entry.NCNumber,
-        ncNo: entry.NCNumber,
-        reportcode: entry.ReportCode,
-        nctype: entry.NCType
-      }));
+    let existingrecords = await this.getNCdata(item.text);
+    if (Array.isArray(NCNumberoptionnew) && NCNumberoptionnew.length > 0) {
+      // Safely extract existing NCNumbers, even if the array is empty
+      const existingNCNumbersSet =  new Set(
+        (Array.isArray(existingrecords) ? existingrecords[0] : []).map((rec: any) => rec.NCNumber)
+      );
+
+      // Filter out NCNumbers already in existingrecords
+      optionsNCNumber = NCNumberoptionnew[0]
+        .filter((entry: any) => !existingNCNumbersSet.has(entry.NCNumber))
+        .map((entry: any) => ({
+          key: entry.ID,
+          text: entry.NCNumber,
+          ncNo: entry.NCNumber,
+          reportcode: entry.ReportCode,
+          nctype: entry.NCType
+        }));
     }
-    
 
     const uniqueOptions = await this.getUniqueBy(optionsNCNumber, "ncNo");
 
@@ -340,7 +348,30 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     await this.getnctypeoptions();
 
   }
+  public async getNCdata(reportcode: string) {
+    const sp = spfi().using(SPFx(this.props.context));
+    let arr: any[] = []
+    let arrs = []
+    let bannerimg = []
+    const currentUser = await sp.web.currentUser();
+    await sp.web.lists.getByTitle("NonConformityList").items
+      .select("*")
+      .expand("")
+      .filter(`ApprovedAuditReportMemoNumber eq '${reportcode}'`)
+      .orderBy("Modified", false)
+      ()
+      .then((res: any) => {
+        console.log(res, 'Memonumbers from audit report');
 
+        arr.push(res)
+        // arr = res;
+      })
+      .catch((error: any) => {
+        console.log("Error fetching data: ", error);
+      });
+    console.log(arr, 'arr');
+    return arr;
+  }
   public async getchangerequestdetails() {
     const sp = spfi().using(SPFx(this.props.context));
     let ChangeRequestTemplateType = await getLatestChangeRequestTemplateType(sp, CONTENTTYPE_NonComformity);
@@ -554,8 +585,10 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       //const Currusers: any = await this.getCurrentUser(sp, this.state.siteurl);
       const userProfile = await sp.profiles.myProperties();
       const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
-      const selectedOption = options.find(user => user.text === UserDept);
-      this.setState({ department: selectedOption?.key });
+      let currentuserdepartment = UserDept == "IT" ? "Information Technology" : UserDept;
+      const selectedOption = options.find(user => user.text === currentuserdepartment);
+      this.setState({ department: selectedOption?.key, departmentCode: selectedOption?.data.departmentCode });
+      //this.setState({ department: selectedOption?.key });
       await this.getCategory();
     } catch (e) {
       console.error(e);
@@ -752,7 +785,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     //   });
     // }
     if (!this.state.problemDescription) {
-      errors.problemDescription = "Problem Description is required";
+      errors.problemDescription = "NC/Observation Description is required";
       isValid = false;
     }
 
@@ -774,11 +807,11 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     }
     if (!this.state.ApprovedAuditReport) {
       errors.approvedauditreport = "Approved Report code is required";
-     
+
     }
     if (!this.state.NCNumber) {
       errors.ncnumber = "NC/Observation number is required";
-      
+
     }
     if (!this.state.department) {
       errors.department = "Department is required";
@@ -947,7 +980,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
         this.setState({ Loading: true });
         await sp.web.lists.getByTitle("NonConformityList").items.add({
           NCNumber: this.state.NCNumber,
-          NCType:this.state.ncType,
+          NCType: this.state.ncType,
           NCNumberID: Number(this.state.NCNumberID),
           ApprovedAuditReportId: this.state.ApprovedAuditReport || null,
           ApprovedAuditReportMemoNumber: this.state.MemoNumber,
@@ -1092,7 +1125,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
             <form>
               {/* Section 1 */}
               <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row">
-                <div className="form-group col-md-12"><h3 className='text-dark font-16 text-left fw-bold mb-3'>Problem Details</h3></div>
+                <div className="form-group col-md-12"><h3 className='text-dark font-16 text-left fw-bold mb-3'>Non Conformity / Observation Details</h3></div>
               </div>
               <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                 {console.log("this.state.typeoptions", this.state.typeoptions)}
@@ -1104,8 +1137,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                   >
                     <Dropdown
                       required
-                      placeholder="Type"
-                      label="Type:"
+                      placeholder="Category"
+                      label="Category:"
                       options={this.state.typeoptions}
                       selectedKey={this.state.ncType}
                       onChange={this.onChangenctype}
@@ -1362,7 +1395,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
 
                         {/* Modal title and subtitle */}
                         <h4 className="font-16 text-dark fw-bold mb-1">Attachment Details</h4>
-                        <p className="text-muted font-14 mb-3 fw-400">Below are the attachment details for Non Conformity</p>
+                        <p className="text-muted font-14 mb-3 fw-400">Below are the attachment details for Non Conformity \ Observation</p>
 
                         {/* Table */}
                         <table className={styles.mtbalenew}>

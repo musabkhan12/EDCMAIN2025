@@ -6675,7 +6675,7 @@ const ArgPoc = ({ props }: any) => {
   //     // };
   //     // const FolderUID :any = folderDetails.uniqueId
   //     // console.log(folderDetails.uniqueId , "folderDetails.uniqueId ")
-  //     // console.log(`https://officeindia.sharepoint.com/${currentfolderpath}` , "path")
+  //     // console.log(`https://edcadae.sharepoint.com/${currentfolderpath}` , "path")
   //     const site = await sp.site.getContextInfo()
   //     console.log(site , "site")
   //     const site2 = await sp.site.getRootWeb()
@@ -6690,8 +6690,8 @@ const ArgPoc = ({ props }: any) => {
   //             const searchQuery = {
   //                   // Querytext: `"${searchText}"`, 
 
-  //                   Querytext:`${searchText} AND (siteId:${currentsiteID2}) AND (webId:${currentsiteID}) AND (ListId:${FolderUID}) AND (path:"https://officeindia.sharepoint.com/${currentfolderpath}" OR ParentLink:"https://officeindia.sharepoint.com/${currentfolderpath}*")`, 
-  //                 // Querytext:`"${searchText}" AND ParentLink:"https://officeindia.sharepoint.com${currentfolderpath}"`,
+  //                   Querytext:`${searchText} AND (siteId:${currentsiteID2}) AND (webId:${currentsiteID}) AND (ListId:${FolderUID}) AND (path:"https://edcadae.sharepoint.com/${currentfolderpath}" OR ParentLink:"https://edcadae.sharepoint.com/${currentfolderpath}*")`, 
+  //                 // Querytext:`"${searchText}" AND ParentLink:"https://edcadae.sharepoint.com${currentfolderpath}"`,
   //                 RowLimit: 500,
   //                 SelectProperties: ["Title", "Path", "FileExtension", "UniqueId", "Size", "Created", "Modified"],  // Additional file properties
   //                 // Refiners: 'FileExtension',
@@ -7041,7 +7041,7 @@ const ArgPoc = ({ props }: any) => {
       try {
         console.log(currentfolderpath, "currentfolderpath")
         // const searchQuery = {
-        //   Querytext: `${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
+        //   Querytext: `${searchText} AND Path:"https://edcadae.sharepoint.com${currentfolderpath}"`,
         //   // Querytext: `"${searchText}"`,
         //   RowLimit: 500,
         //   SelectProperties: ["Title", "Path", "FileExtension", "UniqueId", "Size", "Created", "Modified"],
@@ -7210,7 +7210,7 @@ const ArgPoc = ({ props }: any) => {
   //     try {
   //       console.log(currentfolderpath, "currentfolderpath")
   //         const searchQuery = {
-  //              Querytext:`${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
+  //              Querytext:`${searchText} AND Path:"https://edcadae.sharepoint.com${currentfolderpath}"`,
   //             // Querytext: `"${searchText}"`,
   //             RowLimit: 500,
   //             SelectProperties: ["Title", "Path", "FileExtension", "UniqueId", "Size", "Created", "Modified"], 
@@ -12037,7 +12037,7 @@ const ArgPoc = ({ props }: any) => {
           const encodedFilePath = encodeURIComponent(file.ServerRelativeUrl);
           const parentFolder = file.ServerRelativeUrl.substring(0, file.ServerRelativeUrl.lastIndexOf('/'));
           const siteUrl = window.location.origin;
-          // const previewUrl = `${siteUrl}/sites/edcspfx/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+          // const previewUrl = `${siteUrl}/sites/EDeDMS/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
           const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
            console.log("previewUrl", previewUrl);
 
@@ -13147,7 +13147,7 @@ const ArgPoc = ({ props }: any) => {
       const siteUrl = window.location.origin;
       console.log(siteUrl, "siteUrl");
       const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
-      // const previewUrl = `${siteUrl}/sites/edcspfx/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
+      // const previewUrl = `${siteUrl}/sites/EDeDMS/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
        preURL = previewUrl;
     }
     console.log("filePath", filePath);
@@ -13781,45 +13781,263 @@ const ArgPoc = ({ props }: any) => {
   }
   // show the audit history popup
   // @ts-ignore
+  // window.auditHistory = async (fileId: string, siteId: string, DocumentLibraryName: string, SiteName: String) => {
+  //   console.log("Audit History called", fileId, siteId);
+  //   console.log("Audit History called", SiteName);
+  //   console.log("Audit History called", DocumentLibraryName);
+
+
+  //   const { web } = await sp.site.openWebById(siteId)
+
+  //   // Get the list item  corresponding to the file
+  //   const fileItem: any = await web.getFileById(fileId).expand("ListItemAllFields")();
+  //   console.log("fileItem", fileItem.ListItemAllFields.Status);
+
+  //   // fetched the columns details corresponding to the file 
+  //   const fileColumns = await sp.web.lists.getByTitle("DMSPreviewFormMaster").items.select("ColumnName", "SiteName", "DocumentLibraryName", "IsRename").filter(`SiteName eq '${SiteName}' and DocumentLibraryName eq '${DocumentLibraryName}' and IsDocumentLibrary ne 1`)();
+  //   console.log("fileColumns", fileColumns);
+
+  //   // Create an array of objects to store the columnName with there corresponding value
+  //   const resultArrayThatContainstheColumnDetails = fileColumns.map((column) => {
+
+  //     let columnName = column.ColumnName;
+  //     const columnValue = fileItem.ListItemAllFields[columnName];
+  //     if (column.IsRename !== null) {
+  //       columnName = column.IsRename
+  //     }
+
+  //     return {
+  //       label: columnName,
+  //       value: columnValue !== undefined ? columnValue : null // Handle missing fields
+  //     };
+  //   });
+
+  //   const objectForStatus = {
+  //     label: "Status",
+  //     value: fileItem.ListItemAllFields.Status || ""
+  //   }
+
+  //   resultArrayThatContainstheColumnDetails.push(objectForStatus);
+  //   console.log("result", resultArrayThatContainstheColumnDetails);
+
+  //   // get the details of approver
+  //   const itemsFromTaskList = await sp.web.lists.getByTitle('DMSFileApprovalTaskList').items.select(
+  //     "Log", "CurrentUser", "Remark"
+  //     , "LogHistory", "ID"
+  //     , "FileUID/FileUID"
+  //     , "FileUID/SiteName"
+  //     , "FileUID/DocumentLibraryName"
+  //     , "FileUID/FileName"
+  //     , "FileUID/Status"
+  //     , "FileUID/RequestedBy"
+  //     , "FileUID/Created"
+  //     , "FileUID/ApproveAction"
+  //     , "MasterApproval/ApprovalType"
+  //     , "MasterApproval/Level"
+  //     , "MasterApproval/DocumentLibraryName"
+  //     , "Modified"
+  //   )
+  //     .expand("FileUID", "MasterApproval")
+  //     .filter(`FileUID/FileUID eq '${fileId}'`)
+  //     .orderBy("Modified", false)();
+
+  //   console.log("itemsFromTaskList", itemsFromTaskList);
+
+
+  //   // Mapping to the desired format
+  //   const approverDetailsArray = itemsFromTaskList.map(task => ({
+  //     level: `Level ${task.MasterApproval.Level}`,
+  //     approver: task.CurrentUser,
+  //     actionDateTime: task.Modified,
+  //     status: task.Log || "",
+  //     remark: task.Remark || ""
+  //   }));
+
+  //   console.log("approverDetailsArray", approverDetailsArray);
+
+  //   // Generate the dynamic HTML for the detail rows
+  //   let detailRowsHTML = "";
+  //   resultArrayThatContainstheColumnDetails.forEach((item, index) => {
+  //     // Start a new row every 3rd item (when index is 0, 3, 6, ...)
+  //     if (index % 3 === 0) {
+  //       detailRowsHTML += '<div class="detail-row">';
+  //     }
+
+  //     // Add each detail column
+  //     detailRowsHTML += `
+  //     <div class="detail-column">
+  //       <div class="detail-label">${item.label}:</div>
+  //       <div class="detail-value">${item.value}</div>
+  //     </div>
+  //   `;
+
+  //     // Close the row after 3 items (when index is 2, 5, 8, ...)
+  //     if ((index + 1) % 3 === 0) {
+  //       detailRowsHTML += '</div>';
+  //     }
+  //   });
+
+  //   // If there are leftover columns (less than 3 in the last row), close the row
+  //   if (resultArrayThatContainstheColumnDetails.length % 3 !== 0) {
+  //     detailRowsHTML += '</div>';
+  //   }
+
+  //   // Generate the dynamic HTML for the approver details
+  //   let approverRowsHTML = "";
+  //   approverDetailsArray.forEach((approver) => {
+  //     //  approverRowsHTML += `
+  //     //    <div class="detail-row-value-approver">
+  //     //      <div class="detail-value-approver">${approver.level}</div>
+  //     //      <div class="detail-value-approver">${approver.approver}</div>
+  //     //      <div class="detail-value-approver">${approver.actionDateTime}</div>
+  //     //      <div class="detail-value-approver">${approver.status}</div>
+  //     //      <div class="detail-value-approver">${approver.remark}</div>
+  //     //    </div>
+  //     //  `;
+  //     approverRowsHTML += `
+  //     <tbody class="">
+  //      <td class="">${approver.level}</td>
+  //      <td class="">${approver.approver}</td>
+  //      <td class="">${approver.actionDateTime}</td>
+  //      <td class="">${approver.status}</td>
+  //      <td class="">${approver.remark}</td>
+  //    </tbody>
+  //  `;
+  //   });
+
+  //   // Create the popup
+  //   const popup = document.createElement("div");
+  //   popup.className = "audit-history-popup";
+  //   popup.innerHTML = `
+  // <div class="popup-content-auditHistory">
+  //   <div class="popup-header mb-0">
+  //     <h5>Audit History</h5>
+  //     <span class="close-btn" onclick="hideAuditHistoryPopup()">&times;</span>
+  //   </div>
+  //   <div class="popup-details">
+  //     ${detailRowsHTML}
+  //     <table class="mtbalenew">
+  //     ${fileItem.ListItemAllFields.Status !== "Auto Approved" ?
+  //       `
+  //       <thead>
+  //       <th class="">Approval Level</th>
+  //       <th class="">Approver</th>
+  //       <th class="">Action DateTime</th>
+  //       <th class="">Status</th>
+  //       <th >Remark</th>
+  //     </thead>
+  //     ${approverRowsHTML}
+  //   </table>
+  //      `
+  //       :
+  //       `Audit History is not available as the file does not have approval`
+  //     }
+     
+  // </div>
+  // `;
+
+
+  //   // Append to body
+
+  //   document.body.appendChild(popup);
+
+
+  // }
   window.auditHistory = async (fileId: string, siteId: string, DocumentLibraryName: string, SiteName: String) => {
     console.log("Audit History called", fileId, siteId);
     console.log("Audit History called", SiteName);
     console.log("Audit History called", DocumentLibraryName);
-
-
+  
+    // ====== NEW DATE FORMATTING FUNCTION ADDED ======
+    const formatDate = (dateValue: any): string => {
+      if (!dateValue) return "";
+      
+      // Handle SharePoint date strings (e.g., "2024-05-01T14:30:00Z")
+      const date = new Date(dateValue);
+      
+      // Format as dd/mm/yyyy hh:mm AM/PM
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = date.toLocaleString('default', { month: 'short' }).toLowerCase();
+      const year = date.getFullYear();
+      
+      let hours = date.getHours();
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12;
+      hours = hours ? hours : 12; // Convert 0 to 12
+      
+      return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
+    };
+    const formatDate2 = (dateValue: any): string => {
+      if (!dateValue) return "";
+      
+      // Handle SharePoint date strings (e.g., "2024-05-01T14:30:00Z")
+      const date = new Date(dateValue);
+      
+      // Format as dd/mm/yyyy hh:mm AM/PM
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = date.toLocaleString('default', { month: 'short' }).toLowerCase();
+      const year = date.getFullYear();
+      
+      let hours = date.getHours();
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12;
+      hours = hours ? hours : 12; // Convert 0 to 12
+      
+      return `${day}/${month}/${year}`;
+    };
+    // ====== END OF NEW FUNCTION ======
+  
     const { web } = await sp.site.openWebById(siteId)
-
-    // Get the list item  corresponding to the file
+  
+    // Get the list item corresponding to the file
     const fileItem: any = await web.getFileById(fileId).expand("ListItemAllFields")();
     console.log("fileItem", fileItem.ListItemAllFields.Status);
-
+  
     // fetched the columns details corresponding to the file 
     const fileColumns = await sp.web.lists.getByTitle("DMSPreviewFormMaster").items.select("ColumnName", "SiteName", "DocumentLibraryName", "IsRename").filter(`SiteName eq '${SiteName}' and DocumentLibraryName eq '${DocumentLibraryName}' and IsDocumentLibrary ne 1`)();
     console.log("fileColumns", fileColumns);
-
+  
     // Create an array of objects to store the columnName with there corresponding value
     const resultArrayThatContainstheColumnDetails = fileColumns.map((column) => {
-
       let columnName = column.ColumnName;
-      const columnValue = fileItem.ListItemAllFields[columnName];
+      let columnValue = fileItem.ListItemAllFields[columnName];
+      
+      // ====== MODIFIED DATE HANDLING ======
+      if (columnValue && typeof columnValue === 'string' && 
+          columnValue.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)) {
+        columnValue = formatDate2(columnValue);
+      }
+      // ====== END OF MODIFICATION ======
+      
       if (column.IsRename !== null) {
         columnName = column.IsRename
       }
-
-      return {
-        label: columnName,
-        value: columnValue !== undefined ? columnValue : null // Handle missing fields
-      };
+      //  return {
+      //   label: columnName,
+      //   // value: columnValue !== undefined ? columnValue : null
+      //   value: columnValue !== undefined && columnValue !== null ? columnValue : ""
+  
+      // };
+      let displayValue = columnValue !== undefined && columnValue !== null ? columnValue : "";
+if (column.ColumnName === "ViewRequest" && displayValue) {
+  displayValue = `<a href="${displayValue}" target="_blank" rel="noopener noreferrer">click here to view</a>`;
+}
+     return {
+  label: columnName,
+  value: displayValue
+};
     });
-
+  
     const objectForStatus = {
       label: "Status",
       value: fileItem.ListItemAllFields.Status || ""
     }
-
+  
     resultArrayThatContainstheColumnDetails.push(objectForStatus);
     console.log("result", resultArrayThatContainstheColumnDetails);
-
+  
     // get the details of approver
     const itemsFromTaskList = await sp.web.lists.getByTitle('DMSFileApprovalTaskList').items.select(
       "Log", "CurrentUser", "Remark"
@@ -13840,60 +14058,46 @@ const ArgPoc = ({ props }: any) => {
       .expand("FileUID", "MasterApproval")
       .filter(`FileUID/FileUID eq '${fileId}'`)
       .orderBy("Modified", false)();
-
+  
     console.log("itemsFromTaskList", itemsFromTaskList);
-
-
+  
     // Mapping to the desired format
     const approverDetailsArray = itemsFromTaskList.map(task => ({
       level: `Level ${task.MasterApproval.Level}`,
       approver: task.CurrentUser,
-      actionDateTime: task.Modified,
+      actionDateTime: formatDate(task.Modified), // ====== ADDED DATE FORMATTING HERE ======
       status: task.Log || "",
       remark: task.Remark || ""
     }));
-
+  
     console.log("approverDetailsArray", approverDetailsArray);
-
+  
     // Generate the dynamic HTML for the detail rows
     let detailRowsHTML = "";
     resultArrayThatContainstheColumnDetails.forEach((item, index) => {
-      // Start a new row every 3rd item (when index is 0, 3, 6, ...)
       if (index % 3 === 0) {
         detailRowsHTML += '<div class="detail-row">';
       }
-
-      // Add each detail column
+  
       detailRowsHTML += `
       <div class="detail-column">
         <div class="detail-label">${item.label}:</div>
         <div class="detail-value">${item.value}</div>
       </div>
     `;
-
-      // Close the row after 3 items (when index is 2, 5, 8, ...)
+  
       if ((index + 1) % 3 === 0) {
         detailRowsHTML += '</div>';
       }
     });
-
-    // If there are leftover columns (less than 3 in the last row), close the row
+  
     if (resultArrayThatContainstheColumnDetails.length % 3 !== 0) {
       detailRowsHTML += '</div>';
     }
-
+  
     // Generate the dynamic HTML for the approver details
     let approverRowsHTML = "";
     approverDetailsArray.forEach((approver) => {
-      //  approverRowsHTML += `
-      //    <div class="detail-row-value-approver">
-      //      <div class="detail-value-approver">${approver.level}</div>
-      //      <div class="detail-value-approver">${approver.approver}</div>
-      //      <div class="detail-value-approver">${approver.actionDateTime}</div>
-      //      <div class="detail-value-approver">${approver.status}</div>
-      //      <div class="detail-value-approver">${approver.remark}</div>
-      //    </div>
-      //  `;
       approverRowsHTML += `
       <tbody class="">
        <td class="">${approver.level}</td>
@@ -13904,7 +14108,7 @@ const ArgPoc = ({ props }: any) => {
      </tbody>
    `;
     });
-
+  
     // Create the popup
     const popup = document.createElement("div");
     popup.className = "audit-history-popup";
@@ -13935,15 +14139,9 @@ const ArgPoc = ({ props }: any) => {
      
   </div>
   `;
-
-
-    // Append to body
-
+  
     document.body.appendChild(popup);
-
-
   }
-
   // function to hide audit history pop
   // @ts-ignore
   window.hideAuditHistoryPopup = () => {
@@ -14814,11 +15012,11 @@ const ArgPoc = ({ props }: any) => {
       const encodedFilePath = encodeURIComponent(serverRelativeUrl);
 
       // Example: 
-      // serverRelativeUrl = "/sites/edcspfx/test/DocumentLibraryInsideTest/Book.xlsx"
+      // serverRelativeUrl = "/sites/EDeDMS/test/DocumentLibraryInsideTest/Book.xlsx"
       const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
       const siteUrl = window.location.origin;
 
-      // const previewUrl = `${siteUrl}/sites/edcspfx/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+      // const previewUrl = `${siteUrl}/sites/EDeDMS/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       const previewUrl = `${siteUrl}${locationPath}/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       console.log("Generated Preview URL:", previewUrl);
@@ -15053,7 +15251,7 @@ const ArgPoc = ({ props }: any) => {
     const siteUrl = window.location.origin;
     console.log(siteUrl, "siteUrl");
 
-    // const previewUrl = `${siteUrl}/sites/edcspfx/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
+    // const previewUrl = `${siteUrl}/sites/EDeDMS/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
     const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
 
     if (previewUrl) {
@@ -15319,7 +15517,7 @@ const ArgPoc = ({ props }: any) => {
         const parentFolder = uploadResult.data.ServerRelativeUrl.substring(0, uploadResult.data.ServerRelativeUrl.lastIndexOf('/'));
         const siteUrl = window.location.origin;
         const encodedFilePath = encodeURIComponent(uploadResult.data.ServerRelativeUrl);
-        // const previewUrl = `${siteUrl}/sites/edcspfx/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+        // const previewUrl = `${siteUrl}/sites/EDeDMS/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
         const previewUrl = `${siteUrl}${locationPath}/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
 
         await listItem.update(payload);

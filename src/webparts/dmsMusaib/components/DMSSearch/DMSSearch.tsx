@@ -2252,7 +2252,7 @@ const ArgPoc = ({ props }: any) => {
     //       console.log(currentfolderpath, "currentfolderpath");
     //       console.log(searchQueryPath, "currentfolderpath");
     //         const searchQuery:SearchQueryInit = {
-    //              //Querytext:`${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
+    //              //Querytext:`${searchText} AND Path:"https://edcadae.sharepoint.com${currentfolderpath}"`,
     //             Querytext:`${searchText} AND Path:"${searchQueryPath}"`,
     //             // Querytext: `"${searchText}"`,
     //             RowLimit: 500,
@@ -2377,7 +2377,7 @@ const ArgPoc = ({ props }: any) => {
     try {
 
       // const searchQuery: SearchQueryInit = {
-      //   //Querytext:`${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
+      //   //Querytext:`${searchText} AND Path:"https://edcadae.sharepoint.com${currentfolderpath}"`,
       //   // Querytext: `${searchText} IsDocument:True Path:"${(searhcpath) ? searhcpath : searchQueryPath}"`,
 
       //   Querytext:"",
@@ -2431,7 +2431,7 @@ const ArgPoc = ({ props }: any) => {
       console.log(currentfolderpath, "currentfolderpath");
       console.log(searchQueryPath, "currentfolderpath");
       const searchQuery: SearchQueryInit = {
-        //Querytext:`${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
+        //Querytext:`${searchText} AND Path:"https://edcadae.sharepoint.com${currentfolderpath}"`,
         Querytext: `${searchText} IsDocument:True Path:"${searchQueryPath}"`,
         // Querytext: `"${searchText}"`,
         RowLimit: 5000,
@@ -4777,7 +4777,7 @@ const ArgPoc = ({ props }: any) => {
           const encodedFilePath = encodeURIComponent(file.ServerRelativeUrl);
           const parentFolder = file.ServerRelativeUrl.substring(0, file.ServerRelativeUrl.lastIndexOf('/'));
           const siteUrl = window.location.origin;
-          // const previewUrl = `${siteUrl}/sites/edcspfx/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+          // const previewUrl = `${siteUrl}/sites/EDeDMS/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
           const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
           //  const previewUrl = `${siteUrl}/sites/AlRostmanispfx2/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
           console.log("previewUrl", previewUrl);
@@ -4924,7 +4924,7 @@ const ArgPoc = ({ props }: any) => {
           const siteUrl = window.location.origin;
           const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
           //  const previewUrl = `${siteUrl}/sites/AlRostmanispfx2/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
-          // const previewUrl = `${siteUrl}/sites/edcspfx/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+          // const previewUrl = `${siteUrl}/sites/EDeDMS/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
           // const previewUrl = `${siteUrl}/sites/SPFXDemo/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
           console.log("previewUrl", previewUrl);
 

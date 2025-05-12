@@ -28,7 +28,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
   const [formData, setFormData] = React.useState({
     Remark: '',
   })
-
+  const [ValidRemark, setValidRemark] = React.useState(true);
   const onChange = (name: string, value: string) => {
 
     debugger
@@ -46,6 +46,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
     window.location.href = `${siteUrl}/SitePages/MyApprovals.aspx`;
   }
   const handleFromSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, Status: string) => {
+
     let url = window.location.href.split('/sites/')[0];
     debugger
     let currentchangerequest = await getItemByIDCR(sp, Number(props.currentItem.ListItemId));
@@ -70,11 +71,16 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
     }
 
     e.preventDefault();
+    setValidRemark(true);
     let postPayload = {}
     let postPayload2 = {}
     let postPayloadapp = {}
     let postPayloadapp1 = {}
-
+    if ((Status === 'Rework' || Status === 'Rejected') && formData.Remark === "") {
+      setValidRemark(false);
+      Swal.fire('Please fill the mandatory fields', '', 'warning');
+      return;
+    }
     if (props.ContentType == "Document Cancellation" || props.ContentType == "Change Request") {
       const currentUser = await sp.web.currentUser();
 
@@ -193,7 +199,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         //if (postResult) {
         Swal.fire(resultmessage, '', 'success').then(async (result) => {
           if (result.isConfirmed) {
-            window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+            window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx`;
           }
         });
         // Swal.fire(resultmessage, '', 'success');
@@ -201,7 +207,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
         //   // window.location.reload()
 
-        //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+        //   window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx`;
 
         // }, 1000);
 
@@ -229,7 +235,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
                 <label htmlFor="example-textarea" className="form-label text-dark font-14">Remarks:</label>
 
-                <textarea style={{ height: '80px' }} className="form-control" id="example-textarea" rows={5} name="Remark" value={formData.Remark}
+                <textarea style={{ height: '80px' }} className={`form-control ${(!ValidRemark) ? "border-on-error" : ""}`} id="example-textarea" rows={5} name="Remark" value={formData.Remark}
 
                   onChange={(e) => onChange(e.target.name, e.target.value)}></textarea>
 
