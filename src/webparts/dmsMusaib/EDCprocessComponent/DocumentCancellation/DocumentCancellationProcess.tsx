@@ -26,7 +26,7 @@ import "./documentCancellation.scss";
 // import { allowstringonly, getCurrentUser } from '../../../APISearvice/CustomService';
 import { allowstringonly, getCurrentUser } from '../../../../APISearvice/CustomService';
 // import { addAllProcessItem, addApprovalItem, addItem, addItem2, getAllDocumentCode, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getFormNameID, getItemByID, getItemByID2, getListNameID, getRequesterID, getRequestTypeID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2 } from '../../../APISearvice/DocumentCancellation';
-import { addAllProcessItem, addApprovalItem, addItem, addItem2, getAllDocumentCode, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDoc, getItemByID, getItemByID2, getListNameID, getRequesterID, getRequestTypeID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2 } from '../../../../APISearvice/DocumentCancellation';
+import { addAllProcessItem, addApprovalItem, addItem, addItem2, getAllDocumentCode, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDoc, getItemByID, getItemByID2, getListNameID, getRequesterID, getRequestTypeID, getUserDepartment, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2 } from '../../../../APISearvice/DocumentCancellation';
 import Select from "react-select";
 import Swal from 'sweetalert2';
 // import { FormSubmissionMode } from '../../../Shared/Interfaces';
@@ -229,6 +229,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
         setRows1(Selectedoptions);
 
+        var fetchUserDept = await getUserDepartment(sp,UserDept)
+
         setFormData(prevData => ({
             ...prevData,
             RequesterNameId: Currusers?.Id || "",
@@ -241,7 +243,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 day: "2-digit",
                 month: "short",
                 year: "numeric"
-            }).replace(/ /g, "/")
+            }).replace(/ /g, "/"),
+
+            DepartmentName:fetchUserDept
 
         }));
 
@@ -2586,7 +2590,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
                                                         {/* </a> */}
-                                                        {/* <a href="../sites/EDeDMS/SitePages/EDCMAIN.aspx">       */}
+                                                        {/* <a href="../sites/edcspfx/SitePages/EDCMAIN.aspx">       */}
                                                         {/* {((modeValue === "" || modeValue === "edit"|| modeValue === "view") ||(editID !== null && editID.IsInitiator == "Yes")) &&
                                      
                                                         className='me-1' alt="x" /> Cancel</button>

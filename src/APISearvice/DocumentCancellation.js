@@ -3,7 +3,7 @@ export const getAllDocumentCode = async (_sp,dept) => {
   let arr = [];
   let sts = "Approved";
 
-  await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`Status eq '${sts}' and ADDepartmentName eq '${dept}'`)
+  await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`Status eq '${sts}' and Department/ADDepartmentName eq '${dept}'`)
     .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId")
     .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department")
     .orderBy("Modified", false)() // Order by Modified descending to get latest first
@@ -626,4 +626,24 @@ export const getGeneratedTemplateDoc = async (_sp, itemId) => {
   // }
   console.log(results, 'results');
   return results;
+}
+
+export const getUserDepartment = async (_sp,dept) => {
+ 
+ 
+  let deptName = "";
+  await _sp.web.lists.getByTitle("DepartmentMasterList").items
+  .select("*,ToUsers/Title,CCUsers/Title").expand("ToUsers,CCUsers").filter(`Active eq 'Yes' and ADDepartmentName eq '${dept}'`)()
+    .then((res) => {
+     
+     if(res && res.length > 0){
+      deptName = res[0].Department;
+     }
+
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  // console.log(arr, 'arr');
+  return deptName;
 }

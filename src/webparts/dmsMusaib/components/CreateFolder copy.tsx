@@ -768,7 +768,7 @@ const validateFields = () => {
       if(OthProps.DocumentLibrary === ""){
         (payloadForFolderMaster as any).DocumentLibraryName=folderName.trim();
         (payloadForFolderMaster as any).FolderPath=`${locationPath}/${OthProps.Entity}/${folderName.trim()}`;
-        //  (payloadForFolderMaster as any).FolderPath=`/sites/EDeDMS/${OthProps.Entity}/${folderName}`;
+        //  (payloadForFolderMaster as any).FolderPath=`/sites/edcspfx/${OthProps.Entity}/${folderName}`;
         (payloadForFolderMaster as any).IsLibrary=true;
         (payloadForFolderMaster as any).IsActive=false;
         if(folderPrivacy === "private"){

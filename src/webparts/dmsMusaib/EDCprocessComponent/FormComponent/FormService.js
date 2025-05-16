@@ -434,7 +434,7 @@ export const uploadAllFiles = async (files, sp, docLib) => {
 export const uploadFileToLibrary = async (file, sp, docLib) => {
   let arrFIleData = [];
   let fileSize = 0;
-  const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditProgramDocs');
+  const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
   try {
     // await sp.web.lists.getByTitle(docLib).rootFolder
     const result = folder.files.addChunked(file.name, file, (progress, data) => {

@@ -94,8 +94,8 @@ export const getAllDepartment = async (_sp) => {
 
       // Filter only latest entry for each unique DocumentCode
       const latestDocuments = res.reduce((acc, item) => {
-        if (!acc[item.Department]) {
-          acc[item.Department] = item;
+        if (!acc[item.ADDepartmentName]) {
+          acc[item.ADDepartmentName] = item;
         }
         return acc;
       }, {});

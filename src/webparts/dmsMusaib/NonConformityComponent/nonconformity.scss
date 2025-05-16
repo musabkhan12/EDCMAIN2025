@@ -783,3 +783,36 @@ width: 100%;
 .dropdown-error .ms-Dropdown-title {
   background-color: #ffe6e6 !important;
 }
+.css-13cymwt-control{min-height: 42px;}
+.readOnlyPlaceholder-189 {
+  color: #212529;
+  padding-top: 4px !important;
+  float: left;
+
+  font-size: 15px !important;
+  font-weight: 500;
+}
+.css-hlgwow {
+  height: 40px;
+}
+.ms-BasePicker-text{
+  padding: 0px;
+}
+.text-209{
+  padding: 6px;
+}
+.border-on-error {
+  background-color: #ffe6e6 !important;
+  border-color: red !important;
+}
+.newnbu .ms-Button--primary + .newnbu .ms-Button--primary{
+  background: #f37421 !important;
+  border-color: #f37421 !important;
+}
+
+.newnbu.ms-Button--primary+.newnbu.ms-Button--primary+.newnbu.ms-Button--primary+.newnbu.ms-Button--primary {
+  background: #d3d4d5 !important;
+  border-color: #d3d4d5 !important;
+  border-radius: 0 !important;
+  padding: 6px 12px !important;
+}

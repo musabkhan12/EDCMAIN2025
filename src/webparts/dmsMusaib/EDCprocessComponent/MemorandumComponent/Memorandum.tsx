@@ -1165,7 +1165,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
 
 
 
@@ -1469,7 +1469,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -1723,7 +1723,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2008,7 +2008,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {

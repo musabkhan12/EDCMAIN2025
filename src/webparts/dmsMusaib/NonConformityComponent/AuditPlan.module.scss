@@ -59,9 +59,21 @@
   border: 1px solid red !important;
   background-color: #ffe6e6;
 }
+
 .peoplepickerstyle {
-  height:40px !important
+  min-height: 40px !important
 }
+
+.peoplepickerstyleAuditte {
+  height: 40px !important;
+}
+
+.peoplepickerstyleAuditteerrch {
+  height: 40px !important;
+  border: 1px solid red !important;
+  background-color: #ffe6e6 !important;
+}
+
 .sec {
   border: 1px solid;
   border-radius: 7px;
@@ -222,4 +234,18 @@ input[type=text] {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.newnbu.ms-Button--primary+.newnbu.ms-Button--primary+.newnbu.ms-Button--primary {
+  background: #f37421 !important;
+  border-color: #f37421 !important;
+  border-radius: 0 !important;
+  padding: 6px 12px !important;
+}
+
+.newnbu.ms-Button--primary+.newnbu.ms-Button--primary+.newnbu.ms-Button--primary+.newnbu.ms-Button--primary {
+  background: #d3d4d5 !important;
+  border-color: #d3d4d5 !important;
+  border-radius: 0 !important;
+  padding: 6px 12px !important;
 }

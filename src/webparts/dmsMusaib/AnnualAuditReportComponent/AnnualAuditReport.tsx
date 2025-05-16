@@ -1313,7 +1313,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
 
 
@@ -1606,7 +1606,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId");
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // setTimeout(() => {
@@ -1643,7 +1643,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         setFormData((prevData) => {
                             const updatedData = { ...prevData };
@@ -1875,7 +1875,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         //Swal.fire('Submitted successfully.', '', 'success');
@@ -1925,7 +1925,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
 
                         if (FilesArr.length > 0) {
@@ -2209,7 +2209,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId")
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -2247,7 +2247,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
 
                         if (FilesArr.length > 0) {
@@ -2463,7 +2463,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // sessionStorage.removeItem("bannerId")
@@ -2771,9 +2771,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 <table id="tabRec" className='mtbalenew overhi'>
                                     <thead>
                                         <tr>
-                                            <th style={{minWidth:'40px',maxWidth:'40px'}}>Sr No</th>
-                                            <th style={{minWidth:'150px',maxWidth:'150px'}}>Category</th>
-                                            <th style={{minWidth:'22px',maxWidth:'220px'}}>Description</th>
+                                            <th style={{minWidth:'60px',maxWidth:'60px'}}>Sr No</th>
+                                            <th style={{minWidth:'70px',maxWidth:'70px'}}>Category</th>
+                                            <th style={{minWidth:'220px',maxWidth:'220px'}}>Description</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -2781,7 +2781,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                             .filter(row => (row.ncnumberNC || row.observationnumberObs) && row.nctype === "NC Number").map((row, index) => (
                                                 <tr key={index}>
 
-                                                    <td style={{minWidth:'70px',maxWidth:'70px'}} title={row.ncnumberNC}>
+                                                    <td style={{minWidth:'60px',maxWidth:'60px'}} title={row.ncnumberNC}>
                                                         <input
                                                             type="number"
                                                             className={`form-control ${(RowErrors[index]?.ncnumberNC) ? "border-on-error" : ""}`}
@@ -2792,7 +2792,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                             disabled={true}
                                                         />
                                                     </td>
-                                                    <td style={{minWidth:'120px',maxWidth:'120px'}}>
+                                                    <td style={{minWidth:'70px',maxWidth:'70px'}}>
                                                         <select
                                                             id="approvalType"
                                                             value="NC Number"
@@ -2852,15 +2852,15 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 <table id="tabRec" className='mtbalenew overhi'>
                                     <thead>
                                         <tr>
-                                            <th style={{minWidth:'70px',maxWidth:'70px'}}>Sr No</th>
-                                            <th style={{minWidth:'120px',maxWidth:'120px'}}>Category</th>
+                                            <th style={{minWidth:'60px',maxWidth:'60px'}}>Sr No</th>
+                                            <th style={{minWidth:'70px',maxWidth:'70px'}}>Category</th>
                                             <th style={{minWidth:'220px',maxWidth:'220px'}}>Description</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {NCNumberrows.filter(row => (row.ncnumberNC || row.observationnumberObs) && row.nctype === "Observation Number").map((row, index) => (
                                             <tr key={index}>
-                                                <td style={{minWidth:'70px',maxWidth:'70px'}} title={row.observationnumberObs}>
+                                                <td style={{minWidth:'60px',maxWidth:'60px'}} title={row.observationnumberObs}>
                                                     <input
                                                         type="number"
                                                         className={`form-control ${(RowErrors[index]?.observationnumberObs) ? "border-on-error" : ""}`}
@@ -2871,7 +2871,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                         disabled={true}
                                                     />
                                                 </td>
-                                                <td style={{minWidth:'120px',maxWidth:'120px'}}>
+                                                <td style={{minWidth:'70px',maxWidth:'70px'}}>
                                                     <select
                                                         id="approvalType"
                                                         value="Observation Number"
@@ -3092,7 +3092,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 <div>
                     <div className="">
                         <div className="row">
-                            <div className="col-lg-4">
+                            <div className="col-lg-6">
                                 <CustomBreadcrumb Breadcrumb={Breadcrumb} />
                             </div>
 

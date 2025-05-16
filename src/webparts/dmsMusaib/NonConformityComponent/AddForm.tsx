@@ -30,6 +30,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import "./nonconformity.scss";
 import { CONTENTTYPE_NonComformity } from '../ChangerequestComponent/Constants';
+import Select from "react-select";
 
 const datePickerErrorStyles: Partial<IDatePickerStyles> = {
   root: {
@@ -49,12 +50,15 @@ const datePickerErrorStyles: Partial<IDatePickerStyles> = {
 
 export class IState {
   Loading: boolean;
-  departmentOption: IDropdownOption[];
+  departmentOption: any[];
+  departmentselected: any;
   memonumberOptions: any[];
   typeoptions: any[];
   ncType: any;
   memonumberOptionsall: any[];
   NCNumberOptions: any[];
+  NCNumberselected: any[];
+  ApprovedAuditSelected: any;
   NCNumber: string;
   ApprovedAuditReport: string | number;
   NCNumberID: string | number;
@@ -105,11 +109,14 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     this.state = {
       Loading: false,
       departmentOption: [],
+      departmentselected: [],
       memonumberOptions: [],
       typeoptions: [],
       ncType: "",
       memonumberOptionsall: [],
       NCNumberOptions: [],
+      NCNumberselected: [],
+      ApprovedAuditSelected: [],
       NCNumber: "",
       NCNumberID: "",
       ApprovedAuditReport: "",
@@ -220,8 +227,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       }
     }
   }
-  public changeDepartment = (_event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void => {
-    this.setState({ department: item.key, departmentCode: item.data.departmentCode });
+  public changeDepartment = (item: any): void => {
+    let selecteddepartment = this.state.departmentOption.filter((x: any) => x.value == item.value);
+    this.setState({ department: item.value, departmentCode: item.data.departmentCode, departmentselected: selecteddepartment });
   };
   // private onChangenctype = (name: string, value: string) => {
   //   debugger
@@ -237,15 +245,15 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
 
   };
 
-  public changeMemoNumber = async (_event: React.FormEvent<HTMLDivElement>, item: any): Promise<void> => {
+  public changeMemoNumber = async (item: any): Promise<void> => {
     const sp = spfi().using(SPFx(this.props.context));
     const nctypenew: string = this.state.ncType === "NC" ? "NC Number" : "Observation Number";
     let optionsNCNumber: any = [];
-    const NCNumberoptionnew = await getNCNumbers(sp, item.text, nctypenew);
-    let existingrecords = await this.getNCdata(item.text);
+    const NCNumberoptionnew = await getNCNumbers(sp, item.label, nctypenew);
+    let existingrecords = await this.getNCdata(item.label);
     if (Array.isArray(NCNumberoptionnew) && NCNumberoptionnew.length > 0) {
       // Safely extract existing NCNumbers, even if the array is empty
-      const existingNCNumbersSet =  new Set(
+      const existingNCNumbersSet = new Set(
         (Array.isArray(existingrecords) ? existingrecords[0] : []).map((rec: any) => rec.NCNumber)
       );
 
@@ -253,8 +261,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       optionsNCNumber = NCNumberoptionnew[0]
         .filter((entry: any) => !existingNCNumbersSet.has(entry.NCNumber))
         .map((entry: any) => ({
-          key: entry.ID,
-          text: entry.NCNumber,
+          value: entry.ID,
+          label: entry.NCNumber,
           ncNo: entry.NCNumber,
           reportcode: entry.ReportCode,
           nctype: entry.NCType
@@ -262,12 +270,15 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     }
 
     const uniqueOptions = await this.getUniqueBy(optionsNCNumber, "ncNo");
-
+    uniqueOptions.sort((a, b) => a.label.localeCompare(b.label));
+    let approvedauditreportselected = this.state.memonumberOptions.filter((x: any) => x.value == item.value);
     this.setState({
       NCNumberOptions: uniqueOptions,
-      ApprovedAuditReport: Number(item.key),
-      MemoNumber: item.reportCode
+      ApprovedAuditReport: Number(item.value),
+      MemoNumber: item.reportCode,
+      ApprovedAuditSelected: approvedauditreportselected
     });
+    console.log("ApprovedAuditSelected", approvedauditreportselected);
   };
 
   // public changeMemoNumber = (_event: React.FormEvent<HTMLDivElement>, item: any): void => {
@@ -295,9 +306,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
   //   });
   // };
 
-  public changeNCNumber = (_event: React.FormEvent<HTMLDivElement>, item: any): void => {
-
-    this.setState({ NCNumber: item.text, NCNumberID: item.key });
+  public changeNCNumber = (item: any): void => {
+    let ncnumberselected = this.state.NCNumberOptions.filter((x: any) => x.value == item.value);
+    this.setState({ NCNumber: item.label, NCNumberID: item.value, NCNumberselected: ncnumberselected });
   };
   public handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     debugger
@@ -450,8 +461,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
         const filteredItemsObs = memoItems[0].filter((item: any) => item.Observations === "Yes");
         if (filteredItemsNC.length > 0) {
           optionsNCNumber = filteredItemsNC.map((item: any) => ({
-            key: item.ID,
-            text: item.ReportCode,
+            value: item.ID,
+            label: item.ReportCode,
             itemId: item.ID,
             reportCode: item.ReportCode,
             ncNo: item.NCNumber
@@ -459,8 +470,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
         }
         if (filteredItemsObs.length > 0) {
           optionsObservationNumber = filteredItemsObs.map((item: any) => ({
-            key: item.ID,
-            text: item.ReportCode,
+            value: item.ID,
+            label: item.ReportCode,
             itemId: item.ID,
             reportCode: item.ReportCode,
             ncNo: item.NCNumber
@@ -470,8 +481,10 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       //this.state.ncType
       //let optionsmemoNumbernewnc: any[] = [];
       optionsmemoNumbernewnc = await this.getUniqueBy(optionsNCNumber, "reportCode");
+      optionsmemoNumbernewnc.sort((a, b) => a.label.localeCompare(b.label));
       //let optionsmemoNumbernewobs: any[] = [];
       optionsmemoNumbernewobs = await this.getUniqueBy(optionsObservationNumber, "reportCode");
+      optionsmemoNumbernewobs.sort((a, b) => a.label.localeCompare(b.label));
       this.setState({
         memonumberOptions: this.state.ncType == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
         memonumberOptionsall: memoItems.length > 0 ? memoItems : []
@@ -577,8 +590,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       const options = deptItems.map((item: {
         DepartmentCode: any; Title: string; Id: number
       }) => ({
-        key: item.Id,
-        text: item.Title,
+        value: item.Id,
+        label: item.Title,
         data: { departmentCode: item.DepartmentCode },
       }));
       this.setState({ departmentOption: options });
@@ -586,8 +599,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       const userProfile = await sp.profiles.myProperties();
       const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
       let currentuserdepartment = UserDept == "IT" ? "Information Technology" : UserDept;
-      const selectedOption = options.find(user => user.text === currentuserdepartment);
-      this.setState({ department: selectedOption?.key, departmentCode: selectedOption?.data.departmentCode });
+      const selectedOption = options.find(user => user?.label === currentuserdepartment);
+      this.setState({ department: selectedOption?.value, departmentCode: selectedOption?.data.departmentCode, departmentselected: selectedOption });
       //this.setState({ department: selectedOption?.key });
       await this.getCategory();
     } catch (e) {
@@ -697,18 +710,18 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       errors.nctype = "NC Type is required";
       isValid = false;
     }
-    if (!this.state.ApprovedAuditReport) {
+    if (this.state.ApprovedAuditSelected.length == 0) {
       errors.approvedauditreport = "Approved Report code is required";
       isValid = false;
     }
-    if (!this.state.NCNumber) {
+    if (this.state.NCNumberselected.length == 0) {
       errors.ncnumber = "NC/Observation number is required";
       isValid = false;
     }
-    if (!this.state.department) {
-      errors.department = "Department is required";
-      isValid = false;
-    }
+    // if (this.state.departmentselected.length == 0) {
+    //   errors.department = "Department is required";
+    //   isValid = false;
+    // }
     if (!this.state.criteria) {
       errors.criteria = "Criteria is required";
       isValid = false;
@@ -767,6 +780,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       document.querySelectorAll("#AssigntoPeoplepicker .ms-BasePicker-text").forEach((el) => {
         el.classList.remove(styles.errCh);
       });
+      document.querySelectorAll("#AssigntoPeoplepicker .ms-BasePicker-text").forEach((el) => {
+        el.classList.add(styles.peoplepickerstyleAuditte);
+      });
     }
     if (!this.state.dueDate) {
       errors.dueDate = "Due Date is required";
@@ -805,22 +821,22 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       errors.nctype = "NC Type is required";
 
     }
-    if (!this.state.ApprovedAuditReport) {
+    if (this.state.ApprovedAuditSelected.length == 0) {
       errors.approvedauditreport = "Approved Report code is required";
 
     }
-    if (!this.state.NCNumber) {
+    if (this.state.NCNumberselected.length == 0) {
       errors.ncnumber = "NC/Observation number is required";
 
     }
-    if (!this.state.department) {
-      errors.department = "Department is required";
-      Swal.fire('Please select a Department.');
-    }
+    // if (this.state.departmentselected.length == 0) {
+    //   errors.department = "Department is required";
+    //   Swal.fire('Please select a Department.');
+    // }
 
     // You can skip checking other fields if department is selected
     this.setState({ errors });
-    return Object.keys(errors).length === 0 || (this.state.department && Object.keys(errors).length === 1 && errors.hasOwnProperty("department") === false);
+    return Object.keys(errors).length === 0 || (this.state.department && Object.keys(errors).length === 2 && errors.hasOwnProperty("department") === false);
   };
   // public validateFormDraft = (): boolean => {
   //   let errors: { [key: string]: string } = {};
@@ -1053,7 +1069,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       spHttpClient: this.props.context.spHttpClient
     };
     document.querySelectorAll("#AssigntoPeoplepicker .ms-BasePicker-text").forEach((el) => {
-      el.classList.add(styles.peoplepickerstyle);
+      el.classList.add(styles.peoplepickerstyleAuditte);
     });
     var fileData = this.state.copyFil.map((item: any, i: number) => {
       return (
@@ -1097,7 +1113,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       <section className='card card-body'>
         <div className={styles.welcome}>
           <div className="row">
-            <div className="col-lg-4 newbread">
+            <div className="col-lg-6 newbread">
               <CustomBreadcrumb Breadcrumb={this.Breadcrumb} />
             </div>
 
@@ -1129,7 +1145,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
               </div>
               <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                 {console.log("this.state.typeoptions", this.state.typeoptions)}
-                <div className="form-group col-md-4">
+                <div className="form-group col-md-4 mb-3">
                   <TooltipHost
                     content={this.state.ncType || ""}
                     calloutProps={{ gapSpace: 0 }}
@@ -1162,13 +1178,27 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                     /> */}
                   </TooltipHost>
                 </div>
-                <div className="form-group col-md-4">
+                <div className="form-group col-md-4 mb-3">
+                  <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }} >Approved Report Code:<span className="text-danger1">*</span>
+                  </label>
                   <TooltipHost
                     content={this.state.memonumberOptions.filter((item: any) => item.key == this.state.ApprovedAuditReport)[0]?.text || ""}
                     calloutProps={{ gapSpace: 0 }}
                     styles={{ root: { display: 'inline-block', width: '100%' } }}
                   >
-                    <Dropdown
+                    <Select
+                      options={this.state.memonumberOptions}
+                      value={this.state.ApprovedAuditSelected}
+                      name="AuditPlan"
+                      isClearable={true}
+                      isSearchable={true}
+                      className={` ${this.state.errors?.approvedauditreport ? "border-on-error" : ""}`}
+                      //className={? 'dropdown-error' : ''}
+                      onChange={(selectedOption: any) => this.changeMemoNumber(selectedOption)}
+                      placeholder={"Approved Report Code"}
+
+                    />
+                    {/* <Dropdown
                       required
                       placeholder="Approved Report Code"
                       label="Approved Report Code:"
@@ -1177,16 +1207,29 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                       selectedKey={this.state.ApprovedAuditReport}
                       onChange={this.changeMemoNumber}
                       className={this.state.errors?.approvedauditreport ? 'dropdown-error' : ''}
-                    />
+                    /> */}
                   </TooltipHost>
                 </div>
-                <div className="form-group col-md-4">
+                <div className="form-group col-md-4 mb-3">
+                  <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }} >NC/Observation Number:<span className="text-danger1">*</span>
+                  </label>
                   <TooltipHost
                     content={this.state.NCNumber || ""}
                     calloutProps={{ gapSpace: 0 }}
                     styles={{ root: { display: 'inline-block', width: '100%' } }}
                   >
-                    <Dropdown
+                    <Select
+                      options={this.state.NCNumberOptions}
+                      value={this.state.NCNumberselected}
+                      name="ncnumber"
+                      isClearable={true}
+                      isSearchable={true}
+                      className={this.state.errors?.ncnumber ? 'border-on-error' : ''}
+                      onChange={(selectedOption: any) => this.changeNCNumber(selectedOption)}
+                      placeholder={"NC/Observation Number"}
+
+                    />
+                    {/* <Dropdown
                       required
                       placeholder="NC/Observation Number"
                       label="NC/Observation Number:"
@@ -1195,7 +1238,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                       selectedKey={this.state.NCNumberID}
                       onChange={this.changeNCNumber}
                       className={this.state.errors?.ncnumber ? 'dropdown-error' : ''}
-                    />
+                    /> */}
                   </TooltipHost>
                 </div>
                 {/* <div className="form-group col-md-4">
@@ -1208,7 +1251,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                 // }}
                 />
               </div> */}
-                <div className="form-group col-md-4">
+                <div className="form-group col-md-4 mb-3">
                   <TextField label="Document Code:" name='DocumentCode' required value={this.state.documentCode} disabled={true} onChange={this.handleChange}
                     styles={{
                       fieldGroup: {
@@ -1217,7 +1260,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                     }}
                   />
                 </div>
-                <div className="form-group col-md-4">
+                <div className="form-group col-md-4 mb-3">
                   <TextField label="Issue Number:" name='IssueNumber' required value={this.state.issueNo + ""} disabled={true} onChange={this.handleChange}
                     styles={{
                       fieldGroup: {
@@ -1226,7 +1269,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                     }}
                   />
                 </div>
-                <div className="form-group col-md-4">
+                <div className="form-group col-md-4 mb-3">
                   <TextField label="Revision Number:" name='RevisionNumber' required value={this.state.revisionNo + ""} disabled={true} onChange={this.handleChange}
                     styles={{
                       fieldGroup: {
@@ -1235,8 +1278,21 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                     }}
                   />
                 </div>
-                <div className="form-group col-md-4">
-                  <Dropdown
+                <div className="form-group col-md-4 mb-3">
+                  <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }} >Department:<span className="text-danger1">*</span>
+                  </label>
+                  <Select
+                    options={this.state.departmentOption}
+                    value={this.state.departmentselected}
+                    name="Department"
+                    isClearable={true}
+                    isSearchable={true}
+                    className={this.state.errors?.department ? 'border-on-error' : ''}
+                    onChange={(selectedOption: any) => this.changeDepartment(selectedOption)}
+                    placeholder={"Department"}
+
+                  />
+                  {/* <Dropdown
                     required
                     placeholder="Department"
                     label="Department:"
@@ -1250,9 +1306,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                   //     backgroundColor: this.state.errors.department ? "#ffcccb" : "white", // Light red when error
                   //   },
                   // }}
-                  />
+                  /> */}
                 </div>
-                <div className="col-md-4">
+                <div className="col-md-4 mb-3">
                   <TextField label="Criteria:" name='criteria' required value={this.state.criteria} onChange={this.handleChange}
                     className={this.state.errors?.criteria ? 'textfield-error' : ''}
                   // styles={{
@@ -1267,7 +1323,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                   />
 
                 </div>
-                <div className="form-group col-md-4">
+                <div className="form-group col-md-4 mb-3">
                   <TextField label="Close Out Status:" name='closeOutStatus' required value={this.state.closeOutStatus} onChange={this.handleChange}
                     className={this.state.errors?.closeOutStatus ? 'textfield-error' : ''}
                   // styles={{
@@ -1395,7 +1451,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
 
                         {/* Modal title and subtitle */}
                         <h4 className="font-16 text-dark fw-bold mb-1">Attachment Details</h4>
-                        <p className="text-muted font-14 mb-3 fw-400">Below are the attachment details for Non Conformity \ Observation</p>
+                        <p className="text-muted font-14 mb-3 fw-400">Below are the attachment details for Non Conformity / Observation</p>
 
                         {/* Table */}
                         <table className={styles.mtbalenew}>

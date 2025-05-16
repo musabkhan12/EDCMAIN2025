@@ -337,9 +337,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     //const userProfile = await sp.profiles.myProperties();
     setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
     const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
-    let currentuserdepartment = UserDept == "IT" ? "Information Technology" : UserDept;
-    let optionsfilterdepart = optionsDepartment.filter((user) => user.label === currentuserdepartment);
-    setSelectedOptionDepart(optionsDepartment.filter((user) => user.label === currentuserdepartment));
+    // let currentuserdepartment = UserDept == "IT" ? "Information Technology" : UserDept;
+    let currentuserdepartment = UserDept;
+    let optionsfilterdepart = optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment);
+    setSelectedOptionDepart(optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment));
+    // let optionsfilterdepart = optionsDepartment.filter((user) => user.label === currentuserdepartment);
+    // setSelectedOptionDepart(optionsDepartment.filter((user) => user.label === currentuserdepartment));
     setRows1(Selectedoptions);
     //Swal.fire('Error', 'Entity is required!', 'error');
     console.log("rerere", optionsDepartment.filter((user) => user.label === currentuserdepartment));
