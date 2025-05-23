@@ -25,6 +25,43 @@ export const getAllDocumentCode = async (_sp) => {
     });
   return arr;
 };
+export const getchangerequesttemp = async (_sp) => {
+  let arr = [];
+
+  await _sp.web.lists.getByTitle("ChangeRequestList").items
+    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId")
+    .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department")
+    .filter(`TemplateType/TemplateTypeName eq 'Change Request' and Status eq 'Approved'`)
+    .orderBy("ID", false)() // Order by Modified descending to get latest first
+    .then((res) => {
+      console.log(res);
+
+      // Filter only latest entry for each unique DocumentCode
+      // const latestDocuments = res.reduce((acc, item) => {
+      //   if (!acc[item.DocumentCode]) {
+      //     acc[item.DocumentCode] = item;
+      //   }
+      //   return acc;
+      // }, {});
+      let SnoArr = [];
+      if (res.length > 0) {
+        SnoArr.push({
+          DocumentCode: res[0].DocumentCode,
+          IssueDate: res[0].IssueDate,
+          RevisionDate: res[0].RevisionDate,
+          SerialNo: Number(res[0].SerialNumber),
+          IssueNo: Number(res[0].IssueNumber),
+          RevisionNo: Number(res[0].RevisionNumber)
+        })
+      }
+      console.log("resresr serialnumber", res, SnoArr);
+      arr = SnoArr
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  return arr;
+};
 export const getDocumentCodeselected = async (_sp, locId, custoId, doctypeId) => {
   let arr = [];
 
@@ -477,7 +514,9 @@ export const getItemByIDCR = async (_sp, id) => {
   let bannerimg = []
 
   await _sp.web.lists.getByTitle("ChangeRequestList").items.getById(id)
-    .select("*,Location/ID,Custodian/ID,RequestType/ID,RequestType/RequestType,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title").expand("DocumentType,RequestType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")()
+    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,RequestType/ID,RequestType/RequestType,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId")
+    .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,RequestType,Author,Department")
+    ()
     .then((res) => {
       console.log(res, ' let arrs=[]');
 

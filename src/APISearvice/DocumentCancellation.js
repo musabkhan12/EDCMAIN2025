@@ -647,3 +647,20 @@ export const getUserDepartment = async (_sp,dept) => {
   // console.log(arr, 'arr');
   return deptName;
 }
+
+
+export const getLatestChangeRequestTemplateType= async (_sp,List) =>{
+  let arr = [];
+  // var List ="Annual Audit Program"
+  // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
+  // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
+  await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`(TemplateType/TemplateTypeValue eq '${List}') and Status eq 'Approved'`).orderBy("ID", false).top(1)()
+    .then((res) => {
+      arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  // console.log(arr, 'arr');
+  return arr;
+}

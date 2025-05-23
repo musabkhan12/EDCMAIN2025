@@ -160,6 +160,9 @@ const MemoContext = ({ props }: any) => {
     classificationValue: null,
     classificationId: 0,
 
+
+    memoFileName: "",
+
   });
   const [selectCCUsers, setSelectCCUsers] = React.useState([]);
   const [ListNameId, setListNameId] = React.useState(null);
@@ -188,22 +191,22 @@ const MemoContext = ({ props }: any) => {
     setselectUserDept(selectedOption);
     let memo: number = 0;
     let memoId: number = 0;
-   
+
     const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${selectedOption.value}`).orderBy("SerialNumber", false).top(1)();
     if (listItems.length > 0) {
-      if(modeValue ==""){
+      if (modeValue == "") {
         memo = listItems[0].SerialNumber ? listItems[0].SerialNumber + 1 : 1;
         memoId = listItems[0].Id;
       }
-      else{
+      else {
         memo = listItems[0].SerialNumber;
         memoId = listItems[0].Id;
 
-      }    
+      }
 
     } else {
       memo = 1;
-      memoId= 0;
+      memoId = 0;
 
     }
     // const formattedMemoSerialNo = formData.memoSerialNo < 10
@@ -218,10 +221,11 @@ const MemoContext = ({ props }: any) => {
         : memo;
     setFormData({
       ...formData,
-      MemoListId:memoId,
+      MemoListId: memoId,
       memoSerialNo: memo,
       deptId: selectedOption.value,
-      memoNo: `${selectedOption.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+      memoNo: `${selectedOption.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+      memoFileName: `${selectedOption.DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
     });
 
     if (selectedOption) {
@@ -280,6 +284,7 @@ const MemoContext = ({ props }: any) => {
   };
 
   const handleRecommendationChange = (index: number, field: string, value: any) => {
+    debugger
     let updatedRows;
     if (field == "auditor") {
       // const valuesOnly = value.map((option: any) => option.value);
@@ -338,7 +343,7 @@ const MemoContext = ({ props }: any) => {
     setSelectedUsers(items);
   };
 
-  const ApiCallFunc = async () => {    
+  const ApiCallFunc = async () => {
     var setAllDept1 = await getAllDepartment(sp);
 
 
@@ -383,7 +388,7 @@ const MemoContext = ({ props }: any) => {
     const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
     // setcurrentUserDept(UserDept);
     // setselectUserDept(setAllDept1.filter((user: any) => user.label === UserDept));
-    setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept));
+    setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]);
     const recommendationTypes = await getRecommendationTypes(sp);
     setRecommType(recommendationTypes);
     var ClassificationArr = await getAllClassificationMaster(sp);
@@ -418,27 +423,27 @@ const MemoContext = ({ props }: any) => {
       //   memo = 1;
 
       // }
-   
-    // const onloadDeptId = setAllDept1.filter((user: any) => user.label === UserDept)[0]?.value || 0;
-    const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0;
-   
-    const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
-    if (listItems.length > 0) {
-      if(modeValue ==""){
-        memo = listItems[0].SerialNumber ? listItems[0].SerialNumber + 1 : 1;
-        memoId = listItems[0].Id;
+
+      // const onloadDeptId = setAllDept1.filter((user: any) => user.label === UserDept)[0]?.value || 0;
+      const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0;
+
+      const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
+      if (listItems.length > 0) {
+        if (modeValue == "") {
+          memo = listItems[0].SerialNumber ? listItems[0].SerialNumber + 1 : 1;
+          memoId = listItems[0].Id;
+        }
+        else {
+          memo = listItems[0].SerialNumber;
+          memoId = listItems[0].Id;
+
+        }
+
+      } else {
+        memo = 1;
+        memoId = 0;
+
       }
-      else{
-        memo = listItems[0].SerialNumber;
-        memoId = listItems[0].Id;
-
-      }    
-
-    } else {
-      memo = 1;
-      memoId= 0;
-
-    }
       const formattedMemoSerialNo = memo < 10
         ? `00${memo}`
         : memo < 100
@@ -447,7 +452,7 @@ const MemoContext = ({ props }: any) => {
 
       setFormData((prevFormData) => ({
         ...prevFormData,
-        MemoListId:memoId,
+        MemoListId: memoId,
         memoSerialNo: memo,
         deptId: onloadDeptId,
         // memoNo: setAllDept1.filter((user: any) => user.label === UserDept)[0]
@@ -455,7 +460,10 @@ const MemoContext = ({ props }: any) => {
         //   : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
         memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]
           ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-          : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+          : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+        memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]
+          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+          : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
       }));
 
     }
@@ -501,16 +509,16 @@ const MemoContext = ({ props }: any) => {
       setFormItemId(Number(iDs))
     }
     else {
-       if (paramIndex !== -1 && segments[paramIndex + 1]) {
+      if (paramIndex !== -1 && segments[paramIndex + 1]) {
         setmode(segments[paramIndex])
         // mode = segments[paramIndex]; // Will be "edit" or "view"
         formitemid = segments[paramIndex + 1]; // Get the ID
         if (segments[paramIndex + 2] !== undefined) {
-             setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_Memo));
+          setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_Memo));
           // var ProcessItemId: any = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditPlan);
           setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_Memo));
         }
-       
+
       }
 
       setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_Memo))
@@ -525,53 +533,56 @@ const MemoContext = ({ props }: any) => {
 
       if (setBannerById.length > 0) {
         debugger
-        let varmemoNum ="";
+        let varmemoNum = "";
+        let varmemofilename = "";
         setEditForm(true);
         setMainEditItem(setBannerById[0]);
-        if(formMode =="edit"){
-        const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${setBannerById[0]?.DepartmentId}`).orderBy("SerialNumber", false).top(1)();
-        if (listItems.length > 0) {
+        if (formMode == "edit") {
+          const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${setBannerById[0]?.DepartmentId}`).orderBy("SerialNumber", false).top(1)();
+          if (listItems.length > 0) {
             if (listItems[0].SerialNumber >= setBannerById[0].MemoSerialNumber) {
-            memo = listItems[0].SerialNumber + 1;
+              memo = listItems[0].SerialNumber + 1;
             }
-            else{
+            else {
               memo = setBannerById[0].MemoSerialNumber;
             }
             // memoId = listItems[0].Id;  
-   
-        } else {
-          memo = setBannerById[0].MemoSerialNumber;
-          // memoId= 0;
-   
-        }
+
+          } else {
+            memo = setBannerById[0].MemoSerialNumber;
+            // memoId= 0;
+
+          }
           const formattedMemoSerialNo = memo < 10
             ? `00${memo}`
             : memo < 100
               ? `0${memo}`
               : memo;
-            varmemoNum  =`${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`;
-      }
-      else{
-        varmemoNum  = setBannerById[0].MemoNumber;
-        memo = setBannerById[0].MemoSerialNumber;
-      }
-          // setFormData((prevFormData) => ({
-          //   ...prevFormData,
-          //   MemoListId:memoId,
-          //   memoSerialNo: memo,
-          //   deptId: onloadDeptId,
-          //   memoNo: setAllDept1.filter((user: any) => user.label === UserDept)[0]
-          //     ? `${setAllDept1.filter((user: any) => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-          //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-          // }));
+          varmemoNum = `${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`;
+          varmemofilename = `${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`;
+        }
+        else {
+          varmemoNum = setBannerById[0].MemoNumber;
+          memo = setBannerById[0].MemoSerialNumber;
+        }
+        // setFormData((prevFormData) => ({
+        //   ...prevFormData,
+        //   MemoListId:memoId,
+        //   memoSerialNo: memo,
+        //   deptId: onloadDeptId,
+        //   memoNo: setAllDept1.filter((user: any) => user.label === UserDept)[0]
+        //     ? `${setAllDept1.filter((user: any) => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        // }));
         let ClassificationVal = optionsclassification.filter((docType: { value: any; }) => docType.value === setBannerById[0].ClassificationId) || null;
 
         setFormData(prevData => ({
           ...prevData,
-          MemoListId:memoId,
+          MemoListId: memoId,
           // memoNo: setBannerById[0].MemoNumber,
           // memoSerialNo: setBannerById[0].MemoSerialNumber,
           memoNo: varmemoNum,
+          memoFileName: varmemofilename,
           memoSerialNo: memo,
           deptId: setBannerById[0].DepartmentId,
           // issueNo: "",
@@ -604,12 +615,12 @@ const MemoContext = ({ props }: any) => {
           RecommendationTypeValue: setBannerById[0].RecommendationType?.RecommendationTypeValue || "",
           recommendationDetails: setBannerById[0].RecommendationDetails || "",
           DocCode: setBannerById[0].DocumentCode || "",
-          RevisionNo: setBannerById[0].RevisionNumber ,
+          RevisionNo: setBannerById[0].RevisionNumber,
           IssueNo: setBannerById[0].IssueNumber,
           RevisionDate: setBannerById[0].RevisionDate || null,
           IssueDate: setBannerById[0].IssueDate || null,
           classificationId: setBannerById[0].ClassificationId,
-          classificationValue: ClassificationVal?.[0]|| null,
+          classificationValue: ClassificationVal?.[0] || null,
           // attachmentJson: setBannerById[0].AttachmentJson || null
         }));
 
@@ -618,7 +629,7 @@ const MemoContext = ({ props }: any) => {
 
 
 
-        setselectUserDept(setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)?.[0]|| null);
+        setselectUserDept(setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)?.[0] || null);
 
         setselectUserDeptCC(setBannerById[0].CCDepartments?.map((obj: any) => {
           const filteredDept = setAllDept1.find((dept: any) => dept.value === obj.ID);
@@ -693,9 +704,9 @@ const MemoContext = ({ props }: any) => {
             section: item.Section,
             date: new Date(item.Date).toLocaleDateString("en-CA"),
             startTime: item.Time,
-            auditorIds: item.AuditorId,
+            auditorIds: item.AuditorsId,
             endTime: "",
-            auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
+            auditor: item.Auditors ? { label: item.Auditors.Role, value: item.Auditors.ID } : null // Convert single object
           }));
           if (setBannerById[0].RecommendationType?.RecommendationTypeValue == "Table") {
             setRecommendationRows(initialRows);
@@ -708,7 +719,7 @@ const MemoContext = ({ props }: any) => {
     }
     setFormLoading(false);
     // setRequesterRoleId(await getRequesterID(sp))  
-   
+
     createTooltipContent(filteredDeptArrayCC);
     createTooltipContentTo(filteredDeptArrayTo);
 
@@ -828,7 +839,9 @@ const MemoContext = ({ props }: any) => {
     } else if (sts == "Download") {
       const link = document.createElement("a");
       link.href = fileUrl;
-      link.setAttribute("download", obj.FileLeafRef?.split('_')[2]); // Suggests a filename for download
+      link.setAttribute("download", obj.FileLeafRef); // Suggests a filename for download
+
+      // link.setAttribute("download", obj.FileLeafRef?.split('_')[2]); // Suggests a filename for download
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -878,8 +891,8 @@ const MemoContext = ({ props }: any) => {
       DocCode,
       RevisionNo,
       IssueNo,
-    classificationValue,
-  classificationId } = formData;
+      classificationValue,
+      classificationId } = formData;
     // Find the selected audit type
     // const selectedAuditType = auditTypes.find(type => type.Id === auditTypesId);
     // const auditTypeTitle = selectedAuditType ? selectedAuditType.Title : '';
@@ -1038,10 +1051,10 @@ const MemoContext = ({ props }: any) => {
 
 
 
-      if (!recommendationforApproval) {
-        document.getElementById("recApp")?.classList.add("border-on-error");
-        validRec = false;
-      }
+      // if (!recommendationforApproval) {
+      //   document.getElementById("recApp")?.classList.add("border-on-error");
+      //   validRec = false;
+      // }
       if (!forwardToArr) {
         valid1 = false;
       }
@@ -1140,7 +1153,8 @@ const MemoContext = ({ props }: any) => {
       date.getMilliseconds().toString().padStart(3, '0')
     ];
 
-    return `${userId}_${components.join('')}_${originalFileName}`;
+    // return `${userId}_${components.join('')}_${originalFileName}`;
+    return `${formData.memoFileName}_${originalFileName}`;
   };
   // #region  Submit Form
   const handleFormSubmit = async () => {
@@ -1258,7 +1272,8 @@ const MemoContext = ({ props }: any) => {
                   Section: row.section,
                   Date: row.date,
                   Time: row.startTime,
-                  AuditorId: row.auditorIds
+                  AuditorsId:row.auditorIds,
+                  //AuditorId: row.auditorIds
                 }
 
                 if (row.id) {
@@ -1405,31 +1420,31 @@ const MemoContext = ({ props }: any) => {
               const postId = postResult?.data?.ID;
 
             }
-            else{
-              if(modeValue !="approve"){
+            else {
+              if (modeValue != "approve") {
                 let arry = {
-                  DepartmentId:formData.deptId ,
+                  DepartmentId: formData.deptId,
                   SerialNumber: formData.memoSerialNo,
-                  ProcessName : FormNameId.FormName,
-   
+                  ProcessName: FormNameId.FormName,
+
                 }
                 // if(formData.MemoListId){
                 //   const postResults = await updateMemoNumber(arry, sp,formData.MemoListId);
                 // const postIds = postResults?.data?.ID;
-   
+
                 // }
                 // else{
-                  const postResults = await addMemoNumber(arry, sp);
+                const postResults = await addMemoNumber(arry, sp);
                 const postIds = postResults?.data?.ID;
-   
+
                 // }
 
               }
-             
+
             }
 
 
-           
+
 
             // if (boolval == true) {
             setLoading(false);
@@ -1512,7 +1527,7 @@ const MemoContext = ({ props }: any) => {
               MemoNumber: formData.memoNo,
               MemoSerialNumber: formData.memoSerialNo,
               ClassificationId: formData.classificationId,
-              
+
               // IssueNumber:,
               // RevisionNumber:,
               AuditTypeId: formData.auditProgramTypeId,
@@ -1574,7 +1589,8 @@ const MemoContext = ({ props }: any) => {
                   Section: row.section,
                   Date: row.date,
                   Time: row.startTime,
-                  AuditorId: row.auditorIds
+                  AuditorsId:row.auditorIds,
+                  //AuditorId: row.auditorIds
                 }
 
                 const postResult2 = await addItem2(postPayload2, sp);
@@ -1664,9 +1680,9 @@ const MemoContext = ({ props }: any) => {
 
 
             let arry = {
-              DepartmentId:formData.deptId ,
+              DepartmentId: formData.deptId,
               SerialNumber: formData.memoSerialNo,
-              ProcessName : FormNameId.FormName,
+              ProcessName: FormNameId.FormName,
 
             }
             // if(formData.MemoListId){
@@ -1675,12 +1691,12 @@ const MemoContext = ({ props }: any) => {
 
             // }
             // else{
-              const postResults = await addMemoNumber(arry, sp);
+            const postResults = await addMemoNumber(arry, sp);
             const postIds = postResult?.data?.ID;
 
             // }
-           
-           
+
+
 
             // if (boolval == true) {
             setLoading(false);
@@ -1820,7 +1836,8 @@ const MemoContext = ({ props }: any) => {
                   Section: row.section || "",
                   Date: row.date ? row.date : null,
                   Time: row.startTime || "",
-                  AuditorId: row.auditorIds ? row.auditorIds : 0
+                  AuditorsId:row.auditorIds ? row.auditorIds : 0,
+                  //AuditorId: row.auditorIds ? row.auditorIds : 0
                 }
 
                 if (row.id) {
@@ -2113,7 +2130,8 @@ const MemoContext = ({ props }: any) => {
                     Section: row.section || "",
                     Date: row.date ? row.date : null,
                     Time: row.startTime || "",
-                    AuditorId: row.auditorIds ? row.auditorIds : 0
+                    AuditorsId:row.auditorIds ? row.auditorIds : 0,
+                  //AuditorId: row.auditorIds ? row.auditorIds : 0
                   }
 
                   const postResult2 = await addItem2(postPayload2, sp);
@@ -2503,7 +2521,31 @@ const MemoContext = ({ props }: any) => {
                                         });
                                       }}
                                     />
-                                    <label className="form-check-label" htmlFor="infoCheck">{row.Title}</label>
+                                    <label
+                                      className="form-check-label"
+                                      htmlFor={`auditPlanType_${row.Id}`}
+                                      onClick={() => {
+                                        setFormData((prevState) => {
+                                          const isChecked = !prevState.auditProgramTypeId.includes(row.Id);
+                                          const updatedAuditPlanTypeId = isChecked
+                                            ? [...prevState.auditProgramTypeId, row.Id]
+                                            : prevState.auditProgramTypeId.filter(id => id !== row.Id);
+
+                                          if (isChecked) {
+                                            Array.from(document.getElementsByClassName("auditProgType")).forEach((element: Element) => {
+                                              element.classList.remove("border-on-error");
+                                            });
+                                          }
+
+                                          return {
+                                            ...prevState,
+                                            auditProgramTypeId: updatedAuditPlanTypeId
+                                          };
+                                        });
+                                      }}
+                                    >
+                                      {row.Title}
+                                    </label>
                                   </div>
                                 </div>
                               </div>
@@ -2626,23 +2668,23 @@ const MemoContext = ({ props }: any) => {
                                 <div className="col-lg-4">
                                   <div className="mb-3">
                                     <label htmlFor="Department" className="col-form-label">From Department<span className="text-danger1"> *</span></label>
-                                    <div 
+                                    <div
                                       title={selectUserDept?.label || "Select Department"}>
                                       <Select
-                                      // options={AllDept}
-                                      options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                        // options={AllDept}
+                                        options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
 
-                                      isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false)}
-                                      value={selectUserDept}
-                                      
-                                      name="deptId"
-                                      id="DeptID"
-                                      className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""} ${(!ValidDraft) ? "border-on-error" : ""}`}
-                                      // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
-                                      // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
-                                      // onChange={handleDepartmentChange}
-                                      onChange={(selectedOptions: any) => handleDepartmentChange(selectedOptions)}
-                                      placeholder="Select Department"
+                                        isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false)}
+                                        value={selectUserDept}
+
+                                        name="deptId"
+                                        id="DeptID"
+                                        className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""} ${(!ValidDraft) ? "border-on-error" : ""}`}
+                                        // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
+                                        // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
+                                        // onChange={handleDepartmentChange}
+                                        onChange={(selectedOptions: any) => handleDepartmentChange(selectedOptions)}
+                                        placeholder="Select Department"
                                       />
                                     </div>
                                   </div>
@@ -2924,7 +2966,7 @@ const MemoContext = ({ props }: any) => {
                                       <Select
                                         options={Classificationopt}
                                         value={formData.classificationValue}
-                                        
+
                                         name="Classification"
                                         id="Classification"
                                         className={`${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -3127,22 +3169,22 @@ const MemoContext = ({ props }: any) => {
                                           : "Select a date"
                                       }>
                                         <DatePicker
-                                        value={
-                                          row?.date
-                                            ? new Date(moment(row?.date).format('YYYY-MM-DD'))
-                                            : null
-                                        }
-                                        onSelectDate={(date: Date | null) => {
-                                          if (date) {
-                                            const formattedDate = new Date(date).toLocaleDateString("en-CA"); // Format as "yyyy-MM-dd"
-                                            handleRecommendationChange(index, 'date', formattedDate); // Pass formatted date to handleRecommendationChange
+                                          value={
+                                            row?.date
+                                              ? new Date(moment(row?.date).format('YYYY-MM-DD'))
+                                              : null
                                           }
-                                        }}
-                                        // maxDate={new Date()}
-                                        minDate={new Date()}
-                                        disabled={InputDisabled}
-                                        formatDate={(date: any) => moment(date).format('DD/MMM/YYYY')}
-                                      />
+                                          onSelectDate={(date: Date | null) => {
+                                            if (date) {
+                                              const formattedDate = new Date(date).toLocaleDateString("en-CA"); // Format as "yyyy-MM-dd"
+                                              handleRecommendationChange(index, 'date', formattedDate); // Pass formatted date to handleRecommendationChange
+                                            }
+                                          }}
+                                          // maxDate={new Date()}
+                                          minDate={new Date()}
+                                          disabled={InputDisabled}
+                                          formatDate={(date: any) => moment(date).format('DD/MMM/YYYY')}
+                                        />
                                         {/* <input
                                           type="date"
                                           className={`form-control recommendClsErr`}
@@ -3186,8 +3228,10 @@ const MemoContext = ({ props }: any) => {
                                       </td>
 
                                       <td>
+                                       
                                         <Select
-                                          options={rows1}
+                                          options={UserRoles}
+                                          // options={rows1}
                                           // isMulti
                                           className={`recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                           value={row.auditor}
@@ -3199,7 +3243,6 @@ const MemoContext = ({ props }: any) => {
                                       </td>
                                       {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                         <img src={require("../../assets/del.png")} onClick={() => handleDeleteRecommendationRow(index)} />
-
                                       </td>
                                       }
                                     </tr>
@@ -3234,7 +3277,7 @@ const MemoContext = ({ props }: any) => {
 
                             {/* <TextField id="recApp" className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`} onChange={(e, newValue) => { setFormData(prevState => ({ ...prevState, recommendationforApproval: newValue })); if (newValue) { document.getElementById("recApp")?.classList.remove("border-on-error") } }} errorMessage={""} multiline autoAdjustHeight value={formData.recommendationforApproval} validateOnFocusOut={true} required={true} label="Recommendation for Approval" disabled={InputDisabled} /> */}
                             {/* ////// */}
-                            <div className="row mb-3">
+                            {/* <div className="row mb-3">
                               <div className="col-lg-12">
                                 <label htmlFor="recApp" className="form-label">
                                   Recommendation for Approval <span className="text-danger1"> *</span>
@@ -3258,7 +3301,7 @@ const MemoContext = ({ props }: any) => {
                                 ></textarea>
 
                               </div>
-                            </div>
+                            </div> */}
                             {/* ///// */}
 
                           </fieldset>
@@ -3613,8 +3656,12 @@ const MemoContext = ({ props }: any) => {
                                   FilesArr.map((row: any, index: number) => (
                                     <tr>
                                       <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
-                                      <td title={row.name || (row.FileLeafRef)?.split('_')[2]}>
-                                        {row.name || (row.FileLeafRef)?.split('_')[2]}
+                                      {/* <td title={`${formData.memoNo}_${row.name}` || (row.FileLeafRef)?.split('_')[2]}>
+                                        {`${formData.memoNo}_${row.name}` || (row.FileLeafRef)?.split('_')[2]}
+                                      </td> */}
+                                      <td title={row.name ? `${formData.memoFileName}_${row.name}` : (row.FileLeafRef)}>
+                                        {/* {`${formData.memoFileName}_${row.name}` || (row.FileLeafRef)} */}
+                                        {row.name ? `${formData.memoFileName}_${row.name}` : (row.FileLeafRef)}
                                       </td>
                                       {/* {row.Id && <td style={{ textAlign: 'center' }} >
                                                                                 <span onClick={() => OpenFile(row, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>

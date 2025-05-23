@@ -723,9 +723,9 @@ const FormContext = ({ props }: any) => {
             section: item.Section,
             date: new Date(item.Date).toLocaleDateString("en-CA"),
             startTime: item.Time,
-            auditorIds: item.AuditorId,
+            auditorIds: item.AuditorsId,
             endTime: "",
-            auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
+            auditor: item.Auditors ? { label: item.Auditors.Role, value: item.Auditors.ID } : null // Convert single object
           }));
           if (setBannerById[0].RecommendationType?.RecommendationTypeValue == "Table") {
             setRecommendationRows(initialRows);
@@ -1145,10 +1145,10 @@ const FormContext = ({ props }: any) => {
 
 
 
-      if (!recommendationforApproval) {
-        document.getElementById("recApp")?.classList.add("border-on-error");
-        validRec = false;
-      }
+      // if (!recommendationforApproval) {
+      //   document.getElementById("recApp")?.classList.add("border-on-error");
+      //   validRec = false;
+      // }
       if (!forwardToArr) {
         valid1 = false;
       }
@@ -1377,7 +1377,7 @@ const FormContext = ({ props }: any) => {
                   Section: row.section,
                   Date: row.date,
                   Time: row.startTime,
-                  AuditorId: row.auditorIds
+                  AuditorsId: row.auditorIds
                 }
 
                 if (row.id) {
@@ -1782,7 +1782,7 @@ const FormContext = ({ props }: any) => {
                   Section: row.section,
                   Date: row.date,
                   Time: row.startTime,
-                  AuditorId: row.auditorIds
+                  AuditorsId: row.auditorIds
                 }
 
                 const postResult2 = await addItem2(postPayload2, sp);
@@ -2100,7 +2100,7 @@ const FormContext = ({ props }: any) => {
                   Section: row.section || "",
                   Date: row.date ? row.date : null,
                   Time: row.startTime || "",
-                  AuditorId: row.auditorIds ? row.auditorIds : 0
+                  AuditorsId: row.auditorIds ? row.auditorIds : 0
                 }
 
                 if (row.id) {
@@ -2482,7 +2482,7 @@ const FormContext = ({ props }: any) => {
                     Section: row.section || "",
                     Date: row.date ? row.date : null,
                     Time: row.startTime || "",
-                    AuditorId: row.auditorIds ? row.auditorIds : 0
+                    AuditorsId: row.auditorIds ? row.auditorIds : 0
                   }
 
                   const postResult2 = await addItem2(postPayload2, sp);
@@ -3690,7 +3690,7 @@ const FormContext = ({ props }: any) => {
 
                                       <td>
                                         <Select
-                                          options={rows1}
+                                          options={UserRoles}
                                           // isMulti
                                           className={`recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                           value={row.auditor}
@@ -3738,7 +3738,7 @@ const FormContext = ({ props }: any) => {
 
                             {/* <TextField id="recApp" className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`} onChange={(e, newValue) => { setFormData(prevState => ({ ...prevState, recommendationforApproval: newValue })); if (newValue) { document.getElementById("recApp")?.classList.remove("border-on-error") } }} errorMessage={""} multiline autoAdjustHeight value={formData.recommendationforApproval} validateOnFocusOut={true} required={true} label="Recommendation for Approval" disabled={InputDisabled} /> */}
                             {/* ////// */}
-                            <div className="row mb-3">
+                            {/* <div className="row mb-3">
                               <div className="col-lg-12">
                                 <label htmlFor="recApp" className="form-label">
                                   Recommendation for Approval <span className="text-danger1"> *</span>
@@ -3763,7 +3763,7 @@ const FormContext = ({ props }: any) => {
                                 ></textarea>
 
                               </div>
-                            </div>
+                            </div> */}
                             {/* ///// */}
 
                           </fieldset>
@@ -4213,7 +4213,7 @@ const FormContext = ({ props }: any) => {
                                       </td>
                                       <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }}>
                                         {/* <label htmlFor="approvalType">Approval Type: </label> */}
-                                        <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse HierarchyClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={InputDisabled} title={row.approvalType || "Select Approval Criteria"} >
+                                        <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse HierarchyClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={InputDisabled} title={row.approvalType === "One" ? "Anyone" : row.approvalType === "All" ? "Everyone" : "Select Approval Criteria"} >
                                           <option value="">Select </option>
                                           <option value="One">Anyone</option>
                                           <option value="All">Everyone</option>

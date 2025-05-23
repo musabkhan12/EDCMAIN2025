@@ -28,7 +28,8 @@ import {
   getDocumentCodeselected, getDocumentLinkByIDarr,
   getAllDepartment,
   getAllTemplateType,
-  getGeneratedTemplateDocCR
+  getGeneratedTemplateDocCR,
+  getchangerequesttemp
 } from './DocumentCancellation';
 import Select from "react-select";
 import Swal from 'sweetalert2';
@@ -53,6 +54,7 @@ let newfileupload: any
 let newfilepreview: any;
 let filechanged: boolean = false;
 let locationPath: any;
+let enableTemplatetype: boolean = false;
 export enum FormSubmissionMode {
   DRAFT, SUBMIT
 }
@@ -248,6 +250,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const ApiCallFunc = async () => {
     const path1 = window.location.href;
     debugger
+    const currentUser = await sp.web.currentUser();
+    const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+    const isMemberOfStrategyandSustainableGrowth = userGroups.some(group => group.Title === `Strategy and Sustainable Growth`);
+    const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
+    if (isMemberOfStrategyandSustainableGrowth || isMemberOfSuperAdmin) {
+      enableTemplatetype = true;
+    }
     locationPath = window.location.href.match(/\/sites\/[^\/]+/)[0];
     if (path1.includes("/view/") || path1.includes("/approve/")) {
       setLoading(true);
@@ -339,8 +348,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
     // let currentuserdepartment = UserDept == "IT" ? "Information Technology" : UserDept;
     let currentuserdepartment = UserDept;
-    let optionsfilterdepart = optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment);
-    setSelectedOptionDepart(optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment));
+    let optionsfilterdepart = currentuserdepartment != "" && optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment);
+    if (currentuserdepartment != "") {
+      setSelectedOptionDepart(optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment));
+    }
+
     // let optionsfilterdepart = optionsDepartment.filter((user) => user.label === currentuserdepartment);
     // setSelectedOptionDepart(optionsDepartment.filter((user) => user.label === currentuserdepartment));
     setRows1(Selectedoptions);
@@ -353,6 +365,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       RequesterName: userProfile?.DisplayName || "",
       RequestDate: new Date().toLocaleDateString("en-CA"),
       // Department: UserDept
+      DepartmentId: optionsfilterdepart && optionsfilterdepart[0].value
       //RequestedDate: new Date().toISOString().split("T")[0] // Format as YYYY-MM-DD
 
     }));
@@ -365,7 +378,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       // Format as YYYY-MM-DD
     }));
     var DocCodeArr = await getAllDocumentCode(sp);
-    let doccodearrew:any;
+    let doccodearrew: any;
     const options = DocCodeArr.map((item: any) => ({
       value: item.DocumentCode,
       label: item.DocumentCode,
@@ -399,10 +412,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     }));
     setdoccoderows(options);
     console.log("DocCodeArr", DocCodeArr);
-    if (optionsfilterdepart.length > 0){
-       doccodearrew = options.filter((x: any) => x.DepartmentId == optionsfilterdepart[0].value)
+    if (optionsfilterdepart.length > 0) {
+      doccodearrew = options.filter((x: any) => x.DepartmentId == optionsfilterdepart[0].value)
     }
-   
+
     setRows(doccodearrew);
 
 
@@ -789,7 +802,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       DepartmentId: selectedList.value
       // Format as YYYY-MM-DD
     }));
-    let doccodearrew:any;
+    let doccodearrew: any;
     if (selectedList) {
       doccodearrew = doccoderows.filter((x: any) => x.DepartmentId == selectedList.value)
     }
@@ -805,6 +818,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       TemplateTypeId: selectedList.value
       // Format as YYYY-MM-DD
     }));
+
+
     setSelectedOptionTemplate(selectedList);  // Set the selected users
   };
   const onSelectClassification = (selectedList: any) => {
@@ -1000,6 +1015,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
   React.useEffect(() => {
     ApiCallFunc();
+
     const path = window.location.href;
     if (path.includes("/view/") || path.includes("/approve/")) {
       setInputDisabled(true);
@@ -1074,6 +1090,25 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const addCancelReason = () => {
     setcancellReason([...cancellReason, { id: 0, description: "", reason: "" }]);
   };
+
+  const getNewFileName = async (originalFileName: string): Promise<string> => {
+    const userId = currentUser.Id; // Or however you get the current user ID
+    const date = new Date();
+    const fileExtension = originalFileName.split('.').pop();
+
+    const components = [
+      date.getFullYear(),
+      (date.getMonth() + 1).toString().padStart(2, '0'),
+      date.getDate().toString().padStart(2, '0'),
+      date.getHours().toString().padStart(2, '0'),
+      date.getMinutes().toString().padStart(2, '0'),
+      date.getSeconds().toString().padStart(2, '0'),
+      date.getMilliseconds().toString().padStart(3, '0')
+    ];
+
+    return `${userId}_${components.join('')}_${originalFileName}`;
+  };
+
   const validateForm = async (fmode: FormSubmissionMode) => {
     debugger
     const { RequesterName, RequesterDesignation, RequestDate, DocumentCode, IssueNumber, RevisionNumber, ReferenceNumber } = formData;
@@ -1276,6 +1311,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     console.log("topp submit", editItemID, cancellReason);
     if (await validateForm(FormSubmissionMode.SUBMIT)) {
       debugger
+      let changerequestdata: any = [];
+      const selectedTemplate = SelectedOptionTemplate?.label;
+      if (selectedTemplate != "ChangeRequest") {
+        changerequestdata = await getchangerequesttemp(sp);
+      }
+
       let serialnumber = await getDocumentCodeselected(sp, selectedOptionLoc.locationId, selectedOptionCusto.custodianId, selectedOptionDoctype.documentTypeId)
       let issueno = "";
       let serialno = "";
@@ -1303,8 +1344,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         setserialNo(serialno);
         setrevisionNo(revisionno);
       }
-      let doccode = selectedOptionReq.label == "Change Request for New Addition" ? await generateDocCode(serialno) : selectedOption?.DocumentCode;
+      let doccode = selectedOptionReq?.label == "Change Request for New Addition" ? await generateDocCode(serialno) : selectedOption?.DocumentCode;
       let referencecode = await generateReferenceCode(serialno, issueno);
+      let finalrevisiondate = changerequestdata[0].RevisionDate == null || changerequestdata[0].RevisionDate == undefined ? undefined : new Date(changerequestdata[0].RevisionDate).toISOString();
+      let finalissuedate = changerequestdata[0].IssueDate == null || changerequestdata[0].IssueDate == undefined ? undefined : new Date(changerequestdata[0].IssueDate).toISOString();
       console.log("doccode doccode", doccode, referencecode);
       if (editForm) {
         Swal.fire({
@@ -1324,13 +1367,20 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let attachmentIds = [];
             debugger
             const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
+            let docCode = selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption?.DocumentCode;
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
-                DocumentName = file.name;
+                const newFileName = await getNewFileName(file.name);
+
+                const newfileNameNew = docCode + "-" + issueno + "-" + revisionno + "-" + file.name;
+
+                DocumentName = newfileNameNew;
                 const fileAddResult = await folder.files.addChunked(file.name, file);
                 const fileNew = fileAddResult.file;
-                const documentName = fileAddResult.data.Name;
+                const newFileNameN = await getNewFileName(fileAddResult.data.Name);
+                const newfileNameNewN = docCode + "-" + issueno + "-" + revisionno + "-" + fileAddResult.data.Name;
+                const documentName = newfileNameNewN;
                 bannerImageArray = fileAddResult;
                 // Get the item ID for the uploaded file
                 const currentItemId = await fileNew.getItem<{ Id: number }>();
@@ -1345,7 +1395,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               }
             }
             let Attachmentidsss = attachmentIds.length != 0 ? attachmentIds : formData.AttachmentId;
-            let AttachmentJso = attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson
+            let AttachmentJso = attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson;
+
             // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
             let arr = {
               Title: formData.RequesterName,
@@ -1361,7 +1412,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               IssueNumber: Number(issueno),
               RevisionNumber: Number(revisionno),
               //RevisionDate: formData.RevisionDate,
-              DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption?.DocumentCode,
+              DocumentCode: docCode,
               ReferenceNumber: referencecode,
               RequestTypeId: formData.RequestTypeId,
               AmendmentTypeId: formData.AmendmentTypeId,
@@ -1375,6 +1426,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               CurrentUserRole: "OES",
               DocumentName: attachmentIds.length != 0 ? DocumentName : formData.DocumentName,
               DocumentTypeId: formData.DocumentTypeId,
+              CDocumentCode: selectedTemplate != "Change Request" ? changerequestdata[0].DocumentCode : docCode,
+              CIssueNumber: selectedTemplate != "Change Request" ? Number(changerequestdata[0].IssueNo) : Number(issueno),
+              CRevisionNumber: selectedTemplate != "Change Request" ? Number(changerequestdata[0].RevisionNo) : Number(revisionno),
+              CIssueDate: selectedTemplate != "Change Request" ? finalissuedate : undefined,
+              CRevisionDate: selectedTemplate != "Change Request" ? finalrevisiondate : undefined,
               //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption?.AttachmentId,
               //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption?.AttachmentJson,
               AttachmentId: Attachmentidsss,
@@ -1464,13 +1520,19 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let attachmentIds = [];
             debugger
             const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
+            let docCode = selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption?.DocumentCode;
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
-                DocumentName = file.name;
+                const newfileNameNew = docCode + "-" + issueno + "-" + revisionno + "-" + file.name;
+
+                DocumentName = newfileNameNew;
                 const fileAddResult = await folder.files.addChunked(file.name, file);
                 const fileNew = fileAddResult.file;
-                const documentName = fileAddResult.data.Name;
+                const newFileNameN = await getNewFileName(fileAddResult.data.Name);
+                const newfileNameNewN = docCode + "-" + issueno + "-" + revisionno + "-" + fileAddResult.data.Name;
+                const documentName = newfileNameNewN;
+                //const documentName = fileAddResult.data.Name;
                 bannerImageArray = fileAddResult;
                 // Get the item ID for the uploaded file
                 const currentItemId = await fileNew.getItem<{ Id: number }>();
@@ -1516,6 +1578,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               CurrentUserRole: "OES",
               DocumentName: DocumentName,
               DocumentTypeId: formData.DocumentTypeId,
+              CDocumentCode: selectedTemplate != "Change Request" ? changerequestdata[0].DocumentCode : docCode,
+              CIssueNumber: selectedTemplate != "Change Request" ? Number(changerequestdata[0].IssueNo) : Number(issueno),
+              CRevisionNumber: selectedTemplate != "Change Request" ? Number(changerequestdata[0].RevisionNo) : Number(revisionno),
+              CIssueDate: selectedTemplate != "Change Request" ? finalissuedate : undefined,
+              CRevisionDate: selectedTemplate != "Change Request" ? finalrevisiondate : undefined,
               //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption?.AttachmentId,
               //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption?.AttachmentJson,
               AttachmentId: Attachmentidsss,
@@ -1652,9 +1719,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                const newFileName = await getNewFileName(file.name);
                 DocumentName = file.name;
                 const fileAddResult = await folder.files.addChunked(file.name, file);
                 const fileNew = fileAddResult.file;
+                const newFileNameN = await getNewFileName(fileAddResult.data.Name);
                 const documentName = fileAddResult.data.Name;
                 bannerImageArray = fileAddResult;
                 // Get the item ID for the uploaded file
@@ -1804,9 +1873,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                const newFileName = await getNewFileName(file.name);
                 DocumentName = file.name;
                 const fileAddResult = await folder.files.addChunked(file.name, file);
                 const fileNew = fileAddResult.file;
+                const newFileNameN = await getNewFileName(fileAddResult.data.Name);
                 const documentName = fileAddResult.data.Name;
                 bannerImageArray = fileAddResult;
                 // Get the item ID for the uploaded file
@@ -2017,7 +2088,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
 
             let arr = {
-              // ActionTakenById: currentUser.Id,
+              ActionTakenById: currentUser.Id,
               ActionTakenOn: new Date().toLocaleDateString("en-CA"),
               // ActionTakenRoleId: formData.RequesterDesignation,
               Status: "Approved",
@@ -2850,7 +2921,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                                 <div className="mb-3">
                                   <label htmlFor="RequesterName" className="form-label">Name:</label>
-                                  <input type="text" id="Name" name="RequesterName" className="form-control" value={formData.RequesterName} disabled={true} />
+                                  <input title={formData.RequesterName} type="text" id="Name" name="RequesterName" className="form-control" value={formData.RequesterName} disabled={true} />
                                 </div>
                               </div>
                               <div className="col-lg-4">
@@ -2883,7 +2954,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                                 <div className="mb-3">
                                   <label htmlFor="RequesterDesignation" className="form-label">Designation:</label>
-                                  <input type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" value={formData.RequesterDesignation} disabled={true} />
+                                  <input title={formData.RequesterDesignation} type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" value={formData.RequesterDesignation} disabled={true} />
                                 </div>
                               </div>
 
@@ -2944,7 +3015,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                                   </label>
                                   {editItemID > 0 ?
-                                    <input type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" value={formData.DocumentCode} disabled={true} />
+                                    <input title={formData.DocumentCode} type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" value={formData.DocumentCode} disabled={true} />
                                     :
                                     <div
                                       title={selectedOption?.label || "Select a document code"}
@@ -2976,7 +3047,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                                 <div className="mb-3">
                                   <label htmlFor="example-email" className="form-label">Issue No:</label>
-                                  <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.IssueNumber} />
+                                  <input title={formData.IssueNumber} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.IssueNumber} />
                                 </div>
                               </div>
 
@@ -2984,14 +3055,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                                 <div className="mb-3">
                                   <label htmlFor="example-email" className="form-label">Revision No:</label>
-                                  <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.RevisionNumber} />
+                                  <input title={formData.RevisionNumber} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.RevisionNumber} />
                                 </div>
                               </div>
                               <div className="col-lg-4">
 
                                 <div className="mb-3">
                                   <label htmlFor="example-email" className="form-label">Reference No:</label>
-                                  <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.ReferenceNumber} />
+                                  <input title={formData.ReferenceNumber} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.ReferenceNumber} />
                                 </div>
                               </div>
                               <div className="col-lg-4">
@@ -3120,7 +3191,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       className={`${(!ValidSubmit && templatetypeerr) ? "border-on-error" : ""}`}
                                       onChange={(selectedOption: any) => onSelectTemplatetype(selectedOption)}
                                       placeholder="Search Template type"
-                                      isDisabled={InputDisabled}
+                                      isDisabled={InputDisabled || enableTemplatetype}
                                     />
                                   </div>
 
@@ -3256,7 +3327,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 <tbody >
                                   {console.log("cancellReasonn", cancellReason)}
                                   {cancellReason.map((row, index) => (
-                                    <tr key={index}> <td style={{ minWidth: "30px", maxWidth: "30px" }}>
+                                    <tr key={index}> <td className='text-center' style={{ minWidth: "30px", maxWidth: "30px" }}>
                                       <div
                                         style={{ marginLeft: "0px" }}
                                         className="indexdesign"
@@ -3362,10 +3433,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   <thead >
                                     <tr>
                                       <th style={{ minWidth: "40px", maxWidth: "40px" }}>S.No</th>
-                                      <th style={{ borderBottomLeftRadius: "0px" }}>Role</th>
-                                      <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level</th>
-                                      <th >Approver Name</th>
-                                      <th >Approval Criteria</th>
+                                      <th style={{ borderBottomLeftRadius: "0px" }}>Role<span className="text-danger1">*</span></th>
+                                      <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level<span className="text-danger1">*</span></th>
+                                      <th >Approver Name<span className="text-danger1">*</span></th>
+                                      <th >Approval Criteria<span className="text-danger1">*</span></th>
                                       <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
                                     </tr>
                                   </thead>
@@ -3379,8 +3450,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           className="indexdesign"
                                         >
                                           {index + 1}</div></td>
-                                        <td style={{ overflow: 'inherit' }} className="ng-binding">
-                                          <select onChange={(e) => onSelectRole(e, row.level)} value={row.role}
+                                        <td
+                                          title={row.role != 0 && UserRoles.filter((role: any) => role.value == row.role)[0].label}
+                                          style={{ overflow: 'inherit' }}
+                                          className="ng-binding">
+                                          <select
+                                            onChange={(e) => onSelectRole(e, row.level)}
+                                            value={row.role}
                                             disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}
                                             className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}>
                                             <option value="" selected>Select Role</option>
@@ -3397,7 +3473,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                                         </td>
                                         <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>Level {index + 1}</td>
-                                        <td style={{ overflow: 'inherit' }}>
+                                        {console.log("row.approvers", row.approvers)}
+                                        <td style={{ overflow: 'inherit' }} title={row.approvers && row.approvers.map(x => x.label).join(',')}>
 
                                           <Select
                                             options={rows1}
@@ -3415,7 +3492,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
 
                                         </td>
-                                        <td style={{ overflow: 'inherit' }} className="ng-binding">
+                                        <td title={ApprovalTypeOptions.filter(x => x.value = row.leveltype)[0].label} style={{ overflow: 'inherit' }} className="ng-binding">
                                           <select className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}
                                             onChange={(e) => onSelectApprovalType(e, row.level)}
                                             value={row.leveltype}
@@ -3560,7 +3637,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   {console.log("Attachmentarrnmnm doc link", DocumentLink, DocumentLink != null)}
                                   <tr >
                                     <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
-                                    <td title={DocumentLink != null && `${DocumentLink?.FileLeafRef}`}>{DocumentLink != null && `${DocumentLink?.FileLeafRef}`}</td>
+                                    <td title={DocumentLink != null && (DocumentLink?.FileLeafRef.includes('_') ? DocumentLink?.FileLeafRef.split('_')[2] : DocumentLink?.FileLeafRef)}>
+                                      {DocumentLink != null && (DocumentLink?.FileLeafRef.includes('_') ? DocumentLink?.FileLeafRef.split('_')[2] : DocumentLink?.FileLeafRef)}</td>
+                                    {/* <td title={DocumentLink != null && `${DocumentLink?.FileLeafRef}`}>{DocumentLink != null && `${DocumentLink?.FileLeafRef}`}</td> */}
                                     <td style={{ textAlign: 'center' }}>
                                       {/* <span onClick={() => OpenFile(DocumentLink != null && DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                         <FontAwesomeIcon icon={faEye} /></span> */}
@@ -3569,7 +3648,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       <span onClick={() => OpenFile(DocumentLink != null && DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                         <FontAwesomeIcon icon={faDownload} /></span>
                                     </td>
-                                    <td title={DocumentLink && moment(DocumentLink?.Created).format("DD/MMM/YYYY")}>{DocumentLink && moment(DocumentLink?.Created).format("DD/MMM/YYYY")}</td>
+                                    <td className='text-center' title={DocumentLink && moment(DocumentLink?.Created).format("DD/MMM/YYYY")}>{DocumentLink && moment(DocumentLink?.Created).format("DD/MMM/YYYY")}</td>
                                     {/* <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
                                       <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFileAttachment(0, Attachmentarr)}></img>
                                     </td> */}
@@ -3613,7 +3692,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   {Attachmentarr.length > 0 &&
                                     <tr >
                                       <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
-                                      <td title={Attachmentarr && Attachmentarr[0]?.FileName}>{Attachmentarr && Attachmentarr[0]?.FileName}</td>
+                                      {/* {Attachmentarr && (Attachmentarr[0]?.FileName.includes('_') ? Attachmentarr[0]?.FileName.split('_')[2] : Attachmentarr[0]?.FileName)} */}
+                                      <td title={Attachmentarr && (Attachmentarr[0]?.FileName.includes('_') ? Attachmentarr[0]?.FileName.split('_')[2] : Attachmentarr[0]?.FileName)}>
+                                        {Attachmentarr && (Attachmentarr[0]?.FileName.includes('_') ? Attachmentarr[0]?.FileName.split('_')[2] : Attachmentarr[0]?.FileName)}</td>
                                       {/* {showButton && */}
                                       {((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
                                         || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload &&
@@ -3626,7 +3707,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                             <FontAwesomeIcon icon={faDownload} /></span>
                                         </td>
                                       }
-                                      <td title={Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD/MMM/YYYY")}>{Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD/MMM/YYYY")}</td>
+                                      <td className='text-center' title={Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD/MMM/YYYY")}>{Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD/MMM/YYYY")}</td>
                                       {(modeValue == "edit" || modeValue == null || modeValue == ""
                                         || (modeValue == "approve" && formData?.Status == "Rework")) &&
                                         <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>

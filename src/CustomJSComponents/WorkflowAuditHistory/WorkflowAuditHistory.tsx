@@ -381,7 +381,9 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                         </td>
 
                         {/* <td> {(row.Status != 'Pending') ? (row.Approver?.Title ? row.Approver.Title:(row.ActionTakenBy.Title?row.ActionTakenBy.Title:"")) : ""}</td> */}
-                        <td style={{ minWidth: '70px', maxWidth: '70px', cursor: 'pointer' }}>
+                        <td style={{ minWidth: '70px', maxWidth: '70px', cursor: 'pointer' }} title={row.Status !== "Pending"
+                            ? row.Approver?.Title || row.ActionTakenBy?.Title || ""
+                            : ""}>
                           {row.Status !== "Pending"
                             ? row.Approver?.Title || row.ActionTakenBy?.Title || ""
                             : ""}

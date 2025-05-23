@@ -26,7 +26,7 @@ import "./documentCancellation.scss";
 // import { allowstringonly, getCurrentUser } from '../../../APISearvice/CustomService';
 import { allowstringonly, getCurrentUser } from '../../../../APISearvice/CustomService';
 // import { addAllProcessItem, addApprovalItem, addItem, addItem2, getAllDocumentCode, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getFormNameID, getItemByID, getItemByID2, getListNameID, getRequesterID, getRequestTypeID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2 } from '../../../APISearvice/DocumentCancellation';
-import { addAllProcessItem, addApprovalItem, addItem, addItem2, getAllDocumentCode, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDoc, getItemByID, getItemByID2, getListNameID, getRequesterID, getRequestTypeID, getUserDepartment, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2 } from '../../../../APISearvice/DocumentCancellation';
+import { addAllProcessItem, addApprovalItem, addItem, addItem2, getAllDocumentCode, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDoc, getItemByID, getItemByID2, getLatestChangeRequestTemplateType, getListNameID, getRequesterID, getRequestTypeID, getUserDepartment, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2 } from '../../../../APISearvice/DocumentCancellation';
 import Select from "react-select";
 import Swal from 'sweetalert2';
 // import { FormSubmissionMode } from '../../../Shared/Interfaces';
@@ -40,7 +40,7 @@ import { WorkflowAction } from '../../../../CustomJSComponents/WorkflowAction/Wo
 import { WorkflowAuditHistory } from '../../../../CustomJSComponents/WorkflowAuditHistory/WorkflowAuditHistory';
 // import { WorkflowAuditHistory } from '../../ChangerequestComponent/WorkflowAuditHistory/WorkflowAuditHistory';
 // import { CONTENTTYPE_DocumentCancel, LIST_TITLE_DocCancel, Tenant_URL } from '../../../Shared/Constants';
-import { CONTENTTYPE_DocumentCancel, LIST_TITLE_DocCancel, SITE_URL, Tenant_URL } from '../../../../Shared/Constants';
+import { CONTENTTYPE_ChangeReqTemp, CONTENTTYPE_DocumentCancel, LIST_TITLE_DocCancel, SITE_URL, Tenant_URL } from '../../../../Shared/Constants';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
@@ -134,6 +134,13 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         AttachmentJson: "",
         TemplateTypeId: 0,
         TemplateTypeValue: "",
+
+
+        CDocumentCode: "",
+        CIssueNumber: null,
+        CRevisionNumber: null,
+        CRevisionDate: "",
+        CIssueDate: "",
 
 
 
@@ -505,6 +512,23 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
         }
         setFormLoading(false);
+
+
+        let ChangeRequestTemplateType = await getLatestChangeRequestTemplateType(sp, CONTENTTYPE_ChangeReqTemp);
+
+        if (ChangeRequestTemplateType.length > 0) {
+            const template = ChangeRequestTemplateType[0];
+            setFormData((prevFormData) => ({
+                ...prevFormData,
+
+                CDocumentCode: template.DocumentCode || "",
+                CRevisionNumber: template.RevisionNumber,
+                CIssueNumber: template.IssueNumber,
+                CRevisionDate:template.RevisionDate? new Date(template.RevisionDate).toLocaleDateString("en-CA") : null,
+                CIssueDate: template.IssueDate ?new Date(template.IssueDate).toLocaleDateString("en-CA") : null,
+
+            }));
+        }
 
         //}
         //#endregion
@@ -961,7 +985,17 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             CurrentUserRole: "OES",
                             TemplateTypeId:selectedOption.TemplateTypeId,
                             AttachmentId: selectedOption.AttachmentId,
-                            AttachmentJson: selectedOption.AttachmentJson ? selectedOption.AttachmentJson : ""
+                            AttachmentJson: selectedOption.AttachmentJson ? selectedOption.AttachmentJson : "",
+
+
+
+
+
+                            CDocumentCode: formData.CDocumentCode,
+                            CRevisionNumber: formData.CRevisionNumber,
+                            CIssueNumber: formData.CIssueNumber,
+                            CRevisionDate: formData.CRevisionDate,
+                            CIssueDate:formData.CIssueDate,
 
 
                         };
@@ -1200,6 +1234,15 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             AttachmentId: selectedOption.AttachmentId,
                             AttachmentJson: selectedOption.AttachmentJson,
                             TemplateTypeId:selectedOption.TemplateTypeId,
+
+
+
+
+                            CDocumentCode: formData.CDocumentCode,
+                            CRevisionNumber: formData.CRevisionNumber,
+                            CIssueNumber: formData.CIssueNumber,
+                            CRevisionDate: formData.CRevisionDate,
+                            CIssueDate:formData.CIssueDate
 
 
                         };
@@ -1969,7 +2012,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="RequesterName" className="form-label">Name</label>
-                                                                        <input type="text" id="Name" name="RequesterName" className="form-control" value={formData.RequesterName} disabled={true} />
+                                                                        <input type="text" id="Name" name="RequesterName" className="form-control" title={formData.RequesterName} value={formData.RequesterName} disabled={true} />
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
@@ -1993,7 +2036,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="RequestDate" className="form-label">Request Date</label>
-                                                                        <input type="text" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDateNew} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={true} />
+                                                                        <input type="text" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDateNew} title={formData.RequestDateNew}  onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={true} />
 
                                                                         {/* <input type="date" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDate} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} /> */}
                                                                     </div>
@@ -2006,6 +2049,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         <label htmlFor="DocumentCode" className="form-label">Document Code <span className="text-danger1">*</span></label>
                                                                         {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
                                                                         <Select
+                                                                            title={selectedOption?.value}
                                                                             options={rows}
                                                                             value={selectedOption}
                                                                             name="DocumentCode"
@@ -2019,7 +2063,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Issue No</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.IssueNumber} />
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.IssueNumber} value={formData.IssueNumber} />
                                                                     </div>
                                                                 </div>
 
@@ -2027,14 +2071,14 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Revision No</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.RevisionNumber} />
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.RevisionNumber} value={formData.RevisionNumber} />
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Reference No</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" value={formData.ReferenceNumber} />
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.ReferenceNumber} value={formData.ReferenceNumber} />
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
@@ -2198,7 +2242,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 <textarea id="simpleinput" disabled={InputDisabled}
                                                                                     // className="form-control"                                                                      
                                                                                     className={`newse mb-0 ${(!ValidCancelReason) ? "border-on-error" : ""}`}
-
+                                                                                    title={row.description}
                                                                                     value={row.description}
                                                                                     onChange={(e) => {
                                                                                         const newRowscancellReason = [...cancellReason];
@@ -2215,7 +2259,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 <textarea id="simpleinput" disabled={InputDisabled}
                                                                                     //  className="form-control"
                                                                                     className={`newse mb-0 ${(!ValidCancelReason) ? "border-on-error" : ""}`}
-
+                                                                                    title={row.reason}
                                                                                     value={row.reason}
                                                                                     onChange={(e) => {
                                                                                         const newRowscancellReason = [...cancellReason];
@@ -2294,27 +2338,26 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 >
                                                                                     {index + 1}</div>
                                                                                 </td>
-                                                                                <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding">
+                                                                                <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding" title={UserRoles.find((role: any) => role.value === row.role)?.label || "Select Role"}>
                                                                                     <select
                                                                                         // className="form-select"
                                                                                         className={`form-select newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
+                                                                                        title={UserRoles.find((role: any) => role.value === row.role)?.label || "Select Role"}
 
                                                                                         onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={!(editID.CurrentUserRole == "OES"&& editID.Status == "Pending")}>
 
                                                                                         <option value="" selected>Select Role</option>
-                                                                                        {/* {UserRoles.map((role: any, index: number) => (
-                                                                                    <option key={index} value={role.value}>{role.label}</option>
-                                                                                ))} */}
+                                                                                        
                                                                                         {UserRoles.filter((role: any) =>
                                                                                             !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
                                                                                         ).map((role: any, idx: number) => (
-                                                                                            <option key={idx} value={role.value}>{role.label}</option>
+                                                                                            <option key={idx} value={role.value} >{role.label}</option>
                                                                                         ))}
                                                                                     </select>
 
                                                                                 </td>
                                                                                 <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>Level {index + 1}</td>
-                                                                                <td style={{ overflow: 'inherit' }}>
+                                                                                <td style={{ overflow: 'inherit' }}  title={row.approvers.map((approver: any) => approver.label).join(", ")}>
 
                                                                                     <Select
                                                                                         options={rows1}
@@ -2333,8 +2376,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 </td>
                                                                                 <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
                                                                                     {/* <label htmlFor="approvalType">Approval Type: </label> */}
-                                                                                    <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={!(editID.CurrentUserRole == "OES" && editID.Status == "Pending")} >
-                                                                                        <option value="">Select</option>
+                                                                                    <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={!(editID.CurrentUserRole == "OES" && editID.Status == "Pending")} title={row.approvalType === "One" ? "Anyone" : row.approvalType === "All" ? "Everyone" : "Select Approval Type"}>                                                                        
+
                                                                                         <option value="One">Anyone</option>
                                                                                         <option value="All">Everyone</option>
                                                                                     </select>
@@ -2430,10 +2473,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 >
                                                                                     {index + 1}</div>
                                                                                 </td>
-                                                                                <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding">
+                                                                                <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding" >
                                                                                     <select
                                                                                         // className="form-select"
                                                                                         className={`form-select newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
+                                                                                        title={UserRoles.find((role: any) => role.value === row.role)?.label || "Select Role"}
 
                                                                                         onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={true}>
 
@@ -2450,7 +2494,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                                 </td>
                                                                                 <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>Level {index + 1}</td>
-                                                                                <td style={{ overflow: 'inherit', minWidth: '120px', maxWidth: '120px', }}>
+                                                                                <td style={{ overflow: 'inherit', minWidth: '120px', maxWidth: '120px', }} title={row.approvers.map((approver: any) => approver.label).join(", ")}>
 
                                                                                     <Select
                                                                                         options={rows1}
@@ -2469,7 +2513,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 </td>
                                                                                 <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
                                                                                     {/* <label htmlFor="approvalType">Approval Type: </label> */}
-                                                                                    <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={true} >
+                                                                                    <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={true} title={row.approvalType === "One" ? "Anyone" : row.approvalType === "All" ? "Everyone" : "Select Approval Type"} >
                                                                                         <option value="">Select</option>
                                                                                         <option value="One">Anyone</option>
                                                                                         <option value="All">Everyone</option>
@@ -2639,9 +2683,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                     <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
                                                                                     <td title={DocumentLink?.FileLeafRef}>{DocumentLink?.FileLeafRef}</td>
                                                                                     <td style={{ textAlign: 'center',minWidth: '50px', maxWidth: '50px' }} >
+                                                                                    <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span>
+
                                                                                         <span onClick={() => OpenFile(DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                                                                         <FontAwesomeIcon icon={faDownload} /></span>
-                                                                                        <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span> </td>
+                                                                                         </td>
                                                                                     <td style={{ minWidth: '70px', maxWidth: '70px' }}>{DocumentLink.Created
                                                                                         ? new Intl.DateTimeFormat('en-GB', {
                                                                                             day: '2-digit',

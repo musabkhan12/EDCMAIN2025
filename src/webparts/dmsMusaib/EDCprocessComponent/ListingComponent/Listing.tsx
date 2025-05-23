@@ -218,15 +218,15 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     <td style={{ minWidth: '40px', maxWidth: '40px' }}>
                         <div style={{ marginLeft: '5px' }} className='indexdesign'>{i + 1}</div>
                     </td>
-                    <td title={item.ProcessName == "Non Conformity" ? item?.NCNumber : item?.RequestId} style={{ minWidth: '90px', maxWidth: '90px' }}>{item.ProcessName == "Non Conformity" ? item?.NCNumber : item?.RequestId}</td>
-                    <td title={item.ProcessName == "Non Conformity" ? item?.ProblemDescription : item.Title} style={{ minWidth: '90px', maxWidth: '90px' }}>{item.ProcessName == "Non Conformity" ? item?.ProblemDescription : item.Title}</td>
+                    <td title={item.ProcessName == "Non Conformity" ? item?.NCNumber : item?.RequestId} style={{ minWidth: '105px', maxWidth: '105px' }}>{item.ProcessName == "Non Conformity" ? item?.NCNumber : item?.RequestId}</td>
+                    <td title={item.ProcessName == "Non Conformity" ? item?.ProblemDescription : item.Title} style={{ minWidth: '105px', maxWidth: '105px' }}>{item.ProcessName == "Non Conformity" ? item?.ProblemDescription : item.Title}</td>
                     <td title={item?.ProcessName === "Annual Audit Plan"
                         ? "IMS Audit Plan"
                         : item?.ProcessName === "Annual Audit Program"
                             ? "IMS Annual Audit Program"
                             : item?.ProcessName === "Annual Audit Report"
                                 ? "IMS Audit Report and Checklist"
-                                : item?.ProcessName} style={{ minWidth: '90px', maxWidth: '90px' }}>
+                                : item?.ProcessName} style={{ minWidth: '105px', maxWidth: '105px' }}>
                         {item?.ProcessName === "Annual Audit Plan"
                             ? "IMS Audit Plan"
                             : item?.ProcessName === "Annual Audit Program"
@@ -235,10 +235,10 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                     ? "IMS Audit Report and Checklist"
                                     : item?.ProcessName}
                     </td>
-                    <td title={item.ReqName} style={{ minWidth: '85px', maxWidth: '85px' }}>{item.ReqName}</td>
-                    <td title={moment(item.ReqDt).format("DD-MMM-YYYY")} style={{ minWidth: '90px', maxWidth: '90px' }}>{moment(item.ReqDt).format("DD-MMM-YYYY")}</td>
-                    <td title={item.SubmitStatus == "No" ? "Save as Draft" : item.Status} style={{ minWidth: '90px', maxWidth: '90px' }}>{item.SubmitStatus == "No" ? "Save as Draft" : item.Status}</td>
-                    <td style={{ minWidth: '60px', maxWidth: '60px' }}>
+                    <td title={item.ReqName} style={{ minWidth: '80px', maxWidth: '80px' }}>{item.ReqName}</td>
+                    <td title={moment(item.ReqDt).format("DD-MMM-YYYY")} style={{ minWidth: '85px', maxWidth: '85px' }}>{moment(item.ReqDt).format("DD-MMM-YYYY")}</td>
+                    <td title={item.SubmitStatus == "No" ? "Save as Draft" : item.Status} style={{ minWidth: '70px', maxWidth: '70px' }}>{item.SubmitStatus == "No" ? "Save as Draft" : item.Status}</td>
+                    <td style={{ minWidth: '50px', maxWidth: '50px' }}>
                         <a href={path} onClick={() => this.editItem(item)}>
                             {/* <a  onClick={() => this.editItem(item)}> */}
                             <img src={require("../../assets/edit.png")} className="fas fa-trash" alt="delete" />
@@ -282,12 +282,12 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                                 : 'center'
                                         }} className='pb-3'> S.No</div>
                                     </th>
-                                    {['RequestId', 'Title', 'ProcessName', 'ReqName', 'ReqDt', 'Status'].map(column => (
+                                    {/* {['RequestId', 'Title', 'ProcessName', 'ReqName', 'ReqDt', 'Status'].map(column => (
                                         <th key={column} style={{ minWidth: '90px', textAlign: 'center', maxWidth: '90px' }}>
                                             <div>
                                                 <div onClick={() => this.handleSort(column)} style={{ cursor: 'pointer', display: 'flex', height: '35px' }}>
                                                     {/* {column} */}
-                                                    {column === 'ProcessName'
+                                    {/* {column === 'ProcessName'
                                                         ? 'Process Name'
                                                         : column === 'RequestId'
                                                             ? 'Request ID'
@@ -296,23 +296,69 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                                                 : column === 'ReqDt'
                                                                     ? 'Request Date'
                                                                     : column} {/* Dynamically update column names */}
-                                                    {sortColumn === column && (
+                                    {/* {sortColumn === column && (
                                                         <span>
                                                             {sortDirection === 'asc' ? ' ▲' : ' ▼'}
                                                         </span>
                                                     )}
-                                                </div>
-                                                <input
+                                                </div> */}
+                                    {/* <input
                                                     type="text"
                                                     placeholder={`Search ${column}`}
                                                     value={searchValues[column]}
                                                     onChange={(e) => this.handleSearchChange(column, e.target.value)}
                                                     style={{ width: '100%', marginTop: '5px' }}
-                                                />
-                                            </div>
-                                        </th>
-                                    ))}
-                                    <th style={{ minWidth: '60px', textAlign: 'center', maxWidth: '60px' }}>
+                                                /> */}
+                                    {/* </div> */}
+                                    {/* </th> */}
+                                    {/* ))} */}
+                                    {['RequestId', 'Title', 'ProcessName', 'ReqName', 'ReqDt', 'Status'].map(column => {
+                                        let columnWidth = { minWidth: '90px', maxWidth: '90px' }; // default
+
+                                        if (['RequestId', 'Title', 'ProcessName'].includes(column)) {
+                                            columnWidth = { minWidth: '105px', maxWidth: '105px' };
+                                        } else if (['ReqName', 'ReqDt'].includes(column)) {
+                                            columnWidth = { minWidth: '85px', maxWidth: '85px' };
+                                        } else if (column === 'Status') {
+                                            columnWidth = { minWidth: '70px', maxWidth: '70px' };
+                                        }
+
+                                        return (
+                                            <th key={column} style={{ ...columnWidth, textAlign: 'center' }}>
+                                                <div>
+                                                    <div
+                                                        onClick={() => this.handleSort(column)}
+                                                        style={{ cursor: 'pointer', height: '35px' }}
+                                                        // display: 'flex',
+                                                    >
+                                                        {column === 'ProcessName'
+                                                            ? 'Process Name'
+                                                            : column === 'RequestId'
+                                                                ? 'Request ID'
+                                                                : column === 'ReqName'
+                                                                    ? 'Request Name'
+                                                                    : column === 'ReqDt'
+                                                                        ? 'Request Date'
+                                                                        : column}
+                                                        {sortColumn === column && (
+                                                            <span>
+                                                                {sortDirection === 'asc' ? ' ▲' : ' ▼'}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        placeholder={`Search ${column}`}
+                                                        value={searchValues[column]}
+                                                        onChange={(e) => this.handleSearchChange(column, e.target.value)}
+                                                        style={{ width: '100%', marginTop: '5px' }}
+                                                    />
+                                                </div>
+                                            </th>
+                                        );
+                                    })}
+
+                                    <th style={{ minWidth: '50px', textAlign: 'center', maxWidth: '50px' }}>
                                         <div style={{
                                             width: '100%', height: '80px', display: 'flex', justifyContent: 'start', textAlign
                                                 : 'center'
@@ -551,8 +597,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     for (const itom of processItems2) {
 
                         allItems.push({
-                            RequestId:itm.ReportCode? itm.ReportCode : "",
-                            ReportCode:itm.ReportCode? itm.ReportCode : "",
+                            RequestId: itm.ReportCode ? itm.ReportCode : "",
+                            ReportCode: itm.ReportCode ? itm.ReportCode : "",
                             Title: itm.MemoNumber ? itm.MemoNumber : "",
                             ProcessName: "Annual Audit Report",
                             ReqName: itm.Author ? itm.Author.Title : '',
@@ -570,8 +616,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 else {
 
                     allItems.push({
-                        RequestId:itm.ReportCode? itm.ReportCode : "",
-                        ReportCode:itm.ReportCode? itm.ReportCode : "",
+                        RequestId: itm.ReportCode ? itm.ReportCode : "",
+                        ReportCode: itm.ReportCode ? itm.ReportCode : "",
                         Title: itm.MemoNumber ? itm.MemoNumber : "",
                         ProcessName: "Annual Audit Report",
                         ReqName: itm.Author ? itm.Author.Title : '',
@@ -587,8 +633,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             else {
 
                 allItems.push({
-                    RequestId: itm.ReportCode? itm.ReportCode : "",
-                    ReportCode:itm.ReportCode? itm.ReportCode : "",
+                    RequestId: itm.ReportCode ? itm.ReportCode : "",
+                    ReportCode: itm.ReportCode ? itm.ReportCode : "",
                     Title: itm.MemoNumber ? itm.MemoNumber : "",
                     ProcessName: "Annual Audit Report",
                     ReqName: itm.Author ? itm.Author.Title : '',
@@ -615,12 +661,12 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 Doccode = item.DocumentCode
             }
             allItems.push({
-                 RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " ":item.DocumentCode,
+                RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
                 //RequestId:  item.NCRNo,
-               
+
                 NCRNo: item.NCRNo,
-                NCNumber:item.NCNumber,
-                 Title: item.DocumentCode == "" || item.DocumentCode == null?" ":item.DocumentCode,
+                NCNumber: item.NCNumber,
+                Title: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
                 //Title: item.ProblemDescription,
                 ProblemDescription: item.ProblemDescription,
                 ProcessName: "Non Conformity",

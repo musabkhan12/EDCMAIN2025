@@ -131,10 +131,10 @@ export const getItemsAuditReportNC = async (_sp) => {
     ()
     .then((res) => {
       console.log(res, 'ncnumberr let arrs=[]');
-      if (res.length > 0){
+      if (res.length > 0) {
         arr.push(res[0])
       }
-        //arr.push(res[0])
+      //arr.push(res[0])
       // arr = res;
     })
     .catch((error) => {
@@ -156,10 +156,10 @@ export const getItemsAuditReportObs = async (_sp) => {
     ()
     .then((res) => {
       console.log(res, 'ObservationSequence let arrs=[]');
-      if (res.length > 0){
+      if (res.length > 0) {
         arr.push(res[0])
       }
-        //arr.push(res[0])
+      //arr.push(res[0])
       // arr = res;
     })
     .catch((error) => {
@@ -175,8 +175,8 @@ export const getMemoNumberAuditReport = async (_sp) => {
   let bannerimg = []
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("AnnualAuditReportList").items
-    .select("*,ApprovedAuditPlan/MemoNumber,ApprovedAuditPlan/ID,FailureofIntentNonconformity")
-    .expand("ApprovedAuditPlan")
+  .select("*,ApprovedAuditPlan/MemoNumber,ApprovedAuditPlan/ID,FailureofIntentNonconformity,DepartmentAudited/ID,DepartmentAudited/Department")
+  .expand("ApprovedAuditPlan,DepartmentAudited")
     .filter(`FailureofIntentNonconformity eq 'Yes' or Observations eq 'Yes'`)
     .orderBy("Modified", false)
     ()
@@ -192,7 +192,7 @@ export const getMemoNumberAuditReport = async (_sp) => {
   console.log(arr, 'arr');
   return arr;
 }
-export const getNCNumbers = async (_sp,Reportcode, type) => {
+export const getNCNumbers = async (_sp, Reportcode, type) => {
 
   let arr = []
   let arrs = []

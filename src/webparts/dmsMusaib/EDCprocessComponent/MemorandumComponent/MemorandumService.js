@@ -371,7 +371,10 @@ export const getDataRoles = async (_sp) => {
     debugger
     let arr = []
     let sampleDataArray = []
-    arr = await sp.web.lists.getByTitle("MemorandumRecommendationList").items.select("*,Memorandum/ID,Auditor/ID,Auditor/Title").expand("Memorandum,Auditor").filter(`Memorandum/ID eq ${AuditID}`).getAll();
+    arr = await sp.web.lists.getByTitle("MemorandumRecommendationList").items
+    .select("*,Memorandum/ID,Auditor/ID,Auditor/Title,Auditors/ID,Auditors/Role")
+    .expand("Memorandum,Auditor,Auditors")
+    .filter(`Memorandum/ID eq ${AuditID}`).getAll();
     // .then((res) => {
     //   arr = res
     //   console.log(arr, 'arr');

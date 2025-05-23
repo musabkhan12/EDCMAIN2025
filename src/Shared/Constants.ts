@@ -18,6 +18,7 @@ export const LIST_TITLE_AuditProgram="AnnualAuditProgram";
 export const CONTENTTYPE_Memo ="Memorandum";
 export const LIST_TITLE_Memo="Memorandum";
 export const CONTENTTYPE_AuditPlanTemp  ="AuditPlan";
+export const CONTENTTYPE_ChangeReqTemp  ="Change Request";
 // export const Tenant_URL ="https://officeindia.sharepoint.com"
 // export const SITE_URL ="https://officeindia.sharepoint.com/sites/edcspfx"
 export const Tenant_URL ="https://officeindia.sharepoint.com"

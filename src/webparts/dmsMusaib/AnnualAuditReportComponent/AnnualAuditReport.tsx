@@ -430,7 +430,23 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const onPeoplePickerChange = (items: any[]) => {
         setSelectedUsers(items);
     };
+    const getNewFileName = async (originalFileName: string): Promise<string> => {
+        const userId = currentUser.Id; // Or however you get the current user ID
+        const date = new Date();
+        const fileExtension = originalFileName.split('.').pop();
 
+        const components = [
+            date.getFullYear(),
+            (date.getMonth() + 1).toString().padStart(2, '0'),
+            date.getDate().toString().padStart(2, '0'),
+            date.getHours().toString().padStart(2, '0'),
+            date.getMinutes().toString().padStart(2, '0'),
+            date.getSeconds().toString().padStart(2, '0'),
+            date.getMilliseconds().toString().padStart(3, '0')
+        ];
+
+        return `${userId}_${components.join('')}_${originalFileName}`;
+    };
     const ApiCallFunc = async () => {
         setAuditPlanType(await getAllAuditType(sp));
         var DepartmentArr = await getAllDepartment(sp);
@@ -1321,7 +1337,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             for (const file of FilesArr) {
                                 if (!file.ID) {
                                     //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
-                                    DocumentName = file.name;
+                                    const newFileName = await getNewFileName(file.name);
+                                    DocumentName = newFileName;
                                     const fileAddResult = await folder.files.addChunked(file.name, file);
                                     const fileNew = fileAddResult.file;
                                     const documentName = fileAddResult.data.Name;
@@ -1669,7 +1686,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             for (const file of FilesArr) {
                                 if (!file.ID) {
                                     //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
-                                    DocumentName = file.name;
+                                    const newFileName = await getNewFileName(file.name);
+                                    DocumentName = newFileName;
                                     const fileAddResult = await folder.files.addChunked(file.name, file);
                                     const fileNew = fileAddResult.file;
                                     const documentName = fileAddResult.data.Name;
@@ -1933,7 +1951,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             for (const file of FilesArr) {
                                 if (!file.ID) {
                                     //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
-                                    DocumentName = file.name;
+                                    const newFileName = await getNewFileName(file.name);
+                                    DocumentName = newFileName;
                                     const fileAddResult = await folder.files.addChunked(file.name, file);
                                     const fileNew = fileAddResult.file;
                                     const documentName = fileAddResult.data.Name;
@@ -2255,7 +2274,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             for (const file of FilesArr) {
                                 if (!file.ID) {
                                     //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
-                                    DocumentName = file.name;
+                                    const newFileName = await getNewFileName(file.name);
+                                    DocumentName = newFileName;
                                     const fileAddResult = await folder.files.addChunked(file.name, file);
                                     const fileNew = fileAddResult.file;
                                     const documentName = fileAddResult.data.Name;
@@ -3829,7 +3849,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                     FilesArr.map((row: any, index: number) => (
                                                                         <tr>
                                                                             <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
-                                                                            <td title={row.name || row.FileLeafRef}>{row.name || row.FileLeafRef}</td>
+                                                                            {/* <td title={row.name || row.FileLeafRef}>{row.name || row.FileLeafRef}</td> */}
+                                                                            <td title={row.name || (row.FileLeafRef.includes('_') ? row.FileLeafRef.split('_')[2] : row.FileLeafRef)}>
+                                                                                {row.name || (row.FileLeafRef.includes('_') ? row.FileLeafRef.split('_')[2] : row.FileLeafRef)}</td>
                                                                             {((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
                                                                                 || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload &&
                                                                                 <td style={{ textAlign: 'center' }}>
@@ -3895,7 +3917,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                     TemplateDocAudit.map((row: any, index: number) => (
                                                                         <tr>
                                                                             <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
-                                                                            <td title={row.name || row.FileLeafRef}>{row.name || row.FileLeafRef}</td>
+                                                                            {/* <td title={row.name || row.FileLeafRef}>{row.name || row.FileLeafRef}</td> */}
+                                                                            <td title={row.name || (row.FileLeafRef.includes('_') ? row.FileLeafRef.split('_')[2] : row.FileLeafRef)}>
+                                                                                {row.name || (row.FileLeafRef.includes('_') ? row.FileLeafRef.split('_')[2] : row.FileLeafRef)}</td>
                                                                             {/* <td style={{ textAlign: 'center' }} >
                                                                                        
                                                                                         <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span>

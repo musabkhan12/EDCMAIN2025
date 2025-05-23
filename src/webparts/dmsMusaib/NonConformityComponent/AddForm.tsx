@@ -52,6 +52,7 @@ export class IState {
   Loading: boolean;
   departmentOption: any[];
   departmentselected: any;
+  fromdepartmentselected: any;
   memonumberOptions: any[];
   typeoptions: any[];
   ncType: any;
@@ -64,6 +65,7 @@ export class IState {
   NCNumberID: string | number;
   MemoNumber: string;
   department: string | number;
+  fromdepartment: string | number;
   departmentCode: string;
   serialNo: number;
   criteria: string;
@@ -110,6 +112,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       Loading: false,
       departmentOption: [],
       departmentselected: [],
+      fromdepartmentselected: [],
       memonumberOptions: [],
       typeoptions: [],
       ncType: "",
@@ -122,6 +125,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       ApprovedAuditReport: "",
       MemoNumber: "",
       department: "",
+      fromdepartment: "",
       departmentCode: "",
       serialNo: 0,
       criteria: "",
@@ -268,15 +272,19 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
           nctype: entry.NCType
         }));
     }
-
+    debugger
     const uniqueOptions = await this.getUniqueBy(optionsNCNumber, "ncNo");
     uniqueOptions.sort((a, b) => a.label.localeCompare(b.label));
+
     let approvedauditreportselected = this.state.memonumberOptions.filter((x: any) => x.value == item.value);
+    const selectedOption = this.state.departmentOption.find(user => user?.value === approvedauditreportselected[0].department);
     this.setState({
+      department: approvedauditreportselected[0].department,
       NCNumberOptions: uniqueOptions,
       ApprovedAuditReport: Number(item.value),
       MemoNumber: item.reportCode,
-      ApprovedAuditSelected: approvedauditreportselected
+      ApprovedAuditSelected: approvedauditreportselected,
+      departmentselected: selectedOption
     });
     console.log("ApprovedAuditSelected", approvedauditreportselected);
   };
@@ -465,7 +473,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
             label: item.ReportCode,
             itemId: item.ID,
             reportCode: item.ReportCode,
-            ncNo: item.NCNumber
+            ncNo: item.NCNumber,
+            department: item.DepartmentAuditedId
           }));
         }
         if (filteredItemsObs.length > 0) {
@@ -474,7 +483,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
             label: item.ReportCode,
             itemId: item.ID,
             reportCode: item.ReportCode,
-            ncNo: item.NCNumber
+            ncNo: item.NCNumber,
+            department: item.DepartmentAuditedId
           }));
         }
       }
@@ -588,19 +598,26 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       // const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items();
       const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items.orderBy("Title", true)();
       const options = deptItems.map((item: {
-        DepartmentCode: any; Title: string; Id: number
+        DepartmentCode: any; Title: string; Id: number, ADDepartmentName: string
       }) => ({
         value: item.Id,
         label: item.Title,
+        adDepartmentName: item.ADDepartmentName,
         data: { departmentCode: item.DepartmentCode },
       }));
       this.setState({ departmentOption: options });
       //const Currusers: any = await this.getCurrentUser(sp, this.state.siteurl);
       const userProfile = await sp.profiles.myProperties();
       const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
-      let currentuserdepartment = UserDept == "IT" ? "Information Technology" : UserDept;
-      const selectedOption = options.find(user => user?.label === currentuserdepartment);
-      this.setState({ department: selectedOption?.value, departmentCode: selectedOption?.data.departmentCode, departmentselected: selectedOption });
+      let currentuserdepartment = UserDept;
+      const selectedOption = options.find(user => user?.adDepartmentName === currentuserdepartment);
+      this.setState({
+        fromdepartment: selectedOption?.value,
+        //department: selectedOption?.value, 
+        departmentCode: selectedOption?.data.departmentCode,
+        //departmentselected: selectedOption, 
+        fromdepartmentselected: selectedOption
+      });
       //this.setState({ department: selectedOption?.key });
       await this.getCategory();
     } catch (e) {
@@ -703,6 +720,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
   //   this.setState({ errors });
   //   return Object.keys(errors).length === 0;
   // };
+
+
+
   public validateFormSubmit = (): boolean => {
     let errors: { [key: string]: string } = {};
     let isValid = true;
@@ -1008,6 +1028,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
           RevisionDate: this.state.revisionDate || null,
           ReferenceNumber: this.state.referenceNo,
           DepartmentId: this.state.department || null,
+          FromDepartmentId: this.state.fromdepartment || null,
           Criteria: this.state.criteria,
           CloseOutStatus: this.state.closeOutStatus,
           CategoryId: this.state.categoryValueIsCheck,
@@ -1033,8 +1054,28 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
             });
           }
           if (this.state.copyFil.length > 0) {
-            this.state.copyFil.forEach(function (file) {
-              var fileNamePath = encodeURI(file.name);
+            debugger
+            this.state.copyFil.forEach(async function (file) {
+              
+              const sp = spfi().using(SPFx(this.props.context));
+              const currentUser = await sp.web.currentUser();
+              const userId = currentUser.Id; // Or however you get the current user ID
+              const date = new Date();
+              const fileExtension = file.name.split('.').pop();
+
+              const components = [
+                date.getFullYear(),
+                (date.getMonth() + 1).toString().padStart(2, '0'),
+                date.getDate().toString().padStart(2, '0'),
+                date.getHours().toString().padStart(2, '0'),
+                date.getMinutes().toString().padStart(2, '0'),
+                date.getSeconds().toString().padStart(2, '0'),
+                date.getMilliseconds().toString().padStart(3, '0')
+              ];
+              //var fileNamePath = encodeURI(file.name);
+              var fileNamePath = `${userId}_${components.join('')}_${file.name}`;
+              //return `${userId}_${components.join('')}_${file.name}`;
+
               sp.web.getFolderByServerRelativePath("NonConformityDocs").files.addUsingPath(fileNamePath, file, { Overwrite: true }).then(function (response) {
                 response.file.getItem().then(function (fileItem) {
                   fileItem.update({
@@ -1061,7 +1102,25 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
         console.error("Error while saving:", error);
       });
   }
+  private getNewFileName = async (originalFileName: string) => {
+    const sp = spfi().using(SPFx(this.props.context));
+    const currentUser = await sp.web.currentUser();
+    const userId = currentUser.Id; // Or however you get the current user ID
+    const date = new Date();
+    const fileExtension = originalFileName.split('.').pop();
 
+    const components = [
+      date.getFullYear(),
+      (date.getMonth() + 1).toString().padStart(2, '0'),
+      date.getDate().toString().padStart(2, '0'),
+      date.getHours().toString().padStart(2, '0'),
+      date.getMinutes().toString().padStart(2, '0'),
+      date.getSeconds().toString().padStart(2, '0'),
+      date.getMilliseconds().toString().padStart(3, '0')
+    ];
+
+    return `${userId}_${components.join('')}_${originalFileName}`;
+  };
   public render(): React.ReactElement<IAuditPlanProps> {
     const peoplePickerContext: IPeoplePickerContext = {
       absoluteUrl: this.props.context.pageContext.web.absoluteUrl,
@@ -1252,6 +1311,22 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                 />
               </div> */}
                 <div className="form-group col-md-4 mb-3">
+                  <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }} >From Department:<span className="text-danger1">*</span>
+                  </label>
+                  <Select
+                    options={this.state.departmentOption}
+                    value={this.state.fromdepartmentselected}
+                    name="Department"
+                    isDisabled
+                    isClearable={true}
+                    isSearchable={true}
+                    className={this.state.errors?.department ? 'border-on-error' : ''}
+                    onChange={(selectedOption: any) => this.changeDepartment(selectedOption)}
+                    placeholder={"Department"}
+
+                  />
+                </div>
+                <div className="form-group col-md-4 mb-3">
                   <TextField label="Document Code:" name='DocumentCode' required value={this.state.documentCode} disabled={true} onChange={this.handleChange}
                     styles={{
                       fieldGroup: {
@@ -1285,6 +1360,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                     options={this.state.departmentOption}
                     value={this.state.departmentselected}
                     name="Department"
+                    isDisabled
                     isClearable={true}
                     isSearchable={true}
                     className={this.state.errors?.department ? 'border-on-error' : ''}

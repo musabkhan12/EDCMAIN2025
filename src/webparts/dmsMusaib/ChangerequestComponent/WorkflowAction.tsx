@@ -110,9 +110,13 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         Status: Status,
         ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
       };
+      let finalrevisiondate = currentchangerequest[0].RevisionDate == null || currentchangerequest[0].RevisionDate == undefined ? undefined : new Date(currentchangerequest[0].RevisionDate).toISOString();
+      let finalissuedate = currentchangerequest[0].IssueDate == null || currentchangerequest[0].IssueDate == undefined ? undefined : new Date(currentchangerequest[0].IssueDate).toISOString();
       if (currentchangerequest[0].RequestType?.RequestType == "Change in Existing Content") {
         postPayloadapp1 = {
           IssueDate: new Date().toISOString(),
+          CIssueDate: currentchangerequest[0]?.TemplateType?.TemplateTypeName != "Change Request" ? finalissuedate : new Date().toISOString(),
+          CRevisionDate: currentchangerequest[0].TemplateType?.TemplateTypeName != "Change Request" ? finalrevisiondate : new Date().toISOString(),
           RevisionDate: new Date().toISOString(),
           RevisionNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? testRev : RevisionNumber,
           ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
@@ -121,6 +125,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         postPayloadapp1 = {
           // Status: Status,
           IssueDate: new Date().toISOString(),
+          CIssueDate: currentchangerequest[0]?.TemplateType?.TemplateTypeName != "Change Request" ? finalissuedate : new Date().toISOString(),
           RevisionNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? testRev : RevisionNumber,
           ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
         };
