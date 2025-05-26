@@ -2634,7 +2634,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
                                                         {/* </a> */}
-                                                        {/* <a href="../sites/edcspfx/SitePages/EDCMAIN.aspx">       */}
+                                                        {/* <a href="../sites/ededms/SitePages/EDCMAIN.aspx">       */}
                                                         {/* {((modeValue === "" || modeValue === "edit"|| modeValue === "view") ||(editID !== null && editID.IsInitiator == "Yes")) &&
                                      
                                                         className='me-1' alt="x" /> Cancel</button>

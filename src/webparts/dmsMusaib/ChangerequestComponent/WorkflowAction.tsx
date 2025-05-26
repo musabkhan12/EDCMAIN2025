@@ -204,7 +204,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         //if (postResult) {
         Swal.fire(resultmessage, '', 'success').then(async (result) => {
           if (result.isConfirmed) {
-            window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+            window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx`;
           }
         });
         // Swal.fire(resultmessage, '', 'success');
@@ -212,7 +212,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
         //   // window.location.reload()
 
-        //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+        //   window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx`;
 
         // }, 1000);
 
