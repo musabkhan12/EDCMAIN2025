@@ -118,14 +118,15 @@ export const getItemByID = async (_sp, id) => {
   console.log(arr, 'arr');
   return arr;
 }
-export const getItemsAuditReportNC = async (_sp) => {
+export const getItemsAuditReportNC = async (_sp,dept) => {
 
   let arr = []
   let arrs = []
   let bannerimg = []
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("AnnualAuditReportList").items
-    .select("NCSequence,ID,ObservationSequence,NCNumber,ObservationNumber").expand("")
+    .select("NCSequence,ID,ObservationSequence,NCNumber,ObservationNumber,Department/ID").expand("Department")
+    .filter(`DepartmentId eq '${dept}'`)
     .orderBy("NCSequence", false)
     .top(1)
     ()
@@ -143,7 +144,7 @@ export const getItemsAuditReportNC = async (_sp) => {
   console.log(arr, 'arr');
   return arr;
 }
-export const getItemsAuditReportObs = async (_sp) => {
+export const getItemsAuditReportObs = async (_sp,dept) => {
 
   let arr = []
   let arrs = []
@@ -151,6 +152,7 @@ export const getItemsAuditReportObs = async (_sp) => {
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("AnnualAuditReportList").items
     .select("NCSequence,ID,ObservationSequence,NCNumber,ObservationNumber").expand("")
+    .filter(`DepartmentId eq '${dept}'`)
     .orderBy("ObservationSequence", false)
     .top(1)
     ()
