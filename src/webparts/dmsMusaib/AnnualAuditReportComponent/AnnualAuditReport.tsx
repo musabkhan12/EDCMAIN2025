@@ -41,6 +41,7 @@ import moment from 'moment';
 //MUI time picker
 import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { getAuditProgShift } from '../EDCprocessComponent/FormComponent/FormService';
 //SYnc time picker
 // import { TimePickerComponent } from '@syncfusion/ej2-react-calendars';
 
@@ -84,7 +85,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
     selectedTextDiv.style.display = 'none';
 
-
+    const [AuditProgShift, setAuditProgShift] = React.useState([]);
     const [FilesArr, setFilesArr] = React.useState<any>([]);
     const [FilesArr1, setFilesArr1] = React.useState<any>([]);
     const [FilesArrDoclink, setFilesArrDoclink] = React.useState<any>([]);
@@ -117,6 +118,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [showviewdownload, setshowviewdownload] = React.useState(true);
     const [currentUserDept, setcurrentUserDept] = React.useState(null);
     const [selectUserDept, setselectUserDept] = React.useState(null);
+    const [selectedShift, setselectedShift] = React.useState(null);
     const [reportCode, setreportCode] = React.useState("");
 
     const [selectAuditplan, setselectAuditplan] = React.useState(null);
@@ -172,6 +174,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         memoNumber: "",
         approvedauditplanId: 0,
         deptId: 0,
+        shiftId:0,
         fromdeptId: 0,
         date: "",
         Auditplandate: "",
@@ -204,6 +207,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
         setreportCode(reportcode);
         setFormData({ ...formData, deptId: selectedOption.value, reportCode: reportcode });
     };
+    const handleshiftChange = (selectedOption: any) => {
+        setselectedShift(selectedOption);
+        debugger
+        setFormData({ ...formData, shiftId: selectedOption.value });
+    };
+
     const handleActualAuditDateChange = (date: any) => {
 
         debugger
@@ -517,7 +526,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
         }));
         setAllDept(optionsDepartment);
         var setAllDept1 = await getAllDepartment1(sp);
-
+        var setAllshift1 = await getAuditProgShift(sp);
+        setAuditProgShift(setAllshift1);
         var DocCodeArr = await getAllApprovedAuditplan(sp);
         console.log("DocCodeArrDocCodeArr", DocCodeArr);
         const options = DocCodeArr.map((item: any) => ({
@@ -681,9 +691,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                     //  ProcessListItem =await getApprovalByID(sp, Number(segments[paramIndex + 2]),CONTENTTYPE_DocumentCancel);
                     // setInputDisabled((ProcessListItem.Status == "Pending" || ProcessListItem?.Status === "Save as draft") && ProcessListItem.Level === 0 && ProcessListItem.CurrentUserRole !=="OES")
-                    setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditReport,CONTENTTYPE_AuditReportNew));
+                    setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditReport, CONTENTTYPE_AuditReportNew));
                     // var ProcessItemId: any = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditReport);
-                    setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditReport,CONTENTTYPE_AuditReportNew));
+                    setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditReport, CONTENTTYPE_AuditReportNew));
                 }
                 // else {
 
@@ -692,7 +702,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 // }
             }
 
-            setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditReport,CONTENTTYPE_AuditReportNew))
+            setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditReport, CONTENTTYPE_AuditReportNew))
 
         }
         if (setAuditreportNC.length > 0) {
@@ -735,6 +745,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     memoNumber: setBannerById[0].MemoNumber,
                     description: setBannerById[0].Description,
                     deptId: setBannerById[0].DepartmentAuditedId,
+                    shiftId: setBannerById[0].ShiftId,
                     fromdeptId: setBannerById[0].DepartmentId,
                     issueNo: setBannerById[0].IssueNumber,
                     revisionNo: setBannerById[0].RevisionNumber,
@@ -787,6 +798,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 setSharewithusers(sharewithuser);
                 setdoccode(setBannerById[0].Title);
                 debugger
+                setselectedShift(setAllshift1.filter(user => user.value === setBannerById[0].ShiftId));
                 setselectUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentAuditedId));
                 setcurrentUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentId));
                 const selectedauditplan = options.filter((cust: { value: any; }) => cust.value === setBannerById[0].ApprovedAuditPlanId) || null;
@@ -815,7 +827,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     //setFilesArrDoclink([...FilesArrDoclink, ...arrn]);
                     console.log("arrrrrrn5ghjghj6 audit doc");
                 }
-                const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_AuditReport, setBannerById[0].ReferenceNumber,CONTENTTYPE_AuditReportNew)
+                const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_AuditReport, setBannerById[0].ReferenceNumber, CONTENTTYPE_AuditReportNew)
 
                 if (ApprowData.length > 0) {
 
@@ -1450,6 +1462,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             DepartmentId: formData.fromdeptId,
                             DepartmentAuditedId: formData.deptId,
                             Date: formData.date,
+                            ShiftId:formData.shiftId ? formData.shiftId : selectedShift.value,
                             AuditPlanDate: auditplandate,
                             DocumentCode: formData.documentCode,
                             IssueNumber: Number(formData.issueNo),
@@ -1802,6 +1815,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
                             DepartmentAuditedId: formData.deptId,
+                            ShiftId:formData.shiftId ? formData.shiftId : selectedShift.value,
                             Date: formData.date,
                             AuditPlanDate: auditplandate,
                             DocumentCode: formData.documentCode,
@@ -2098,6 +2112,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
                             DepartmentAuditedId: formData.deptId,
+                            ShiftId:formData.shiftId ? formData.shiftId : selectedShift.value,
                             Date: formData.date,
                             AuditPlanDate: auditplandate,
                             DocumentCode: formData.documentCode,
@@ -2434,6 +2449,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
                             DepartmentAuditedId: formData.deptId,
+                            ShiftId:formData.shiftId ? formData.shiftId : selectedShift.value,
                             Date: formData.date,
                             AuditPlanDate: auditplandate,
                             DocumentCode: formData.documentCode,
@@ -3636,6 +3652,25 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         </div>
                                                                     </div>
                                                                 </div>
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="revisionNo" className="col-form-label">Shift</label>
+                                                                        <div title={selectedShift?.label}>
+                                                                            <Select
+                                                                                options={AuditProgShift}
+                                                                                isDisabled={InputDisabled}
+                                                                                value={selectedShift}
+                                                                                name="shiftId"
+                                                                                className={`newse`}
+                                                                                onChange={(selectedOptions: any) => handleshiftChange(selectedOptions)}
+                                                                                placeholder="Select Shift"
+                                                                            />
+                                                                        
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+
                                                             </div>
                                                         </form>
                                                     </div>
@@ -3655,7 +3690,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                 </section>
 
                                                 <section className='card card-body mt-2'>
-                                                    <fieldset style={{display:'grid'}}>
+                                                    <fieldset style={{ display: 'grid' }}>
                                                         <div className='row'>
                                                             <div className='col-sm-6'>
                                                                 <h3 className='text-dark font-16 fw-bold mb-3'>Checklist</h3>

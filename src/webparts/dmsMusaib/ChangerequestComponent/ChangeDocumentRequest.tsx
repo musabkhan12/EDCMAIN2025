@@ -1879,8 +1879,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
             // }
             for (const row of cancellReason) {
-              const isDescriptionEmpty = row.description.trim() === "";
-              const isReasonEmpty = row.reason.trim() === "";
+             const isDescriptionEmpty = !row.description || row.description.trim() === "";
+              const isReasonEmpty = !row.reason || row.reason.trim() === "";    
 
               // Skip the row if BOTH description and reason are empty
               if (isDescriptionEmpty && isReasonEmpty) {
@@ -2060,8 +2060,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             //   }
             // }
             for (const row of cancellReason) {
-              const isDescriptionEmpty = row.description.trim() === "";
-              const isReasonEmpty = row.reason.trim() === "";
+              const isDescriptionEmpty = !row.description || row.description.trim() === "";
+              const isReasonEmpty = !row.reason || row.reason.trim() === "";    
 
               // Skip the row if BOTH description and reason are empty
               if (isDescriptionEmpty && isReasonEmpty) {
@@ -2528,7 +2528,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               AmendmentTypeId: selectedOption?.AmendmentTypeId,
               RequestTypeId: selectedOption?.RequestTypeId,
               ClassificationId: selectedOption?.ClassificationId,
-              ChangeRequestTypeId: selectedOption?.ChangeRequestTypeId,
+              ChangeRequestTypeId:   selectedCheckboxIds,
               SubmiitedDate: selectedOption?.SubmiitedDate,
               SubmitStatus: "Yes",
               Status: "Pending",
@@ -2708,7 +2708,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               AmendmentTypeId: selectedOption?.AmendmentTypeId,
               RequestTypeId: selectedOption?.RequestTypeId,
               ClassificationId: selectedOption?.ClassificationId,
-              ChangeRequestTypeId: selectedOption?.ChangeRequestTypeId,
+              ChangeRequestTypeId: selectedCheckboxIds,
               SubmiitedDate: selectedOption?.SubmiitedDate,
               SubmitStatus: "No",
               Status: "Rework",
@@ -2757,8 +2757,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
             // }
             for (const row of cancellReason) {
-              const isDescriptionEmpty = row.description.trim() === "";
-              const isReasonEmpty = row.reason.trim() === "";
+              const isDescriptionEmpty = !row.description || row.description.trim() === "";
+              const isReasonEmpty = !row.reason || row.reason.trim() === "";             
 
               // Skip the row if BOTH description and reason are empty
               if (isDescriptionEmpty && isReasonEmpty) {
@@ -2959,7 +2959,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       setIsModalOpen(true);   // Open the modal
     } else {
       if (fileObj && fileObj.serverUrl && fileObj.serverRelativeUrl) {
-        const fileUrl = `${fileObj.serverUrl.trim()}${fileObj.serverRelativeUrl.trim()}`;
+        const fileUrl = `${fileObj.serverUrl?.trim()}${fileObj.serverRelativeUrl?.trim()}`;
         setPreviewUrl(fileUrl); // Set the preview URL
         setIsModalOpen(true);   // Open the modal
       } else {
