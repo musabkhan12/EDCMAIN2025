@@ -98,7 +98,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
         default:
       }
       setLoading(true);
-      if (props.ContentType != "Document Cancellation" && props.ContentType != "Change Request" && props.ContentType != "Annual Audit Plan" && props.ContentType != "IMS Audit Plan"  && props.ContentType != "Annual Audit Report" && props.ContentType != "Annual Audit Program" && props.ContentType != "IMS Annual Audit Program"&& props.ContentType != "Memorandum") {
+      if (props.ContentType != "Document Cancellation" && props.ContentType != "Change Request" && props.ContentType != "Annual Audit Plan" && props.ContentType != "IMS Audit Plan"  && props.ContentType != "Annual Audit Report" && props.ContentType != "IMS Audit Report and Checklist" && props.ContentType != "Annual Audit Program" && props.ContentType != "IMS Annual Audit Program"&& props.ContentType != "Memorandum") {
         sp.web.lists.getByTitle("ARGMyRequest").items
           .select("*,Requester/Id,Requester/Title,Approver/Id,Approver/Title")
           .expand("Approver,Requester")
@@ -228,7 +228,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                   </th>
 
-                  {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request" || props.ContentType == "Annual Audit Plan" || props.ContentType == "IMS Audit Plan"|| props.ContentType == "Annual Audit Report"|| props.ContentType == "Memorandum") &&<th style={{ minWidth: '100px', maxWidth: '100px' }}>
+                  {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request"|| props.ContentType == "Annual Audit Program" || props.ContentType == "IMS Annual Audit Program" || props.ContentType == "Annual Audit Plan" || props.ContentType == "IMS Audit Plan"|| props.ContentType == "Annual Audit Report" || props.ContentType == "IMS Audit Report and Checklist"|| props.ContentType == "Memorandum") &&<th style={{ minWidth: '100px', maxWidth: '100px' }}>
 
 
                    Assigned To Role
@@ -352,7 +352,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                         <td title={row.Approver ? row.Approver.Title : row.AssignedTo.Title} style={{ minWidth: '80px', maxWidth: '80px' }}> {row.Approver ? row.Approver.Title : row.AssignedTo.Title}</td>
 
-                        {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request" || props.ContentType == "Annual Audit Plan" || props.ContentType == "IMS Audit Plan"|| props.ContentType == "Annual Audit Report"|| props.ContentType == "Memorandum") &&
+                        {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request" || props.ContentType == "Annual Audit Program" || props.ContentType == "IMS Annual Audit Program" || props.ContentType == "Annual Audit Plan" || props.ContentType == "IMS Audit Plan"|| props.ContentType == "Annual Audit Report" || props.ContentType == "IMS Audit Report and Checklist"|| props.ContentType == "Memorandum") &&
                           <td title={row.CurrentUserRole || row.ActionTakenRole.Role || ""} style={{ minWidth: '100px', maxWidth: '100px' }}>{row.CurrentUserRole ||row.ActionTakenRole.Role ||""}</td>
                         }
 

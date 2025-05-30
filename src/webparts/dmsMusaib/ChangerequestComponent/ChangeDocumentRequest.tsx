@@ -51,6 +51,7 @@ import moment from 'moment';
 import { DatePicker } from 'office-ui-fabric-react';
 import * as XLSX from 'xlsx';
 import { SITE_URL } from '../../../Shared/Constants';
+import { set } from 'date-fns';
 let newfileupload: any
 let newfilepreview: any;
 let filechanged: boolean = false;
@@ -155,6 +156,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [Amendtype, setAmendtype] = React.useState<any>([]);
   const [Classificationopt, setClassificationopt] = React.useState<any>([]);
   const [LocationOpt, setLocationOpt] = React.useState<any>([]);
+  const [rowErrors, setRowErrors] = React.useState([]); // Will store an array of { descriptionError, reasonError }
+
   const [Custodianopt, setCustodianopt] = React.useState<any>([]);
   const [DocumentTypeOpt, setDocumentTypeOpt] = React.useState<any>([]);
   const [UserRoles, setUserRoles] = React.useState<any>([]);
@@ -238,7 +241,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       id: 0, role: 0, level: 1, approvers: [], leveltype: "One", roleError: false,
       approverError: false,
       typeError: false,
-      rowError: false } // Default row
+      rowError: false
+    } // Default row
   ]);
   const [currentUserDept, setcurrentUserDept] = React.useState("");
   const [forwardToArrEdit, setForwardToArrEdit] = React.useState<ForwardTo[]>([]);
@@ -268,7 +272,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     }
     locationPath = window.location.href.match(/\/sites\/[^\/]+/)[0];
     if (path1.includes("/view/") || path1.includes("/approve/")) {
-      setLoading(true);
+      //setLoading(true);
       setInputDisabled(true);
       setshowview(true);
     }
@@ -276,7 +280,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       setInputDisabled(false);
     }
     if (path1.includes("/edit/")) {
-      setLoading(true); ////
+      //setLoading(true); ////
       setshowview(true);
     }
 
@@ -287,7 +291,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     const optionsreq = ReqTypeArr.map((item: any) => ({
       value: item.ID,
       label: item.RequestType,
-      itemId: item.ID
+      itemId: item.ID,
+      requestcode: item.RequestCode
     }));
     setReqType(optionsreq);
     var DepartmentArr = await getAllDepartment(sp);
@@ -473,6 +478,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
     }
     // formitemid =20;
+    // setLoading(true);
     if (formitemid) {
       setEditItemID(Number(formitemid));
       let pathnew1 = window.location.href;
@@ -527,7 +533,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
           // MainListID
         }
-        let arr = {
+        {/*} let arr = {
 
           RequesterName: setBannerById[0].Title,
           //RequesterNameId: setBannerById[0].RequesterNameId,
@@ -563,7 +569,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           AttachmentJson: setBannerById[0].AttachmentJson
 
 
-        }
+        }*/}
         if (ProcessItemId && ProcessItemId.CurrentUserRole !== "OES" && ProcessItemId.IsInitiator == "No") {
           const ApprowData1: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_ChangeDocument, setBannerById[0].DocumentCode)
 
@@ -676,7 +682,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
     }
     //}
-    setLoading(false);
+    // setLoading(false);
     //#endregion
 
 
@@ -773,7 +779,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       ReferenceNumber: "",
     }));
     //setselectedCheckboxIds([]);
-    if (selectedList?.label != "Change Request for New Addition") {
+    if (selectedList?.requestcode != "New") {
       setselectedOptionDoctype(null);
       setselectedOptionCusto(null);
       setselectedOptionLoc(null);
@@ -1023,7 +1029,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   }, []);
 
   React.useEffect(() => {
-    ApiCallFunc();
+    const path1 = window.location.href;
+    if (path1.includes("/view/") || path1.includes("/approve/") || path1.includes("/view/")) {
+      setLoading(true);
+    } else { setLoading(false); }
+
+
+    ApiCallFunc().then((x) => {
+      setLoading(false);
+    });
 
     const path = window.location.href;
     if (path.includes("/view/") || path.includes("/approve/")) {
@@ -1169,7 +1183,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         setrequesttypeerr(true);
         valid = false;
       }
-      if (selectedOptionReq && selectedOptionReq.label != "Change Request for New Addition" && !selectedOption) {
+      if (selectedOptionReq && selectedOptionReq.requestcode != "New" && !selectedOption) {
         setdocumentcodeerr(true);
         valid = false;
       }
@@ -1186,39 +1200,60 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         valid = false;
       }
       if (cancellReason.length > 0) {
-        let descriptionError = false;
-        let reasonError = false;
+        let valid = true;
+        const errors = cancellReason.map((row) => {
+          const descEmpty = !row.description || row.description.trim() === "";
+          const reasonEmpty = !row.reason || row.reason.trim() === "";
 
-        cancellReason.forEach((row: any) => {
-          if (row.description === null || row.reason === null) {
-            if (row.description === null) {
-              descriptionError = true;
-            }
-            if (row.reason === null) {
-              reasonError = true;
-            }
-          } else {
-            if (row.description != null && row.description.trim() === "") {
-              descriptionError = true;
-            }
-            if (row.reason != null && row.reason.trim() === "") {
-              reasonError = true;
-            }
+          if (descEmpty || reasonEmpty) {
+            valid = false;
           }
 
+          return {
+            descriptionError: descEmpty,
+            reasonError: reasonEmpty,
+          };
         });
 
-        // If any description or reason is blank, set the respective error flags to true
-        if (descriptionError) {
-          setchangedescriptionerr(true);
-        }
-        if (reasonError) {
-          setchangereasonerr(true);
-        }
-        if (descriptionError || reasonError) {
-          valid1 = false;
-        }
+        setRowErrors(errors); // Update state with per-row error flags
+        valid1 = valid;
       }
+
+
+      // if (cancellReason.length > 0) {
+      //   let descriptionError = false;
+      //   let reasonError = false;
+
+      //   cancellReason.forEach((row: any) => {
+      //     if (row.description === null || row.reason === null) {
+      //       if (row.description === null) {
+      //         descriptionError = true;
+      //       }
+      //       if (row.reason === null) {
+      //         reasonError = true;
+      //       }
+      //     } else {
+      //       if (row.description != null && row.description.trim() === "") {
+      //         descriptionError = true;
+      //       }
+      //       if (row.reason != null && row.reason.trim() === "") {
+      //         reasonError = true;
+      //       }
+      //     }
+
+      //   });
+
+      //   // If any description or reason is blank, set the respective error flags to true
+      //   if (descriptionError) {
+      //     setchangedescriptionerr(true);
+      //   }
+      //   if (reasonError) {
+      //     setchangereasonerr(true);
+      //   }
+      //   if (descriptionError || reasonError) {
+      //     valid1 = false;
+      //   }
+      // }
       // if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" || row.reason.trim() !== "") == false) {
       //   setchangedescriptionerr(true);
       //   setchangereasonerr(true);
@@ -1251,7 +1286,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         setrequesttypeerr(true);
         valid = false;
       }
-      if (selectedOptionReq && selectedOptionReq.label != "Change Request for New Addition" && !selectedOption) {
+      if (selectedOptionReq && selectedOptionReq.requestcode != "New" && !selectedOption) {
         setdocumentcodeerr(true);
         valid = false;
       }
@@ -1330,7 +1365,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       let issueno = "";
       let serialno = "";
       let revisionno = "";
-      if (selectedOptionReq.label == "Change Request for New Addition") {
+      if (selectedOptionReq.requestcode == "New") {
         if (serialnumber.length > 0) {
           issueno = serialnumber[0].IssueNo;
           serialno = (Number(serialnumber[0].SerialNo) + 1).toString();
@@ -1353,7 +1388,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         setserialNo(serialno);
         setrevisionNo(revisionno);
       }
-      let doccode = selectedOptionReq?.label == "Change Request for New Addition" ? await generateDocCode(serialno) : selectedOption?.DocumentCode;
+      let doccode = selectedOptionReq?.requestcode == "New" ? await generateDocCode(serialno) : selectedOption?.DocumentCode;
       let referencecode = await generateReferenceCode(serialno, issueno);
       let finalrevisiondate = changerequestdata[0].RevisionDate == null || changerequestdata[0].RevisionDate == undefined ? undefined : new Date(changerequestdata[0].RevisionDate).toISOString();
       let finalissuedate = changerequestdata[0].IssueDate == null || changerequestdata[0].IssueDate == undefined ? undefined : new Date(changerequestdata[0].IssueDate).toISOString();
@@ -1376,7 +1411,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let attachmentIds = [];
             debugger
             const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/ChangeRequestDocs');
-            let docCode = selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption?.DocumentCode;
+            let docCode = selectedOptionReq.requestcode == "New" ? doccode : selectedOption?.DocumentCode;
+
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
@@ -1396,7 +1432,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 const itemId = currentItemId.Id;
                 await currentItemId.update({
                   FileName: documentName, // Assuming FileName is the internal name of the column
-                  DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption?.DocumentCode,
+                  DocumentCode: selectedOptionReq?.requestcode == "New" ? doccode : selectedOption?.DocumentCode,
                 });
 
                 // Save the document ID for the attachment field in ChangeRequestList
@@ -1463,8 +1499,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               CRevisionNumber: selectedTemplate != "Change Request" ? Number(changerequestdata[0].RevisionNo) : Number(revisionno),
               CIssueDate: selectedTemplate != "Change Request" ? finalissuedate : undefined,
               CRevisionDate: selectedTemplate != "Change Request" ? finalrevisiondate : undefined,
-              //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption?.AttachmentId,
-              //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption?.AttachmentJson,
+              //AttachmentId: selectedOptionReq.label == "New" ? Attachmentidsss : selectedOption?.AttachmentId,
+              //AttachmentJson: selectedOptionReq.label == "New" ? AttachmentJso : selectedOption?.AttachmentJson,
               AttachmentId: Attachmentidsss,
               AttachmentJson: AttachmentJso
             }
@@ -1552,7 +1588,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let attachmentIds = [];
             debugger
             const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/ChangeRequestDocs');
-            let docCode = selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption?.DocumentCode;
+            let docCode = selectedOptionReq?.requestcode == "New" ? doccode : selectedOption?.DocumentCode;
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
@@ -1571,7 +1607,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 const itemId = currentItemId.Id;
                 await currentItemId.update({
                   FileName: documentName, // Assuming FileName is the internal name of the column
-                  DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption?.DocumentCode,
+                  DocumentCode: selectedOptionReq.requestcode == "New" ? doccode : selectedOption?.DocumentCode,
                 });
 
                 // Save the document ID for the attachment field in ChangeRequestList
@@ -1595,7 +1631,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RevisionNumber: Number(revisionno),
               //RevisionNumber: selectedOption?.RevisionNumber,
               //RevisionDate: new Date().toISOString(),
-              DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? doccode : selectedOption?.DocumentCode,
+              DocumentCode: selectedOptionReq?.requestcode == "New" ? doccode : selectedOption?.DocumentCode,
               ReferenceNumber: referencecode,
               AmendmentTypeId: formData.AmendmentTypeId,
               RequestTypeId: formData.RequestTypeId,
@@ -1615,8 +1651,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               CRevisionNumber: selectedTemplate != "Change Request" ? Number(changerequestdata[0].RevisionNo) : Number(revisionno),
               CIssueDate: selectedTemplate != "Change Request" ? finalissuedate : undefined,
               CRevisionDate: selectedTemplate != "Change Request" ? finalrevisiondate : undefined,
-              //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption?.AttachmentId,
-              //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption?.AttachmentJson,
+              //AttachmentId: selectedOptionReq.label == "New" ? Attachmentidsss : selectedOption?.AttachmentId,
+              //AttachmentJson: selectedOptionReq.label == "New" ? AttachmentJso : selectedOption?.AttachmentJson,
               AttachmentId: Attachmentidsss,
               AttachmentJson: AttachmentJso
             };
@@ -1781,11 +1817,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RequestDate: new Date(formData.RequestDate).toISOString(),
               LocationId: formData.LocationId,
               CustodianId: formData.CustodianId,
-              SerialNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption?.SerialNumber) : null,
-              IssueNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption?.IssueNumber) : null,
-              RevisionNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption?.RevisionNumber) : null,
-              DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? "" : selectedOption && selectedOption?.DocumentCode,
-              ReferenceNumber: selectedOptionReq.label == "Change in Existing Content" ? test : "",
+              SerialNumber: selectedOptionReq.requestcode == "Edit" && selectedOption ? Number(selectedOption?.SerialNumber) : null,
+              IssueNumber: selectedOptionReq.requestcode == "Edit" && selectedOption ? Number(selectedOption?.IssueNumber) : null,
+              RevisionNumber: selectedOptionReq.requestcode == "Edit" && selectedOption ? Number(selectedOption?.RevisionNumber) : null,
+              DocumentCode: selectedOptionReq.requestcode == "New" ? "" : selectedOption && selectedOption?.DocumentCode,
+              ReferenceNumber: selectedOptionReq.requestcode == "Edit" ? test : "",
               AmendmentTypeId: formData.AmendmentTypeId,
               RequestTypeId: formData.RequestTypeId,
               ClassificationId: formData.ClassificationId,
@@ -1800,8 +1836,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               OESSubmitStatus: "No",
               InitiatorSubmitStatus: "No",
               CurrentUserRole: "OES",
-              //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption?.AttachmentId,
-              //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption?.AttachmentJson,
+              //AttachmentId: selectedOptionReq.label == "New" ? Attachmentidsss : selectedOption?.AttachmentId,
+              //AttachmentJson: selectedOptionReq.label == "New" ? AttachmentJso : selectedOption?.AttachmentJson,
               AttachmentId: Attachmentidsss,
               AttachmentJson: AttachmentJso
 
@@ -1811,37 +1847,70 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             console.log("postPayloaddrafttedit", arr, editItemID, cancellReason);
             const postResult = await updateItemChangeRequestList(arr, sp, editItemID);
             const postId = postResult?.data?.ID;
+            // for (const row of cancellReason) {
+            //   if (row.description.trim() === "") {
+            //     descriptionError = true;
+            //   }
+            //   if (row.reason.trim() === "") {
+            //     reasonError = true;
+            //   }
+            //   const postPayload2 = {
+            //     ChangeRequestIDId: editItemID, // Assuming "Title" column exists
+            //     ChangeDescription: row.description,
+            //     ReasonforChange: row.reason,
+            //   }
+            //   if (!descriptionError || !reasonError) {
+            //     if (!row.id) {
+            //       const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
+            //       const postId2 = postResult2?.data?.ID;
+            //       // debugger
+            //       if (!postId2) {
+            //         console.error("Post creation failed.");
+            //         return;
+            //       }
+
+            //     }
+            //     else if (row.id > 0) {
+            //       const postResult2 = await updateItemChangeRequestReasonList(postPayload2, sp, row.id);
+            //       const postId2 = postResult2?.data?.ID;
+            //     }
+            //   }
+
+
+            // }
             for (const row of cancellReason) {
-              if (row.description.trim() === "") {
-                descriptionError = true;
+              const isDescriptionEmpty = row.description.trim() === "";
+              const isReasonEmpty = row.reason.trim() === "";
+
+              // Skip the row if BOTH description and reason are empty
+              if (isDescriptionEmpty && isReasonEmpty) {
+                continue;
               }
-              if (row.reason.trim() === "") {
-                reasonError = true;
-              }
+
               const postPayload2 = {
-                ChangeRequestIDId: editItemID, // Assuming "Title" column exists
+                ChangeRequestIDId: editItemID,
                 ChangeDescription: row.description,
                 ReasonforChange: row.reason,
-              }
-              if (!descriptionError || !reasonError) {
+              };
+
+              try {
                 if (!row.id) {
                   const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
                   const postId2 = postResult2?.data?.ID;
-                  // debugger
                   if (!postId2) {
                     console.error("Post creation failed.");
                     return;
                   }
-
-                }
-                else if (row.id > 0) {
+                } else if (row.id > 0) {
                   const postResult2 = await updateItemChangeRequestReasonList(postPayload2, sp, row.id);
                   const postId2 = postResult2?.data?.ID;
                 }
+              } catch (error) {
+                console.error("Error saving data:", error);
+                return;
               }
-
-
             }
+
             // await AddContentMaster(sp, arr)
 
             // const boolval = await handleClick(editID, TypeMasterData?.TypeMaster, Number(formData.entity))
@@ -1936,11 +2005,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               IssueDate: new Date().toISOString(),
               LocationId: formData.LocationId,
               CustodianId: formData.CustodianId,
-              SerialNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption?.SerialNumber) : null,
-              IssueNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption?.IssueNumber) : null,
-              RevisionNumber: selectedOptionReq.label == "Change in Existing Content" && selectedOption ? Number(selectedOption?.RevisionNumber) : null,
-              DocumentCode: selectedOptionReq.label == "Change Request for New Addition" ? "" : selectedOption && selectedOption?.DocumentCode,
-              ReferenceNumber: selectedOptionReq.label == "Change in Existing Content" ? test : "",
+              SerialNumber: selectedOptionReq.requestcode == "Edit" && selectedOption ? Number(selectedOption?.SerialNumber) : null,
+              IssueNumber: selectedOptionReq.requestcode == "Edit" && selectedOption ? Number(selectedOption?.IssueNumber) : null,
+              RevisionNumber: selectedOptionReq.requestcode == "Edit" && selectedOption ? Number(selectedOption?.RevisionNumber) : null,
+              DocumentCode: selectedOptionReq.requestcode == "New" ? "" : selectedOption && selectedOption?.DocumentCode,
+              ReferenceNumber: selectedOptionReq.requestcode == "Edit" ? test : "",
               RequestTypeId: formData.RequestTypeId,
               AmendmentTypeId: formData.AmendmentTypeId,
               ClassificationId: formData.ClassificationId,
@@ -1950,8 +2019,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               Status: "Save as draft",
               DocumentName: DocumentName,
               DocumentTypeId: formData.DocumentTypeId,
-              //AttachmentId: selectedOptionReq.label == "Change Request for New Addition" ? Attachmentidsss : selectedOption?.AttachmentId,
-              //AttachmentJson: selectedOptionReq.label == "Change Request for New Addition" ? AttachmentJso : selectedOption?.AttachmentJson,
+              //AttachmentId: selectedOptionReq.label == "New" ? Attachmentidsss : selectedOption?.AttachmentId,
+              //AttachmentJson: selectedOptionReq.label == "New" ? AttachmentJso : selectedOption?.AttachmentJson,
               AttachmentId: Attachmentidsss,
               AttachmentJson: AttachmentJso
 
@@ -1968,28 +2037,61 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let descriptionError = false;
             let reasonError = false;
 
+            // for (const row of cancellReason) {
+            //   if (row.description.trim() === "") {
+            //     descriptionError = true;
+            //   }
+            //   if (row.reason.trim() === "") {
+            //     reasonError = true;
+            //   }
+            //   const postPayload2 = {
+            //     ChangeRequestIDId: postId, // Assuming "Title" column exists
+            //     ChangeDescription: row.description,
+            //     ReasonforChange: row.reason,
+            //   }
+            //   if (!descriptionError || !reasonError) {
+            //     const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
+            //     const postId2 = postResult2?.data?.ID;
+            //     // debugger
+            //     if (!postId2) {
+            //       console.error("Post creation failed.");
+            //       return;
+            //     }
+            //   }
+            // }
             for (const row of cancellReason) {
-              if (row.description.trim() === "") {
-                descriptionError = true;
+              const isDescriptionEmpty = row.description.trim() === "";
+              const isReasonEmpty = row.reason.trim() === "";
+
+              // Skip the row if BOTH description and reason are empty
+              if (isDescriptionEmpty && isReasonEmpty) {
+                continue;
               }
-              if (row.reason.trim() === "") {
-                reasonError = true;
-              }
+
               const postPayload2 = {
-                ChangeRequestIDId: postId, // Assuming "Title" column exists
+                ChangeRequestIDId: postId,
                 ChangeDescription: row.description,
                 ReasonforChange: row.reason,
-              }
-              if (!descriptionError || !reasonError) {
-                const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
-                const postId2 = postResult2?.data?.ID;
-                // debugger
-                if (!postId2) {
-                  console.error("Post creation failed.");
-                  return;
+              };
+
+              try {
+                if (!row.id) {
+                  const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
+                  const postId2 = postResult2?.data?.ID;
+                  if (!postId2) {
+                    console.error("Post creation failed.");
+                    return;
+                  }
+                } else if (row.id > 0) {
+                  const postResult2 = await updateItemChangeRequestReasonList(postPayload2, sp, row.id);
+                  const postId2 = postResult2?.data?.ID;
                 }
+              } catch (error) {
+                console.error("Error saving data:", error);
+                return;
               }
             }
+
 
 
             setLoading(false);
@@ -2086,7 +2188,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         break;
     }
     if (status == "Forward") {
-     
+
       // debugger
       // const isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 && (row.leveltype == "One" || row.leveltype == "All"));
 
@@ -2282,37 +2384,40 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                   approversIds.push(user.value);
                 }
               });
-              let arr2 = {
-                Title: currentUser.Title,
-                ContentTitle: selectedOption?.ReferenceNumber,
-                MainListNameId: ListNameId,
-                ApproverRoleId: item.role,
-                Level: Number(item.level),
-                ApproversId: approversIds,
-                LevelType: item.leveltype,
-                SubmitStatus: "Yes",
-                Maxlevel: item.approvers?.length,
-                // ContentTitle:,
-                MainListID: String(editItemID),
-                RequestId: selectedOption?.DocumentCode,
-                // RequestId:String(editID.Id),
-                RequesterNameId: currentUser.Id,
-                RequestedDate: new Date().toLocaleDateString("en-CA"),
-                RequesterRoleId: RequesterRoleId,
-                ProcessName: "Change Request",
-                FormNameId: FormNameId,
-                ApprovalType: "Approval",
-                IsApprovalGenerated: "No"
-                // RedirectionLink:,
+              if (status != "Rework") {
+                let arr2 = {
+                  Title: currentUser.Title,
+                  ContentTitle: selectedOption?.ReferenceNumber,
+                  MainListNameId: ListNameId,
+                  ApproverRoleId: item.role,
+                  Level: Number(item.level),
+                  ApproversId: approversIds,
+                  LevelType: item.leveltype,
+                  SubmitStatus: "Yes",
+                  Maxlevel: item.approvers?.length,
+                  // ContentTitle:,
+                  MainListID: String(editItemID),
+                  RequestId: selectedOption?.DocumentCode,
+                  // RequestId:String(editID.Id),
+                  RequesterNameId: currentUser.Id,
+                  RequestedDate: new Date().toLocaleDateString("en-CA"),
+                  RequesterRoleId: RequesterRoleId,
+                  ProcessName: "Change Request",
+                  FormNameId: FormNameId,
+                  ApprovalType: "Approval",
+                  IsApprovalGenerated: "No"
+                  // RedirectionLink:,
+                }
+                if (item.id) {
+                  const postResult2 = await UpdateAllProcessItem(arr2, sp, item.id);
+                  const postId2 = postResult2?.data?.ID;
+                }
+                else {
+                  const postResult2 = await addAllProcessItem(arr2, sp);
+                  const postId2 = postResult2?.data?.ID;
+                }
               }
-              if (item.id) {
-                const postResult2 = await UpdateAllProcessItem(arr2, sp, item.id);
-                const postId2 = postResult2?.data?.ID;
-              }
-              else {
-                const postResult2 = await addAllProcessItem(arr2, sp);
-                const postId2 = postResult2?.data?.ID;
-              }
+
             }
             let arr2 = {
               SubmiitedDate: new Date().toLocaleDateString("en-CA"),
@@ -2520,17 +2625,69 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             setLoading(true);
 
             // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
-            let arr = {
-              ActionTakenById: currentUser.Id,
-              ActionTakenOn: new Date().toLocaleDateString("en-CA"),
-              // ActionTakenRoleId: formData.RequesterDesignation,
-              Status: status,
-              // Remark: remark,
+            // let arr = {
+            //   ActionTakenById: currentUser.Id,
+            //   ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+            //   // ActionTakenRoleId: formData.RequesterDesignation,
+            //   Status: status,
+            //   // Remark: remark,
 
+            // }
+            // const postResult = await updateApprovalItem(arr, sp, editID.Id);
+            // const postId = postResult?.data?.ID;
+            let bannerImageArray: any = {};
+            let DocumentName: string = "";
+            let attachmentIds = [];
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/ChangeRequestDocs');
+            if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
+              for (const file of Attachmentarr[0].files) {
+                //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                //const newFileName = await getNewFileName(file.name);
+
+                const newfileNameNew = docCode + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + file.name;
+
+                DocumentName = newfileNameNew;
+                const fileAddResult = await folder.files.addChunked(file.name, file);
+                const fileNew = fileAddResult.file;
+                //const newFileNameN = await getNewFileName(fileAddResult.data.Name);
+                const newfileNameNewN = docCode + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + fileAddResult.data.Name;
+                const documentName = newfileNameNewN;
+                bannerImageArray = fileAddResult;
+                // Get the item ID for the uploaded file
+                const currentItemId = await fileNew.getItem<{ Id: number }>();
+                const itemId = currentItemId.Id;
+                await currentItemId.update({
+                  FileName: documentName, // Assuming FileName is the internal name of the column
+                  //DocumentCode: selectedOptionReq?.requestcode == "New" ? doccode : selectedOption?.DocumentCode,
+                });
+
+                // Save the document ID for the attachment field in ChangeRequestList
+                attachmentIds.push(itemId);
+              }
+            } else if (Attachmentarr.length > 0 && Attachmentarr[0].ID > 0) {
+
+              const item = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(Attachmentarr[0].ID).select('File/ServerRelativeUrl', 'File/Name').expand('File')();
+              debugger
+
+              const newfileNameNewN = docCode + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + item.File.Name;
+
+              const oldFilePath = item?.File?.ServerRelativeUrl;
+              const folderPath = oldFilePath.substring(0, oldFilePath.lastIndexOf('/'));
+              //const oldFilePathN = folderPath +"/"+ encodeURI(item.File.Name);
+              const newFilePath = `${folderPath}/${newfileNameNewN}`;
+
+              // 2. Use moveByPath to rename the file
+              await sp.web.getFileByServerRelativePath(oldFilePath).moveByPath(newFilePath, true, false);
+              // 2. Move (rename) file
+              // await item.update({
+              //   FileName: newfileNameNewN, // Assuming FileName is the internal name of the column
+              //   DocumentCode: docCode
+              // });
+              const itemnew = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(Attachmentarr[0].ID).update({
+                FileName: newfileNameNewN, // Assuming FileName is the internal name of the column
+                DocumentCode: docCode
+              })
             }
-            const postResult = await updateApprovalItem(arr, sp, editID.Id);
-            const postId = postResult?.data?.ID;
-
             // //////////////Update Document cancellation List when Submitted
             let arr3 = {
               Title: formData.RequesterName,
@@ -2554,7 +2711,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               ChangeRequestTypeId: selectedOption?.ChangeRequestTypeId,
               SubmiitedDate: selectedOption?.SubmiitedDate,
               SubmitStatus: "No",
-              Status: "Save as draft",
+              Status: "Rework",
               // DocumentName: "",
               // IsRework: false,
               // DigitalSignStatus: false,
@@ -2562,44 +2719,75 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               DocumentTypeId: selectedOption?.DocumentTypeId,
               OESSubmitStatus: "No",
               InitiatorSubmitStatus: "No",
-              CurrentUserRole: "OES",
+              CurrentUserRole: "Initiator",
               AttachmentId: selectedOption?.AttachmentId,
               AttachmentJson: selectedOption?.AttachmentJson
 
 
             }
             const postResult3 = await updateItemChangeRequestList(arr3, sp, editItemID);
-            const postId3 = postResult?.data?.ID;
+            //const postId3 = postResult?.data?.ID;
 
 
             // //////////////Update Document cancellation Reason List when Submitted
 
+            // for (const row of cancellReason) {
+
+            //   const postPayload2 = {
+            //     ChangeRequestIDId: formData.ChangeRequestID, // Assuming "Title" column exists
+            //     ChangeDescription: row.description,
+            //     ReasonforChange: row.reason,
+            //   }
+
+            //   if (!row.id) {
+
+            //     const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
+            //     const postId2 = postResult2?.data?.ID;
+            //     // debugger
+            //     if (!postId2) {
+            //       console.error("Post creation failed.");
+            //       return;
+            //     }
+
+            //   }
+            //   else if (row.id > 0) {
+            //     const postResult2 = await updateItemChangeRequestReasonList(postPayload2, sp, row.id);
+            //     const postId2 = postResult2?.data?.ID;
+            //   }
+
+            // }
             for (const row of cancellReason) {
+              const isDescriptionEmpty = row.description.trim() === "";
+              const isReasonEmpty = row.reason.trim() === "";
+
+              // Skip the row if BOTH description and reason are empty
+              if (isDescriptionEmpty && isReasonEmpty) {
+                continue;
+              }
 
               const postPayload2 = {
-                ChangeRequestIDId: formData.ChangeRequestID, // Assuming "Title" column exists
+                ChangeRequestIDId: formData.ChangeRequestID,
                 ChangeDescription: row.description,
                 ReasonforChange: row.reason,
-              }
+              };
 
-              if (!row.id) {
-
-                const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
-                const postId2 = postResult2?.data?.ID;
-                // debugger
-                if (!postId2) {
-                  console.error("Post creation failed.");
-                  return;
+              try {
+                if (!row.id) {
+                  const postResult2 = await addItemChangeRequestReasonlist(postPayload2, sp);
+                  const postId2 = postResult2?.data?.ID;
+                  if (!postId2) {
+                    console.error("Post creation failed.");
+                    return;
+                  }
+                } else if (row.id > 0) {
+                  const postResult2 = await updateItemChangeRequestReasonList(postPayload2, sp, row.id);
+                  const postId2 = postResult2?.data?.ID;
                 }
-
+              } catch (error) {
+                console.error("Error saving data:", error);
+                return;
               }
-              else if (row.id > 0) {
-                const postResult2 = await updateItemChangeRequestReasonList(postPayload2, sp, row.id);
-                const postId2 = postResult2?.data?.ID;
-              }
-
             }
-
             const toDelete = cancellReasonEdit.filter(
               (itemEdit) => !cancellReason.some(item => item.id === itemEdit.id) // Assuming ID is the unique key
             );
@@ -2819,17 +3007,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     //const { changeRequestCheckboxes, selectedCheckboxIds } = this.state;
 
     return changeRequestCheckboxes.map((checkbox) => (
-
       <div className="col-lg-3">
         <div key={checkbox.id} className="form-check mb-3" title={checkbox.name}>
           <input
             type="checkbox"
-            // className="form-check-input"
             className={`form-check-input ${(!ValidSubmit && changerequesttypeerr) ? "border-on-error" : ""}`}
             id={`checkbox-${checkbox.id}`}
-            // disabled={this.state.isReadonly} // Make the checkbox readonly if the condition is true
-            // Use indexOf instead of includes
-            disabled={InputDisabled && formData?.Status != "Rework"}
+            disabled={InputDisabled && formData?.Status !== "Rework"}
             checked={selectedCheckboxIds.indexOf(checkbox.id) !== -1}
             onChange={() => handleCheckboxChange(checkbox.id)}
           />
@@ -2838,6 +3022,24 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           </label>
         </div>
       </div>
+      // <div className="col-lg-3">
+      //   <div key={checkbox.id} className="form-check mb-3" title={checkbox.name}>
+      //     <input
+      //       type="checkbox"
+      //       // className="form-check-input"
+      //       className={`form-check-input ${(!ValidSubmit && changerequesttypeerr) ? "border-on-error" : ""}`}
+      //       id={`checkbox-${checkbox.id}`}
+      //       // disabled={this.state.isReadonly} // Make the checkbox readonly if the condition is true
+      //       // Use indexOf instead of includes
+      //       disabled={InputDisabled && formData?.Status != "Rework"}
+      //       checked={selectedCheckboxIds.indexOf(checkbox.id) !== -1}
+      //       onChange={() => handleCheckboxChange(checkbox.id)}
+      //     />
+      //     <label className="form-check-label" htmlFor={`checkbox-${checkbox.id}`}>
+      //       {checkbox.name}
+      //     </label>
+      //   </div>
+      // </div>
     ));
   };
   // const handleDelete = (index: number) => {
@@ -3072,7 +3274,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 {console.log("selectedOptionReqselectedOptionReq", selectedOptionReq)}
                                 <div className="mb-3">
                                   <label htmlFor="DocumentCode" className="form-label">Document Code:
-                                    {selectedOptionReq?.label != "Change Request for New Addition" && <span className="text-danger1">*</span>}
+                                    {selectedOptionReq?.requestcode != "New" && <span className="text-danger1">*</span>}
 
                                   </label>
                                   {editItemID > 0 ?
@@ -3087,14 +3289,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         value={selectedOption}
                                         name="DocumentCode"
                                         isClearable={true}
-                                        //isOptionDisabled={() => selectedOptionReq.label == "Change Request for New Addition"}
+                                        //isOptionDisabled={() => selectedOptionReq.label == "New"}
                                         isSearchable={true}
-                                        className={`${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidDraft && documentcodeerr) ? "border-on-error" : ""} ${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidSubmit && documentcodeerr) ? "border-on-error" : ""}`}
-                                        //className={`${(selectedOptionReq?.label != "Change Request for New Addition" && !ValidSubmit && documentcodeerr) ? "border-on-error" : ""}`}
+                                        className={`${(selectedOptionReq?.requestcode != "New" && !ValidDraft && documentcodeerr) ? "border-on-error" : ""} ${(selectedOptionReq?.label != "New" && !ValidSubmit && documentcodeerr) ? "border-on-error" : ""}`}
+                                        //className={`${(selectedOptionReq?.label != "New" && !ValidSubmit && documentcodeerr) ? "border-on-error" : ""}`}
                                         onChange={(selectedOption: any) => onSelectDocCode(selectedOption)}
-                                        placeholder={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.label == "Change Request for New Addition")
+                                        placeholder={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.requestcode == "New")
                                           || InputDisabled ? "" : "Search Document Code"}
-                                        isDisabled={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.label == "Change Request for New Addition")
+                                        isDisabled={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.requestcode == "New")
                                           || InputDisabled
                                         }
                                       />
@@ -3142,7 +3344,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       className={` ${(!ValidSubmit && documenttypeerr) ? "border-on-error" : ""}`}
                                       onChange={(selectedOption: any) => onSelectDocumentType(selectedOption)}
                                       placeholder="Search Document Type"
-                                      isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.label != "Change Request for New Addition") || formData?.Status == "Rework"}
+                                      isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.requestcode != "New") || formData?.Status == "Rework"}
                                     />
                                   </div>
 
@@ -3164,7 +3366,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       className={` ${(!ValidSubmit && locationerr) ? "border-on-error" : ""}`}
                                       onChange={(selectedOption: any) => onSelectLocation(selectedOption)}
                                       placeholder="Search Location"
-                                      isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.label != "Change Request for New Addition") || formData?.Status == "Rework"}
+                                      isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.requestcode != "New") || formData?.Status == "Rework"}
                                     />
                                   </div>
 
@@ -3186,7 +3388,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       className={` ${(!ValidSubmit && custodianerr) ? "border-on-error" : ""}`}
                                       onChange={(selectedOption: any) => onSelectCustodian(selectedOption)}
                                       placeholder="Search Custodian"
-                                      isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.label != "Change Request for New Addition") || formData?.Status == "Rework"}
+                                      isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.requestcode != "New") || formData?.Status == "Rework"}
                                     />
                                   </div>
 
@@ -3308,10 +3510,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 </div>
                               }
                               {console.log("ghghghghghghgh", showpreviousattachment, "jjjj", (showpreviousattachment && (((modeValue == "view" || modeValue == "approve" ||
-                                (selectedOptionReq?.label != "Change Request for New Addition" && selectedOption)) ||
+                                (selectedOptionReq?.requestcode != "New" && selectedOption)) ||
                                 (modeValue == "edit" && formData?.Status == "Save as draft")) && DocumentLink && Attachmentarr.length == 0)))}
-                              {(showpreviousattachment && selectedOptionReq?.label != "Change Request for New Addition" || (((modeValue == "view" || modeValue == "approve" ||
-                                (selectedOptionReq?.label != "Change Request for New Addition" && selectedOption)) ||
+                              {(showpreviousattachment && selectedOptionReq?.requestcode != "New" || (((modeValue == "view" || modeValue == "approve" ||
+                                (selectedOptionReq?.requestcode != "New" && selectedOption)) ||
                                 (modeValue == "edit" && formData?.Status == "Save as draft")) && DocumentLink && Attachmentarr.length == 0)) &&
 
                                 <div className="col-lg-4">
@@ -3387,65 +3589,58 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 </thead>
                                 <tbody >
                                   {console.log("cancellReasonn", cancellReason)}
-                                  {cancellReason.map((row, index) => (
-                                    <tr key={index}> <td className='text-center' style={{ minWidth: "30px", maxWidth: "30px" }}>
-                                      <div
-                                        style={{ marginLeft: "0px" }}
-                                        className="indexdesign"
-                                      >
-                                        {index + 1}</div></td>
-                                      <td title={row.description}>
-                                        {/* <input type="text" id="simpleinput" disabled={InputDisabled && formData?.Status != "Rework"}
-                                        value={row.description}
-                                        className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                        onChange={(e) => {
-                                          const newRowscancellReason = [...cancellReason];
-                                          newRowscancellReason[index].description = e.target.value;
-                                          setcancellReason(newRowscancellReason);
-                                        }}
-                                      /> */}
-                                        <textarea
-                                          id="simpleinput"
-                                          disabled={InputDisabled && formData?.Status !== "Rework"}
-                                          value={row.description}
-                                          className={`form-control mb-0 ${(!ValidCancelReason && changedescriptionerr) ? "border-on-error" : ""}`}
-                                          onChange={(e) => {
-                                            const newRowscancellReason = [...cancellReason];
-                                            newRowscancellReason[index].description = e.target.value;
-                                            setcancellReason(newRowscancellReason);
-                                          }}
-                                        />
 
-                                      </td>
-                                      <td title={row.reason}>
-                                        {/* <input type="text" id="simpleinput" disabled={InputDisabled && formData?.Status != "Rework"}
-                                        className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                        value={row.reason}
-                                        onChange={(e) => {
-                                          const newRowscancellReason = [...cancellReason];
-                                          newRowscancellReason[index].reason = e.target.value;
-                                          setcancellReason(newRowfscancellReason);
-                                        }}
-                                      /> */}
-                                        <textarea
-                                          id="simpleinput"
-                                          disabled={InputDisabled && formData?.Status !== "Rework"}
-                                          className={`form-control mb-0 ${(!ValidCancelReason && changereasonerr) ? "border-on-error" : ""}`}
-                                          value={row.reason}
-                                          onChange={(e) => {
-                                            const newRowscancellReason = [...cancellReason];
-                                            newRowscancellReason[index].reason = e.target.value;
-                                            setcancellReason(newRowscancellReason);
-                                          }}
-                                        />
-                                      </td>
-                                      {(modeValue === "" || modeValue === "edit" || InputDisabled != true || (modeValue == "approve" && formData?.Status == "Rework")) &&
-                                        <td style={{ minWidth: "30px", maxWidth: "30px", textAlign: 'center' }}>
-                                          <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFile(index, cancellReason)}></img>
+
+
+                                  {cancellReason.map((row, index) => {
+                                    const hasRowError = rowErrors[index]?.descriptionError || rowErrors[index]?.reasonError;
+
+                                    return (
+                                      <tr key={index} className={hasRowError ? "row-error" : ""}>
+                                        <td className="text-center" style={{ minWidth: "30px", maxWidth: "30px" }}>
+                                          <div className="indexdesign" style={{ marginLeft: "0px" }}>
+                                            {index + 1}
+                                          </div>
                                         </td>
-                                      }
-                                    </tr>
-                                  ))}
+
+                                        <td title={row.description}>
+                                          <textarea
+                                            id="simpleinput"
+                                            disabled={InputDisabled && formData?.Status !== "Rework"}
+                                            value={row.description}
+                                            className={`form-control mb-0 ${rowErrors[index]?.descriptionError ? "border-on-error" : ""}`}
+                                            onChange={(e) => {
+                                              const newRows = [...cancellReason];
+                                              newRows[index].description = e.target.value;
+                                              setcancellReason(newRows);
+                                            }}
+                                          />
+                                        </td>
+
+                                        <td title={row.reason}>
+                                          <textarea
+                                            id="simpleinput"
+                                            disabled={InputDisabled && formData?.Status !== "Rework"}
+                                            className={`form-control mb-0 ${rowErrors[index]?.reasonError ? "border-on-error" : ""}`}
+                                            value={row.reason}
+                                            onChange={(e) => {
+                                              const newRows = [...cancellReason];
+                                              newRows[index].reason = e.target.value;
+                                              setcancellReason(newRows);
+                                            }}
+                                          />
+                                        </td>
+
+                                        {(modeValue === "" || modeValue === "edit" || InputDisabled !== true || (modeValue === "approve" && formData?.Status === "Rework")) && (
+                                          <td style={{ minWidth: "30px", maxWidth: "30px", textAlign: "center" }}>
+                                            <img src={require("../assets/del.png")} onClick={() => deleteLocalFile(index, cancellReason)} />
+                                          </td>
+                                        )}
+                                      </tr>
+                                    );
+                                  })}
+
+
                                 </tbody>
                               </table>
 
@@ -3521,7 +3716,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                             disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}
                                             //</td>className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}
                                             className={`form-select ${row.roleError ? "border-on-error" : ""}`}
-                                            >
+                                          >
                                             <option value="" selected>Select Role</option>
                                             {UserRoles.filter((role: any) =>
                                               !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
@@ -3557,8 +3752,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                                         </td>
                                         <td title={ApprovalTypeOptions.filter(x => x.value = row.leveltype)[0].label} style={{ overflow: 'inherit' }} className="ng-binding">
-                                          <select 
-                                          //className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}
+                                          <select
+                                            //className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}
                                             className={`form-select ${row.typeError ? "border-on-error" : ""}`}
                                             onChange={(e) => onSelectApprovalType(e, row.level)}
                                             value={row.leveltype}

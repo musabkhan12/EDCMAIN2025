@@ -9,6 +9,7 @@ export const CONTENTTYPE_DocumentCancel ="Document Cancellation";
 export const LIST_TITLE_DocCancel="ChangeRequestDocumentCancellationList";
 export const CONTENTTYPE_AuditPlanForm ="Annual Audit Plan";
 export const CONTENTTYPE_AuditPlan ="IMS Audit Plan";
+export const CONTENTTYPE_AuditReportNew ="IMS Audit Report and Checklist";
 
 export const LIST_TITLE_AuditPlan="AnnualAuditPlanList";
 export const LIST_AuditPlan ="Audit Plan";

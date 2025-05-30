@@ -60,9 +60,9 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         arrrr[i] = arrrr[i].replace("TMP", "RRF");
       }
     }
-    console.log("props.currentItem", props.currentItem);
+    console.log("props.currentItem", props.currentItem, currentchangerequest);
     let test = arrrr.join('.');
-    let testRev = currentchangerequest[0].RequestType?.RequestType == "Change in Existing Content" && RevisionNumber != null ? Number(RevisionNumber) : Number(RevisionNumber);
+    let testRev = currentchangerequest[0].RequestType?.RequestCode == "Edit" && RevisionNumber != null ? Number(RevisionNumber) : Number(RevisionNumber);
     console.log("arrrr", arrrr, test);
     if (props.currentItem.Maxlevel == props.currentItem.Level) {
       if ((props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One") {
@@ -112,7 +112,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
       };
       let finalrevisiondate = currentchangerequest[0].RevisionDate == null || currentchangerequest[0].RevisionDate == undefined ? undefined : new Date(currentchangerequest[0].RevisionDate).toISOString();
       let finalissuedate = currentchangerequest[0].IssueDate == null || currentchangerequest[0].IssueDate == undefined ? undefined : new Date(currentchangerequest[0].IssueDate).toISOString();
-      if (currentchangerequest[0].RequestType?.RequestType == "Change in Existing Content") {
+      if (currentchangerequest[0].RequestType?.RequestCode == "Edit") {
         postPayloadapp1 = {
           IssueDate: new Date().toISOString(),
           CIssueDate: currentchangerequest[0]?.TemplateType?.TemplateTypeName != "Change Request" ? finalissuedate : new Date().toISOString(),

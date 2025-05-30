@@ -20,7 +20,8 @@ import AnnualAuditReport from '../../AnnualAuditReportComponent/AnnualAuditRepor
 import NonConformity from '../../NonConformityComponent/EditForm';
 import MemoComponent from '../MemorandumComponent/Memorandum';
 let currentuserid: any;
-let currentusertitle: any
+let currentusertitle: any;
+let setloading: boolean = false;
 export class Listing extends React.Component<IListingProps, IListingState, IFormProps> {
     private _sp: SPFI;
 
@@ -36,6 +37,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             currentPage: 1,
             itemsPerPage: 10,
             totalItems: 0,
+            loading:false,
             sortColumn: 'ReqDt', // Track the currently sorted column
             sortDirection: 'desc', // Track the sort direction
             searchValues: { // Track search input values for each column
@@ -56,6 +58,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
     }
 
     async componentDidMount() {
+       debugger
+        this.setState({loading:true});
         const userdata = await this._sp.web.currentUser();
 
         console.log(userdata, "user data edc")
@@ -64,6 +68,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
         currentusertitle = userdata.Title
         // alert(currentusertitle + "currentusertitle")
         await this.getAllItems();
+        this.setState({ loading: false });
     }
 
     private editItem(item: any) {
@@ -175,7 +180,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
                 }
             }
-            else if ((item.ProcessName == "Annual Audit Report") && item.Status == "Pending") {
+            else if ((item.ProcessName == "Annual Audit Report" || item.ProcessName == "IMS Audit Report and Checklist") && item.Status == "Pending") {
                 if (item.ProcessItemId) {
                     let actionType = "approve";
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId}`;
@@ -256,7 +261,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
         for (let i = 1; i <= totalPages; i++) {
             pageNumbers.push(i);
         }
-
+        console.log("let setloading: boolean = false;", setloading);
         return (
             <div>
                 {showform ? (
@@ -265,7 +270,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         {this.state.process == "Document Cancellation" && <DocumentCancellationProcess description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''}></DocumentCancellationProcess>}
                         {(this.state.process == "Annual Audit Program" || this.state.process == "IMS Annual Audit Program") && <FormComponent userDisplayName={''} userid={this.props.userid} context={this.props.context} item={this.state.edItm} onClose={this.closeForm} />}
                         {(this.state.process == "Annual Audit Plan" || this.state.process == "IMS Audit Plan") && <AnnualAuditPlan description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''} />}
-                        {this.state.process == "Annual Audit Report" && <AnnualAuditReport description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''} />}
+                        {(this.state.process == "Annual Audit Report" || this.state.process == "IMS Audit Report and Checklist") && <AnnualAuditReport description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''} />}
                         {this.state.process == "Non Conformity" && <NonConformity description={''} context={this.props.context} currentUserID={this.props.userid} userDisplayName={currentusertitle} />}
                         {this.state.process == "Memorandum" && <MemoComponent userDisplayName={''} userid={this.props.userid} context={this.props.context} item={this.state.edItm} onClose={this.closeForm} />}
 
@@ -367,7 +372,26 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody>{allItems}</tbody>
+                            {this.state.loading ?
+                                <div style={{ position: 'fixed', zIndex: '9', left: '0%', top: '0%' }} className="loadernewadd mt-10">
+                                    <div>
+                                        <img
+                                            src={require("../../assets/edc-gif.gif")}
+                                            className="alignrightl"
+                                            alt="Loading..."
+                                        />
+                                    </div>
+                                    <span>Loading </span>{" "}
+                                    <span>
+                                        <img
+                                            src={require("../../assets/edcnew.gif")}
+                                            className="alignrightl"
+                                            alt="Loading..."
+                                        />
+                                    </span>
+                                </div> :
+                                <tbody>{allItems}</tbody>
+                            }
                         </table>
                         <div className="pagination">
                             <button onClick={() => this.handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Previous</button>
@@ -540,7 +564,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             }
         }
 
-        const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList").items.select('Id,ReferenceNumber,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode').expand('Author', 'RequesterName').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
+        const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList").items.select('Id,ReferenceNumber,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,Created').expand('Author', 'RequesterName').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
         for (const item of ChangeRequestListItems) {
             if (item.Status === "Rework") {
                 const processItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and Status eq 'Pending' and ProcessName eq 'Change Request' and ListItemId eq ${item.Id}`)();
@@ -551,7 +575,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                             Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
                             ProcessName: "Change Request",
                             ReqName: item.RequesterName?.Title || '',
-                            ReqDt: new Date(item.RequestDate),
+                            ReqDt: new Date(item.Created),
                             Status: item.Status,
                             MainListId: item.Id,
                             Id: item.Id,
@@ -565,7 +589,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
                         ProcessName: "Change Request",
                         ReqName: item.RequesterName?.Title || '',
-                        ReqDt: new Date(item.RequestDate),
+                        ReqDt: new Date(item.Created),
                         Status: item.Status,
                         MainListId: item.Id,
                         Id: item.Id,
@@ -578,7 +602,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
                     ProcessName: "Change Request",
                     ReqName: item.RequesterName?.Title || '',
-                    ReqDt: new Date(item.RequestDate),
+                    ReqDt: new Date(item.Created),
                     // ? moment(item.RequestDate).format("DD-MMM-YYYY") : ''
                     Status: item.Status,
                     MainListId: item.Id,
@@ -600,7 +624,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                             RequestId: itm.ReportCode ? itm.ReportCode : "",
                             ReportCode: itm.ReportCode ? itm.ReportCode : "",
                             Title: itm.MemoNumber ? itm.MemoNumber : "",
-                            ProcessName: "Annual Audit Report",
+                            ProcessName: "IMS Audit Report and Checklist",
                             ReqName: itm.Author ? itm.Author.Title : '',
                             ReqDt: new Date(itm.Created),
                             Status: itm.Status,
@@ -619,7 +643,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         RequestId: itm.ReportCode ? itm.ReportCode : "",
                         ReportCode: itm.ReportCode ? itm.ReportCode : "",
                         Title: itm.MemoNumber ? itm.MemoNumber : "",
-                        ProcessName: "Annual Audit Report",
+                        ProcessName: "IMS Audit Report and Checklist",
                         ReqName: itm.Author ? itm.Author.Title : '',
                         ReqDt: new Date(itm.Created),
                         Status: itm.Status,
@@ -636,7 +660,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     RequestId: itm.ReportCode ? itm.ReportCode : "",
                     ReportCode: itm.ReportCode ? itm.ReportCode : "",
                     Title: itm.MemoNumber ? itm.MemoNumber : "",
-                    ProcessName: "Annual Audit Report",
+                    ProcessName: "IMS Audit Report and Checklist",
                     ReqName: itm.Author ? itm.Author.Title : '',
                     ReqDt: new Date(itm.Created),
                     Status: itm.Status,

@@ -23,7 +23,7 @@ import { FormSubmissionMode } from '../../../Shared/Interfaces';
 import { decryptId } from '../../../APISearvice/CryptoService';
 import { WorkflowAction } from '../../../CustomJSComponents/WorkflowAction/WorkflowAction';
 import { WorkflowAuditHistory } from '../../../CustomJSComponents/WorkflowAuditHistory/WorkflowAuditHistory';
-import { CONTENTTYPE_AuditReport, CONTENTTYPE_AuditReportTemp, LIST_TITLE_AuditReport, SITE_URL, Tenant_URL } from '../../../Shared/Constants';
+import { CONTENTTYPE_AuditReport, CONTENTTYPE_AuditReportNew, CONTENTTYPE_AuditReportTemp, LIST_TITLE_AuditReport, SITE_URL, Tenant_URL } from '../../../Shared/Constants';
 import { PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
@@ -681,9 +681,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                     //  ProcessListItem =await getApprovalByID(sp, Number(segments[paramIndex + 2]),CONTENTTYPE_DocumentCancel);
                     // setInputDisabled((ProcessListItem.Status == "Pending" || ProcessListItem?.Status === "Save as draft") && ProcessListItem.Level === 0 && ProcessListItem.CurrentUserRole !=="OES")
-                    setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditReport));
+                    setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditReport,CONTENTTYPE_AuditReportNew));
                     // var ProcessItemId: any = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditReport);
-                    setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditReport));
+                    setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditReport,CONTENTTYPE_AuditReportNew));
                 }
                 // else {
 
@@ -692,7 +692,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 // }
             }
 
-            setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditReport))
+            setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditReport,CONTENTTYPE_AuditReportNew))
 
         }
         if (setAuditreportNC.length > 0) {
@@ -815,7 +815,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     //setFilesArrDoclink([...FilesArrDoclink, ...arrn]);
                     console.log("arrrrrrn5ghjghj6 audit doc");
                 }
-                const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_AuditReport, setBannerById[0].ReferenceNumber)
+                const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_AuditReport, setBannerById[0].ReferenceNumber,CONTENTTYPE_AuditReportNew)
 
                 if (ApprowData.length > 0) {
 
@@ -1585,7 +1585,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
                                     RequesterRoleId: RequesterRoleId,
-                                    ProcessName: "Annual Audit Report",
+                                    ProcessName: "IMS Audit Report and Checklist",
                                     FormNameId: FormNameId,
                                     ApprovalType: "Approval",
                                     // IsApprovalGenerated: "No"
@@ -1930,7 +1930,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
                                     RequesterRoleId: RequesterRoleId,
-                                    ProcessName: "Annual Audit Report",
+                                    ProcessName: "IMS Audit Report and Checklist",
                                     FormNameId: FormNameId,
                                     ApprovalType: "Approval",
                                     IsApprovalGenerated: "No"
@@ -2235,7 +2235,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 RequesterNameId: currentUser.Id,
                                 RequestedDate: new Date().toLocaleDateString("en-CA"),
                                 RequesterRoleId: RequesterRoleId,
-                                ProcessName: "Annual Audit Report",
+                                ProcessName: "IMS Audit Report and Checklist",
                                 FormNameId: FormNameId,
                                 ApprovalType: "Approval",
                                 // IsApprovalGenerated: "No"
@@ -2561,7 +2561,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
                                     RequesterRoleId: RequesterRoleId,
-                                    ProcessName: "Annual Audit Report",
+                                    ProcessName: "IMS Audit Report and Checklist",
                                     FormNameId: FormNameId,
                                     ApprovalType: "Approval",
                                     IsApprovalGenerated: "No"

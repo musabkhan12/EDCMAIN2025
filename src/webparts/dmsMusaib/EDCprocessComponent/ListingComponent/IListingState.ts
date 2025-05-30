@@ -8,6 +8,7 @@ export interface IListingState {
   itemsPerPage: number;
   totalItems: number;
   sortColumn: string;
+  loading:boolean;
   sortDirection: string;
   searchValues: { [key: string]: string };
 }

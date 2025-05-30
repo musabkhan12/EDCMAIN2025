@@ -177,7 +177,7 @@ export const getAllRequestType = async (_sp) => {
   await _sp.web.lists.getByTitle("RequestTypeMaster").items
     .select("*,Author/ID,Author/Title")
     .expand("Author")
-    .filter("FornName eq 'Change Request'")
+    .filter("FormName eq 'Change Request'")
     .orderBy("Modified", false)() // Order by Modified descending to get latest first
     .then((res) => {
       console.log("optrequest", res);

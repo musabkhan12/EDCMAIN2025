@@ -216,14 +216,14 @@ export const getNCNumbers = async (_sp, Reportcode, type) => {
   console.log(arr, 'arr');
   return arr;
 }
-export const getAllProcessData = async (_sp, MainId, processName, docCode) => {
+export const getAllProcessData = async (_sp, MainId, processName, docCode,processName1) => {
 
   let arr;
   // .select("*,Author/ID,Author/Title,Approvers/Id,Approvers/Title,ApproverRole/Id").expand("Author,Approvers,ApproverRole").filter(`MainListID eq '${MainId}' and ProcessName eq '${processName}' and RequestId eq '${docCode}'`)()
 
   // const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("AllProcessApprovalLevelList").items
-    .select("*,Author/ID,Author/Title,Approvers/Id,Approvers/Title,ApproverRole/Id").expand("Author,Approvers,ApproverRole").filter(`MainListID eq '${MainId}' and ProcessName eq '${processName}'`)()
+    .select("*,Author/ID,Author/Title,Approvers/Id,Approvers/Title,ApproverRole/Id").expand("Author,Approvers,ApproverRole").filter(`MainListID eq '${MainId}' and (ProcessName eq '${processName}' or ProcessName eq '${processName1}')`)()
     .then((res) => {
       //   res.map((item) => ({
 
@@ -512,7 +512,7 @@ export const getFormNameID = async (_sp, formname) => {
   return reqId;
 }
 
-export const getApprovalByID = async (_sp, id, processName) => {
+export const getApprovalByID = async (_sp, id, processName,processName1) => {
 
   let arr = []
   let arrs = []
@@ -522,7 +522,7 @@ export const getApprovalByID = async (_sp, id, processName) => {
     .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
     .then((res) => {
       console.log(res, ' let arrs=[]');
-      if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName) {
+      if (res && res.AssignedTo.Id == currentUser.Id && (res.ProcessName === processName || res.ProcessName === processName1)) {
         arr = res;
       }
       // .filter(`AssignedTo/Id eq ${currentUser.Id} and ProcessName eq ${processName}`)
@@ -537,7 +537,7 @@ export const getApprovalByID = async (_sp, id, processName) => {
   return arr;
 }
 
-export const getApprovalByID2 = async (_sp, id, processName) => {
+export const getApprovalByID2 = async (_sp, id, processName,processname1) => {
 
   let arr;
   let arrs = []
@@ -547,7 +547,7 @@ export const getApprovalByID2 = async (_sp, id, processName) => {
     .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
     .then((res) => {
       console.log(res, ' let arrs=[]');
-      if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+      if (res && res.AssignedTo.Id == currentUser.Id && (res.ProcessName === processName || res.ProcessName === processName1) && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
         arr = false;
       }
       else {
@@ -600,7 +600,7 @@ export const getItemfromChecklistMaster = async (sp) => {
   return arr
 }
 
-export const getDraftApprovalByID = async (_sp, id, processName) => {
+export const getDraftApprovalByID = async (_sp, id, processName,processName1) => {
 
   let arr = [];
   let val = "Yes"
@@ -608,7 +608,7 @@ export const getDraftApprovalByID = async (_sp, id, processName) => {
   let sts = "Pending"
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("ProcessApprovalList").items
-    .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`AssignedTo/ID  eq '${currentUser.Id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).top(1)()
+    .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`AssignedTo/ID  eq '${currentUser.Id}' and (ProcessName eq '${processName}' or ProcessName eq '${processName1}') and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).top(1)()
     .then((res) => {
       console.log(res, ' let arrs=[]');
       // if(res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 && res.CurrentUserRole !=="OES" ){

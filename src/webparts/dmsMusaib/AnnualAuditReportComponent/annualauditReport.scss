@@ -763,6 +763,14 @@ width: 100%;
     top: 0%;
     background: rgba(0, 0, 0, 0.1);
 }
+.textfield-error .ms-TextField-fieldGroup {
+  border: 1px solid red !important;
+  background-color: #ffe6e6;
+}
+
+.textfield-error .ms-TextField-field {
+  background-color: #ffe6e6;
+}
 .librarydata .page-title{margin-top: -41px;}
 .newlavl .form-check-label{float: left;}
 .newlavl .form-check .form-check-input{float:left;}

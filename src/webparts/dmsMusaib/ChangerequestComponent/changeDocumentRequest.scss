@@ -1025,3 +1025,24 @@ textarea:focus{
     border: 0px solid #f37421 !important;
 }
 .tpnew tbody{overflow-y: inherit !important;}
+/* Default checkbox styling */
+.form-check-input {
+    accent-color: white; /* default tick color */
+  }
+  
+  /* When there's a validation error */
+  .form-check-input.border-on-error {
+    accent-color: black; /* makes the tick black on red background */
+    background-color: #f8d7da; /* optional: light red background for error */
+    border-color: #dc3545; /* optional: red border */
+  }
+  /* Highlight the row background */
+.row-error {
+    background-color: #f8d7da; /* light red */
+  }
+  
+  /* Highlight the field borders */
+  .border-on-error {
+    border: 1px solid #dc3545 !important;
+  }
+  
