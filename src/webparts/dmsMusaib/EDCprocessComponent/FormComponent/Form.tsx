@@ -37,6 +37,8 @@ import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
 import { DatePicker } from 'office-ui-fabric-react';
 import moment from 'moment';
+import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 
 
@@ -3765,7 +3767,7 @@ const FormContext = ({ props }: any) => {
                                           disabled={InputDisabled}
                                         /> */}
                                       </td>
-                                      <td style={{ minWidth: '100px', maxWidth: '100px' }}>
+                                      {/* <td style={{ minWidth: '100px', maxWidth: '100px' }}>
                                         <input
                                           type="time"
                                           className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
@@ -3776,7 +3778,28 @@ const FormContext = ({ props }: any) => {
                                           disabled={InputDisabled}
                                         />
 
-                                      </td>
+                                      </td> */}
+                                      <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime || "Select a time"}>
+                                        <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                          <TimePicker
+                                            label="Select Time"
+                                            className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                            value={row.startTime ? new Date(`1970-01-01T${row.startTime}`) : null}
+                                            onChange={(newValue: any) => {
+                                              const formattedTime = newValue
+                                                ? newValue.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                                                : '';
+                                              handleRecommendationChange(index, 'startTime', formattedTime);
+                                            }}
+                                            disabled={InputDisabled}
+                                          // slotProps={{
+                                          //     textField: {
+                                          //         fullWidth: true,
+                                          //         className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
+                                          //     }
+                                          // }}
+                                          />
+                                        </LocalizationProvider></td>
 
                                       <td>
                                         <Select

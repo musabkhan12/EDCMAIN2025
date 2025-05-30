@@ -1574,7 +1574,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     Section: row.section,
                                     Date: row.date || null,
                                     Time: row.startTime || "",
-                                    AuditorId: row.auditorIds
+                                    AuditorId: row.auditorIds || null
                                 }
 
                                 if (row.id) {
@@ -1635,7 +1635,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role,
                                     Level: Number(item.level),
-                                    ApproversId: approversIds,
+                                    ApproversId: approversIds || null,
                                     // LevelType: "One",
                                     LevelType: item.approvalType,
                                     SubmitStatus: "Yes",
@@ -1713,6 +1713,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 AnnualAuditPlanIDId: editItemID, // Assuming "Title" column exists
                                 ProcessActivity: cov.ProcessActivity || "",
                                 // StandardClauses: cov.StandardClauses || "",
+                                DepartmentId : cov.deptId ? cov.deptId : null,
                                 Date: cov.date ? cov.date : null,
                                 Time: cov.startTime || "",
                                 AuditorId: cov.auditorIds ? cov.auditorIds : null,
@@ -1945,7 +1946,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     Section: row.section,
                                     Date: row.date || null,
                                     Time: row.startTime || "",
-                                    AuditorId: row.auditorIds
+                                    AuditorId: row.auditorIds || null
                                 }
 
                                 const postResult2 = await addItem2(postPayload2, sp);
@@ -2063,6 +2064,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
                                     ProcessActivity: cov.ProcessActivity || "",
                                     // StandardClauses: cov.StandardClauses || "",
+                                    DepartmentId : cov.deptId ? cov.deptId : null,
                                     Date: cov.date ? cov.date : null,
                                     Time: cov.startTime || "",
                                     AuditorId: cov.auditorIds ? cov.auditorIds : null,
@@ -2223,7 +2225,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     Section: row.section || "",
                                     Date: row.date ? row.date : null,
                                     Time: row.startTime || "",
-                                    AuditorId: row.auditorIds ? row.auditorIds : 0
+                                    AuditorId: row.auditorIds ? row.auditorIds : null
                                 }
 
                                 if (row.id) {
@@ -2365,6 +2367,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     AnnualAuditPlanIDId: editItemID, // Assuming "Title" column exists
                                     ProcessActivity: cov.ProcessActivity || "",
                                     // StandardClauses: cov.StandardClauses || "",
+                                    DepartmentId : cov.deptId ? cov.deptId : null,
                                     Date: cov.date ? cov.date : null,
                                     Time: cov.startTime || "",
                                     AuditorId: cov.auditorIds ? cov.auditorIds : null,
@@ -2581,7 +2584,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                         Section: row.section || "",
                                         Date: row.date ? row.date : null,
                                         Time: row.startTime || "",
-                                        AuditorId: row.auditorIds ? row.auditorIds : 0
+                                        AuditorId: row.auditorIds ? row.auditorIds : null
                                     }
 
                                     const postResult2 = await addItem2(postPayload2, sp);
@@ -2671,6 +2674,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
                                     ProcessActivity: cov.ProcessActivity || "",
                                     // StandardClauses: cov.StandardClauses || "",
+                                    DepartmentId : cov.deptId ? cov.deptId : null,
                                     Date: cov.date ? cov.date : null,
                                     Time: cov.startTime || "",
                                     AuditorId: cov.auditorIds ? cov.auditorIds : null,
@@ -3739,12 +3743,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     />
 
                                                                                 </td> */}
-                                                                                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                                                                <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime|| "Select a time"}>
+                                                                                    <LocalizationProvider dateAdapter={AdapterDateFns}>
                                                                                     <TimePicker
                                                                                         label="Select Time"
                                                                                         className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                         value={row.startTime ? new Date(`1970-01-01T${row.startTime}`) : null}
-                                                                                        onChange={(newValue) => {
+                                                                                        onChange={(newValue: any) => {
                                                                                             const formattedTime = newValue
                                                                                                 ? newValue.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
                                                                                                 : '';
@@ -3758,7 +3763,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                         //     }
                                                                                         // }}
                                                                                     />
-                                                                                </LocalizationProvider>
+                                                                                </LocalizationProvider></td>
 
                                                                                 <td>
                                                                                     <Select
@@ -3924,7 +3929,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 </div>
                                                             </div>
 
-                                                            <div className="col-lg-12">
+                                                            <div className="col-lg-6">
                                                                 <div className="mb-3">
                                                                     <label htmlFor="criteria" className="form-label">Criteria<span className="text-danger1"> *</span></label>
                                                                     <textarea
@@ -4038,7 +4043,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     disabled={InputDisabled}
                                                                                 /> */}
                                                                             </td>
-                                                                            <td style={{ overflow: "inherit", minWidth: '140px', maxWidth: '140px' }}>
+                                                                            {/* <td style={{ overflow: "inherit", minWidth: '140px', maxWidth: '140px' }}>
                                                                                 <input style={{ paddingLeft: '2px', paddingRight: '0px' }}
                                                                                     type="time"
                                                                                     className={`coverageClsErr form-control  ${(!ValidDRecomm) ? "border-on-error" : ""}`}
@@ -4049,6 +4054,28 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     disabled={InputDisabled}
                                                                                 />
 
+                                                                            </td> */}
+                                                                         <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime|| "Select a time"}>
+                                                                            <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                                                                <TimePicker
+                                                                                    label="Select Time"
+                                                                                    className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                    value={row.startTime ? new Date(`1970-01-01T${row.startTime}`) : null}
+                                                                                    onChange={(newValue: any) => {
+                                                                                        const formattedTime = newValue
+                                                                                            ? newValue.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                                                                                            : '';
+                                                                                            handleCoverageRow(index, 'startTime', formattedTime);
+                                                                                    }}
+                                                                                    disabled={InputDisabled}
+                                                                                // slotProps={{
+                                                                                //     textField: {
+                                                                                //         fullWidth: true,
+                                                                                //         className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
+                                                                                //     }
+                                                                                // }}
+                                                                                />
+                                                                            </LocalizationProvider>
                                                                             </td>
                                                                             <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }}>
                                                                                 <Select

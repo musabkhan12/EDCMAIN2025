@@ -531,7 +531,7 @@ const ArgPoc = ({ props }: any) => {
         cleanUrlInMyRequest = true;
         returnFromMyRequest = true;
         setlistorgriddata('DocumentCancellation')
-      } else if (arrayToStoreURLParameter[1] === 'Annual%20Audit%20Program') {
+      } else if (arrayToStoreURLParameter[1] === 'Annual%20Audit%20Program' || arrayToStoreURLParameter[1] === 'IMS%20Annual%20Audit%20Program') {
         //  alert("Document Camcetllation")
         const get = document.getElementById('files-container')
         get.innerHTML = '';
@@ -539,7 +539,7 @@ const ArgPoc = ({ props }: any) => {
         returnFromMyRequest = true;
         setlistorgriddata('AnnualAuditProgram')
       }
-      else if (arrayToStoreURLParameter[1] === 'Annual%20Audit%20Plan') {
+      else if (arrayToStoreURLParameter[1] === 'Annual%20Audit%20Plan' || arrayToStoreURLParameter[1] === 'IMS%20Audit%20Plan') {
         //  alert("Document Camcetllation")
         const get = document.getElementById('files-container')
         get.innerHTML = '';

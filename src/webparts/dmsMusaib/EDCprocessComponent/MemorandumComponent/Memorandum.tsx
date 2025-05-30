@@ -37,6 +37,8 @@ import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
 import moment from 'moment';
 import { DatePicker } from 'office-ui-fabric-react';
+import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 
 const datePickerErrorStyles: Partial<IDatePickerStyles> = {
@@ -3231,8 +3233,8 @@ const MemoContext = ({ props }: any) => {
                                           onChange={(e) => handleRecommendationChange(index, 'date', e.target.value)}
                                           disabled={InputDisabled}
                                         /> */}
-                                      </td>
-                                      <td>
+                                        </td>
+                                        {/* <td>
                                         <input
                                           type="time"
                                           className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
@@ -3243,7 +3245,29 @@ const MemoContext = ({ props }: any) => {
                                           disabled={InputDisabled}
                                         />
 
-                                      </td>
+                                      </td> */}
+
+                                        <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime || "Select a time"}>
+                                          <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                            <TimePicker
+                                              label="Select Time"
+                                              className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                              value={row.startTime ? new Date(`1970-01-01T${row.startTime}`) : null}
+                                              onChange={(newValue: any) => {
+                                                const formattedTime = newValue
+                                                  ? newValue.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                                                  : '';
+                                                handleRecommendationChange(index, 'startTime', formattedTime);
+                                              }}
+                                              disabled={InputDisabled}
+                                            // slotProps={{
+                                            //     textField: {
+                                            //         fullWidth: true,
+                                            //         className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
+                                            //     }
+                                            // }}
+                                            />
+                                          </LocalizationProvider></td>
 
                                       <td>
 
