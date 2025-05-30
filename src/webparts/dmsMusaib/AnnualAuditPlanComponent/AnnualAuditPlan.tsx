@@ -23,7 +23,7 @@ import { FormSubmissionMode } from '../../../Shared/Interfaces';
 import { decryptId } from '../../../APISearvice/CryptoService';
 import { WorkflowAction } from '../../../CustomJSComponents/WorkflowAction/WorkflowAction';
 import { WorkflowAuditHistory } from '../../../CustomJSComponents/WorkflowAuditHistory/WorkflowAuditHistory';
-import { CONTENTTYPE_AuditPlan, CONTENTTYPE_AuditPlanTemp, CONTENTTYPE_Memo, LIST_AuditPlan, LIST_TITLE_AuditPlan, SITE_URL, Tenant_URL } from '../../../Shared/Constants';
+import { CONTENTTYPE_AuditPlan, CONTENTTYPE_AuditPlanForm, CONTENTTYPE_AuditPlanTemp, CONTENTTYPE_Memo, LIST_AuditPlan, LIST_TITLE_AuditPlan, SITE_URL, Tenant_URL } from '../../../Shared/Constants';
 import { PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
@@ -38,6 +38,8 @@ import 'react-tooltip/dist/react-tooltip.css';
 import { Attachment } from '@pnp/sp/attachments';
 import { DatePicker } from 'office-ui-fabric-react';
 import moment from 'moment';
+import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 // let myloader = '../../'
 let newfileupload: any
@@ -54,7 +56,7 @@ interface ForwardTo {
 interface Location {
     locationId: number; // ID for Location lookup
     locationName: string;
-    locationCode: string;
+    // locationCode: string;
 }
 
 const AnnualAuditPlanContext = ({ props }: any) => {
@@ -105,7 +107,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     const [LocationOpt, setLocationOpt] = React.useState<any>([]);
     const [DraftApprovalItem, setDraftApprovalItem] = React.useState(null);
     const [RecommType, setRecommType] = React.useState([]);
-   const [Classificationopt, setClassificationopt] = React.useState<any>([]);
+    const [Classificationopt, setClassificationopt] = React.useState<any>([]);
     const [tooltipText, settooltipText] = React.useState("");
     const [tooltipText1, settooltipText1] = React.useState("");
     const [showModal, setShowModal] = React.useState(false);
@@ -133,7 +135,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         CC: [],
         auditPlanTypeId: [],
         exclusions: "",
-        boundary: "",
+        // boundary: "",
         objective: "",
         criteria: "",
         scope: "",
@@ -159,6 +161,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         MRevisionNumber: null,
         MRevisionDate: "",
         MIssueDate: "",
+
+        memoFileName: "",
 
     });
     const [selectCCUsers, setSelectCCUsers] = React.useState([]);
@@ -192,8 +196,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${selectedOption.value}`).orderBy("SerialNumber", false).top(1)();
         if (listItems.length > 0) {
             // if (modeValue == "") {
-                memo = listItems[0].SerialNumber ? listItems[0].SerialNumber + 1 : 1;
-                memoId = listItems[0].Id;
+            memo = listItems[0].SerialNumber ? listItems[0].SerialNumber + 1 : 1;
+            memoId = listItems[0].Id;
             // }
             // else {
             //     memo = listItems[0].SerialNumber;
@@ -221,7 +225,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             MemoListId: memoId,
             memoSerialNo: memo,
             deptId: selectedOption.value,
-            memoNo: `${selectedOption.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+            memoNo: `${selectedOption.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+            memoFileName: `${selectedOption.DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+
         });
 
         if (selectedOption) {
@@ -274,7 +280,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     ]);
 
     const [coverageAuditCriteria, setcoverageAuditCriteria] = React.useState([
-        { id: 0, ProcessActivity: "", StandardClauses: "", date: "", startTime: "", auditor: null, auditorIds: null, LocationId: null, Location: null }
+        { id: 0, ProcessActivity: "", date: "",dept:null,deptId:null, startTime: "", auditor: null, auditorIds: null, LocationId: null, Location: null }
     ]);
 
     const [coverageAuditCriteriaEdit, setcoverageAuditCriteriaEdit] = React.useState([]);
@@ -286,7 +292,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     };
 
     const handleAddCoverageRow = () => {
-        setcoverageAuditCriteria([...coverageAuditCriteria, { id: 0, ProcessActivity: "", StandardClauses: "", date: "", startTime: "", auditor: null, auditorIds: null, LocationId: null, Location: null }]);
+        setcoverageAuditCriteria([...coverageAuditCriteria, { id: 0, ProcessActivity: "", date: "",dept:null,deptId:null, startTime: "", auditor: null, auditorIds: null, LocationId: null, Location: null }]);
     };
 
     const handleRecommendationChange = (index: number, field: string, value: any) => {
@@ -334,6 +340,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             );
 
         }
+        else if (field == "dept") {
+            // const valuesOnly = value.map((option: any) => option.value);
+            updatedRows = coverageAuditCriteria.map((row, i) =>
+                i === index ? { ...row, [field]: value, deptId: value.value } : row
+            );
+
+        }
         else {
             updatedRows = coverageAuditCriteria.map((row, i) =>
                 i === index ? { ...row, [field]: value } : row
@@ -349,9 +362,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         try {
             // Fetch the items
             const items = await sp.web.lists
-                .getByTitle("LocationMaster") // Your list name
-                .items.filter("IsActive eq 'Yes'") // Filter active items
-                .select("ID", "Location", "LocationCode") // Select required fields
+                // .getByTitle("LocationMaster") // Your list name
+                .getByTitle("AuditPlanLocationMaster") // Your list name
+                .items
+                // .filter("IsActive eq 'Yes'") // Filter active items
+                // .select("ID", "Location", "LocationCode") // Select required fields
                 .top(5000) // Limit number of records
                 (); // Call get() to fetch data
             items.sort((a, b) => a.Location.localeCompare(b.Location));
@@ -359,7 +374,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             const locations: Location[] = items.map((item: any) => ({
                 locationId: item.ID, // Store the ID for lookup
                 locationName: item.Location, // Name of the location
-                locationCode: item.LocationCode, // Code of the location
+                // locationCode: item.LocationCode, // Code of the location
                 label: item.Location,
                 value: item.ID
             }));
@@ -467,13 +482,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         const recommendationTypes = await getRecommendationTypes(sp);
         setRecommType(recommendationTypes);
         var ClassificationArr = await getAllClassificationMaster(sp);
-            ClassificationArr.sort((a, b) => a.Classification.localeCompare(b.Classification));
-            const optionsclassification = ClassificationArr.map((item: any) => ({
-              value: item.ID,
-              label: item.Classification,
-              itemId: item.ID
-            }));
-            setClassificationopt(optionsclassification);
+        ClassificationArr.sort((a, b) => a.Classification.localeCompare(b.Classification));
+        const optionsclassification = ClassificationArr.map((item: any) => ({
+            value: item.ID,
+            label: item.Classification,
+            itemId: item.ID
+        }));
+        setClassificationopt(optionsclassification);
         // const AllMemoNumber = await getAllMemoNumberList(sp);
         // const formattedMemoNumbers = AllMemoNumber.map((memo: any) => ({
         //     label: memo.MemoNumber,
@@ -578,7 +593,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
             // }
 
-           // const onloadDeptId = setAllDept1.filter((user: any) => user.label === UserDept)[0]?.value || 0;
+            // const onloadDeptId = setAllDept1.filter((user: any) => user.label === UserDept)[0]?.value || 0;
             const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0;
 
             const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).top(1)();
@@ -614,7 +629,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
                 memoNo: setAllDept1.filter(user => user.ADDepartmentName === UserDept)[0]
                     ? `${setAllDept1.filter(user => user.ADDepartmentName === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-                    : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+                    : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+                memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]
+                    ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+                    : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
             }));
 
         }
@@ -703,13 +721,14 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             if (setBannerById.length > 0) {
                 debugger
                 let varmemoNum = "";
+                let varmemofilename = "";
                 setEditForm(true);
                 setMainEditItem(setBannerById[0]);
                 setBannerById[0].label = setBannerById[0].MemoNumber;
                 setBannerById[0].value = setBannerById[0].MemorandumIDId;
                 if (formMode == "edit") {
                     const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${setBannerById[0]?.DepartmentId}`).orderBy("SerialNumber", false).top(1)();
-                    if (listItems.length > 0) {
+                    if (listItems.length > 0 && (setBannerById[0].Status == "Rework" || setBannerById[0].Status == "Save as draft")) {
                         if (listItems[0].SerialNumber > setBannerById[0].MemoSerialNumber) {
                             memo = listItems[0].SerialNumber + 1;
                         }
@@ -729,10 +748,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             ? `0${memo}`
                             : memo;
                     varmemoNum = `${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`;
+                    varmemofilename = `${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`;
+
                 }
                 else {
                     varmemoNum = setBannerById[0].MemoNumber;
                     memo = setBannerById[0].MemoSerialNumber;
+                    varmemofilename = setBannerById[0].MemoNumber.replace(/\//g, "_");
                 }
 
                 let ClassificationVal = optionsclassification.filter((docType: { value: any; }) => docType.value === setBannerById[0].ClassificationId) || null;
@@ -746,6 +768,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     // memoNo: setBannerById[0],
                     // memoSerialNo: setBannerById[0].MemoSerialNumber,
                     memoNo: varmemoNum,
+                    memoFileName: varmemofilename,
                     memoSerialNo: memo,
                     deptId: setBannerById[0].DepartmentId,
                     // issueNo: "",
@@ -763,7 +786,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     CC: setBannerById[0].CcId || [],
                     auditPlanTypeId: setBannerById[0].AuditPlanTypeId || [],
                     exclusions: setBannerById[0].Exclusions,
-                    boundary: setBannerById[0].Boundary,
+                    // boundary: setBannerById[0].Boundary,
                     objective: setBannerById[0].AimObjective,
                     criteria: setBannerById[0].Criteria,
                     scope: setBannerById[0].Scope,
@@ -781,7 +804,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     RevisionDate: setBannerById[0].RevisionDate || null,
                     IssueDate: setBannerById[0].IssueDate || null,
                     classificationId: setBannerById[0].ClassificationId,
-          classificationValue: ClassificationVal?.[0] || null,
+                    classificationValue: ClassificationVal?.[0] || null,
                 }));
 
                 setselectUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentId)?.[0] || null);
@@ -856,12 +879,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     const initialRows = rowData.map((item: any) => ({
                         id: item.Id,
                         // AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
-                        section: item.Section,
-                        date: new Date(item.Date).toLocaleDateString("en-CA"),
-                        startTime: item.Time,
-                        auditorIds: item.AuditorsId,
+                        section: item.Section || "",
+                        date: item.Date ? new Date(item.Date).toLocaleDateString("en-CA") : "",
+                        startTime: item.Time || "",
+                        auditorIds: item.AuditorId,
                         endTime: "",
-                        auditor: item.Auditors ? { label: item.Auditors.Role, value: item.Auditors.ID } : null // Convert single object
+                        auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
                     }));
                     if (setBannerById[0].RecommendationType?.RecommendationTypeValue == "Table") {
                         setRecommendationRows(initialRows);
@@ -877,12 +900,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     const initialRows1 = rowData1.map((item: any) => ({
                         id: item.Id,
                         // AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
-                        ProcessActivity: item.ProcessActivity,
-                        StandardClauses: item.StandardClauses,
-                        date: new Date(item.Date).toLocaleDateString("en-CA"),
-                        startTime: item.Time,
+                        ProcessActivity: item.ProcessActivity || "",
+                        // StandardClauses: item.StandardClauses ||"",
+                        date: item.Date ? new Date(item.Date).toLocaleDateString("en-CA") : "",
+                        startTime: item.Time || "",
                         LocationId: item.LocationId,
-
+                        dept: item?.Department ? { label: item.Department.Department, value: item.Department.ID } : null,
+                        deptId: item.DepartmentId ? item.DepartmentId : null,
                         Location: item.Location ? { label: item.Location.Location, value: item.Location.ID } : null,
                         auditorIds: item.AuditorId,
 
@@ -907,7 +931,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         setFormLoading(false);
 
 
-        setFormNameVal(await getFormNameID(sp, CONTENTTYPE_AuditPlan))
+        setFormNameVal(await getFormNameID(sp, CONTENTTYPE_AuditPlanForm))
         setListNameId(await getListNameID(sp, LIST_TITLE_AuditPlan))
         createTooltipContent(filteredDeptArrayCC);
         createTooltipContentTo(filteredDeptArrayTo);
@@ -998,14 +1022,14 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         const handleScroll = () => {
             // Close the dropdown on scroll
             document.activeElement && (document.activeElement as HTMLElement).blur();
-          };
-        
-          const container = document.querySelector('.scroll-container');
-          container?.addEventListener('scroll', handleScroll);
-        
-          return () => {
+        };
+
+        const container = document.querySelector('.scroll-container');
+        container?.addEventListener('scroll', handleScroll);
+
+        return () => {
             container?.removeEventListener('scroll', handleScroll);
-          };
+        };
 
     }, [useHide]);
 
@@ -1070,7 +1094,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             CC,
             auditPlanTypeId,
             exclusions,
-            boundary,
+            // boundary,
             objective,
             criteria,
             scope,
@@ -1081,7 +1105,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             RevisionNo,
             IssueNo,
             classificationValue,
-      classificationId
+            classificationId
         } = formData;
         // const { description } = richTextValues;
         let valid = true;
@@ -1140,10 +1164,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 //   });
                 Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
                     // Skip if the current element or any of its ancestors has the class "Exclude-date-picker"
-                    if ((element as HTMLElement).closest(".Exclude-date-picker")) {
-                        return;
-                    }
-               
+                    // if ((element as HTMLElement).closest(".Exclude-date-picker")) {
+                    //     return;
+                    // }
+
                     const text = element.textContent?.trim();
                     if (
                         element.tagName === "DIV" &&
@@ -1151,7 +1175,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     ) {
                         element.classList.add("border-on-error");
                     }
-                  });
+                });
                 valid = false;
             }
             if (date == "Invalid Date") {
@@ -1164,10 +1188,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                 Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
                     // Skip if the current element or any of its ancestors has the class "Exclude-date-picker"
-                    if ((element as HTMLElement).closest(".Exclude-date-picker")) {
-                        return;
-                    }
-               
+                    // if ((element as HTMLElement).closest(".Exclude-date-picker")) {
+                    //     return;
+                    // }
+
                     const text = element.textContent?.trim();
                     if (
                         element.tagName === "DIV" &&
@@ -1175,7 +1199,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     ) {
                         element.classList.add("border-on-error");
                     }
-                  });
+                });
                 valid = false;
             }
             if (!background) {
@@ -1237,17 +1261,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                     });
 
-                    // Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
-                    //     if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "" || element.textContent?.trim() === "")) {
-                    //       element.classList.add("border-on-error");
-                    //     }
-                    //   });
+
                     Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
                         // Skip if the current element or any of its ancestors has the class "Exclude-date-picker"
-                        if ((element as HTMLElement).closest(".Exclude-date-picker")) {
-                            return;
-                        }
-                   
+                        // if ((element as HTMLElement).closest(".Exclude-date-picker")) {
+                        //     return;
+                        // }
+
                         const text = element.textContent?.trim();
                         if (
                             element.tagName === "DIV" &&
@@ -1255,7 +1275,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         ) {
                             element.classList.add("border-on-error");
                         }
-                      });
+                    });
                 }
             }
             else if (formData.RecommendationTypeValue === "TextBox") {
@@ -1296,14 +1316,48 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 // });
                 valid1 = false;
             }
+            if (!coverageAuditCriteria.length) {
+                valid1 = false;
+            }
+            if (coverageAuditCriteria.length > 0 && coverageAuditCriteria.every((row: any) => row.Location != null && row.LocationId != null
+                // && row.StandardClauses.trim() !== "" 
+                && row.ProcessActivity.trim() !== "" && row.date.trim() !== "" && row.startTime.trim() !== "" && row.auditorIds != null && row.auditor != null && row.auditor.length != 0) == false) {
+                valid1 = false;
+
+                Array.from(document.getElementsByClassName("coverageClsErr")).forEach((element: Element) => {
+                    if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "")) {
+                        element.classList.add("border-on-error");
+                    }
+                    else if ((element.tagName === "INPUT" || element.tagName === "TEXTAREA") && (element as HTMLInputElement).value.trim() === "") {
+                        element.classList.add("border-on-error");
+                    }
+
+
+                });
+
+                Array.from(document.getElementsByClassName("ms-TextField-fieldGroup")).forEach((element: Element) => {
+                    // Skip if the current element or any of its ancestors has the class "Exclude-date-picker"
+                    // if ((element as HTMLElement).closest(".Exclude-date-picker")) {
+                    //     return;
+                    // }
+
+                    const text = element.textContent?.trim();
+                    if (
+                        element.tagName === "DIV" &&
+                        (text === "Select" || text === "" || text === "")
+                    ) {
+                        element.classList.add("border-on-error");
+                    }
+                });
+            }
             if (!exclusions) {
                 document.getElementById("exclusions")?.classList.add("border-on-error");
                 validAudit = false;
             }
-            if (!boundary) {
-                document.getElementById("boundary")?.classList.add("border-on-error");
-                validAudit = false;
-            }
+            // if (!boundary) {
+            //     document.getElementById("boundary")?.classList.add("border-on-error");
+            //     validAudit = false;
+            // }
             if (!objective) {
                 document.getElementById("objective")?.classList.add("border-on-error");
                 validAudit = false;
@@ -1366,19 +1420,34 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     const getNewFileName = async (originalFileName: string): Promise<string> => {
         const userId = currentUser.Id; // Or however you get the current user ID
         const date = new Date();
-        const fileExtension = originalFileName.split('.').pop();
+        // const fileExtension = originalFileName.split('.').pop();
+
+        // const components = [
+        //     date.getFullYear(),
+        //     (date.getMonth() + 1).toString().padStart(2, '0'),
+        //     date.getDate().toString().padStart(2, '0'),
+        //     date.getHours().toString().padStart(2, '0'),
+        //     date.getMinutes().toString().padStart(2, '0'),
+        //     date.getSeconds().toString().padStart(2, '0'),
+        //     date.getMilliseconds().toString().padStart(3, '0')
+        // ];
+
+        // return `${userId}_${components.join('')}_${originalFileName}`;
 
         const components = [
-            date.getFullYear(),
-            (date.getMonth() + 1).toString().padStart(2, '0'),
             date.getDate().toString().padStart(2, '0'),
+            (date.getMonth() + 1).toString().padStart(2, '0'),
+            date.getFullYear().toString(),
             date.getHours().toString().padStart(2, '0'),
             date.getMinutes().toString().padStart(2, '0'),
             date.getSeconds().toString().padStart(2, '0'),
             date.getMilliseconds().toString().padStart(3, '0')
         ];
+        const fileExtension = originalFileName.split('.').pop();
+        const fileNameWithoutExtension = originalFileName.split('.').slice(0, -1).join('.');
+        const NewFileName = `${formData.memoFileName}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`;
 
-        return `${userId}_${components.join('')}_${originalFileName}`;
+        return NewFileName;
     };
     // #region  Submit Form
     const handleFormSubmit = async () => {
@@ -1447,7 +1516,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                             // MemoNumber: formData.memoNo.label,
                             MemoNumber: formData.memoNo,
-                            MemoSerialNumber:formData.memoSerialNo,
+                            MemoSerialNumber: formData.memoSerialNo,
                             // IssueNumber:,
                             // RevisionNumber:,
                             AuditPlanTypeId: formData.auditPlanTypeId,
@@ -1455,13 +1524,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             ToId: formData.to,
                             CcId: formData.CC,
                             Subject: formData.subject,
-                            Date: formData.date,
+                            Date: formData.date ? formData.date : null,
                             Background: formData.background,
                             Issues: formData.issues,
                             RecommendedforApproval: formData.recommendationforApproval,
                             DepartmentId: formData.deptId,
                             Exclusions: formData.exclusions,
-                            Boundary: formData.boundary,
+                            // Boundary: formData.boundary,
                             AimObjective: formData.objective,
                             Criteria: formData.criteria,
                             Scope: formData.scope,
@@ -1503,9 +1572,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 const postPayload2 = {
                                     AnnualAuditPlanIDId: editItemID, // Assuming "Title" column exists
                                     Section: row.section,
-                                    Date: row.date,
-                                    Time: row.startTime,
-                                    AuditorsId: row.auditorIds
+                                    Date: row.date || null,
+                                    Time: row.startTime || "",
+                                    AuditorId: row.auditorIds
                                 }
 
                                 if (row.id) {
@@ -1579,7 +1648,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
                                     RequesterRoleId: RequesterRoleId,
-                                    ProcessName: "Annual Audit Plan",
+                                    ProcessName: "IMS Audit Plan",
                                     FormNameId: FormNameId.Id,
                                     ApprovalType: "Approval",
                                     // IsApprovalGenerated: "No"
@@ -1643,11 +1712,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             const postPayload2 = {
                                 AnnualAuditPlanIDId: editItemID, // Assuming "Title" column exists
                                 ProcessActivity: cov.ProcessActivity || "",
-                                StandardClauses: cov.StandardClauses || "",
+                                // StandardClauses: cov.StandardClauses || "",
                                 Date: cov.date ? cov.date : null,
                                 Time: cov.startTime || "",
-                                AuditorId: cov.auditorIds ? cov.auditorIds : 0,
-                                LocationId: cov.LocationId ? cov.LocationId : 0,
+                                AuditorId: cov.auditorIds ? cov.auditorIds : null,
+                                LocationId: cov.LocationId ? cov.LocationId : null,
                             }
 
                             if (cov.id) {
@@ -1821,13 +1890,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             ToId: formData.to,
                             CcId: formData.CC,
                             Subject: formData.subject,
-                            Date: formData.date,
+                            Date: formData.date || null,
                             Background: formData.background,
                             Issues: formData.issues,
                             RecommendedforApproval: formData.recommendationforApproval,
                             DepartmentId: formData.deptId,
                             Exclusions: formData.exclusions,
-                            Boundary: formData.boundary,
+                            // Boundary: formData.boundary,
                             AimObjective: formData.objective,
                             Criteria: formData.criteria,
                             Scope: formData.scope,
@@ -1854,7 +1923,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             MRevisionNumber: formData.MRevisionNumber,
                             MIssueNumber: formData.MIssueNumber,
                             MRevisionDate: formData.MRevisionDate,
-                            MIssueDate:formData.MIssueDate
+                            MIssueDate: formData.MIssueDate
 
 
                         }
@@ -1874,9 +1943,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 const postPayload2 = {
                                     AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
                                     Section: row.section,
-                                    Date: row.date,
-                                    Time: row.startTime,
-                                    AuditorsId: row.auditorIds
+                                    Date: row.date || null,
+                                    Time: row.startTime || "",
+                                    AuditorId: row.auditorIds
                                 }
 
                                 const postResult2 = await addItem2(postPayload2, sp);
@@ -1941,7 +2010,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
                                     RequesterRoleId: RequesterRoleId,
-                                    ProcessName: "Annual Audit Plan",
+                                    ProcessName: "IMS Audit Plan",
                                     FormNameId: FormNameId.Id,
                                     ApprovalType: "Approval",
                                     IsApprovalGenerated: "No"
@@ -1986,16 +2055,18 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                         for (const cov of coverageAuditCriteria) {
 
-                            if ((cov.ProcessActivity.trim() == "" && cov.StandardClauses.trim() == "" && cov.date.trim() == "" && cov.startTime.trim() == "" && (cov.auditor == null || cov.auditor.length == 0) && (cov.Location == null || cov.Location.length == 0)) == false) {
+                            if ((cov.ProcessActivity.trim() == "" &&
+                                //  cov.StandardClauses.trim() == "" &&
+                                cov.date.trim() == "" && cov.startTime.trim() == "" && (cov.auditor == null || cov.auditor.length == 0) && (cov.Location == null || cov.Location.length == 0)) == false) {
 
                                 const postPayload2 = {
                                     AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
                                     ProcessActivity: cov.ProcessActivity || "",
-                                    StandardClauses: cov.StandardClauses || "",
+                                    // StandardClauses: cov.StandardClauses || "",
                                     Date: cov.date ? cov.date : null,
                                     Time: cov.startTime || "",
-                                    AuditorId: cov.auditorIds ? cov.auditorIds : 0,
-                                    LocationId: cov.LocationId ? cov.LocationId : 0,
+                                    AuditorId: cov.auditorIds ? cov.auditorIds : null,
+                                    LocationId: cov.LocationId ? cov.LocationId : null,
                                 }
 
                                 const postResult2 = await addItem3(postPayload2, sp);
@@ -2104,13 +2175,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             ToId: formData.to,
                             CcId: formData.CC,
                             Subject: formData.subject,
-                            Date: formData.date,
+                            Date: formData.date || null,
                             Background: formData.background,
                             Issues: formData.issues,
                             RecommendedforApproval: formData.recommendationforApproval,
                             DepartmentId: formData.deptId,
                             Exclusions: formData.exclusions,
-                            Boundary: formData.boundary,
+                            // Boundary: formData.boundary,
                             AimObjective: formData.objective,
                             Criteria: formData.criteria,
                             Scope: formData.scope,
@@ -2152,7 +2223,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     Section: row.section || "",
                                     Date: row.date ? row.date : null,
                                     Time: row.startTime || "",
-                                    AuditorsId: row.auditorIds ? row.auditorIds : 0
+                                    AuditorId: row.auditorIds ? row.auditorIds : 0
                                 }
 
                                 if (row.id) {
@@ -2225,7 +2296,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 RequesterNameId: currentUser.Id,
                                 RequestedDate: new Date().toLocaleDateString("en-CA"),
                                 RequesterRoleId: RequesterRoleId,
-                                ProcessName: "Annual Audit Plan",
+                                ProcessName: "IMS Audit Plan",
                                 FormNameId: FormNameId.Id,
                                 ApprovalType: "Approval",
                                 // IsApprovalGenerated: "No"
@@ -2286,16 +2357,18 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                         for (const cov of coverageAuditCriteria) {
 
-                            if ((cov.ProcessActivity.trim() == "" && cov.StandardClauses.trim() == "" && cov.date.trim() == "" && cov.startTime.trim() == "" && (cov.auditor == null || cov.auditor.length == 0) && (cov.Location == null || cov.Location.length == 0)) == false) {
+                            if ((cov.ProcessActivity.trim() == ""
+                                //  && cov.StandardClauses.trim() == ""
+                                && cov.date.trim() == "" && cov.startTime.trim() == "" && (cov.auditor == null || cov.auditor.length == 0) && (cov.Location == null || cov.Location.length == 0)) == false) {
 
                                 const postPayload2 = {
                                     AnnualAuditPlanIDId: editItemID, // Assuming "Title" column exists
                                     ProcessActivity: cov.ProcessActivity || "",
-                                    StandardClauses: cov.StandardClauses || "",
+                                    // StandardClauses: cov.StandardClauses || "",
                                     Date: cov.date ? cov.date : null,
                                     Time: cov.startTime || "",
-                                    AuditorId: cov.auditorIds ? cov.auditorIds : 0,
-                                    LocationId: cov.LocationId ? cov.LocationId : 0,
+                                    AuditorId: cov.auditorIds ? cov.auditorIds : null,
+                                    LocationId: cov.LocationId ? cov.LocationId : null,
                                 }
 
                                 if (cov.id) {
@@ -2306,7 +2379,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 }
                                 else {
 
-                                    if ((cov.ProcessActivity.trim() == "" && cov.StandardClauses.trim() == "" && cov.date.trim() == "" && cov.startTime.trim() == "" && (cov.auditor == null || cov.auditor.length == 0) && (cov.Location == null || cov.Location.length == 0)) == false) {
+                                    if ((cov.ProcessActivity.trim() == ""
+                                        // && cov.StandardClauses.trim() == "" 
+                                        && cov.date.trim() == "" && cov.startTime.trim() == "" && (cov.auditor == null || cov.auditor.length == 0) && (cov.Location == null || cov.Location.length == 0)) == false) {
 
 
                                         const postResult2 = await addItem3(postPayload2, sp);
@@ -2447,13 +2522,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             ToId: formData.to,
                             CcId: formData.CC,
                             Subject: formData.subject,
-                            Date: formData.date,
+                            Date: formData.date || null,
                             Background: formData.background,
                             Issues: formData.issues,
                             RecommendedforApproval: formData.recommendationforApproval,
                             DepartmentId: formData.deptId,
                             Exclusions: formData.exclusions,
-                            Boundary: formData.boundary,
+                            // Boundary: formData.boundary,
                             AimObjective: formData.objective,
                             Criteria: formData.criteria,
                             Scope: formData.scope,
@@ -2483,7 +2558,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             MRevisionNumber: formData.MRevisionNumber,
                             MIssueNumber: formData.MIssueNumber,
                             MRevisionDate: formData.MRevisionDate,
-                            MIssueDate:formData.MIssueDate
+                            MIssueDate: formData.MIssueDate
 
 
                         }
@@ -2506,7 +2581,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                         Section: row.section || "",
                                         Date: row.date ? row.date : null,
                                         Time: row.startTime || "",
-                                        AuditorsId: row.auditorIds ? row.auditorIds : 0
+                                        AuditorId: row.auditorIds ? row.auditorIds : 0
                                     }
 
                                     const postResult2 = await addItem2(postPayload2, sp);
@@ -2563,7 +2638,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
                                     RequesterRoleId: RequesterRoleId,
-                                    ProcessName: "Annual Audit Plan",
+                                    ProcessName: "IMS Audit Plan",
                                     FormNameId: FormNameId.Id,
                                     ApprovalType: "Approval",
                                     IsApprovalGenerated: "No"
@@ -2588,16 +2663,18 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                         for (const cov of coverageAuditCriteria) {
 
-                            if ((cov.ProcessActivity.trim() == "" && cov.StandardClauses.trim() == "" && cov.date.trim() == "" && cov.startTime.trim() == "" && (cov.auditor == null || cov.auditor.length == 0) && (cov.Location == null || cov.Location.length == 0)) == false) {
+                            if ((cov.ProcessActivity.trim() == ""
+                                // && cov.StandardClauses.trim() == "" 
+                                && cov.date.trim() == "" && cov.startTime.trim() == "" && (cov.auditor == null || cov.auditor.length == 0) && (cov.Location == null || cov.Location.length == 0)) == false) {
 
                                 const postPayload2 = {
                                     AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
                                     ProcessActivity: cov.ProcessActivity || "",
-                                    StandardClauses: cov.StandardClauses || "",
+                                    // StandardClauses: cov.StandardClauses || "",
                                     Date: cov.date ? cov.date : null,
                                     Time: cov.startTime || "",
-                                    AuditorId: cov.auditorIds ? cov.auditorIds : 0,
-                                    LocationId: cov.LocationId ? cov.LocationId : 0,
+                                    AuditorId: cov.auditorIds ? cov.auditorIds : null,
+                                    LocationId: cov.LocationId ? cov.LocationId : null,
                                 }
 
                                 const postResult2 = await addItem3(postPayload2, sp);
@@ -2867,7 +2944,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             CCDepartments: selectedOption.CCDepartmentsId || [],
             to: selectedOption.ToId || [],
             CC: selectedOption.CcId || [],
-            
+
         });
         let filteredDeptArrayTo: any[] = [];
         let filteredDeptArrayCC: any[] = [];
@@ -2915,8 +2992,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 // AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
                 section: item.Section,
                 date: new Date(item.Date).toLocaleDateString("en-CA"),
-                startTime: item.Time,
-                auditorIds: item.AuditorsId,
+                startTime: item.Time || "",
+                auditorIds: item.AuditorId,
                 endTime: "",
                 auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
             }));
@@ -3459,40 +3536,40 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
-                                                                <div className="mb-3">
-                                                                    <label htmlFor="attachment" className="col-form-label">Attachment</label>
-                                                                    <div className="">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="attachment" className="col-form-label">Attachment</label>
+                                                                        <div className="">
 
-                                                                        <div>
-                                                                            <input
-                                                                                type="file"
-                                                                                // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                                                                className="form-control"
-                                                                                id="attachment"
-                                                                                accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                                                                                onChange={(e) => onFileChange(e, "Gallery", "AnnualAuditPlanDocs")}
-                                                                                // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
-                                                                                disabled={InputDisabled}
-                                                                                multiple
-                                                                            />
+                                                                            <div>
+                                                                                <input
+                                                                                    type="file"
+                                                                                    // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                                    className="form-control"
+                                                                                    id="attachment"
+                                                                                    accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                                                                    onChange={(e) => onFileChange(e, "Gallery", "AnnualAuditPlanDocs")}
+                                                                                    // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
+                                                                                    disabled={InputDisabled}
+                                                                                    multiple
+                                                                                />
+
+                                                                            </div>
+
+                                                                            <div>
+                                                                                {FilesArr.length > 0 ?
+                                                                                    (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
+                                                                                        <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
+                                                                                    </a>) : ""
+
+                                                                                }
+                                                                            </div>
+
+
 
                                                                         </div>
-
-                                                                        <div>
-                                                                            {FilesArr.length > 0 ?
-                                                                                (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
-                                                                                    <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
-                                                                                </a>) : ""
-
-                                                                            }
-                                                                        </div>
-
-
 
                                                                     </div>
-
                                                                 </div>
-                                                            </div>
 
                                                                 <div className="col-lg-12">
                                                                     <div className="mb-3">
@@ -3590,55 +3667,57 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
 
                                                         {formData.RecommendationTypeValue === "Table" ? (
-                                                            <table id="tabRec" className='mtbalenew overhi mb-3'>
-                                                                <thead>
-                                                                    <tr><th style={{ minWidth: '190px', maxWidth: '190px' }}>Section<span className="text-danger1"> *</span></th>
-                                                                        <th>Date<span className="text-danger1"> *</span></th>
-                                                                        <th colSpan={2}>Time<span className="text-danger1"> *</span></th>
-                                                                        <th>Auditor<span className="text-danger1"> *</span></th>
-                                                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>}
-                                                                    </tr>
-                                                                </thead>
+                                                            // className='newclasstabls scroll-container'
+                                                            <div style={{ display: 'grid' }} >
+                                                                <table id="tabRec" className='mtbalenew overhi mb-3 cont-scroll-mtb'>
+                                                                    <thead>
+                                                                        <tr><th style={{ minWidth: '190px', maxWidth: '190px' }}>Section<span className="text-danger1"> *</span></th>
+                                                                            <th>Date<span className="text-danger1"> *</span></th>
+                                                                            <th colSpan={2}>Time<span className="text-danger1"> *</span></th>
+                                                                            <th>Auditor<span className="text-danger1"> *</span></th>
+                                                                            {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>}
+                                                                        </tr>
+                                                                    </thead>
 
-                                                                <tbody>
+                                                                    <tbody>
 
-                                                                    {recommendationRows.map((row, index) => (
-                                                                        <tr key={index}>
-                                                                            <td style={{ minWidth: '190px', maxWidth: '190px' }}>
-                                                                                <input
-                                                                                    type="text"
-                                                                                    className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
-                                                                                    // className="form-control"
-                                                                                    value={row.section}
-                                                                                    title={row.section}
-                                                                                    onChange={(e) => handleRecommendationChange(index, 'section', e.target.value)}
-                                                                                    disabled={InputDisabled}
-                                                                                />
-                                                                            </td>
-                                                                            <td title={
-                                                                                row?.date
-                                                                                    ? moment(row?.date).format('DD/MMM/YYYY')
-                                                                                    : "Select a date"
-                                                                            }>
+                                                                        {recommendationRows.map((row, index) => (
+                                                                            <tr key={index}>
+                                                                                <td style={{ minWidth: '190px', maxWidth: '190px' }}>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                        // className="form-control"
+                                                                                        value={row.section}
+                                                                                        title={row.section}
+                                                                                        onChange={(e) => handleRecommendationChange(index, 'section', e.target.value)}
+                                                                                        disabled={InputDisabled}
+                                                                                    />
+                                                                                </td>
+                                                                                <td title={
+                                                                                    row?.date
+                                                                                        ? moment(row?.date).format('DD/MMM/YYYY')
+                                                                                        : "Select a date"
+                                                                                }>
 
-                                                                                <DatePicker
-                                                                                    value={
-                                                                                        row?.date
-                                                                                            ? new Date(moment(row?.date).format('YYYY-MM-DD'))
-                                                                                            : null
-                                                                                    }
-                                                                                    onSelectDate={(date: Date | null) => {
-                                                                                        if (date) {
-                                                                                            const formattedDate = new Date(date).toLocaleDateString("en-CA"); // Format as "yyyy-MM-dd"
-                                                                                            handleRecommendationChange(index, 'date', formattedDate); // Pass formatted date to handleRecommendationChange
+                                                                                    <DatePicker
+                                                                                        value={
+                                                                                            row?.date
+                                                                                                ? new Date(moment(row?.date).format('YYYY-MM-DD'))
+                                                                                                : null
                                                                                         }
-                                                                                    }}
-                                                                                    // maxDate={new Date()}
-                                                                                    minDate={new Date()}
-                                                                                    disabled={InputDisabled}
-                                                                                    formatDate={(date: any) => moment(date).format('DD/MMM/YYYY')}
-                                                                                />
-                                                                                {/* <input
+                                                                                        onSelectDate={(date: Date | null) => {
+                                                                                            if (date) {
+                                                                                                const formattedDate = new Date(date).toLocaleDateString("en-CA"); // Format as "yyyy-MM-dd"
+                                                                                                handleRecommendationChange(index, 'date', formattedDate); // Pass formatted date to handleRecommendationChange
+                                                                                            }
+                                                                                        }}
+                                                                                        // maxDate={new Date()}
+                                                                                        minDate={new Date()}
+                                                                                        disabled={InputDisabled}
+                                                                                        formatDate={(date: any) => moment(date).format('DD/MMM/YYYY')}
+                                                                                    />
+                                                                                    {/* <input
                                                                                     type="date"
                                                                                     className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                     // className="form-control"
@@ -3647,42 +3726,63 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     onChange={(e) => handleRecommendationChange(index, 'date', e.target.value)}
                                                                                     disabled={InputDisabled}
                                                                                 /> */}
-                                                                            </td>
-                                                                            <td>
-                                                                                <input
-                                                                                    type="time"
-                                                                                    className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
-                                                                                    // className="form-control"
-                                                                                    value={row.startTime}
-                                                                                    title={row.startTime}
-                                                                                    onChange={(e) => handleRecommendationChange(index, 'startTime', e.target.value)}
-                                                                                    disabled={InputDisabled}
-                                                                                />
+                                                                                </td>
+                                                                                {/* <td>
+                                                                                    <input
+                                                                                        type="time"
+                                                                                        className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                        // className="form-control"
+                                                                                        value={row.startTime}
+                                                                                        title={row.startTime}
+                                                                                        onChange={(e) => handleRecommendationChange(index, 'startTime', e.target.value)}
+                                                                                        disabled={InputDisabled}
+                                                                                    />
 
-                                                                            </td>
+                                                                                </td> */}
+                                                                                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                                                                    <TimePicker
+                                                                                        label="Select Time"
+                                                                                        className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                        value={row.startTime ? new Date(`1970-01-01T${row.startTime}`) : null}
+                                                                                        onChange={(newValue) => {
+                                                                                            const formattedTime = newValue
+                                                                                                ? newValue.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                                                                                                : '';
+                                                                                            handleRecommendationChange(index, 'startTime', formattedTime);
+                                                                                        }}
+                                                                                        disabled={InputDisabled}
+                                                                                        // slotProps={{
+                                                                                        //     textField: {
+                                                                                        //         fullWidth: true,
+                                                                                        //         className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
+                                                                                        //     }
+                                                                                        // }}
+                                                                                    />
+                                                                                </LocalizationProvider>
 
-                                                                            <td>
-                                                                                <Select
-                                                                                    options={UserRoles}
-                                                                                    // isMulti
-                                                                                    className={`recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
-                                                                                    value={row.auditor}
-                                                                                    onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
-                                                                                    placeholder="Select"
-                                                                                    isDisabled={InputDisabled}
-                                                                                    title={row.auditor?.label || "Select Auditor"} // Added title tooltip
-                                                                                />
-                                                                            </td>
-                                                                            {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '70px', maxWidth: '70px' }}>
-                                                                                <img src={require("../assets/del.png")} onClick={() => handleDeleteRecommendationRow(index)} />
+                                                                                <td>
+                                                                                    <Select
+                                                                                        options={rows1}
+                                                                                        // isMulti
+                                                                                        className={`recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                        value={row.auditor}
+                                                                                        onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
+                                                                                        placeholder="Select"
+                                                                                        isDisabled={InputDisabled}
+                                                                                        title={row.auditor?.label || "Select Auditor"} // Added title tooltip
+                                                                                    />
+                                                                                </td>
+                                                                                {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '70px', maxWidth: '70px' }}>
+                                                                                    <img src={require("../assets/del.png")} onClick={() => handleDeleteRecommendationRow(index)} />
 
-                                                                            </td>
-                                                                            }
-                                                                        </tr>
-                                                                    ))}
-                                                                </tbody>
+                                                                                </td>
+                                                                                }
+                                                                            </tr>
+                                                                        ))}
+                                                                    </tbody>
 
-                                                            </table>
+                                                                </table>
+                                                            </div>
                                                         ) : formData.RecommendationTypeValue === "TextBox" ? (
                                                             <div className="row mb-3">
                                                                 <div className="col-lg-12">
@@ -3784,7 +3884,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 </div>
                                                             </div>
 
-                                                            <div className="col-lg-6">
+                                                            {/* <div className="col-lg-6">
                                                                 <div className="mb-3">
                                                                     <label htmlFor="boundary" className="form-label">Boundary<span className="text-danger1"> *</span></label>
                                                                     <textarea
@@ -3802,7 +3902,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                         disabled={InputDisabled}
                                                                     ></textarea>
                                                                 </div>
-                                                            </div>
+                                                            </div> */}
 
                                                             <div className="col-lg-6">
                                                                 <div className="mb-3">
@@ -3844,7 +3944,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 </div>
                                                             </div>
 
-                                                           
+
 
 
                                                         </div>
@@ -3871,14 +3971,31 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                         {/* {formData.RecommendationTypeValue === "Table" ? ( */}
                                                         <div style={{ display: 'grid' }} className='newclasstabls scroll-container'>
-                                                        <table id="tabCov" className='mtbalenew overhi mb-3 cont-scroll-mtb'>
+                                                            {/* mtbalenewscrollnew4 */}
+                                                            {/* <table id="tabCov" className=' mtbalenew mb-3 cont-scroll-mtb'> */}
+                                                            <table id="tabCov" className='mtbalenew overhi mb-3 cont-scroll-mtb'>
                                                                 <thead>
-                                                                    <tr><th style={{ minWidth: '140px', maxWidth: '140px' }}>Date<span className="text-danger1"> *</span></th>
-                                                                        <th style={{ minWidth: '140px', maxWidth: '140px' }} colSpan={2}>Time<span className="text-danger1"> *</span></th>
-                                                                        <th style={{ minWidth: '260px', maxWidth: '260px' }}>Process/Activity<span className="text-danger1"> *</span></th>
-                                                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>Location<span className="text-danger1"> *</span></th>
-                                                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>Auditor<span className="text-danger1"> *</span></th>
-                                                                        <th style={{ minWidth: '260px', maxWidth: '260px' }}>Standard & Clauses<span className="text-danger1"> *</span></th>
+                                                                    <tr><th style={{ minWidth: '140px', maxWidth: '140px' }}>Date
+                                                                        <span className="text-danger1"> *</span>
+                                                                    </th>
+                                                                        <th style={{ minWidth: '140px', maxWidth: '140px' }} colSpan={2}>Time
+                                                                            <span className="text-danger1"> *</span>
+                                                                        </th>
+                                                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>Department
+                                                                            <span className="text-danger1"> *</span>
+                                                                        </th>
+                                                                        <th style={{ minWidth: '260px', maxWidth: '260px' }}>Process/Activity
+                                                                            <span className="text-danger1"> *</span>
+                                                                        </th>
+                                                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>Location
+                                                                            <span className="text-danger1"> *</span>
+                                                                        </th>
+                                                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>Auditor
+                                                                            <span className="text-danger1"> *</span>
+                                                                        </th>
+                                                                        {/* <th style={{ minWidth: '260px', maxWidth: '260px' }}>Standard & Clauses
+                                                                            <span className="text-danger1"> *</span>
+                                                                            </th> */}
                                                                         {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>}
                                                                     </tr>
                                                                 </thead>
@@ -3894,6 +4011,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                             }>
 
                                                                                 <DatePicker
+                                                                                    // className='Exclude-date-picker'
                                                                                     value={
                                                                                         row?.date
                                                                                             ? new Date(moment(row?.date).format('YYYY-MM-DD'))
@@ -3923,7 +4041,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                             <td style={{ overflow: "inherit", minWidth: '140px', maxWidth: '140px' }}>
                                                                                 <input style={{ paddingLeft: '2px', paddingRight: '0px' }}
                                                                                     type="time"
-                                                                                    className={`form-control  ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                    className={`coverageClsErr form-control  ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                     // className="form-control"
                                                                                     value={row.startTime}
                                                                                     title={row.startTime}
@@ -3932,9 +4050,38 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 />
 
                                                                             </td>
+                                                                            <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }}>
+                                                                                <Select
+                                                                                    options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                                                                    // isMulti
+                                                                                    className={`coverageClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                    value={row.dept}
+                                                                                    title={row.dept?.label || "Select department"} // Added title tooltip
+                                                                                    onChange={(selectedOptions: any) => handleCoverageRow(index, 'dept', selectedOptions)}
+                                                                                    placeholder="Select department"
+                                                                                    isDisabled={InputDisabled}
+
+                                                                                    menuPortalTarget={document.body}
+                                                                                    // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
+                                                                                    styles={{
+                                                                                        menu: (base: any) => ({
+                                                                                            ...base,
+                                                                                            position: 'absolute',
+                                                                                            zIndex: 9,
+                                                                                            top: '100%',
+                                                                                            left: 0,
+                                                                                        }),
+                                                                                        container: (base: any) => ({
+                                                                                            ...base,
+                                                                                            zIndex: 0,
+                                                                                            position: 'relative'
+                                                                                        }),
+                                                                                    }}
+                                                                                />
+                                                                            </td>
                                                                             <td style={{ minWidth: '260px', maxWidth: '260px', overflow: "inherit" }}>
                                                                                 <textarea
-                                                                                    className={`form-control  ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                    className={`form-control coverageClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                     value={row.ProcessActivity}
                                                                                     title={row.ProcessActivity}
                                                                                     onChange={(e) => handleCoverageRow(index, 'ProcessActivity', e.target.value)}
@@ -3942,11 +4089,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 ></textarea>
                                                                             </td>
 
-                                                                            <td style={{ overflow: "inherit" ,minWidth: '200px', maxWidth: '200px'}}>
+                                                                            
+
+                                                                            <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }}>
                                                                                 <Select
                                                                                     options={LocationOpt}
                                                                                     // isMulti
-                                                                                    className={` ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                    className={`coverageClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                     value={row.Location}
                                                                                     title={row.Location?.label || "Select Location"} // Added title tooltip
                                                                                     onChange={(selectedOptions: any) => handleCoverageRow(index, 'Location', selectedOptions)}
@@ -3956,28 +4105,28 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     menuPortalTarget={document.body}
                                                                                     // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
                                                                                     styles={{
-                                                                                      menu: (base:any) => ({
-                                                                                        ...base,
-                                                                                        position: 'absolute',
-                                                                                        zIndex: 9,
-                                                                                        top: '100%',
-                                                                                        left: 0,
-                                                                                      }),
-                                                                                      container: (base:any) => ({
-                                                                                        ...base,
-                                                                                        zIndex: 0,
-                                                                                        position: 'relative'
-                                                                                      }),
+                                                                                        menu: (base: any) => ({
+                                                                                            ...base,
+                                                                                            position: 'absolute',
+                                                                                            zIndex: 9,
+                                                                                            top: '100%',
+                                                                                            left: 0,
+                                                                                        }),
+                                                                                        container: (base: any) => ({
+                                                                                            ...base,
+                                                                                            zIndex: 0,
+                                                                                            position: 'relative'
+                                                                                        }),
                                                                                     }}
                                                                                 />
                                                                             </td>
 
 
-                                                                            <td style={{ overflow: "inherit" ,minWidth: '200px', maxWidth: '200px' }}>
+                                                                            <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }}>
                                                                                 <Select
-                                                                                    options={UserRoles}
+                                                                                    options={rows1}
                                                                                     // isMulti
-                                                                                    className={` ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                    className={`coverageClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                     value={row.auditor}
                                                                                     title={row.auditor?.label || "Select Auditor"} // Added title tooltip
                                                                                     onChange={(selectedOptions: any) => handleCoverageRow(index, 'auditor', selectedOptions)}
@@ -3986,31 +4135,31 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     menuPortalTarget={document.body}
                                                                                     // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
                                                                                     styles={{
-                                                                                      menu: (base:any) => ({
-                                                                                        ...base,
-                                                                                        position: 'absolute',
-                                                                                        zIndex: 9,
-                                                                                        top: '100%',
-                                                                                        left: 0,
-                                                                                      }),
-                                                                                      container: (base:any) => ({
-                                                                                        ...base,
-                                                                                        zIndex: 0,
-                                                                                        position: 'relative'
-                                                                                      }),
+                                                                                        menu: (base: any) => ({
+                                                                                            ...base,
+                                                                                            position: 'absolute',
+                                                                                            zIndex: 9,
+                                                                                            top: '100%',
+                                                                                            left: 0,
+                                                                                        }),
+                                                                                        container: (base: any) => ({
+                                                                                            ...base,
+                                                                                            zIndex: 0,
+                                                                                            position: 'relative'
+                                                                                        }),
                                                                                     }}
                                                                                 />
                                                                             </td>
 
-                                                                            <td style={{ minWidth: '260px', maxWidth: '260px', overflow: "inherit" }}>
+                                                                            {/* <td style={{ minWidth: '260px', maxWidth: '260px', overflow: "inherit" }}>
                                                                                 <textarea
-                                                                                    className={`form-control  ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                    className={`coverageClsErr form-control  ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                     value={row.StandardClauses}
                                                                                     title={row.StandardClauses}
                                                                                     onChange={(e) => handleCoverageRow(index, 'StandardClauses', e.target.value)}
                                                                                     disabled={InputDisabled}
                                                                                 ></textarea>
-                                                                            </td>
+                                                                            </td> */}
                                                                             {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '70px', maxWidth: '70px', overflow: "inherit" }}>
                                                                                 <img src={require("../assets/del.png")} onClick={() => handleDeleteCoverageRow(index)} />
 
@@ -4063,7 +4212,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 </label>
                                                             </div>
                                                             <div className='col-sm-4'>
-                                                                <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right"}}>
+                                                                <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right" }}>
                                                                     {!InputDisabled &&
                                                                         <img style={{ width: '30px' }} src={require("../assets/plus.png")} onClick={handleAddRow} className='' />
                                                                     }
@@ -4135,7 +4284,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                             </td>
                                                                             <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }}>
                                                                                 {/* <label htmlFor="approvalType">Approval Type: </label> */}
-                                                                                <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse HierarchyClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={InputDisabled} title={row.approvalType || "Select Approval Criteria"}>
+                                                                                <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse HierarchyClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={InputDisabled} title={row.approvalType === "One" ? "Anyone" : row.approvalType === "All" ? "Everyone" : "Select Approval Criteria"} >
                                                                                     <option value="">Select </option>
                                                                                     <option value="One">Anyone</option>
                                                                                     <option value="All">Everyone</option>
@@ -4276,10 +4425,28 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                             </thead>
                                                             <tbody>
                                                                 {FilesArr.length > 0 && (
-                                                                    FilesArr.map((row: any, index: number) => (
-                                                                        <tr>
+                                                                    FilesArr.map((row: any, index: number) => {
+
+                                                                        const date = new Date();
+                                                                        const components = [
+                                                                            date.getDate().toString().padStart(2, '0'),
+                                                                            (date.getMonth() + 1).toString().padStart(2, '0'),
+                                                                            date.getFullYear().toString(),
+                                                                            date.getHours().toString().padStart(2, '0'),
+                                                                            date.getMinutes().toString().padStart(2, '0'),
+                                                                            date.getSeconds().toString().padStart(2, '0'),
+                                                                            date.getMilliseconds().toString().padStart(3, '0')
+                                                                        ];
+                                                                        const fileExtension = row.name ? row.name.split('.').pop() : "";
+                                                                        const fileNameWithoutExtension = row.name ? row.name.split('.').slice(0, -1).join('.') : "";
+                                                                        const NewFileName = `${formData.memoFileName}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`;
+
+                                                                        return (<tr>
                                                                             <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
-                                                                            <td title={row.name || (row.FileLeafRef.includes('_') ? row.FileLeafRef.split('_')[2] : row.FileLeafRef)}>{row.name || (row.FileLeafRef.includes('_') ? row.FileLeafRef.split('_')[2] : row.FileLeafRef)}</td>
+                                                                            <td title={row.name ? NewFileName : row.FileLeafRef}>
+                                                                                {row.name ? NewFileName : row.FileLeafRef}
+                                                                            </td>
+                                                                            {/* <td title={row.name || (row.FileLeafRef.includes('_') ? row.FileLeafRef.split('_')[2] : row.FileLeafRef)}>{row.name || (row.FileLeafRef.includes('_') ? row.FileLeafRef.split('_')[2] : row.FileLeafRef)}</td> */}
                                                                             {/* <td title={row.name || (row.FileLeafRef)?.split('_')[2]}>{row.name || (row.FileLeafRef)?.split('_')[2]}</td> */}
                                                                             {/* {row.Id && <td style={{ textAlign: 'center' }} >
                                                                                 <span onClick={() => OpenFile(row, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
@@ -4294,7 +4461,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                             year: 'numeric'
                                                                                         }).format(new Date(DocumentLink.Created)).replace(/ /g, "/")
                                                                                         : ""}</td> */}
-                                                                            <td style={{ minWidth: '50px', maxWidth: '50px' }}>{row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
+                                                                            <td style={{ minWidth: '50px', maxWidth: '50px' }} title={row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
                                                                                 day: "2-digit",
                                                                                 month: "short",
                                                                                 year: "numeric"
@@ -4302,22 +4469,33 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 day: "2-digit",
                                                                                 month: "short",
                                                                                 year: "numeric"
-                                                                            }).replace(/ /g, "/")}</td>
+                                                                            }).replace(/ /g, "/")}>
+
+                                                                                {row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
+                                                                                    day: "2-digit",
+                                                                                    month: "short",
+                                                                                    year: "numeric"
+                                                                                }).replace(/ /g, "/") : new Date().toLocaleDateString("en-GB", {
+                                                                                    day: "2-digit",
+                                                                                    month: "short",
+                                                                                    year: "numeric"
+                                                                                }).replace(/ /g, "/")}</td>
 
                                                                             <td>
                                                                                 {row.Id && (
                                                                                     <>
-                                                                                        <span
-                                                                                            onClick={() => OpenFile(row, "Download")}
-                                                                                            style={{ color: "blue", cursor: "pointer", margin: "10px" }}
-                                                                                        >
-                                                                                            <FontAwesomeIcon icon={faDownload} />
-                                                                                        </span>
+
                                                                                         <span
                                                                                             onClick={() => OpenFile(row, "Open")}
                                                                                             style={{ color: "blue", cursor: "pointer", margin: "10px" }}
                                                                                         >
                                                                                             <FontAwesomeIcon icon={faEye} />
+                                                                                        </span>
+                                                                                        <span
+                                                                                            onClick={() => OpenFile(row, "Download")}
+                                                                                            style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                                                                                        >
+                                                                                            <FontAwesomeIcon icon={faDownload} />
                                                                                         </span>
                                                                                     </>
                                                                                 )}
@@ -4327,7 +4505,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
 
                                                                         </tr>
-                                                                    ))
+                                                                        )
+                                                                    })
                                                                 )}
                                                             </tbody>
                                                         </table>

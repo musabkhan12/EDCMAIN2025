@@ -4,7 +4,7 @@ export const getLatestChangeRequestTemplateType = async (_sp, List) => {
   // var List ="Annual Audit Program"
   // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
   // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
-  await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`TemplateType/TemplateTypeName eq '${List}' and Status eq 'Approved'`).orderBy("ID", false).top(1)()
+  await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`TemplateType/TemplateTypeValue eq '${List}' and Status eq 'Approved'`).orderBy("ID", false).top(1)()
     .then((res) => {
       arr = res;
     })
@@ -330,7 +330,7 @@ export const getAllDepartment1 = async (_sp) => {
         value: item.Id,
         label: item.Department,
         Department: item.Department,
-
+        departmentcode:item.DepartmentCode
       }));
 
 

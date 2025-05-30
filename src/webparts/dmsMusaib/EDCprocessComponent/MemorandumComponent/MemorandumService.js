@@ -372,8 +372,8 @@ export const getDataRoles = async (_sp) => {
     let arr = []
     let sampleDataArray = []
     arr = await sp.web.lists.getByTitle("MemorandumRecommendationList").items
-    .select("*,Memorandum/ID,Auditor/ID,Auditor/Title,Auditors/ID,Auditors/Role")
-    .expand("Memorandum,Auditor,Auditors")
+    .select("*,Memorandum/ID,Auditor/ID,Auditor/Title")
+    .expand("Memorandum,Auditor")
     .filter(`Memorandum/ID eq ${AuditID}`).getAll();
     // .then((res) => {
     //   arr = res
@@ -514,10 +514,10 @@ export const getRecommendationTypes= async (_sp) =>{
 
 export const getLatestChangeRequestTemplateType= async (_sp,List) =>{
   let arr = [];
-  // var List ="Annual Audit Program"
+  
   // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
   // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
-  await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`TemplateType/TemplateTypeName eq '${List}' and Status eq 'Approved'`).orderBy("ID", false).top(1)()
+  await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`TemplateType/TemplateTypeValue eq '${List}' and Status eq 'Approved'`).orderBy("ID", false).top(1)()
     .then((res) => {
       arr = res;
     })

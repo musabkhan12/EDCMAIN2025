@@ -646,12 +646,108 @@ export const getYearlyItemByID = async (sp, AuditID) => {
   //  var listname = "MemorandumRecommendationList"
   //  arr = await sp.web.lists.getByTitle(`${listname}`).items.select("*,Memorandum/ID,Auditor/ID,Auditor/Title").expand("Memorandum,Auditor").filter(`Memorandum/ID eq ${AuditID}`).getAll();
 
-  arr = await sp.web.lists.getByTitle("AnnualAuditProgramYearlyList").items.select("*,Department/Department,Department/ID,AnnualAuditProgramID/ID,Auditor/ID,Auditor/Title").expand("Department,AnnualAuditProgramID,Auditor").filter(`AnnualAuditProgramID/ID eq ${AuditID}`).getAll();
+  arr = await sp.web.lists.getByTitle("AnnualAuditProgramYearlyList").items.select("*,Department/Department,Department/ID,AnnualAuditProgramID/ID,Auditor/ID,Auditor/Role,Custodian/Custodian,Custodian/ID,Shift/Shift,Shift/ID,Location/Location,Location/ID").expand("Location,Shift,Custodian,Department,AnnualAuditProgramID,Auditor").filter(`AnnualAuditProgramID/ID eq ${AuditID}`).getAll();
   // .then((res) => {
   //   arr = res
   //   console.log(arr, 'arr');
   // })
   return arr
 }
+
+
+export const getAuditProgDepartment = async (_sp) => {
+ 
+  let arr = [];
+  await _sp.web.lists.getByTitle("AuditProgramDepartmentMaster").items
+  .select("*,Department,Location")()
+    .then((res) => {
+      // console.log(res, ' let arrs=[]');
+      arr = res.map((item) => ({
+          value: item.Id,
+          label: item.Department,
+          Department:item.Department,
+          Location:item.Location,
+       
+    }));
+     
+
+      //  arr.push(res)
+      // arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  // console.log(arr, 'arr');
+  return arr;
+}
+
+export const getAuditProgCustodian = async (_sp) => {
+ 
+  let arr = [];
+  await _sp.web.lists.getByTitle("AuditProgramCustodianMaster").items
+  .select("Custodian,ID,Id")()
+    .then((res) => {
+      // console.log(res, ' let arrs=[]');
+      arr = res.map((item) => ({
+          value: item.Id,
+          label: item.Custodian,
+       
+    }));
+     
+
+      //  arr.push(res)
+      // arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  // console.log(arr, 'arr');
+  return arr;
+}
+
+export const getAuditProgShift = async (_sp) => {
+ 
+  let arr = [];
+  await _sp.web.lists.getByTitle("AuditProgramShiftMaster").items
+  .select("Shift,ID,Id")()
+    .then((res) => {
+      // console.log(res, ' let arrs=[]');
+      arr = res.map((item) => ({
+          value: item.Id,
+          label: item.Shift,
+       
+    }));
+ 
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  // console.log(arr, 'arr');
+  return arr;
+}
+
+
+
+export const fetchLocations = async (_sp) => {
+ 
+  let arr = [];
+  await _sp.web.lists.getByTitle("AuditProgramLocationMaster").items
+  .top(5000)()
+    .then((res) => {
+      res.sort((a, b) => a.Location.localeCompare(b.Location));
+      arr = res.map((item) => ({
+        label: item.Location,
+        value: item.ID
+       
+    }));
+ 
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  // console.log(arr, 'arr');
+  return arr;
+}
+
 
 

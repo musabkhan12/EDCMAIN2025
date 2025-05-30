@@ -23,14 +23,14 @@ import { FormSubmissionMode } from '../../../../Shared/Interfaces';
 import { decryptId } from '../../../../APISearvice/CryptoService';
 import { WorkflowAction } from '../../../../CustomJSComponents/WorkflowAction/WorkflowAction';
 import { WorkflowAuditHistory } from '../../../../CustomJSComponents/WorkflowAuditHistory/WorkflowAuditHistory';
-import { CONTENTTYPE_AuditProgram, CONTENTTYPE_Memo, LIST_TITLE_AuditProgram, SITE_URL, Tenant_URL } from '../../../../Shared/Constants';
+import { CONTENTTYPE_AuditProgram, CONTENTTYPE_AuditProgramForm, CONTENTTYPE_Memo, LIST_TITLE_AuditProgram, SITE_URL, Tenant_URL } from '../../../../Shared/Constants';
 import { PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
-import { addAllProcessItem, addItem, addItem2, getLatestChangeRequestTemplateType, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getAuditTypes, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles, getRecommendationTypes, getGeneratedTemplateDoc, getAllMemoNumberList, getAllClassificationMaster, addMemoNumber, addYearlyList, UpdatYearlyList, getYearlyItemByID } from './FormService';
+import { addAllProcessItem, addItem, addItem2, getLatestChangeRequestTemplateType, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getAuditTypes, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles, getRecommendationTypes, getGeneratedTemplateDoc, getAllMemoNumberList, getAllClassificationMaster, addMemoNumber, addYearlyList, UpdatYearlyList, getYearlyItemByID, getAuditProgDepartment, getAuditProgCustodian, getAuditProgShift, fetchLocations } from './FormService';
 import { TextField } from '@fluentui/react';
 import { Icon } from '@fluentui/react/lib/Icon';
 import { Tooltip } from 'react-tooltip';
@@ -67,7 +67,7 @@ const FormContext = ({ props }: any) => {
   const [FilesArr, setFilesArr] = React.useState<any>([]);
   const [TemplateDoc, setTemplateDoc] = React.useState<any>([]);
   const [Loading, setLoading] = React.useState(false);
-  const [MemoNumDrpdown, setMemoNumDrpdown] = React.useState([]);
+  const [AuditProgLocation, setAuditProgLocation] = React.useState([]);
 
   const [FormLoading, setFormLoading] = React.useState(false);
   const [showForwardapproval, setshowForwardapproval] = React.useState(true);
@@ -99,6 +99,9 @@ const FormContext = ({ props }: any) => {
   const [selectUserDeptTo, setselectUserDeptTo] = React.useState([]);
   const [selectUserDeptCC, setselectUserDeptCC] = React.useState(null);
   const [AllDept, setAllDept] = React.useState([]);
+  const [AuditProgDept, setAuditProgDept] = React.useState([]);
+  const [AuditProgCustodian, setAuditProgCustodian] = React.useState([]);
+  const [AuditProgShift, setAuditProgShift] = React.useState([]);
   const [RecommType, setRecommType] = React.useState([]);
   const [DocumentLink, setDocumentLink] = React.useState(null);
   const [DraftApprovalItem, setDraftApprovalItem] = React.useState(null);
@@ -167,6 +170,8 @@ const FormContext = ({ props }: any) => {
     MRevisionDate: "",
     MIssueDate: "",
 
+    memoFileName: "",
+
   });
   const [selectCCUsers, setSelectCCUsers] = React.useState([]);
   const [ListNameId, setListNameId] = React.useState(null);
@@ -228,7 +233,9 @@ const FormContext = ({ props }: any) => {
       MemoListId: memoId,
       memoSerialNo: memo,
       deptId: selectedOption.value,
-      memoNo: `${selectedOption.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+      memoNo: `${selectedOption.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+      memoFileName: `${selectedOption.DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+
     });
 
     if (selectedOption) {
@@ -467,7 +474,10 @@ const FormContext = ({ props }: any) => {
 
         memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]
           ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-          : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+          : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+          memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]
+          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+          : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
       }));
 
     }
@@ -533,13 +543,12 @@ const FormContext = ({ props }: any) => {
           //  ProcessListItem =await getApprovalByID(sp, Number(segments[paramIndex + 2]),CONTENTTYPE_DocumentCancel);
           // setInputDisabled((ProcessListItem.Status == "Pending" || ProcessListItem?.Status === "Save as draft") && ProcessListItem.Level === 0 && ProcessListItem.CurrentUserRole !=="OES")
           setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditProgram));
-          // var ProcessItemId: any = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditPlan);
+          
           setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditProgram));
         }
         // else {
 
-        //     setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditPlan))
-
+       
         // }
       }
 
@@ -556,13 +565,14 @@ const FormContext = ({ props }: any) => {
       if (setBannerById.length > 0) {
         debugger
         let varmemoNum = "";
+        let varmemofilename = "";
         setEditForm(true);
         setMainEditItem(setBannerById[0]);
         setBannerById[0].label = setBannerById[0].MemoNumber;
         setBannerById[0].value = setBannerById[0].MemorandumIDId;
         if (formMode == "edit") {
           const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${setBannerById[0]?.DepartmentId}`).orderBy("SerialNumber", false).top(1)();
-          if (listItems.length > 0) {
+          if (listItems.length > 0 && (setBannerById[0].Status == "Rework" || setBannerById[0].Status == "Save as draft")) {
             if (listItems[0].SerialNumber >= setBannerById[0].MemoSerialNumber) {
               memo = listItems[0].SerialNumber + 1;
             }
@@ -582,10 +592,13 @@ const FormContext = ({ props }: any) => {
               ? `0${memo}`
               : memo;
           varmemoNum = `${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`;
+          varmemofilename = `${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`;
+
         }
         else {
           varmemoNum = setBannerById[0].MemoNumber;
           memo = setBannerById[0].MemoSerialNumber;
+          varmemofilename = setBannerById[0].MemoNumber.replace(/\//g, "_");
         }
 
         let ClassificationVal = optionsclassification.filter((docType: { value: any; }) => docType.value === setBannerById[0].ClassificationId) || null;
@@ -600,6 +613,7 @@ const FormContext = ({ props }: any) => {
           // memoSerialNo: setBannerById[0].MemoSerialNumber,
           memoNo: varmemoNum,
           memoSerialNo: memo,
+          memoFileName: varmemofilename,
           deptId: setBannerById[0].DepartmentId,
           // issueNo: "",
           // revisionNo: "",
@@ -720,12 +734,12 @@ const FormContext = ({ props }: any) => {
           const initialRows = rowData.map((item: any) => ({
             id: item.Id,
             // AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
-            section: item.Section,
-            date: new Date(item.Date).toLocaleDateString("en-CA"),
+            section: item.Section ||"",
+            date: item.Date ? new Date(item.Date).toLocaleDateString("en-CA") :"",
             startTime: item.Time,
-            auditorIds: item.AuditorsId,
+            auditorIds: item.AuditorId,
             endTime: "",
-            auditor: item.Auditors ? { label: item.Auditors.Role, value: item.Auditors.ID } : null // Convert single object
+            auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
           }));
           if (setBannerById[0].RecommendationType?.RecommendationTypeValue == "Table") {
             setRecommendationRows(initialRows);
@@ -743,11 +757,11 @@ const FormContext = ({ props }: any) => {
             id: year.ID,
             deptId: year.DepartmentId,
             departmentOption: year.Department ? { label: year.Department?.Department, value: year.Department?.ID } : null,
-            area: year.Area ||"",
+            // area: year.Area ||"",
             procedure: year.RelatedProcedure ||"",
             // Year: formData.Year || 0,
-            auditorIds: year.AuditorId||null,
-            auditor: year.Auditor ? { label: year.Auditor?.Title, value: year.Auditor?.ID } : null, // Convert single object
+            auditorIds: year.AuditorId || null,
+            auditor: year.Auditor ? { label: year.Auditor?.Role, value: year.Auditor?.ID } : null, // Convert single object
 
             Jan: year.Jan,
             Feb: year.Feb,
@@ -762,7 +776,16 @@ const FormContext = ({ props }: any) => {
             Nov: year.Nov,
             Dec: year.Dec,
 
-            })) || [];
+
+            custodianId: year.CustodianId || 0,
+            custodian: year.Custodian ? { label: year.Custodian?.Custodian, value: year.Custodian?.ID } : null,
+            locationId:year.LocationId || 0,
+            location: year.Location? { label: year.Location?.Location, value: year.Location?.ID } : null,
+            OtherDetails: year.OtherDetails || "",
+            ShiftId:year.ShiftId || 0,
+            Shift:year.Shift? { label: year.Shift?.Shift, value: year.Shift?.ID } : null,
+
+          })) || [];
 
          
           setYearlyList(EditApprowData);
@@ -774,9 +797,13 @@ const FormContext = ({ props }: any) => {
     setFormLoading(false);
 
     // setRequesterRoleId(await getRequesterID(sp))
-
-    setFormNameVal(await getFormNameID(sp, CONTENTTYPE_AuditProgram))
+    let locationoptions = await fetchLocations(sp);
+    setAuditProgLocation(locationoptions);
+    setFormNameVal(await getFormNameID(sp, CONTENTTYPE_AuditProgramForm))
     setListNameId(await getListNameID(sp, LIST_TITLE_AuditProgram))
+    setAuditProgDept(await getAuditProgDepartment(sp));
+    setAuditProgCustodian(await getAuditProgCustodian(sp));
+    setAuditProgShift( await getAuditProgShift(sp));
     createTooltipContent(filteredDeptArrayCC);
     createTooltipContentTo(filteredDeptArrayTo)
 
@@ -917,7 +944,7 @@ const FormContext = ({ props }: any) => {
     } else if (sts == "Download") {
       const link = document.createElement("a");
       link.href = fileUrl;
-      link.setAttribute("download", obj.FileLeafRef?.split('_')[2]); // Suggests a filename for download
+      link.setAttribute("download", obj.FileLeafRef); // Suggests a filename for download
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -1090,12 +1117,16 @@ const FormContext = ({ props }: any) => {
         validRec = false;
       }
 
-      if (YearlyList.length > 0 && YearlyList.every((row: any) => row.procedure.trim() !== "" && row.area.trim() !== "" && row.deptId != null && row.auditor != null && row.auditor.length != 0) == false) {
-        // document.getElementById("date")?.classList.add("border-on-error");
+      // if (YearlyList.length > 0 && YearlyList.every((row: any) => row.procedure.trim() !== ""  && row.deptId != null && row.auditor != null && row.auditor.length != 0 && row.Shift !=null && row.ShiftId !=0 && row.custodianId !=0 ) == false) {
+        if (YearlyList.length > 0 && YearlyList.every((row: any) => row.procedure.trim() !== ""  && row.deptId != null && row.auditor != null && row.auditor.length != 0 && row.custodianId !=0 ) == false) {
+  
+      // document.getElementById("date")?.classList.add("border-on-error");
         validRec = false;
 
         Array.from(document.getElementsByClassName("YearlylistclsErr")).forEach((element: Element) => {
-          if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "Select Department" || element.textContent?.trim() === "")) {
+          if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "Select Department" || element.textContent?.trim() === "Select Custodian" || element.textContent?.trim() === "")) {
+
+          // if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "Select Department" || element.textContent?.trim() === "Select Custodian" || element.textContent?.trim() === "Select Location"|| element.textContent?.trim() === "Select Shift" || element.textContent?.trim() === "")) {
             element.classList.add("border-on-error");
           }
           else if (element.tagName === "INPUT" && (element as HTMLInputElement).value.trim() === "") {
@@ -1182,12 +1213,16 @@ const FormContext = ({ props }: any) => {
         }
         validAudit = false;
       }
-      if (auditTypeTitle == 'Monthly' && !MonthName) {
-        document.getElementById("drpMonths")?.classList.add("border-on-error");
+      if (auditTypeTitle == 'Monthly') {
+        if(!MonthName){
+          document.getElementById("drpMonths")?.classList.add("border-on-error");
+          validAudit = false;
+        }
         if (!Year) {
           document.getElementById("drpYear")?.classList.add("border-on-error");
+          validAudit = false;
         }
-        validAudit = false;
+       
       }
       if (auditTypeTitle == 'Annual' && !Year) {
         document.getElementById("drpYear")?.classList.add("border-on-error");
@@ -1239,19 +1274,33 @@ const FormContext = ({ props }: any) => {
   const getNewFileName = async (originalFileName: string): Promise<string> => {
     const userId = currentUser.Id; // Or however you get the current user ID
     const date = new Date();
-    const fileExtension = originalFileName.split('.').pop();
+    // const fileExtension = originalFileName.split('.').pop();
 
+    // const components = [
+    //   date.getFullYear(),
+    //   (date.getMonth() + 1).toString().padStart(2, '0'),
+    //   date.getDate().toString().padStart(2, '0'),
+    //   date.getHours().toString().padStart(2, '0'),
+    //   date.getMinutes().toString().padStart(2, '0'),
+    //   date.getSeconds().toString().padStart(2, '0'),
+    //   date.getMilliseconds().toString().padStart(3, '0')
+    // ];
     const components = [
-      date.getFullYear(),
-      (date.getMonth() + 1).toString().padStart(2, '0'),
       date.getDate().toString().padStart(2, '0'),
+      (date.getMonth() + 1).toString().padStart(2, '0'),
+      date.getFullYear().toString(),
       date.getHours().toString().padStart(2, '0'),
       date.getMinutes().toString().padStart(2, '0'),
       date.getSeconds().toString().padStart(2, '0'),
       date.getMilliseconds().toString().padStart(3, '0')
     ];
+    const fileExtension = originalFileName.split('.').pop();
+    const fileNameWithoutExtension = originalFileName.split('.').slice(0, -1).join('.');
+    const NewFileName = `${formData.memoFileName}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`;
 
-    return `${userId}_${components.join('')}_${originalFileName}`;
+    return NewFileName;
+
+    // return `${userId}_${components.join('')}_${originalFileName}`;
   };
   // #region  Submit Form
   const handleFormSubmit = async () => {
@@ -1335,7 +1384,7 @@ const FormContext = ({ props }: any) => {
               Background: formData.background,
               Issues: formData.issues,
               RecommendedforApproval: formData.recommendationforApproval,
-              DepartmentId: formData.deptId,
+              DepartmentId: formData.deptId || null,
               Year: formData.Year || 0,
               MonthName: formData.MonthName,
               ToDepartmentsId: formData.ToDepartments || [],
@@ -1375,9 +1424,9 @@ const FormContext = ({ props }: any) => {
                 const postPayload2 = {
                   AnnualAuditProgramId: editItemID, // Assuming "Title" column exists
                   Section: row.section,
-                  Date: row.date,
+                  Date: row.date ||null,
                   Time: row.startTime,
-                  AuditorsId: row.auditorIds
+                  AuditorId: row.auditorIds || null
                 }
 
                 if (row.id) {
@@ -1453,7 +1502,7 @@ const FormContext = ({ props }: any) => {
                   RequesterNameId: currentUser.Id,
                   RequestedDate: new Date().toLocaleDateString("en-CA"),
                   RequesterRoleId: RequesterRoleId,
-                  ProcessName: "Annual Audit Program",
+                  ProcessName: "IMS Annual Audit Program",
                   FormNameId: FormNameId.Id,
                   ApprovalType: "Approval",
                   // IsApprovalGenerated: "No"
@@ -1483,11 +1532,16 @@ const FormContext = ({ props }: any) => {
 
               const Yeararr = {
                 AnnualAuditProgramIDId: editItemID,
-                DepartmentId: year.deptId,
-                Area: year.area,
+                DepartmentId: year.deptId||null,
+                // Area: year.area,
                 RelatedProcedure: year.procedure,
                 Year: formData.Year || 0,
                 AuditorId: year.auditorIds,
+                // Location: year.location || "",
+                LocationId: year.locationId || null,
+                OtherDetails: year.OtherDetails || "",
+                CustodianId: year.custodianId ||null,
+                ShiftId: year.ShiftId ||null,
                 Jan: year.Jan,
                 Feb: year.Feb,
                 Mar: year.Mar,
@@ -1522,8 +1576,8 @@ const FormContext = ({ props }: any) => {
                   year.Oct !== "No" ||
                   year.Nov !== "No" ||
                   year.Dec !== "No" ||
-                  year.area.trim() !== "" ||
-                  year.procedure.trim() !== "" ||
+                  // year.area.trim() !== "" ||
+                  year.procedure.trim() !== "" ||(year.ShiftId !== null && year.ShiftId !== 0) ||(year.custodianId !== null && year.custodianId !== 0)||(year.locationId !== null && year.locationId !== 0) ||
                   (year.deptId !== null && year.deptId !== 0) || (year.auditorIds !== null && year.auditorIds !== 0) ||
                   (year.auditor && year.auditor !== 0 && year.auditor.length > 0)
                 ) {
@@ -1780,9 +1834,9 @@ const FormContext = ({ props }: any) => {
                 const postPayload2 = {
                   AnnualAuditProgramId: postId, // Assuming "Title" column exists
                   Section: row.section,
-                  Date: row.date,
+                  Date: row.date || null,
                   Time: row.startTime,
-                  AuditorsId: row.auditorIds
+                  AuditorId: row.auditorIds || null
                 }
 
                 const postResult2 = await addItem2(postPayload2, sp);
@@ -1848,7 +1902,7 @@ const FormContext = ({ props }: any) => {
                   RequesterNameId: currentUser.Id,
                   RequestedDate: new Date().toLocaleDateString("en-CA"),
                   RequesterRoleId: RequesterRoleId,
-                  ProcessName: "Annual Audit Program",
+                  ProcessName: "IMS Annual Audit Program",
                   FormNameId: FormNameId.Id,
                   ApprovalType: "Approval",
                   IsApprovalGenerated: "No",
@@ -1906,18 +1960,23 @@ const FormContext = ({ props }: any) => {
                 year.Oct !== "No" ||
                 year.Nov !== "No" ||
                 year.Dec !== "No" ||
-                year.area.trim() !== "" ||
-                year.procedure.trim() !== "" ||
+                // year.area.trim() !== "" ||
+                year.procedure.trim() !== ""  ||(year.ShiftId !== null && year.ShiftId !== 0) ||(year.custodianId !== null && year.custodianId !== 0)||(year.locationId !== null && year.locationId !== 0)  ||
                 (year.deptId !== null && year.deptId !== 0) || (year.auditorIds !== null && year.auditorIds !== 0) ||
                 (year.auditor && year.auditor !== 0 && year.auditor.length > 0)
               ) {
                 const Yeararr = {
                   AnnualAuditProgramIDId: postId,
-                  DepartmentId: year.deptId,
-                  Area: year.area,
+                  DepartmentId: year.deptId||null,
+                  // Area: year.area,
                   RelatedProcedure: year.procedure,
                   Year: formData.Year || 0,
                   AuditorId: year.auditorIds,
+                  // Location: year.location || "",
+                  LocationId: year.locationId || null,
+                  OtherDetails: year.OtherDetails || "",
+                  CustodianId: year.custodianId ||null,
+                  ShiftId: year.ShiftId||null,
                   Jan: year.Jan,
                   Feb: year.Feb,
                   Mar: year.Mar,
@@ -2100,7 +2159,7 @@ const FormContext = ({ props }: any) => {
                   Section: row.section || "",
                   Date: row.date ? row.date : null,
                   Time: row.startTime || "",
-                  AuditorsId: row.auditorIds ? row.auditorIds : 0
+                  AuditorId: row.auditorIds || null
                 }
 
                 if (row.id) {
@@ -2174,7 +2233,7 @@ const FormContext = ({ props }: any) => {
                 RequesterNameId: currentUser.Id,
                 RequestedDate: new Date().toLocaleDateString("en-CA"),
                 RequesterRoleId: RequesterRoleId,
-                ProcessName: "Annual Audit Program",
+                ProcessName: "IMS Annual Audit Program",
                 FormNameId: FormNameId.Id,
                 ApprovalType: "Approval",
                 // IsApprovalGenerated: "No"
@@ -2205,11 +2264,16 @@ const FormContext = ({ props }: any) => {
 
               const Yeararr = {
                 AnnualAuditProgramIDId: editItemID,
-                DepartmentId: year.deptId,
-                Area: year.area,
+                DepartmentId: year.deptId||null,
+                // Area: year.area,
                 RelatedProcedure: year.procedure,
                 Year: formData.Year || 0,
                 AuditorId: year.auditorIds,
+                // Location: year.location || "",
+                LocationId: year.locationId || null,
+                OtherDetails: year.OtherDetails || "",
+                CustodianId: year.custodianId||null,
+                ShiftId: year.ShiftId ||null,
                 Jan: year.Jan,
                 Feb: year.Feb,
                 Mar: year.Mar,
@@ -2228,26 +2292,26 @@ const FormContext = ({ props }: any) => {
                 const postResult2 = await UpdatYearlyList(Yeararr, sp, year.id);
                 const postId2 = postResult2?.data?.ID;
 
-                }
-                else {
-                  if (
-                    year.Jan !== "No" ||
-                    year.Feb !== "No" ||
-                    year.Mar !== "No" ||
-                    year.Apr !== "No" ||
-                    year.May !== "No" ||
-                    year.Jun !== "No" ||
-                    year.Jul !== "No" ||
-                    year.Aug !== "No" ||
-                    year.Sep !== "No" ||
-                    year.Oct !== "No" ||
-                    year.Nov !== "No" ||
-                    year.Dec !== "No" ||
-                    year.area.trim() !== "" ||
-                    year.procedure.trim() !== "" ||
-                    (year.deptId !== null && year.deptId !== 0) || (year.auditorIds !== null && year.auditorIds !== 0) ||
-                    (year.auditor && year.auditor !== 0 && year.auditor.length > 0)
-                  ) {
+              }
+              else {
+                if (
+                  year.Jan !== "No" ||
+                  year.Feb !== "No" ||
+                  year.Mar !== "No" ||
+                  year.Apr !== "No" ||
+                  year.May !== "No" ||
+                  year.Jun !== "No" ||
+                  year.Jul !== "No" ||
+                  year.Aug !== "No" ||
+                  year.Sep !== "No" ||
+                  year.Oct !== "No" ||
+                  year.Nov !== "No" ||
+                  year.Dec !== "No" ||
+ 
+                  year.procedure.trim() !== "" ||(year.ShiftId !== null && year.ShiftId !== 0) ||(year.custodianId !== null && year.custodianId !== 0)||(year.locationId !== null && year.locationId !== 0) ||
+                  (year.deptId !== null && year.deptId !== 0) || (year.auditorIds !== null && year.auditorIds !== 0) ||
+                  (year.auditor && year.auditor !== 0 && year.auditor.length > 0)
+                ) {
                   const postResult2 = await addYearlyList(Yeararr, sp);
                   const postId2 = postResult2?.data?.ID;
                   // debugger
@@ -2482,7 +2546,7 @@ const FormContext = ({ props }: any) => {
                     Section: row.section || "",
                     Date: row.date ? row.date : null,
                     Time: row.startTime || "",
-                    AuditorsId: row.auditorIds ? row.auditorIds : 0
+                    AuditorId: row.auditorIds || null
                   }
 
                   const postResult2 = await addItem2(postPayload2, sp);
@@ -2540,7 +2604,7 @@ const FormContext = ({ props }: any) => {
                   RequesterNameId: currentUser.Id,
                   RequestedDate: new Date().toLocaleDateString("en-CA"),
                   RequesterRoleId: RequesterRoleId,
-                  ProcessName: "Annual Audit Program",
+                  ProcessName: "IMS Annual Audit Program",
                   FormNameId: FormNameId.Id,
                   ApprovalType: "Approval",
                   IsApprovalGenerated: "No",
@@ -2582,18 +2646,23 @@ const FormContext = ({ props }: any) => {
                 year.Oct !== "No" ||
                 year.Nov !== "No" ||
                 year.Dec !== "No" ||
-                year.area.trim() !== "" ||
-                year.procedure.trim() !== "" ||
+               
+                year.procedure.trim() !== "" ||(year.ShiftId !== null && year.ShiftId !== 0) ||(year.custodianId !== null && year.custodianId !== 0)||(year.locationId !== null && year.locationId !== 0)||
                 (year.deptId !== null && year.deptId !== 0) || (year.auditorIds !== null && year.auditorIds !== 0) ||
                 (year.auditor && year.auditor !== 0 && year.auditor.length > 0)
               ) {
                 const Yeararr = {
                   AnnualAuditProgramIDId: postId,
-                  DepartmentId: year.deptId,
-                  Area: year.area,
+                  DepartmentId: year.deptId||null,
+                  // Area: year.area,
                   RelatedProcedure: year.procedure,
                   Year: formData.Year || 0,
                   AuditorId: year.auditorIds,
+                  // Location: year.location || "",
+                  LocationId: year.locationId || null,
+                  OtherDetails: year.OtherDetails || "",
+                  CustodianId: year.custodianId||null,
+                  ShiftId: year.ShiftId ||null,
                   Jan: year.Jan,
                   Feb: year.Feb,
                   Mar: year.Mar,
@@ -2930,7 +2999,28 @@ const FormContext = ({ props }: any) => {
     else if (field == "departmentOption") {
       // const valuesOnly = value.map((option: any) => option.value);
       updatedRows = YearlyList.map((row, i) =>
-        i === index ? { ...row, [field]: value, deptId: value.value } : row
+        i === index ? { ...row, [field]: value, deptId: value.value, location: value.Location||"",OtherDetails:"" } : row
+      );
+
+    }
+    else if (field == "custodian") {
+      // const valuesOnly = value.map((option: any) => option.value);
+      updatedRows = YearlyList.map((row, i) =>
+        i === index ? { ...row, [field]: value, custodianId: value.value } : row
+      );
+
+    }
+    else if(field == "location"){
+
+      updatedRows = YearlyList.map((row, i) =>
+        i === index ? { ...row, [field]: value, locationId: value.value } : row
+      );
+
+    }
+    else if (field == "Shift") {
+      // const valuesOnly = value.map((option: any) => option.value);
+      updatedRows = YearlyList.map((row, i) =>
+        i === index ? { ...row, [field]: value, ShiftId: value.value } : row
       );
 
     }
@@ -2947,7 +3037,7 @@ const FormContext = ({ props }: any) => {
 
 
   const [YearlyList, setYearlyList] = React.useState([
-    { id: 0, deptId: 0, departmentOption: null, area: "", procedure: "", auditor: null, auditorIds: null, Jan: "No", Feb: "No", Mar: "No", Apr: "No", May: "No", Jun: "No", Jul: "No", Aug: "No", Sep: "No", Oct: "No", Nov: "No", Dec: "No" }
+    { id: 0, ShiftId: 0, Shift: null, locationId: 0, location: null, OtherDetails: "", custodianId: 0, custodian: null, deptId: 0, departmentOption: null, procedure: "", auditor: null, auditorIds: null, Jan: "No", Feb: "No", Mar: "No", Apr: "No", May: "No", Jun: "No", Jul: "No", Aug: "No", Sep: "No", Oct: "No", Nov: "No", Dec: "No" }
   ]);
 
   const [YearlyListEdit, setYearlyListEdit] = React.useState([]);
@@ -2958,7 +3048,7 @@ const FormContext = ({ props }: any) => {
   };
 
   const handleAddYearlyRow = () => {
-    setYearlyList([...YearlyList, { id: 0, deptId: 0, departmentOption: null, area: "", procedure: "", auditor: null, auditorIds: null, Jan: "No", Feb: "No", Mar: "No", Apr: "No", May: "No", Jun: "No", Jul: "No", Aug: "No", Sep: "No", Oct: "No", Nov: "No", Dec: "No" }
+    setYearlyList([...YearlyList, { id: 0, ShiftId: 0, Shift: null, locationId: 0, location: null, OtherDetails: "", custodianId: 0, custodian: null, deptId: 0, departmentOption: null, procedure: "", auditor: null, auditorIds: null, Jan: "No", Feb: "No", Mar: "No", Apr: "No", May: "No", Jun: "No", Jul: "No", Aug: "No", Sep: "No", Oct: "No", Nov: "No", Dec: "No" }
     ]);
   };
 
@@ -3616,7 +3706,7 @@ const FormContext = ({ props }: any) => {
 
                             </div>
                             {formData.RecommendationTypeValue === "Table" ? (
-                              <table id="tabRec" className='mtbalenew overhi mb-3'>
+                              <table id="tabRec" className='mtbalenewscrollnew4 overhi mb-3'>
                                 <thead>
                                   <tr><th style={{ minWidth: '190px', maxWidth: '190px' }}>Section<span className="text-danger1"> *</span></th>
                                     <th style={{ minWidth: '100px', maxWidth: '100px' }}>Date<span className="text-danger1"> *</span></th>
@@ -3690,7 +3780,8 @@ const FormContext = ({ props }: any) => {
 
                                       <td>
                                         <Select
-                                          options={UserRoles}
+                                          // options={UserRoles}
+                                          options={rows1}
                                           // isMulti
                                           className={`recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                           value={row.auditor}
@@ -3870,11 +3961,19 @@ const FormContext = ({ props }: any) => {
 
                                 {/* {formData.RecommendationTypeValue === "Table" ? ( */}
                                 <div style={{ display: 'grid' }} className='newclasstabls scroll-container'>
+                                {/* mtbalenewscrollnew4  mtbalenew   className='mtbalenew overhi mb-3 cont-scroll-mtb'>*/}
+                                  {/* <table id="tabCov" className='  mtbalenew mb-3 cont-scroll-mtb'> */}
                                   <table id="tabCov" className='mtbalenew overhi mb-3 cont-scroll-mtb'>
                                     <thead>
-                                      <tr><th  style={{ minWidth: '200px', maxWidth: '200px' }}>Department<span className="text-danger1"> *</span></th>
-                                      <th  style={{ minWidth: '150px', maxWidth: '150px' }}>Area<span className="text-danger1"> *</span></th>
-                                        <th  style={{ minWidth: '160px', maxWidth: '160px' }}>Related Procedure<span className="text-danger1"> *</span></th>
+                                      <tr>
+                                        <th style={{ minWidth: '210px', maxWidth: '210px' }}>Custodian<span className="text-danger1"> *</span></th>
+
+                                        <th style={{ minWidth: '210px', maxWidth: '210px' }}>Department / Area<span className="text-danger1"> *</span></th>
+                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>Location</th>
+                                        {/*<th style={{ minWidth: '150px', maxWidth: '150px' }}>Other Details<span className="text-danger1"> *</span></th>*/}
+                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>Shift</th>
+
+                                        <th style={{ minWidth: '160px', maxWidth: '160px' }}>Related Procedure<span className="text-danger1"> *</span></th>
                                         <th style={{ minWidth: '200px', maxWidth: '200px' }}>Auditor<span className="text-danger1"> *</span></th>
                                         <th style={{ minWidth: '70px', maxWidth: '70px' }}>Jan</th>
                                         <th style={{ minWidth: '70px', maxWidth: '70px' }}>Feb</th>
@@ -3896,10 +3995,42 @@ const FormContext = ({ props }: any) => {
 
                                       {YearlyList.map((row, index) => (
                                         <tr key={index}>
-                                          <td style={{ overflow: 'inherit', minWidth: '200px', maxWidth: '200px'  }} title={row.departmentOption?.label || "Select Department"}>
+                                          <td style={{ overflow: "inherit", minWidth: '210px', maxWidth: '210px' }} title={row.custodian?.label || "Select Department"}>
+
                                             <Select
-                                              // options={AllDept}
-                                              options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                              options={AuditProgCustodian}
+                                              isclearable={true}
+                                              isDisabled={InputDisabled}
+                                              value={row.custodian}
+                                              name="custodian"
+                                              id="custodian"
+                                              className={`newse YearlylistclsErr ${(!ValidSubmit) ? "border-on-error" : ""} ${(!ValidDraft) ? "border-on-error" : ""}`}
+                                              onChange={(selectedOptions: any) => handleYearlylistrow(index, 'custodian', selectedOptions)}
+                                              placeholder="Select Custodian"
+                                              menuPortalTarget={document.body}
+                                              // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
+                                              styles={{
+                                                menu: (base: any) => ({
+                                                  ...base,
+                                                  position: 'absolute',
+                                                  zIndex: 9,
+                                                  top: '100%',
+                                                  left: 0,
+                                                }),
+                                                container: (base: any) => ({
+                                                  ...base,
+                                                  zIndex: 0,
+                                                  position: 'relative'
+                                                }),
+                                              }}
+
+                                            />
+                                          </td>
+                                          <td style={{ overflow: 'inherit', minWidth: '210px', maxWidth: '210px' }} title={row.departmentOption?.label || "Select Department"}>
+                                            <Select
+                                              options={AuditProgDept}
+                                              isclearable={true}
+                                              // options={AuditProgDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
                                               menuPortalTarget={document.body}
                                               // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
                                               styles={{
@@ -3926,7 +4057,7 @@ const FormContext = ({ props }: any) => {
 
                                             />
                                           </td>
-                                          <td style={{ overflow: "inherit", minWidth: '150px', maxWidth: '150px'  }} title={row?.area}>
+                                          {/* <td style={{ overflow: "inherit", minWidth: '150px', maxWidth: '150px'  }} title={row?.area}>
 
                                             <input
                                               type="text"
@@ -3934,6 +4065,88 @@ const FormContext = ({ props }: any) => {
                                               value={row.area || ""}
                                               onChange={(e) => handleYearlylistrow(index, 'area', e.target.value)}
                                               disabled={InputDisabled}
+                                            />
+                                          </td> */ }
+                                           <td style={{ overflow: 'inherit', minWidth: '200px', maxWidth: '200px' }} title={row.departmentOption?.label || "Select Department"}>
+                                            <Select
+                                              options={AuditProgLocation}
+                                              isclearable={true}
+                                              // options={AuditProgDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                              menuPortalTarget={document.body}
+                                              // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
+                                              styles={{
+                                                menu: (base: any) => ({
+                                                  ...base,
+                                                  position: 'absolute',
+                                                  zIndex: 9,
+                                                  top: '100%',
+                                                  left: 0,
+                                                }),
+                                                container: (base: any) => ({
+                                                  ...base,
+                                                  zIndex: 0,
+                                                  position: 'relative'
+                                                }),
+                                              }}
+                                              isDisabled={InputDisabled}
+                                              value={row.location}
+                                              name="location"
+                                              id="DeptID2"
+                                              className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""} ${(!ValidDraft) ? "border-on-error" : ""}`}
+                                              onChange={(selectedOptions: any) => handleYearlylistrow(index, 'location', selectedOptions)}
+                                              placeholder="Select Location"
+
+                                            />
+                                          </td>
+                                          {/* <td style={{ overflow: "inherit", minWidth: '150px', maxWidth: '150px' }} title={row?.location}>
+
+                                            <input
+                                              type="text"
+                                              className="form-control"
+                                              value={row.location || ""}
+                                              onChange={(e) => handleYearlylistrow(index, 'area', e.target.value)}
+                                              disabled={true}
+                                            />
+                                          </td> */}
+                                          {/* <td style={{ overflow: "inherit", minWidth: '150px', maxWidth: '150px' }} title={row?.OtherDetails}>
+
+                                            <input
+                                              type="text"
+                                              className="form-control YearlylistclsErr"
+                                              value={row.OtherDetails || ""}
+                                              onChange={(e) => handleYearlylistrow(index, 'OtherDetails', e.target.value)}
+                                              disabled={InputDisabled || row.departmentOption?.label !== "Others"}
+                                            />
+                                          </td> */}
+                                          <td style={{ overflow: 'inherit', minWidth: '200px', maxWidth: '200px' }} title={row.Shift?.label || "Select Shift"}>
+                                            <Select
+                                              options={AuditProgShift}
+                                              isclearable={true}
+                                              // options={AuditProgDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                              menuPortalTarget={document.body}
+                                              // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
+                                              styles={{
+                                                menu: (base: any) => ({
+                                                  ...base,
+                                                  position: 'absolute',
+                                                  zIndex: 9,
+                                                  top: '100%',
+                                                  left: 0,
+                                                }),
+                                                container: (base: any) => ({
+                                                  ...base,
+                                                  zIndex: 0,
+                                                  position: 'relative'
+                                                }),
+                                              }}
+                                              isDisabled={InputDisabled}
+                                              value={row.Shift}
+                                              name="Shift"
+                                              id="Shift"
+                                              className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""} ${(!ValidDraft) ? "border-on-error" : ""}`}
+                                              onChange={(selectedOptions: any) => handleYearlylistrow(index, 'Shift', selectedOptions)}
+                                              placeholder="Select Shift"
+
                                             />
                                           </td>
                                           <td style={{ overflow: "inherit", minWidth: '160px', maxWidth: '160px' }} title={row?.procedure}>
@@ -3951,7 +4164,7 @@ const FormContext = ({ props }: any) => {
                                           <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px'  }} title={row.auditor?.label || "Select"}>
                                             <Select
                                               options={UserRoles}
-                                              // isMulti
+                                              isclearable={true}
                                               menuPortalTarget={document.body}
                                               styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute' }) }}
                                               className={`YearlylistclsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
@@ -4158,7 +4371,7 @@ const FormContext = ({ props }: any) => {
                                     <th style={{ minWidth: '40px', maxWidth: '40px' }}>Action</th>
                                   </tr>
                                 </thead>
-                                <tbody style={{ maxHeight: "8007px", overflow: 'inherit' }}>
+                                <tbody style={{maxHeight:'8007', overflow:'inherit'}}>
                                   {forwardToArr.map((row, index) => (
                                     <tr>
                                       <td style={{ minWidth: "30px", maxWidth: "30px", overflow: 'inherit' }}> <div
@@ -4354,13 +4567,31 @@ const FormContext = ({ props }: any) => {
                               </thead>
                               <tbody>
                                 {FilesArr.length > 0 && (
-                                  FilesArr.map((row: any, index: number) => (
-                                    <tr>
-                                      <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
-                                      <td title={row.name || (row.FileLeafRef)?.split('_')[2]}>
-                                        {row.name || (row.FileLeafRef)?.split('_')[2]}
-                                      </td>
-                                      {/* {row.Id && <td style={{ textAlign: 'center' }} >
+                                  FilesArr.map((row: any, index: number) => {
+
+                                    const date = new Date();
+                                    const components = [
+                                      date.getDate().toString().padStart(2, '0'),
+                                      (date.getMonth() + 1).toString().padStart(2, '0'),
+                                      date.getFullYear().toString(),
+                                      date.getHours().toString().padStart(2, '0'),
+                                      date.getMinutes().toString().padStart(2, '0'),
+                                      date.getSeconds().toString().padStart(2, '0'),
+                                      date.getMilliseconds().toString().padStart(3, '0')
+                                    ];
+                                    const fileExtension = row.name ? row.name.split('.').pop() : "";
+                                    const fileNameWithoutExtension = row.name ? row.name.split('.').slice(0, -1).join('.') : "";
+                                    const NewFileName = `${formData.memoFileName}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`;
+                                    return (
+                                      <tr>
+                                        <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
+                                        {/* <td title={row.name || (row.FileLeafRef)?.split('_')[2]}>
+                                          {row.name || (row.FileLeafRef)?.split('_')[2]}
+                                        </td> */}
+                                        <td title={row.name ? NewFileName : row.FileLeafRef}>
+                                          {row.name ? NewFileName : row.FileLeafRef}
+                                        </td>
+                                        {/* {row.Id && <td style={{ textAlign: 'center' }} >
                                                                                 <span onClick={() => OpenFile(row, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                                                                     <FontAwesomeIcon icon={faDownload} /></span>
                                                                                {row.Id && <span onClick={() => OpenFile(row, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
@@ -4373,7 +4604,7 @@ const FormContext = ({ props }: any) => {
                                                                                             year: 'numeric'
                                                                                         }).format(new Date(DocumentLink.Created)).replace(/ /g, "/")
                                                                                         : ""}</td> */}
-                                      <td style={{ minWidth: '50px', maxWidth: '50px' }}>{row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
+                                      <td style={{ minWidth: '50px', maxWidth: '50px' }} title={row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
                                         day: "2-digit",
                                         month: "short",
                                         year: "numeric"
@@ -4381,22 +4612,35 @@ const FormContext = ({ props }: any) => {
                                         day: "2-digit",
                                         month: "short",
                                         year: "numeric"
-                                      }).replace(/ /g, "/")}</td>
+                                      }).replace(/ /g, "/")}>
+                                        
+                                        {row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "numeric"
+                                      }).replace(/ /g, "/") : new Date().toLocaleDateString("en-GB", {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "numeric"
+                                      }).replace(/ /g, "/")}
+                                      
+                                      </td>
 
                                       <td>
                                         {row.Id && (
                                           <>
-                                            <span
-                                              onClick={() => OpenFile(row, "Download")}
-                                              style={{ color: "blue", cursor: "pointer", margin: "10px" }}
-                                            >
-                                              <FontAwesomeIcon icon={faDownload} />
-                                            </span>
+                                            
                                             <span
                                               onClick={() => OpenFile(row, "Open")}
                                               style={{ color: "blue", cursor: "pointer", margin: "10px" }}
                                             >
                                               <FontAwesomeIcon icon={faEye} />
+                                            </span>
+                                            <span
+                                              onClick={() => OpenFile(row, "Download")}
+                                              style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                                            >
+                                              <FontAwesomeIcon icon={faDownload} />
                                             </span>
                                           </>
                                         )}
@@ -4405,8 +4649,9 @@ const FormContext = ({ props }: any) => {
                                       </td>
 
 
-                                    </tr>
-                                  ))
+                                      </tr>
+                                    );
+                                  })
                                 )}
                               </tbody>
                             </table>

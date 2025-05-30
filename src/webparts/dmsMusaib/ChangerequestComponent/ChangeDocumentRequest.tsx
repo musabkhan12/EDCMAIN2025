@@ -17,6 +17,7 @@ import "../../../CustomCss/mainCustom.scss";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "../../verticalSideBar/components/VerticalSidebar.scss";
 import "./changeDocumentRequest.scss";
+import "@pnp/sp/files";
 import { allowstringonly, getCurrentUser } from '../../../APISearvice/CustomService';
 import {
   addAllProcessItem, addApprovalItem, addItem, addItemChangeRequestReasonlist,
@@ -73,7 +74,11 @@ interface ForwardTo {
   role: number;
   level: number;
   approvers: any[]; // Or a more specific type like `string[]` or `SPUser[]`
-  leveltype: string
+  leveltype: string;
+  roleError?: boolean;
+  approverError?: boolean;
+  typeError?: boolean;
+  rowError?: boolean;
 }
 interface ChangeRequestCheckbox {
   id: number;
@@ -229,7 +234,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [ShowModalAtt, setShowModalAtt] = React.useState(false);
 
   const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
-    { id: 0, role: 0, level: 1, approvers: [], leveltype: "One" } // Default row
+    {
+      id: 0, role: 0, level: 1, approvers: [], leveltype: "One", roleError: false,
+      approverError: false,
+      typeError: false,
+      rowError: false } // Default row
   ]);
   const [currentUserDept, setcurrentUserDept] = React.useState("");
   const [forwardToArrEdit, setForwardToArrEdit] = React.useState<ForwardTo[]>([]);
@@ -1371,14 +1380,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
-                const newFileName = await getNewFileName(file.name);
+                //const newFileName = await getNewFileName(file.name);
 
                 const newfileNameNew = docCode + "-" + issueno + "-" + revisionno + "-" + file.name;
 
                 DocumentName = newfileNameNew;
                 const fileAddResult = await folder.files.addChunked(file.name, file);
                 const fileNew = fileAddResult.file;
-                const newFileNameN = await getNewFileName(fileAddResult.data.Name);
+                //const newFileNameN = await getNewFileName(fileAddResult.data.Name);
                 const newfileNameNewN = docCode + "-" + issueno + "-" + revisionno + "-" + fileAddResult.data.Name;
                 const documentName = newfileNameNewN;
                 bannerImageArray = fileAddResult;
@@ -1393,6 +1402,29 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 // Save the document ID for the attachment field in ChangeRequestList
                 attachmentIds.push(itemId);
               }
+            } else if (Attachmentarr.length > 0 && Attachmentarr[0].ID > 0) {
+
+              const item = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(Attachmentarr[0].ID).select('File/ServerRelativeUrl', 'File/Name').expand('File')();
+              debugger
+
+              const newfileNameNewN = docCode + "-" + issueno + "-" + revisionno + "-" + item.File.Name;
+
+              const oldFilePath = item?.File?.ServerRelativeUrl;
+              const folderPath = oldFilePath.substring(0, oldFilePath.lastIndexOf('/'));
+              //const oldFilePathN = folderPath +"/"+ encodeURI(item.File.Name);
+              const newFilePath = `${folderPath}/${newfileNameNewN}`;
+
+              // 2. Use moveByPath to rename the file
+              await sp.web.getFileByServerRelativePath(oldFilePath).moveByPath(newFilePath, true, false);
+              // 2. Move (rename) file
+              // await item.update({
+              //   FileName: newfileNameNewN, // Assuming FileName is the internal name of the column
+              //   DocumentCode: docCode
+              // });
+              const itemnew = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(Attachmentarr[0].ID).update({
+                FileName: newfileNameNewN, // Assuming FileName is the internal name of the column
+                DocumentCode: docCode
+              })
             }
             let Attachmentidsss = attachmentIds.length != 0 ? attachmentIds : formData.AttachmentId;
             let AttachmentJso = attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson;
@@ -1529,7 +1561,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 DocumentName = newfileNameNew;
                 const fileAddResult = await folder.files.addChunked(file.name, file);
                 const fileNew = fileAddResult.file;
-                const newFileNameN = await getNewFileName(fileAddResult.data.Name);
+                //const newFileNameN = await getNewFileName(fileAddResult.data.Name);
                 const newfileNameNewN = docCode + "-" + issueno + "-" + revisionno + "-" + fileAddResult.data.Name;
                 const documentName = newfileNameNewN;
                 //const documentName = fileAddResult.data.Name;
@@ -1719,11 +1751,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
-                const newFileName = await getNewFileName(file.name);
+                //const newFileName = await getNewFileName(file.name);
                 DocumentName = file.name;
                 const fileAddResult = await folder.files.addChunked(file.name, file);
                 const fileNew = fileAddResult.file;
-                const newFileNameN = await getNewFileName(fileAddResult.data.Name);
+                //const newFileNameN = await getNewFileName(fileAddResult.data.Name);
                 const documentName = fileAddResult.data.Name;
                 bannerImageArray = fileAddResult;
                 // Get the item ID for the uploaded file
@@ -1873,11 +1905,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
-                const newFileName = await getNewFileName(file.name);
+                //const newFileName = await getNewFileName(file.name);
                 DocumentName = file.name;
                 const fileAddResult = await folder.files.addChunked(file.name, file);
                 const fileNew = fileAddResult.file;
-                const newFileNameN = await getNewFileName(fileAddResult.data.Name);
+                //const newFileNameN = await getNewFileName(fileAddResult.data.Name);
                 const documentName = fileAddResult.data.Name;
                 bannerImageArray = fileAddResult;
                 // Get the item ID for the uploaded file
@@ -2054,20 +2086,49 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         break;
     }
     if (status == "Forward") {
+     
+      // debugger
+      // const isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 && (row.leveltype == "One" || row.leveltype == "All"));
+
+      // if (!isValid) {
+      //   // alert("Each row must have a role selected and at least Anyone approver.");
+      //   valid = false;
+      // }
+      // setValidforward(valid)
+      // if (!valid) {
+      //   Swal.fire('Please fill all the mandatory fields.');
+      //   return;
+      // }
+      let isFormValid = true;
       if (forwardToArr.length === 0) {
         // alert("At least Anyone row is required.");
-        valid = false;
+        isFormValid = false;
       }
-      debugger
-      const isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 && (row.leveltype == "One" || row.leveltype == "All"));
+      const updatedRows = forwardToArr.map((row) => {
+        const roleError = row.role === 0;
+        const approverError = row.approvers.length === 0;
+        const typeError = !(row.leveltype === "One" || row.leveltype === "All");
 
-      if (!isValid) {
-        // alert("Each row must have a role selected and at least Anyone approver.");
-        valid = false;
-      }
-      setValidforward(valid)
-      if (!valid) {
-        Swal.fire('Please fill all the mandatory fields.');
+        const isRowValid = !roleError && !approverError && !typeError;
+
+        if (!isRowValid) {
+          isFormValid = false;
+        }
+
+        return {
+          ...row,
+          roleError,
+          approverError,
+          typeError,
+          rowError: roleError && approverError && typeError, // mark full-row error only if fully empty
+        };
+      });
+
+      setForwardToArr(updatedRows);
+      setValidforward(isFormValid);
+
+      if (!isFormValid) {
+        Swal.fire("Please fill all the mandatory fields in every row.");
         return;
       }
 
@@ -2760,7 +2821,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     return changeRequestCheckboxes.map((checkbox) => (
 
       <div className="col-lg-3">
-        <div key={checkbox.id} className="form-check mb-3">
+        <div key={checkbox.id} className="form-check mb-3" title={checkbox.name}>
           <input
             type="checkbox"
             // className="form-check-input"
@@ -3312,7 +3373,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                                     </p> */}
 
                             <div className="row">
-                              <table className="mtbalenew table-centered table-nowrap table-borderless mb-0" id="tbl">
+                              <table className="mtbalenewscrollnew4 table-centered table-nowrap table-borderless mb-0" id="tbl">
                                 <thead>
                                   <tr>
                                     <th style={{ minWidth: "40px", maxWidth: "40px" }}>S.No</th>
@@ -3403,7 +3464,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                         {/* {((modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES") ||
                           (MainEditItem !== null && MainEditItem.length != 0 && MainEditItem.Status != "Save as draft" && MainEditItem.Status != "Rework" && modeValue !== "view"))
                           && */}
-                        {modeValue === "approve" && editID != null && editID.Status === "Pending" && editID.CurrentUserRole !== "Initiator" &&
+                        {(modeValue === "approve" || modeValue === "view" || modeValue === "edit") && editID != null && (editID.Status === "Pending" || editID.Status === "Approved" || editID.Status === "Rejected") && editID.CurrentUserRole !== "Initiator" &&
                           <div className="card mt-2" style={{ marginBottom: '17px' }}>
                             <div className="card-body">
                               <div className='row'>
@@ -3458,7 +3519,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                             onChange={(e) => onSelectRole(e, row.level)}
                                             value={row.role}
                                             disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}
-                                            className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}>
+                                            //</td>className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}
+                                            className={`form-select ${row.roleError ? "border-on-error" : ""}`}
+                                            >
                                             <option value="" selected>Select Role</option>
                                             {UserRoles.filter((role: any) =>
                                               !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
@@ -3481,7 +3544,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                             isMulti
                                             value={row.approvers}
                                             name="Approvers"
-                                            className={` ${(!Validforward) ? "border-on-error" : ""}`}
+                                            //className={` ${(!Validforward) ? "border-on-error" : ""}`}
+                                            className={`react-select ${row.approverError ? "border-on-error" : ""}`}
                                             //className={`form-control ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                             // onChange={(selectedOption: any) => onSelect(selectedOption)}
                                             onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
@@ -3493,7 +3557,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                                         </td>
                                         <td title={ApprovalTypeOptions.filter(x => x.value = row.leveltype)[0].label} style={{ overflow: 'inherit' }} className="ng-binding">
-                                          <select className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}
+                                          <select 
+                                          //className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}
+                                            className={`form-select ${row.typeError ? "border-on-error" : ""}`}
                                             onChange={(e) => onSelectApprovalType(e, row.level)}
                                             value={row.leveltype}
                                             disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}
@@ -3637,9 +3703,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   {console.log("Attachmentarrnmnm doc link", DocumentLink, DocumentLink != null)}
                                   <tr >
                                     <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
-                                    <td title={DocumentLink != null && (DocumentLink?.FileLeafRef.includes('_') ? DocumentLink?.FileLeafRef.split('_')[2] : DocumentLink?.FileLeafRef)}>
-                                      {DocumentLink != null && (DocumentLink?.FileLeafRef.includes('_') ? DocumentLink?.FileLeafRef.split('_')[2] : DocumentLink?.FileLeafRef)}</td>
-                                    {/* <td title={DocumentLink != null && `${DocumentLink?.FileLeafRef}`}>{DocumentLink != null && `${DocumentLink?.FileLeafRef}`}</td> */}
+                                    {/* <td title={DocumentLink != null && (DocumentLink?.FileLeafRef.includes('_') ? DocumentLink?.FileLeafRef.split('_')[2] : DocumentLink?.FileLeafRef)}>
+                                      {DocumentLink != null && (DocumentLink?.FileLeafRef.includes('_') ? DocumentLink?.FileLeafRef.split('_')[2] : DocumentLink?.FileLeafRef)}
+                                      </td> */}
+                                    <td title={DocumentLink != null && `${DocumentLink?.FileLeafRef}`}>{DocumentLink != null && `${DocumentLink?.FileLeafRef}`}</td>
                                     <td style={{ textAlign: 'center' }}>
                                       {/* <span onClick={() => OpenFile(DocumentLink != null && DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                         <FontAwesomeIcon icon={faEye} /></span> */}
@@ -3693,8 +3760,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     <tr >
                                       <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
                                       {/* {Attachmentarr && (Attachmentarr[0]?.FileName.includes('_') ? Attachmentarr[0]?.FileName.split('_')[2] : Attachmentarr[0]?.FileName)} */}
-                                      <td title={Attachmentarr && (Attachmentarr[0]?.FileName.includes('_') ? Attachmentarr[0]?.FileName.split('_')[2] : Attachmentarr[0]?.FileName)}>
-                                        {Attachmentarr && (Attachmentarr[0]?.FileName.includes('_') ? Attachmentarr[0]?.FileName.split('_')[2] : Attachmentarr[0]?.FileName)}</td>
+                                      <td title={Attachmentarr && Attachmentarr[0]?.FileName}>
+                                        {Attachmentarr && Attachmentarr[0]?.FileName}</td>
                                       {/* {showButton && */}
                                       {((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
                                         || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload &&

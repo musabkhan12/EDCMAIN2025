@@ -32,8 +32,24 @@ import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
 import { addAllProcessItem, addItem, addItem2, addItemNC, getAllApprovedAuditplan, getAllAuditType, getAllDepartment, getAllDepartment1, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDocumentLinkByIDPlan, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDocAuditplan, getGeneratedTemplateDocCR, getItemByID, getItemByID2, getItemfromChecklistMaster, getItemsAuditReportNC, getItemsAuditReportObs, getLatestChangeRequestTemplateType, getListNameID, getNCNumberbyID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, updateItemNC, uploadAllFiles } from './AuditReportService';
 import { TextField } from '@fluentui/react';
-import { isMac } from 'office-ui-fabric-react';
+import { DatePicker, isMac } from 'office-ui-fabric-react';
 import moment from 'moment';
+//React Time picker
+// import TimePicker from 'react-time-picker';
+// import 'react-time-picker/dist/TimePicker.css';
+// import 'react-clock/dist/Clock.css';
+//MUI time picker
+import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+//SYnc time picker
+// import { TimePickerComponent } from '@syncfusion/ej2-react-calendars';
+
+// import '@syncfusion/ej2-base/styles/material.css';
+// import '@syncfusion/ej2-react-calendars/styles/material.css';
+
+// import { TimePicker } from 'antd';
+// import dayjs from 'dayjs';
+// import 'antd/dist/reset.css'; // Or 'antd/dist/antd.css' if using antd < 5
 
 // let myloader = '../../'
 let newfileupload: any
@@ -48,7 +64,7 @@ interface ForwardTo {
     approvalType: string;
 }
 interface ncNumber {
-    Id:number,
+    Id: number,
     id: number,
     ncnumberNC: string,
     observationnumberObs: string,
@@ -136,6 +152,15 @@ const AnnualAuditReportContext = ({ props }: any) => {
         OpportunitiesforImprovement: false,
         FailureofEffectiveness: false,
     });
+    //const [checkboxNumberValues, setCheckboxNumberValues] = React.useState<{ [key: string]: number }>({});
+    const [checkboxNumberValues, setCheckboxNumberValues] = React.useState({
+        ConformingPositiveFindingsN: 0,
+        FailureofIntentNonconformityN: 0,
+        ObservationsN: 0,
+        FailureofImplementationN: 0,
+        OpportunitiesforImprovementN: 0,
+        FailureofEffectivenessN: 0,
+    });
     //error end
     const [formData, setFormData] = React.useState({
         ObservationSequence: 0,
@@ -179,19 +204,20 @@ const AnnualAuditReportContext = ({ props }: any) => {
         setreportCode(reportcode);
         setFormData({ ...formData, deptId: selectedOption.value, reportCode: reportcode });
     };
-    const handleActualAuditDateChange = (e: any) => {
+    const handleActualAuditDateChange = (date: any) => {
 
         debugger
         let reportcode: string = "";
         // if ((formData.date != "" || formData.date != null) && (formData.deptId != 0 || formData.deptId != null)) {
         //     reportcode = selectUserDept?.departmentcode + "/" + moment(new Date(e.target.value)).format("DD/MM/YYYY");
         // }
-        if ((e.target.value !== "" && e.target.value !== null) && (formData.deptId !== 0 && formData.deptId !== null && selectUserDept != null)) {
-            reportcode = selectUserDept?.departmentcode + "/" + moment(new Date(e.target.value)).format("DD/MM/YYYY");
+        if ((date !== "" && date !== null) && (formData.deptId !== 0 && formData.deptId !== null && selectUserDept != null)) {
+            reportcode = (selectUserDept.length == 1 ? selectUserDept[0]?.departmentcode : selectUserDept?.departmentcode) + "/" + moment(new Date(date)).format("DD/MM/YYYY");
         }
 
         setreportCode(reportcode);
-        setFormData({ ...formData, date: new Date(e.target.value).toLocaleDateString("en-CA"), reportCode: reportcode })
+        //setFormData({ ...formData, date: new Date(date).toLocaleDateString("en-CA") });
+        setFormData({ ...formData, date: new Date(date).toLocaleDateString("en-CA"), reportCode: reportcode })
 
     };
     const handleFromDepartmentChange = (selectedOption: any) => {
@@ -299,11 +325,20 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
         let maxSequence = 0;
         if (editItemID) {
-            if (type === "NC Number") {
-                maxSequence = Math.max(...existingRows.map((r: any) => r.ncsequenceNC || 0));
+            if (existingRows.length > 0) {
+                if (type === "NC Number") {
+                    maxSequence = Math.max(...existingRows.map((r: any) => r.ncsequenceNC || 0));
 
-            } else if (type === "Observation Number") {
-                maxSequence = Math.max(...existingRows.map((r: any) => r.observationsequenceObs || 0));
+                } else if (type === "Observation Number") {
+                    maxSequence = Math.max(...existingRows.map((r: any) => r.observationsequenceObs || 0));
+                }
+            } else {
+                if (type === "NC Number") {
+                    maxSequence = Math.max(formData.NCSequence, ...existingRows.map((r: any) => r.ncsequenceNC || 0));
+
+                } else if (type === "Observation Number") {
+                    maxSequence = Math.max(formData.ObservationSequence, ...existingRows.map((r: any) => r.observationsequenceObs || 0));
+                }
             }
         } else {
             if (type === "NC Number") {
@@ -317,7 +352,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
         const nextSequenceNumber = maxSequence + 1;
         setNCNumberrows(prev => [...prev, {
-            Id:0,
+            Id: 0,
             id: maxid + 1,
             ncnumberNC: type === "NC Number" ? nextSequenceNumber.toString().padStart(3, "0") : "",
             observationnumberObs:
@@ -332,15 +367,33 @@ const AnnualAuditReportContext = ({ props }: any) => {
     };
 
 
+    // React.useEffect(() => {
+    //     debugger
+    //     if (checkboxValues["FailureofIntentNonconformity"] || checkboxValues["FailureofImplementation"] || checkboxValues["FailureofEffectiveness"]) {
+    //         const hasNCRow = NCNumberrows.some(row => row.nctype === "NC Number");
+    //         if (!hasNCRow) {
+    //             handleaddncrows("NC Number");
+    //         }
+    //     }
+    // }, [checkboxValues["FailureofIntentNonconformity"]]);
     React.useEffect(() => {
-        debugger
-        if (checkboxValues["FailureofIntentNonconformity"]) {
+        if (
+            checkboxValues["FailureofIntentNonconformity"] ||
+            checkboxValues["FailureofImplementation"] ||
+            checkboxValues["FailureofEffectiveness"]
+        ) {
             const hasNCRow = NCNumberrows.some(row => row.nctype === "NC Number");
             if (!hasNCRow) {
                 handleaddncrows("NC Number");
             }
         }
-    }, [checkboxValues["FailureofIntentNonconformity"]]);
+    }, [
+        checkboxValues["FailureofIntentNonconformity"],
+        checkboxValues["FailureofImplementation"],
+        checkboxValues["FailureofEffectiveness"],
+        NCNumberrows,
+        handleaddncrows
+    ]);
 
     React.useEffect(() => {
         if (checkboxValues["Observations"]) {
@@ -434,18 +487,22 @@ const AnnualAuditReportContext = ({ props }: any) => {
         const userId = currentUser.Id; // Or however you get the current user ID
         const date = new Date();
         const fileExtension = originalFileName.split('.').pop();
+        const fileNameWithoutExt = originalFileName.substring(0, originalFileName.lastIndexOf('.'));
 
+        // Format date components
         const components = [
             date.getFullYear(),
             (date.getMonth() + 1).toString().padStart(2, '0'),
             date.getDate().toString().padStart(2, '0'),
             date.getHours().toString().padStart(2, '0'),
             date.getMinutes().toString().padStart(2, '0'),
-            date.getSeconds().toString().padStart(2, '0'),
-            date.getMilliseconds().toString().padStart(3, '0')
+            date.getSeconds().toString().padStart(2, '0')
         ];
 
-        return `${userId}_${components.join('')}_${originalFileName}`;
+        const iddd = formData.reportCode.replace(/\//g, '_');
+
+        return `${iddd}_${fileNameWithoutExt}_${components.join('')}.${fileExtension}`;
+
     };
     const ApiCallFunc = async () => {
         setAuditPlanType(await getAllAuditType(sp));
@@ -498,6 +555,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
             setFormLoading(true); ////
             setshowForwardapproval(true)
         }
+        const path = window.location.href;
+        const segments = path.split('/').filter(Boolean); // Remove empty elements
+
+        // Check if "edit" or "view" exists in the URL
+        const paramIndex = segments.findIndex(seg => seg === "edit" || seg === "view" || seg === "approve");
         const rowData: any[] = await getItemfromChecklistMaster(sp) //baseUrl
         if (rowData.length > 0) {
             const initialRows = rowData.map((item: any) => ({
@@ -709,6 +771,13 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     newValues[field] = setBannerById[0][field] === "Yes";
                 }
                 setCheckboxValues(newValues);
+                const newValuesN: any = {};
+
+                for (const [label, field] of Object.entries(CheckboxFieldMapN)) {
+                    newValuesN[field] = Number(setBannerById[0][field]) || 0; // fallback to 0 if null/undefined
+                }
+
+                setCheckboxNumberValues(newValuesN);
                 let sharewithuser = setBannerById[0].Sharewith?.map((approver: any) => ({
                     value: approver.ID,
                     label: approver.Title,
@@ -787,7 +856,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 }
                 const rowData1: any[] = await getItemByID2(sp, Number(formitemid));
                 const rowData: any[] = await getItemfromChecklistMaster(sp) //baseUrl
-                if (rowData1.length > 0) {
+                if ((segments[paramIndex] == "edit" || segments[paramIndex] == "approve" || segments[paramIndex] == "view") && rowData1.length > 0) {
                     const initialRows1 = rowData1.map((item: any) => ({
                         id: item.Id,
                         isoreference: item.ISOReference,
@@ -802,7 +871,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     setRecommendationRows(initialRows1);
                     setRecommendationRowsEdit(initialRows1);
                 } else {
-                    if (rowData.length > 0) {
+                    if (rowData.length > 0 && rowData1.length == 0) {
                         const initialRows = rowData.map((item: any) => ({
                             id: item.Id,
                             isoreference: item.ISOReference,
@@ -844,17 +913,23 @@ const AnnualAuditReportContext = ({ props }: any) => {
     };
 
     const onSelectsharewith = (selectedOptions: any) => {
-        const newSelections = selectedOptions || [];
-        const allOptions = [...sharewithusers, ...newSelections];
+        // const newSelections = selectedOptions || [];
+        // const allOptions = [...sharewithusers, ...newSelections];
 
-        const uniqueOptions = allOptions.filter(
-            (option, index, self) =>
-                index === self.findIndex((o) => o.value === option.value)
+        // const uniqueOptions = allOptions.filter(
+        //     (option, index, self) =>
+        //         index === self.findIndex((o) => o.value === option.value)
+        // );
+
+        // setSharewithusers(uniqueOptions);
+        const uniqueOptions = (selectedOptions || []).filter(
+            (option: any, index: any, self: any) =>
+                index === self.findIndex((o: any) => o.value === option.value)
         );
-
         setSharewithusers(uniqueOptions);
 
     };
+
     const onSelectApprovers = (selectedOptions: any, lvl: number) => {
         setForwardToArr((prev) =>
             prev.map((row) =>
@@ -1088,69 +1163,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 validRec = false;
             }
 
-            // if (recommendationRows.length > 0 && recommendationRows.every((row: any) =>
-            //     row.isoreference.trim() !== "" && row.imsprocedure.trim() !== "" && row.inquiries.trim() !== "" && row.time.trim() !== "" && row.auditorcomments.trim() !== ""
-            //     && row.sharewith != null && row.sharewith.length != 0) == false) {
-            //     validRec = false;
-            // }
-            // if (recommendationRows.length > 0) {
-            //     let isoreferenceError = false;
-            //     let imsprocedureError = false;
-            //     let inquiriesError = false;
-            //     let timeError = false;
-            //     let auditorcommentsError = false;
-            //     let sharewithError = false;
-
-            //     recommendationRows.forEach((row: any) => {
-            //         // Check each field individually
-            //         if (row.isoreference === null || row.isoreference.trim() === "") {
-            //             isoreferenceError = true;
-            //         }
-            //         if (row.imsprocedure === null || row.imsprocedure.trim() === "") {
-            //             imsprocedureError = true;
-            //         }
-            //         if (row.inquiries === null || row.inquiries.trim() === "") {
-            //             inquiriesError = true;
-            //         }
-            //         if (row.time === null || row.time.trim() === "") {
-            //             timeError = true;
-            //         }
-            //         if (row.auditorcomments === null || row.auditorcomments.trim() === "") {
-            //             auditorcommentsError = true;
-            //         }
-            //         if (row.sharewith === null || row.sharewith.length === 0) {
-            //             sharewithError = true;
-            //         }
-            //     });
-
-            //     // Set error flags for fields that are invalid
-            //     if (isoreferenceError) {
-            //         setisoreferenceerr(true);
-            //     }
-            //     if (imsprocedureError) {
-            //         setimsprocedureerr(true);
-            //     }
-            //     if (inquiriesError) {
-            //         setinquirieserr(true);
-            //     }
-            //     if (timeError) {
-            //         settimeerr(true);
-            //     }
-            //     if (auditorcommentsError) {
-            //         setauditorcommentserr(true);
-            //     }
-            //     if (sharewithError) {
-            //         setsharewitherr(true);
-            //     }
-
-            //     // If any field has an error, set the validation flag to false
-            //     if (isoreferenceError || imsprocedureError || inquiriesError || timeError || auditorcommentsError || sharewithError) {
-            //         validRec = false;
-            //     }
-            // }
             if (recommendationRows.length > 0) {
                 debugger
-                let validRec = true; // Assume valid initially
+                //let validRec = true; // Assume valid initially
                 let rowErrors: any[] = []; // Store errors for each row
 
                 recommendationRows.forEach((row: any, index: number) => {
@@ -1188,6 +1203,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 // Set validation flag
                 if (!validRec) {
                     console.log("Validation failed. Highlight errors accordingly.");
+                }
+                if (rowErrors.length > 0) {
+                    validRec = false;
                 }
             }
 
@@ -1267,6 +1285,34 @@ const AnnualAuditReportContext = ({ props }: any) => {
         }
         return formatted;
     };
+    const convertCheckboxValuesForSharePoint = (values: Record<string, boolean>): Record<string, string> => {
+        const formatted: Record<string, string> = {};
+        for (const key in values) {
+            formatted[key] = values[key] ? "Yes" : "";
+        }
+        return formatted;
+    };
+
+    // Final data object: "Yes"/"" for checkboxes, raw numbers for number fields
+
+
+    const convertForSharePointNumber = (values: Record<string, number>): Record<string, number> => {
+        const formatted: Record<string, number> = {};
+
+        for (const key in values) {
+            const value = values[key];
+            formatted[key] = value; // Keep numbers as-is
+        }
+
+        return formatted;
+    };
+    // const convertForSharePointNumber = (values: Record<string|number, boolean>) => {
+    //     const formatted: Record<string | number, string | number> = {};
+    //     for (const key in values) {
+    //         formatted[key] = values[key] ? "Yes" : ""; // or "true"/"false" if your list uses that
+    //     }
+    //     return formatted;
+    // };
     const handleFormSubmit = async () => {
         debugger
         // Get max sequence/number from the updated array
@@ -1301,7 +1347,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         debugger
                         setFormData((prevData) => {
                             const updatedData = { ...prevData };
-                            if (checkboxValues["FailureofIntentNonconformity"]) {
+                            if (checkboxValues["FailureofIntentNonconformity"] ||
+                                checkboxValues["FailureofImplementation"] ||
+                                checkboxValues["FailureofEffectiveness"]) {
                                 updatedData.NCSequence = (prevData.NCSequence || 0) + 1;
                             }
                             if (checkboxValues["Observations"]) {
@@ -1313,7 +1361,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let newOnservationsequence: number = formData.ObservationSequence;
                         let newncnumber: string = formData.NCNo;
                         let newobservationNo: string = formData.ObservationNo;
-                        if (checkboxValues["FailureofIntentNonconformity"]) {
+                        if (checkboxValues["FailureofIntentNonconformity"] ||
+                            checkboxValues["FailureofImplementation"] ||
+                            checkboxValues["FailureofEffectiveness"]) {
                             newNCsequence = (formData.NCSequence || 0) + 1;
                         } else {
                             newncnumber = "";
@@ -1330,8 +1380,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let DocumentName: string = "";
                         let attachmentIds = [];
                         const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
+                        // const finalDataForSharePoint = {
+                        //     ...convertCheckboxValuesForSharePoint(checkboxValues),
+                        //     ...checkboxNumberValues
+                        // };
                         const formattedData = convertForSharePoint(checkboxValues);
-
+                        const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
 
                         if (FilesArr.length > 0) {
                             for (const file of FilesArr) {
@@ -1339,7 +1393,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                                     const newFileName = await getNewFileName(file.name);
                                     DocumentName = newFileName;
-                                    const fileAddResult = await folder.files.addChunked(file.name, file);
+                                    const fileAddResult = await folder.files.addChunked(newFileName, file);
                                     const fileNew = fileAddResult.file;
                                     const documentName = fileAddResult.data.Name;
                                     bannerImageArray = fileAddResult;
@@ -1375,12 +1429,15 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
                             ...formattedData,
+                            ...formattedDataNumber,
                             MemoNumber: doccode,
                             // MemoSerialNumber:,
                             // IssueNumber:,
                             // RevisionNumber:,
                             ReportCode: formData.reportCode,
-                            NCNumber: checkboxValues["FailureofIntentNonconformity"] ? maxNCNo : "",
+                            NCNumber: checkboxValues["FailureofIntentNonconformity"] ||
+                                checkboxValues["FailureofImplementation"] ||
+                                checkboxValues["FailureofEffectiveness"] ? maxNCNo : "",
                             ObservationNumber: checkboxValues["Observations"] ? maxObsNo : "",
                             ObservationSequence: maxObsSequence,
                             NCSequence: maxNCSequence,
@@ -1662,9 +1719,16 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let attachmentIds = [];
                         const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
+                        const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
+                        // const finalDataForSharePoint = {
+                        //     ...convertCheckboxValuesForSharePoint(checkboxValues),
+                        //     ...checkboxNumberValues
+                        // };
                         setFormData((prevData) => {
                             const updatedData = { ...prevData };
-                            if (checkboxValues["FailureofIntentNonconformity"]) {
+                            if (checkboxValues["FailureofIntentNonconformity"] ||
+                                checkboxValues["FailureofImplementation"] ||
+                                checkboxValues["FailureofEffectiveness"]) {
                                 updatedData.NCSequence = (prevData.NCSequence || 0) + 1;
                             }
                             if (checkboxValues["Observations"]) {
@@ -1674,7 +1738,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         });
                         let newNCsequence1: number = formData.NCSequence;
                         let newOnservationsequence1: number = formData.ObservationSequence;
-                        if (checkboxValues["FailureofIntentNonconformity"]) {
+                        if (checkboxValues["FailureofIntentNonconformity"] ||
+                            checkboxValues["FailureofImplementation"] ||
+                            checkboxValues["FailureofEffectiveness"]) {
                             newNCsequence1 = (formData.NCSequence || 0) + 1;
                         }
                         if (checkboxValues["Observations"]) {
@@ -1688,7 +1754,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                                     const newFileName = await getNewFileName(file.name);
                                     DocumentName = newFileName;
-                                    const fileAddResult = await folder.files.addChunked(file.name, file);
+                                    const fileAddResult = await folder.files.addChunked(newFileName, file);
                                     const fileNew = fileAddResult.file;
                                     const documentName = fileAddResult.data.Name;
                                     bannerImageArray = fileAddResult;
@@ -1723,8 +1789,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         });
                         let arr = {
                             ...formattedData,
+                            ...formattedDataNumber,
                             ReportCode: formData.reportCode,
-                            NCNumber: checkboxValues["FailureofIntentNonconformity"] ? maxNCNo : "",
+                            NCNumber: checkboxValues["FailureofIntentNonconformity"] ||
+                                checkboxValues["FailureofImplementation"] ||
+                                checkboxValues["FailureofEffectiveness"] ? maxNCNo : "",
                             ObservationNumber: checkboxValues["Observations"] ? maxObsNo : "",
                             ObservationSequence: maxObsSequence,
                             NCSequence: maxNCSequence,
@@ -1911,6 +1980,30 @@ const AnnualAuditReportContext = ({ props }: any) => {
         }
 
     }
+    React.useEffect(() => {
+        const updatedValues: Record<string, number> = { ...checkboxNumberValues };
+
+        AuditFindingsOptions.forEach((checkbox) => {
+            //const fieldKey = CheckboxFieldMap[checkbox.value];
+            const fieldKeyN = CheckboxFieldMapN[checkbox.value];
+            if (checkbox.value === 'Observations') {
+                updatedValues[fieldKeyN] = NCNumberrows.filter(
+                    row => (row.ncnumberNC || row.observationnumberObs) && row.nctype === "Observation Number"
+                ).length;
+            }
+
+            if (checkbox.value === 'Failure of Intent / Nonconformity') {
+                updatedValues[fieldKeyN] = NCNumberrows.filter(
+                    row => (row.ncnumberNC || row.observationnumberObs) && row.nctype === "NC Number"
+                ).length;
+            }
+        });
+
+        setCheckboxNumberValues(prev => ({
+            ...prev,
+            ...updatedValues
+        }));
+    }, [NCNumberrows]);
 
     const handleSaveAsDraft = async () => {
         debugger
@@ -1923,6 +2016,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         console.log("maxNCSequencemaxNCSequence", maxNCSequence, maxObsSequence, "maxNCNo", maxNCNo, maxObsNo);
         console.log("updatedArr", NCNumberrows);
         console.log("checkboxvalueee", checkboxValues);
+        console.log("checkboxNumberValues", checkboxNumberValues);
         if (await validateForm(FormSubmissionMode.DRAFT)) {
             if (editForm) {
                 Swal.fire({
@@ -1945,6 +2039,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let attachmentIds = [];
                         const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
+                        const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
+                        // const finalDataForSharePoint = {
+                        //     ...convertCheckboxValuesForSharePoint(checkboxValues),
+                        //     ...checkboxNumberValues
+                        // };
 
                         if (FilesArr.length > 0) {
 
@@ -1953,7 +2052,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                                     const newFileName = await getNewFileName(file.name);
                                     DocumentName = newFileName;
-                                    const fileAddResult = await folder.files.addChunked(file.name, file);
+                                    const fileAddResult = await folder.files.addChunked(newFileName, file);
                                     const fileNew = fileAddResult.file;
                                     const documentName = fileAddResult.data.Name;
                                     bannerImageArray = fileAddResult;
@@ -1988,8 +2087,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
                             ...formattedData,
+                            ...formattedDataNumber,
                             ReportCode: formData.reportCode,
-                            NCNumber: checkboxValues["FailureofIntentNonconformity"] ? maxNCNo : "",
+                            NCNumber: checkboxValues["FailureofIntentNonconformity"] ||
+                                checkboxValues["FailureofImplementation"] ||
+                                checkboxValues["FailureofEffectiveness"] ? maxNCNo : "",
                             ObservationNumber: checkboxValues["Observations"] ? maxObsNo : "",
                             ObservationSequence: maxObsSequence,
                             NCSequence: maxNCSequence,
@@ -2044,7 +2146,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 const postIdNCAdd = postResultNC?.data?.ID;
                             }
                             else {
-                                if ((row.ncnumberNC.trim() == "") == false) {
+                                if ((row.ncnumberNC.trim() == "") == false || (row.observationnumberObs.trim() == "") == false) {
                                     const postResultNC = await addItemNC(postPayloadNC, sp);
                                     const postIdNCupdate = postResultNC?.data?.ID;
                                 }
@@ -2268,7 +2370,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let attachmentIds = [];
                         const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
-
+                        const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
+                        // const finalDataForSharePoint = {
+                        //     ...convertCheckboxValuesForSharePoint(checkboxValues),
+                        //     ...checkboxNumberValues
+                        // };
                         if (FilesArr.length > 0) {
 
                             for (const file of FilesArr) {
@@ -2276,7 +2382,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                                     const newFileName = await getNewFileName(file.name);
                                     DocumentName = newFileName;
-                                    const fileAddResult = await folder.files.addChunked(file.name, file);
+                                    const fileAddResult = await folder.files.addChunked(newFileName, file);
                                     const fileNew = fileAddResult.file;
                                     const documentName = fileAddResult.data.Name;
                                     bannerImageArray = fileAddResult;
@@ -2315,7 +2421,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             // IssueNumber:,
                             // RevisionNumber:,
                             ...formattedData,
-                            NCNumber: checkboxValues["FailureofIntentNonconformity"] ? maxNCNo : "",
+                            ...formattedDataNumber,
+                            NCNumber: checkboxValues["FailureofIntentNonconformity"] ||
+                                checkboxValues["FailureofImplementation"] ||
+                                checkboxValues["FailureofEffectiveness"] ? maxNCNo : "",
                             ObservationNumber: checkboxValues["Observations"] ? maxObsNo : "",
                             ObservationSequence: maxObsSequence,
                             NCSequence: maxNCSequence,
@@ -2575,6 +2684,14 @@ const AnnualAuditReportContext = ({ props }: any) => {
         "Opportunities for Improvement": "OpportunitiesforImprovement",
         "Failure of Effectiveness": "FailureofEffectiveness",
     } as const;
+    const CheckboxFieldMapN = {
+        "Conforming & Positive Findings": "ConformingPositiveFindingsN",
+        "Failure of Intent / Nonconformity": "FailureofIntentNonconformityN",
+        "Observations": "ObservationsN",
+        "Failure of Implementation": "FailureofImplementationN",
+        "Opportunities for Improvement": "OpportunitiesforImprovementN",
+        "Failure of Effectiveness": "FailureofEffectivenessN",
+    } as const;
     type CheckboxKey = keyof typeof CheckboxFieldMap;
     type CheckboxState = {
         [K in (typeof CheckboxFieldMap)[CheckboxKey]]: boolean;
@@ -2586,24 +2703,42 @@ const AnnualAuditReportContext = ({ props }: any) => {
             <div className="row">
                 {AuditFindingsOptions.map((checkbox) => {
                     const fieldKey = CheckboxFieldMap[checkbox.value];
-                    return (
-                        <div className="col-lg-6" key={checkbox.value}>
-                            <div className="form-check mb-3">
-                                <input
-                                    type="checkbox"
-                                    //className={`form-check-input ${!ValidSubmit ? "border-on-error" : ""}`}
-                                    className={`form-check-input`}
-                                    id={`checkbox-${fieldKey}`}
-                                    disabled={InputDisabled && formData?.Status !== "Rework"}
-                                    checked={checkboxValues[fieldKey]}
-                                    onChange={() => handleCheckboxChange(checkbox.value)}
-                                />
-                                <label className="form-check-label" htmlFor={`checkbox-${fieldKey}`}>
-                                    {checkbox.label}
-                                </label>
+                    const fieldKeyN = CheckboxFieldMapN[checkbox.value];
 
+                    return (
+                        <div className="col-lg-6 mb-3" key={checkbox.value}>
+                            <div className="d-flex justify-content-between align-items-center">
+                                {/* Left side: checkbox and label */}
+                                <div className="d-flex align-items-center">
+                                    <input
+                                        type="checkbox"
+                                        className="form-check-input me-2"
+                                        id={`checkbox-${fieldKey}`}
+                                        disabled={InputDisabled && formData?.Status !== "Rework"}
+                                        checked={checkboxValues[fieldKey]}
+                                        onChange={() => handleCheckboxChange(checkbox.value)}
+                                    />
+                                    <label className="form-check-label" htmlFor={`checkbox-${fieldKey}`}>
+                                        {checkbox.label}
+                                    </label>
+                                </div>
+
+                                {/* Right side: number input */}
+                                <input
+                                    type="number"
+                                    className="form-control"
+                                    style={{ maxWidth: '70px', minWidth: '60px' }}
+                                    //value={checkboxNumberValues[fieldKeyN] ?? ''}
+                                    value={
+                                        checkboxNumberValues[fieldKeyN] === 0 ? '' : checkboxNumberValues[fieldKeyN] ?? ''
+                                    }
+                                    onChange={(e) => handleNumberChange(fieldKeyN, Number(e.target.value))}
+                                    disabled={InputDisabled || checkbox.value === 'Observations' || checkbox.value === 'Failure of Intent / Nonconformity'}
+                                    placeholder="0"
+                                />
                             </div>
                         </div>
+
                     )
                 })}
                 <div className="col-lg-12">
@@ -2761,85 +2896,87 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 {/* }  */}
                 <div style={{ gap: '20px' }}>
                     {/* NC Number Table */}
-                    {checkboxValues["FailureofIntentNonconformity"] && (
-                        // <div style={{ width: '100%' }}>
+                    {(checkboxValues["FailureofIntentNonconformity"] ||
+                        checkboxValues["FailureofImplementation"] ||
+                        checkboxValues["FailureofEffectiveness"]) && (
+                            // <div style={{ width: '100%' }}>
 
-                        <> <div className='row'>
-                            <div className='col-sm-6'>
-                                <h3 className='text-dark font-16 fw-bold mb-3'>NC Number</h3>
+                            <> <div className='row'>
+                                <div className='col-sm-6'>
+                                    <h3 className='text-dark font-16 fw-bold mb-3'>NC Number</h3>
+                                </div>
+                                <div style={{ textAlign: 'right' }} className='col-sm-6'>
+                                    {!InputDisabled && (
+                                        <>
+                                            <img
+                                                style={{ width: '30px', cursor: 'pointer' }}
+                                                className='mt-0'
+                                                src={require("../assets/plus.png")}
+                                                onClick={() => handleaddncrows("NC Number")}
+                                            />
+                                            <img
+                                                style={{ width: '30px', cursor: 'pointer', marginLeft: '10px' }}
+                                                className='mt-0'
+                                                src={require("../assets/minus.png")}
+                                                onClick={() => handleDeleteNCNumberRow("NC Number")}
+                                            />
+                                        </>
+                                    )}
+                                </div>
                             </div>
-                            <div style={{ textAlign: 'right' }} className='col-sm-6'>
-                                {!InputDisabled && (
-                                    <>
-                                        <img
-                                            style={{ width: '30px', cursor: 'pointer' }}
-                                            className='mt-0'
-                                            src={require("../assets/plus.png")}
-                                            onClick={() => handleaddncrows("NC Number")}
-                                        />
-                                        <img
-                                            style={{ width: '30px', cursor: 'pointer', marginLeft: '10px' }}
-                                            className='mt-0'
-                                            src={require("../assets/minus.png")}
-                                            onClick={() => handleDeleteNCNumberRow("NC Number")}
-                                        />
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                            <div style={{ display: 'grid', overflow: 'auto' }}>
-                                <table id="tabRec" className='mtbalenew overhi'>
-                                    <thead>
-                                        <tr>
-                                            <th style={{minWidth:'60px',maxWidth:'60px'}}>Sr No</th>
-                                            <th style={{minWidth:'70px',maxWidth:'70px'}}>Category</th>
-                                            <th style={{minWidth:'220px',maxWidth:'220px'}}>Description</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {NCNumberrows
-                                            .filter(row => (row.ncnumberNC || row.observationnumberObs) && row.nctype === "NC Number").map((row, index) => (
-                                                <tr key={index}>
+                                <div style={{ display: 'grid', overflow: 'auto' }}>
+                                    <table id="tabRec" className='mtbalenew overhi'>
+                                        <thead>
+                                            <tr>
+                                                <th style={{ minWidth: '60px', maxWidth: '60px' }}>Sr No</th>
+                                                <th style={{ minWidth: '70px', maxWidth: '70px' }}>Category</th>
+                                                <th style={{ minWidth: '220px', maxWidth: '220px' }}>Description</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {NCNumberrows
+                                                .filter(row => (row.ncnumberNC || row.observationnumberObs) && row.nctype === "NC Number").map((row, index) => (
+                                                    <tr key={index}>
 
-                                                    <td style={{minWidth:'60px',maxWidth:'60px'}} title={row.ncnumberNC}>
-                                                        <input
-                                                            type="number"
-                                                            className={`form-control ${(RowErrors[index]?.ncnumberNC) ? "border-on-error" : ""}`}
-                                                            value={row.ncnumberNC}
-                                                            onChange={(e) =>
-                                                                handleNCNumberChange(index, "ncnumberNC", e.target.value)
-                                                            }
-                                                            disabled={true}
-                                                        />
-                                                    </td>
-                                                    <td style={{minWidth:'70px',maxWidth:'70px'}}>
-                                                        <select
-                                                            id="approvalType"
-                                                            value="NC Number"
-                                                            className="newse form-select"
-                                                            disabled
-                                                        >
-                                                            <option value="NC Number">NC</option>
-                                                        </select>
-                                                    </td>
-                                                    <td style={{minWidth:'220px',maxWidth:'220px'}}>
-                                                        <textarea
-                                                            id="simpleinput"
-                                                            className={`form-control`}
-                                                            // className="form-control"
-                                                            value={row.descriptionNC}
-                                                            onChange={(e) => handleNCDescriptionChange(row.id, 'descriptionNC', e.target.value)}
-                                                            disabled={InputDisabled}
-                                                        />
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </>
-                        // {/* </div> */}
-                    )}
+                                                        <td style={{ minWidth: '60px', maxWidth: '60px' }} title={row.ncnumberNC}>
+                                                            <input
+                                                                type="number"
+                                                                className={`form-control ${(RowErrors[index]?.ncnumberNC) ? "border-on-error" : ""}`}
+                                                                value={row.ncnumberNC}
+                                                                onChange={(e) =>
+                                                                    handleNCNumberChange(index, "ncnumberNC", e.target.value)
+                                                                }
+                                                                disabled={true}
+                                                            />
+                                                        </td>
+                                                        <td style={{ minWidth: '70px', maxWidth: '70px' }}>
+                                                            <select
+                                                                id="approvalType"
+                                                                value="NC Number"
+                                                                className="newse form-select"
+                                                                disabled
+                                                            >
+                                                                <option value="NC Number">NC</option>
+                                                            </select>
+                                                        </td>
+                                                        <td style={{ minWidth: '220px', maxWidth: '220px' }}>
+                                                            <textarea
+                                                                id="simpleinput"
+                                                                className={`form-control`}
+                                                                // className="form-control"
+                                                                value={row.descriptionNC}
+                                                                onChange={(e) => handleNCDescriptionChange(row.id, 'descriptionNC', e.target.value)}
+                                                                disabled={InputDisabled}
+                                                            />
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </>
+                            // {/* </div> */}
+                        )}
 
                     {/* Observation Table */}
                     {checkboxValues["Observations"] && (
@@ -2872,15 +3009,15 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 <table id="tabRec" className='mtbalenew overhi'>
                                     <thead>
                                         <tr>
-                                            <th style={{minWidth:'60px',maxWidth:'60px'}}>Sr No</th>
-                                            <th style={{minWidth:'70px',maxWidth:'70px'}}>Category</th>
-                                            <th style={{minWidth:'220px',maxWidth:'220px'}}>Description</th>
+                                            <th style={{ minWidth: '60px', maxWidth: '60px' }}>Sr No</th>
+                                            <th style={{ minWidth: '70px', maxWidth: '70px' }}>Category</th>
+                                            <th style={{ minWidth: '220px', maxWidth: '220px' }}>Description</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {NCNumberrows.filter(row => (row.ncnumberNC || row.observationnumberObs) && row.nctype === "Observation Number").map((row, index) => (
                                             <tr key={index}>
-                                                <td style={{minWidth:'60px',maxWidth:'60px'}} title={row.observationnumberObs}>
+                                                <td style={{ minWidth: '60px', maxWidth: '60px' }} title={row.observationnumberObs}>
                                                     <input
                                                         type="number"
                                                         className={`form-control ${(RowErrors[index]?.observationnumberObs) ? "border-on-error" : ""}`}
@@ -2891,7 +3028,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                         disabled={true}
                                                     />
                                                 </td>
-                                                <td style={{minWidth:'70px',maxWidth:'70px'}}>
+                                                <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                                     <select
                                                         id="approvalType"
                                                         value="Observation Number"
@@ -2902,7 +3039,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                     </select>
                                                 </td>
 
-                                                <td style={{minWidth:'220px',maxWidth:'220px'}}>
+                                                <td style={{ minWidth: '220px', maxWidth: '220px' }}>
                                                     <textarea
                                                         id="simpleinput"
                                                         className={`form-control`}
@@ -3075,7 +3212,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 const typeToRemove =
                     columnKey === "Observations"
                         ? "Observation Number"
-                        : columnKey === "FailureofIntentNonconformity"
+                        : (columnKey === "FailureofIntentNonconformity" || columnKey === "FailureofImplementation" || columnKey === "FailureofEffectiveness")
                             ? "NC Number"
                             : null;
 
@@ -3092,7 +3229,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
             };
         });
     };
-
+    const handleNumberChange = (fieldKey: string, value: number) => {
+        setCheckboxNumberValues(prev => ({
+            ...prev,
+            [fieldKey]: value
+        }));
+    };
 
     const handleDelete = (index: number) => {
         setFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
@@ -3414,7 +3556,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                     <div className="row mb-3">
                                                                         <label htmlFor="date" className="col-form-label">Actual Audit Date<span className="text-danger1"> *</span></label>
                                                                         <div title={formData.date}>
-                                                                            <input
+                                                                            {/* <input
                                                                                 type="date"
                                                                                 className={`form-control ${(!ValidSubmit && dateerr) ? "border-on-error" : ""}${(!ValidDraft && dateerr) ? "border-on-error" : ""}`}
                                                                                 // className="form-control"
@@ -3422,8 +3564,25 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 value={formData.date}
                                                                                 onChange={(e) => handleActualAuditDateChange(e)}
                                                                                 disabled={InputDisabled}
+                                                                            /> */}
+                                                                            <DatePicker id="date"
+                                                                                value={
+                                                                                    formData?.date
+                                                                                        ? new Date(moment(formData?.date).format('YYYY-MM-DD'))
+                                                                                        : null
+                                                                                }
+                                                                                onSelectDate={(date: Date | null) => {
+                                                                                    handleActualAuditDateChange(date)
+                                                                                    //setFormData({ ...formData, date: new Date(date).toLocaleDateString("en-CA") });
+                                                                                    // setFormData({ ...formData, date: moment(date).format('DD/MMM/YYYY') });
+                                                                                }}
+                                                                                className={`${(!ValidSubmit && dateerr) ? "textfield-error" : ""}${(!ValidDraft && dateerr) ? "textfield-error" : ""}`}
+                                                                                //className={`form-control ${(!ValidSubmit && dateerr) ? "textfield-error" : ""}${(!ValidDraft && dateerr) ? "textfield-error" : ""}`}
+                                                                                // maxDate={new Date()}
+                                                                                minDate={new Date()}
+                                                                                disabled={InputDisabled}
+                                                                                formatDate={(date: any) => moment(date).format('DD/MMM/YYYY')}
                                                                             />
-
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -3496,7 +3655,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                 </section>
 
                                                 <section className='card card-body mt-2'>
-                                                    <fieldset>
+                                                    <fieldset style={{display:'grid'}}>
                                                         <div className='row'>
                                                             <div className='col-sm-6'>
                                                                 <h3 className='text-dark font-16 fw-bold mb-3'>Checklist</h3>
@@ -3508,25 +3667,26 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                         </div>
 
                                                         <div style={{ display: 'grid', overflow: 'auto' }}>
-                                                            <table id="tabRec" className='mtbalenew overhi'>
+                                                            <table id="tabRec" className='mtbalenewscrollnew4'>
                                                                 <thead>
-                                                                    <tr><th>ISO reference<span className="text-danger1"> *</span></th>
-                                                                        <th >IMS procedure<span className="text-danger1"> *</span></th>
-                                                                        <th colSpan={2}>Inquiries<span className="text-danger1"> *</span></th>
-                                                                        <th >Auditor’s
+                                                                    <tr>
+                                                                        <th style={{ minWidth: '200px', maxWidth: '200px' }} >ISO reference<span className="text-danger1"> *</span></th>
+                                                                        <th style={{ minWidth: '220px', maxWidth: '220px' }} >IMS procedure<span className="text-danger1"> *</span></th>
+                                                                        <th colSpan={2} style={{ minWidth: '300px', maxWidth: '300px' }} >Inquiries<span className="text-danger1"> *</span></th>
+                                                                        <th style={{ minWidth: '300px', maxWidth: '300px' }} >Auditor’s
                                                                             Comments<span className="text-danger1"> *</span></th>
-                                                                        <th style={{ minWidth: '116px', maxWidth: '116px' }} >Time<span className="text-danger1"> *</span></th>
+                                                                        <th style={{ minWidth: '160px', maxWidth: '160px' }} >Time<span className="text-danger1"> *</span></th>
                                                                         {/* <th>Share with<span className="text-danger1"> *</span></th> */}
 
-                                                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: '60px', maxWidth: '60px' }} >Action</th>}
+                                                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: '70px', maxWidth: '70px' }} >Action</th>}
                                                                     </tr>
                                                                 </thead>
 
                                                                 <tbody>
                                                                     {console.log("ValidDRecommValidDRecomm", ValidDRecomm)}
                                                                     {recommendationRows.map((row, index) => (
-                                                                        <tr key={index}>
-                                                                            <td title={row?.isoreference ? row?.isoreference : row?.isoreference}>
+                                                                        <tr key={row.id}>
+                                                                            <td title={row?.isoreference ? row?.isoreference : row?.isoreference} style={{ minWidth: '200px', maxWidth: '200px' }}>
                                                                                 <input
                                                                                     type="text"
                                                                                     className={`form-control ${(RowErrors[index]?.isoreference) ? "border-on-error" : ""}`}
@@ -3546,7 +3706,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 disabled={InputDisabled}
                                                                             />
                                                                         </td> */}
-                                                                            <td title={row?.imsprocedure ? row?.imsprocedure : row?.imsprocedure}>
+                                                                            <td title={row?.imsprocedure ? row?.imsprocedure : row?.imsprocedure} style={{ minWidth: '220px', maxWidth: '220px' }}>
                                                                                 <input
                                                                                     type="text"
                                                                                     className={`form-control ${RowErrors[index]?.imsprocedure ? "border-on-error" : ""}`}
@@ -3555,7 +3715,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     disabled={InputDisabled}
                                                                                 />
                                                                             </td>
-                                                                            <td title={row?.inquiries ? row?.inquiries : row?.inquiries}>
+                                                                            <td title={row?.inquiries ? row?.inquiries : row?.inquiries} style={{ minWidth: '300px', maxWidth: '300px' }}>
                                                                                 <textarea
                                                                                     id="simpleinput"
                                                                                     className={`form-control ${(RowErrors[index]?.inquiries) ? "border-on-error" : ""}`}
@@ -3573,7 +3733,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     disabled={InputDisabled}
                                                                                 /> */}
                                                                             </td>
-                                                                            <td title={row?.auditorcomments ? row?.auditorcomments : row?.auditorcomments}>
+                                                                            <td title={row?.auditorcomments ? row?.auditorcomments : row?.auditorcomments} style={{ minWidth: '300px', maxWidth: '300px' }}>
                                                                                 <textarea
                                                                                     id="simpleinput"
                                                                                     className={`form-control ${(RowErrors[index]?.auditorcomments) ? "border-on-error" : ""}`}
@@ -3583,15 +3743,66 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     disabled={InputDisabled}
                                                                                 />
                                                                             </td>
-                                                                            <td style={{ minWidth: '116px', maxWidth: '116px' }} title={row?.time ? row?.time : row?.time}>
-                                                                                <input
+                                                                            <td style={{ minWidth: '160px', maxWidth: '160px' }} title={row?.time ? row?.time : row?.time}>
+                                                                                {/* <input
                                                                                     type="time"
                                                                                     className={`form-control ${(RowErrors[index]?.time) ? "border-on-error" : ""}`}
                                                                                     // className="form-control"
                                                                                     value={row.time}
                                                                                     onChange={(e) => handleRecommendationChange(index, 'time', e.target.value)}
                                                                                     disabled={InputDisabled}
-                                                                                />
+                                                                                /> */}
+                                                                                {/* <TimePicker
+                                                                                    className={`${RowErrors[index]?.time ? "border-on-error" : ""}`}
+                                                                                    value={row.time}
+                                                                                    onChange={(value:any) => handleRecommendationChange(index, 'time', value)}
+                                                                                    disableClock={true}
+                                                                                    format="HH:mm"
+                                                                                    clearIcon={null}
+                                                                                    disabled={InputDisabled}
+                                                                                /> */}
+                                                                                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                                                                    <TimePicker
+                                                                                        label="Select Time"
+                                                                                        value={row.time ? new Date(`1970-01-01T${row.time}`) : null}
+                                                                                        onChange={(newValue) => {
+                                                                                            const formattedTime = newValue
+                                                                                                ? newValue.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                                                                                                : '';
+                                                                                            handleRecommendationChange(index, 'time', formattedTime);
+                                                                                        }}
+                                                                                        disabled={InputDisabled}
+                                                                                        slotProps={{
+                                                                                            textField: {
+                                                                                                fullWidth: true,
+                                                                                                className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
+                                                                                            }
+                                                                                        }}
+                                                                                    />
+                                                                                </LocalizationProvider>
+                                                                                {/* <TimePickerComponent
+                                                                                    value={row.time ? new Date(`1970-01-01T${row.time}`) : null}
+                                                                                    change={(e) => {
+                                                                                        const time = e?.value
+                                                                                            ? e.value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                                                                                            : '';
+                                                                                        handleRecommendationChange(index, 'time', time);
+                                                                                    }}
+                                                                                    format="HH:mm"
+                                                                                    cssClass={RowErrors[index]?.time ? 'e-error' : ''}
+                                                                                    enabled={!InputDisabled}
+                                                                                /> */}
+                                                                                {/* <TimePicker
+                                                                                    value={row.time ? dayjs(row.time, 'HH:mm') : null}
+                                                                                    onChange={(time) => {
+                                                                                        const formattedTime = time ? time.format('HH:mm') : '';
+                                                                                        handleRecommendationChange(index, 'time', formattedTime);
+                                                                                    }}
+                                                                                    format="HH:mm"
+                                                                                    disabled={InputDisabled}
+                                                                                    className={`form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`}
+                                                                                    allowClear={false}
+                                                                                /> */}
                                                                             </td>
                                                                             {/* <td title={row?.sharewith ? row?.sharewith : row?.sharewith}>
                                                                                 <Select
@@ -3604,7 +3815,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     isDisabled={InputDisabled}
                                                                                 />
                                                                             </td> */}
-                                                                            {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '60px', maxWidth: '60px' }} >
+                                                                            {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '70px', maxWidth: '70px' }} >
                                                                                 <img src={require("../assets/del.png")} onClick={() => handleDeleteRecommendationRow(index)} />
 
                                                                             </td>
@@ -3651,7 +3862,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         <th style={{ minWidth: '40px', maxWidth: '40px' }}>Action</th>
                                                                     </tr>
                                                                 </thead>
-                                                                <tbody style={{ maxHeight: "8007px", overflow: 'inherit' }}>
+                                                                <tbody style={{ maxHeight: "8000000007px", overflow: 'inherit' }}>
                                                                     {forwardToArr.map((row, index) => (
                                                                         <tr>
                                                                             <td style={{ minWidth: "30px", maxWidth: "30px", overflow: 'inherit' }}> <div
@@ -3850,8 +4061,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         <tr>
                                                                             <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
                                                                             {/* <td title={row.name || row.FileLeafRef}>{row.name || row.FileLeafRef}</td> */}
-                                                                            <td title={row.name || (row.FileLeafRef.includes('_') ? row.FileLeafRef.split('_')[2] : row.FileLeafRef)}>
-                                                                                {row.name || (row.FileLeafRef.includes('_') ? row.FileLeafRef.split('_')[2] : row.FileLeafRef)}</td>
+                                                                            <td title={row.name || row.FileLeafRef}>
+                                                                                {row.name || row.FileLeafRef}</td>
                                                                             {((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
                                                                                 || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload &&
                                                                                 <td style={{ textAlign: 'center' }}>
@@ -3918,8 +4129,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         <tr>
                                                                             <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
                                                                             {/* <td title={row.name || row.FileLeafRef}>{row.name || row.FileLeafRef}</td> */}
-                                                                            <td title={row.name || (row.FileLeafRef.includes('_') ? row.FileLeafRef.split('_')[2] : row.FileLeafRef)}>
-                                                                                {row.name || (row.FileLeafRef.includes('_') ? row.FileLeafRef.split('_')[2] : row.FileLeafRef)}</td>
+                                                                            <td title={row.name || row.FileLeafRef}>
+                                                                                {row.name || row.FileLeafRef}</td>
                                                                             {/* <td style={{ textAlign: 'center' }} >
                                                                                        
                                                                                         <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span>

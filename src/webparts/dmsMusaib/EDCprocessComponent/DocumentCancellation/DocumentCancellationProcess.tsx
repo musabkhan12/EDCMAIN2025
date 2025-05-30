@@ -182,8 +182,10 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
     const ApiCallFunc = async () => {
 
-        setRequestTypeId(await getRequestTypeID(sp));
-        var ReqId = await getRequestTypeID(sp)
+       
+        var ReqId = await getRequestTypeID(sp);
+        setRequestTypeId(ReqId);
+        // setRequestTypeId(await getRequestTypeID(sp));
 
         const path1 = window.location.href;
 
@@ -2218,7 +2220,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                     </p> */}
 
                                                         <div className="row">
-                                                            <table className="mtbalenew table-centered table-nowrap table-borderless mb-0" id="tbl">
+                                                            <table className="mtbalenewscrollnew4 table-centered table-nowrap table-borderless mb-0" id="tbl">
                                                                 <thead>
                                                                     <tr>
                                                                         <th style={{ minWidth: "30px", maxWidth: "30px" }}>S.No</th>

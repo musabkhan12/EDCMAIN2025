@@ -1479,7 +1479,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       if (this.state.ApprovedAuditSelected.length == 0) editErrors.editApprovedAuditReport = "Report code is required";
       if (this.state.NCNumberselected.length == 0) editErrors.editNCNumber = "NCR number is required";
       if (!this.state.editCriteria) editErrors.editCriteria = "Criteria is required";
-      if (!this.state.editCloseOutStatus) editErrors.editCloseOutStatus = "Close Out Status is required";
+      //if (!this.state.editCloseOutStatus) editErrors.editCloseOutStatus = "Close Out Status is required";
       if (this.state.editCategoryValueIsCheck.length == 0) {
         document.querySelectorAll("#categoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
           el.classList.add(styles.errCh);
@@ -2531,6 +2531,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               Correctionapplicable: this.state.IsFinalapprover
                 ? test1
                 : "",
+              CloseOutStatus: this.state.IsFinalapprover ? "Completed" :"Open",
               NotEffective: this.state.IsFinalapprover
                 ? test2
                 : "",
@@ -2603,6 +2604,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           setloading = true;
           this.setState({ Loading: true });
           if (approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
+            await sp.web.lists.getByTitle("NonConformityList").items.getById(this.state.mainItemId).update({
+              CloseOutStatus: "Completed",
+            })
             sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
               Status: "Rejected",
               ActionTakenById: currentUserID,
@@ -3483,7 +3487,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                         calloutProps={{ gapSpace: 0 }}
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
                       >
-                        <TextField label="Close Out Status:" disabled={this.state.isDisabled} name='editCloseOutStatus' required value={this.state.editCloseOutStatus} onChange={this.handleChange}
+                        <TextField label="Close Out Status:" disabled={true} name='editCloseOutStatus' required value={this.state.editCloseOutStatus} onChange={this.handleChange}
                           className={this.state.editErrors?.editCloseOutStatus ? 'textfield-error' : ''}
                         // styles={{
                         //   fieldGroup: {

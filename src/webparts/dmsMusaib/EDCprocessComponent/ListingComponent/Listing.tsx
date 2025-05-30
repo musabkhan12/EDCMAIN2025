@@ -166,7 +166,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
                 }
             }
-            else if ((item.ProcessName == "Annual Audit Plan") && item.Status == "Pending") {
+            else if ((item.ProcessName == "Annual Audit Plan" || item.ProcessName == "IMS Audit Plan") && item.Status == "Pending") {
                 if (item.ProcessItemId) {
                     let actionType = "approve";
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId}`;
@@ -263,8 +263,8 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     <div>
                         {this.state.process == "Change Request" && <ChangeDocumentRequest description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''}></ChangeDocumentRequest>}
                         {this.state.process == "Document Cancellation" && <DocumentCancellationProcess description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''}></DocumentCancellationProcess>}
-                        {this.state.process == "Annual Audit Program" && <FormComponent userDisplayName={''} userid={this.props.userid} context={this.props.context} item={this.state.edItm} onClose={this.closeForm} />}
-                        {this.state.process == "Annual Audit Plan" && <AnnualAuditPlan description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''} />}
+                        {(this.state.process == "Annual Audit Program" || this.state.process == "IMS Annual Audit Program") && <FormComponent userDisplayName={''} userid={this.props.userid} context={this.props.context} item={this.state.edItm} onClose={this.closeForm} />}
+                        {(this.state.process == "Annual Audit Plan" || this.state.process == "IMS Audit Plan") && <AnnualAuditPlan description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''} />}
                         {this.state.process == "Annual Audit Report" && <AnnualAuditReport description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''} />}
                         {this.state.process == "Non Conformity" && <NonConformity description={''} context={this.props.context} currentUserID={this.props.userid} userDisplayName={currentusertitle} />}
                         {this.state.process == "Memorandum" && <MemoComponent userDisplayName={''} userid={this.props.userid} context={this.props.context} item={this.state.edItm} onClose={this.closeForm} />}
@@ -409,7 +409,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             allItems.push({
                 RequestId: itm.MemoNumber || "",
                 Title: itm.Subject || "",
-                ProcessName: "Annual Audit Program",
+                ProcessName: "IMS Annual Audit Program",
                 ReqName: itm.Author ? itm.Author.Title : '',
                 ReqDt: new Date(itm.Created),
                 Status: itm.Status,
@@ -445,7 +445,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                         allItems.push({
                             RequestId: itm.MemoNumber ? itm.MemoNumber : "",
                             Title: itm.Subject ? itm.Subject : "",
-                            ProcessName: "Annual Audit Plan",
+                            ProcessName: "IMS Audit Plan",
                             ReqName: itm.Author ? itm.Author.Title : '',
                             ReqDt: new Date(itm.Created),
                             Status: itm.Status,
@@ -463,7 +463,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                     allItems.push({
                         RequestId: itm.MemoNumber ? itm.MemoNumber : "",
                         Title: itm.Subject ? itm.Subject : "",
-                        ProcessName: "Annual Audit Plan",
+                        ProcessName: "IMS Audit Plan",
                         ReqName: itm.Author ? itm.Author.Title : '',
                         ReqDt: new Date(itm.Created),
                         // ? moment(itm.Created).format("DD-MMM-YYYY") : ''
@@ -480,7 +480,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                 allItems.push({
                     RequestId: itm.MemoNumber ? itm.MemoNumber : "",
                     Title: itm.Subject ? itm.Subject : "",
-                    ProcessName: "Annual Audit Plan",
+                    ProcessName: "IMS Audit Plan",
                     ReqName: itm.Author ? itm.Author.Title : '',
                     ReqDt: new Date(itm.Created),
                     Status: itm.Status,

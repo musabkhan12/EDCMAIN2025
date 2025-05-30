@@ -945,8 +945,13 @@ text-align: center;
   max-height: 30007px !important;
   overflow-y: hidden !important;
 }
+
 .mtbalenewn tbody{
   overflow-y: inherit !important;
+}
+.scrolly{
+  overflow-y: auto !important;
+  max-height: 300px !important;
 }
 .mtbalenew td {
   min-width: 130px;
@@ -963,6 +968,7 @@ text-align: center;
 .mtbalenew td:last-child{
   border-right: 0px solid #e1e1e1; text-align: center;
 }
+
 .mtbalenew tr:nth-child(even) td {
   background: #f9f9f9;
 }
@@ -987,15 +993,65 @@ text-align: center;
   padding: 0 1px !important;
   width: 28px !important;
 }
+.mtbalenewscrollnew4{
+  width: 100%;
+    position: relative;
+    overflow: auto;
+    display: inline-block;
+    border-radius: 0px;
+    max-height: 450px;
+    
+}
+.mtbalenewscrollnew4 thead {
+  width: 100%;
+  display: inline-block;
+  position: relative;
+  overflow: visible;
+}
+.mtbalenewscrollnew4 tr {
+  display: table;
+  width: 100%;
+}
+.mtbalenewscrollnew4 th {
+  background:#f3f7f9 !important;
+  font-weight: 600 !important;
+  color: #3c3c3c;
+  font-size: 15px !important;
+text-align: center;
+  min-width: 130px;
+  max-width: 130px;
+  padding: 10px !important;
+  border-bottom: 0px solid #1b6363 !important;
+}
+
+.mtbalenewscrollnew4 tbody {
+  width: 100%;
+  position: relative;
+  display: block;
+  max-height: 3000000000007px;
+  overflow: visible ;
+}
+.mtbalenewscrollnew4 td {
+  min-width: 130px;
+  max-width: 130px;
+  padding: 8px 10px; font-size: 15px;
+  text-align: left;
+  background-color: #fff;
+  overflow: hidden; font-size: 14px !important;
+  text-overflow: ellipsis;
+  white-space: nowrap; color: #6b6b6b;
+  border-bottom: 1px solid #e1e1e1;
+  border-right: 1px solid #e1e1e1;
+}
+
+
 .stausbg{
 
     border-radius: 4px;
     background: rgba(0, 135, 81, 0.20) !important;
     font-weight: 500 !important;
     color: #747171;
-    padding: 1px 5px !important; text-align: center;
-    
-    
+    padding: 1px 5px !important; text-align: center;  
 }
 .hidemydatacards{
   display: none !important;
@@ -1069,6 +1125,8 @@ input:not([type])[disabled]{
 .scroll-container {
   overflow-x: auto;
   position: relative;
+  max-height:350px;
+  overflow-y: auto;
 }
 
 .cont-scroll-mtb td {

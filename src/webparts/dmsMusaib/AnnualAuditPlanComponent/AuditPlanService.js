@@ -388,8 +388,8 @@ export const getDataRoles = async (_sp) => {
     // arr = await sp.web.lists.getByTitle(`${listname}`).items.select("*,Memorandum/ID,Auditor/ID,Auditor/Title").expand("Memorandum,Auditor").filter(`Memorandum/ID eq ${AuditID}`).getAll();
 
     arr = await sp.web.lists.getByTitle(`${listname}`).items
-    .select("*,AnnualAuditPlanID/ID,Auditor/ID,Auditor/Title,Auditors/ID,Auditors/Role")
-    .expand("AnnualAuditPlanID,Auditor,Auditors")
+    .select("*,AnnualAuditPlanID/ID,Auditor/ID,Auditor/Title")
+    .expand("AnnualAuditPlanID,Auditor")
     .filter(`AnnualAuditPlanID/ID eq ${AuditID}`).getAll();
     // .then((res) => {
     //   arr = res
@@ -402,7 +402,7 @@ export const getDataRoles = async (_sp) => {
     debugger
     let arr = []
     let sampleDataArray = []
-    arr = await sp.web.lists.getByTitle("AnnualAuditPlanAuditCriteriaList").items.select("*,AnnualAuditPlanID/ID,Auditor/ID,Auditor/Title,Location/ID,Location/Location").expand("Location,AnnualAuditPlanID,Auditor").filter(`AnnualAuditPlanID/ID eq ${AuditID}`).getAll();
+    arr = await sp.web.lists.getByTitle("AnnualAuditPlanAuditCriteriaList").items.select("*,AnnualAuditPlanID/ID,Auditor/ID,Auditor/Title,Location/ID,Location/Location,Department/Department,Department/ID").expand("Department,Location,AnnualAuditPlanID,Auditor").filter(`AnnualAuditPlanID/ID eq ${AuditID}`).getAll();
     // .then((res) => {
     //   arr = res
     //   console.log(arr, 'arr');
@@ -507,7 +507,7 @@ export const getDocumentLinkByID = async (_sp, AttachmentIds) => {
 }
 export const getLatestChangeRequestTemplateType= async (_sp,List) =>{
   let arr = [];
-  // var List ="Annual Audit Program"
+  
   // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
   // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
   await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`TemplateType/TemplateTypeValue eq '${List}' and Status eq 'Approved'`).orderBy("ID", false).top(1)()

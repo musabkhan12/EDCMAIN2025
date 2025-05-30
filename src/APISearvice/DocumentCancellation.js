@@ -536,7 +536,7 @@ export const getRequestTypeID = async (_sp) => {
  
   var reqId;
   await _sp.web.lists.getByTitle("RequestTypeMaster").items
-  .select("*").filter("RequestType eq 'Document Cancellations' and IsActive eq 'Yes'")()
+  .select("*").filter("FormName eq 'Document Cancellation' and IsActive eq 'Yes'")()
     .then((res) => {
       console.log(res, ' let arrs=[]');
      
@@ -651,7 +651,7 @@ export const getUserDepartment = async (_sp,dept) => {
 
 export const getLatestChangeRequestTemplateType= async (_sp,List) =>{
   let arr = [];
-  // var List ="Annual Audit Program"
+ 
   // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
   // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
   await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`(TemplateType/TemplateTypeValue eq '${List}') and Status eq 'Approved'`).orderBy("ID", false).top(1)()

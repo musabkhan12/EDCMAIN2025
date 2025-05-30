@@ -23,7 +23,7 @@ import { FormSubmissionMode } from '../../../../Shared/Interfaces';
 import { decryptId } from '../../../../APISearvice/CryptoService';
 import { WorkflowAction } from '../../../../CustomJSComponents/WorkflowAction/WorkflowAction';
 import { WorkflowAuditHistory } from '../../../../CustomJSComponents/WorkflowAuditHistory/WorkflowAuditHistory';
-import { CONTENTTYPE_Memo, LIST_TITLE_Memo, SITE_URL, Tenant_URL } from '../../../../Shared/Constants';
+import { CONTENTTYPE_Memo, LIST_TITLE_Memo, SITE_URL, TEMPTYPE_Memo, Tenant_URL } from '../../../../Shared/Constants';
 import { PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
@@ -515,7 +515,6 @@ const MemoContext = ({ props }: any) => {
         formitemid = segments[paramIndex + 1]; // Get the ID
         if (segments[paramIndex + 2] !== undefined) {
           setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_Memo));
-          // var ProcessItemId: any = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditPlan);
           setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_Memo));
         }
 
@@ -539,7 +538,7 @@ const MemoContext = ({ props }: any) => {
         setMainEditItem(setBannerById[0]);
         if (formMode == "edit") {
           const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${setBannerById[0]?.DepartmentId}`).orderBy("SerialNumber", false).top(1)();
-          if (listItems.length > 0) {
+          if (listItems.length > 0 && (setBannerById[0].Status == "Rework" || setBannerById[0].Status == "Save as draft")) {
             if (listItems[0].SerialNumber >= setBannerById[0].MemoSerialNumber) {
               memo = listItems[0].SerialNumber + 1;
             }
@@ -564,6 +563,7 @@ const MemoContext = ({ props }: any) => {
         else {
           varmemoNum = setBannerById[0].MemoNumber;
           memo = setBannerById[0].MemoSerialNumber;
+            varmemofilename = setBannerById[0].MemoNumber.replace(/\//g, "_");
         }
         // setFormData((prevFormData) => ({
         //   ...prevFormData,
@@ -701,12 +701,12 @@ const MemoContext = ({ props }: any) => {
           const initialRows = rowData.map((item: any) => ({
             id: item.Id,
             // AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
-            section: item.Section,
-            date: new Date(item.Date).toLocaleDateString("en-CA"),
+            section: item.Section ||"",
+            date: item.Date ?new Date(item.Date).toLocaleDateString("en-CA"): "",
             startTime: item.Time,
-            auditorIds: item.AuditorsId,
+            auditorIds: item.AuditorId,
             endTime: "",
-            auditor: item.Auditors ? { label: item.Auditors.Role, value: item.Auditors.ID } : null // Convert single object
+            auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
           }));
           if (setBannerById[0].RecommendationType?.RecommendationTypeValue == "Table") {
             setRecommendationRows(initialRows);
@@ -737,7 +737,7 @@ const MemoContext = ({ props }: any) => {
     setListNameId(await getListNameID(sp, LIST_TITLE_Memo));
     const FormNameMaster = await getFormNameID(sp, CONTENTTYPE_Memo)
     setFormNameVal(FormNameMaster)
-    let ChangeRequestTemplateType = await getLatestChangeRequestTemplateType(sp, CONTENTTYPE_Memo);
+    let ChangeRequestTemplateType = await getLatestChangeRequestTemplateType(sp, TEMPTYPE_Memo);
 
     if (ChangeRequestTemplateType.length > 0) {
       const template = ChangeRequestTemplateType[0];
@@ -1141,20 +1141,35 @@ const MemoContext = ({ props }: any) => {
   const getNewFileName = async (originalFileName: string): Promise<string> => {
     const userId = currentUser.Id; // Or however you get the current user ID
     const date = new Date();
-    const fileExtension = originalFileName.split('.').pop();
+    // const fileExtension = originalFileName.split('.').pop();
+
+    // const components = [
+    //   date.getFullYear(),
+    //   (date.getMonth() + 1).toString().padStart(2, '0'),
+    //   date.getDate().toString().padStart(2, '0'),
+    //   date.getHours().toString().padStart(2, '0'),
+    //   date.getMinutes().toString().padStart(2, '0'),
+    //   date.getSeconds().toString().padStart(2, '0'),
+    //   date.getMilliseconds().toString().padStart(3, '0')
+    // ];
 
     const components = [
-      date.getFullYear(),
-      (date.getMonth() + 1).toString().padStart(2, '0'),
       date.getDate().toString().padStart(2, '0'),
+      (date.getMonth() + 1).toString().padStart(2, '0'),
+      date.getFullYear().toString(),
       date.getHours().toString().padStart(2, '0'),
       date.getMinutes().toString().padStart(2, '0'),
       date.getSeconds().toString().padStart(2, '0'),
       date.getMilliseconds().toString().padStart(3, '0')
     ];
+    const fileExtension = originalFileName.split('.').pop();
+    const fileNameWithoutExtension = originalFileName.split('.').slice(0, -1).join('.');
+    const NewFileName = `${formData.memoFileName}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`;
+
 
     // return `${userId}_${components.join('')}_${originalFileName}`;
-    return `${formData.memoFileName}_${originalFileName}`;
+    // return `${formData.memoFileName}_${originalFileName}`;
+    return NewFileName
   };
   // #region  Submit Form
   const handleFormSubmit = async () => {
@@ -1231,7 +1246,7 @@ const MemoContext = ({ props }: any) => {
               ToId: formData.to,
               CcId: formData.CC,
               Subject: formData.subject,
-              Date: formData.date,
+              Date:formData.date? formData.date : null,
               Background: formData.background,
               Issues: formData.issues,
               RecommendedforApproval: formData.recommendationforApproval,
@@ -1270,10 +1285,10 @@ const MemoContext = ({ props }: any) => {
                 const postPayload2 = {
                   MemorandumId: editItemID, // Assuming "Title" column exists
                   Section: row.section,
-                  Date: row.date,
+                  Date: row.date || null,
                   Time: row.startTime,
-                  AuditorsId:row.auditorIds,
-                  //AuditorId: row.auditorIds
+                  //AuditorsId:row.auditorIds,
+                  AuditorId: row.auditorIds || null
                 }
 
                 if (row.id) {
@@ -1536,7 +1551,7 @@ const MemoContext = ({ props }: any) => {
               ToId: formData.to,
               CcId: formData.CC,
               Subject: formData.subject,
-              Date: formData.date,
+              Date:formData.date? formData.date : null,
               Background: formData.background,
               Issues: formData.issues,
               RecommendedforApproval: formData.recommendationforApproval,
@@ -1587,10 +1602,10 @@ const MemoContext = ({ props }: any) => {
                 const postPayload2 = {
                   MemorandumId: postId, // Assuming "Title" column exists
                   Section: row.section,
-                  Date: row.date,
+                  Date: row.date || null,
                   Time: row.startTime,
-                  AuditorsId:row.auditorIds,
-                  //AuditorId: row.auditorIds
+                  //AuditorsId:row.auditorIds,
+                  AuditorId: row.auditorIds || null
                 }
 
                 const postResult2 = await addItem2(postPayload2, sp);
@@ -1791,7 +1806,7 @@ const MemoContext = ({ props }: any) => {
               ToId: formData.to,
               CcId: formData.CC,
               Subject: formData.subject,
-              Date: formData.date,
+              Date: formData.date ?formData.date : null,
               Background: formData.background,
               Issues: formData.issues,
               RecommendedforApproval: formData.recommendationforApproval,
@@ -1836,8 +1851,8 @@ const MemoContext = ({ props }: any) => {
                   Section: row.section || "",
                   Date: row.date ? row.date : null,
                   Time: row.startTime || "",
-                  AuditorsId:row.auditorIds ? row.auditorIds : 0,
-                  //AuditorId: row.auditorIds ? row.auditorIds : 0
+                  //AuditorsId:row.auditorIds ? row.auditorIds : 0,
+                  AuditorId: row.auditorIds ? row.auditorIds : null
                 }
 
                 if (row.id) {
@@ -2076,7 +2091,7 @@ const MemoContext = ({ props }: any) => {
               ToId: formData.to,
               CcId: formData.CC,
               Subject: formData.subject,
-              Date: formData.date,
+              Date: formData.date ?formData.date : null,
               Background: formData.background,
               Issues: formData.issues,
               RecommendedforApproval: formData.recommendationforApproval,
@@ -2130,8 +2145,8 @@ const MemoContext = ({ props }: any) => {
                     Section: row.section || "",
                     Date: row.date ? row.date : null,
                     Time: row.startTime || "",
-                    AuditorsId:row.auditorIds ? row.auditorIds : 0,
-                  //AuditorId: row.auditorIds ? row.auditorIds : 0
+                    //  AuditorsId:row.auditorIds ? row.auditorIds : 0,
+                    AuditorId: row.auditorIds ? row.auditorIds : null
                   }
 
                   const postResult2 = await addItem2(postPayload2, sp);
@@ -3138,7 +3153,10 @@ const MemoContext = ({ props }: any) => {
 
                             </div>
                             {formData.RecommendationTypeValue === "Table" ? (
-                              <table id="tabRec" className='mtbalenew overhi mb-3'>
+                              // className='newclasstabls scroll-container'
+                                <div style={{ display: 'grid' }} >
+                               <table id="tabRec" className='mtbalenew overhi mb-3 cont-scroll-mtb'>
+
                                 <thead>
                                   <tr><th style={{ minWidth: '190px', maxWidth: '190px' }}>Section<span className="text-danger1"> *</span></th>
                                     <th>Date<span className="text-danger1"> *</span></th>
@@ -3148,7 +3166,7 @@ const MemoContext = ({ props }: any) => {
                                   </tr>
                                 </thead>
 
-                                <tbody>
+                                <tbody style={{maxHeight:'800007px', overflowY:'auto'}}>
 
                                   {recommendationRows.map((row, index) => (
                                     <tr key={index}>
@@ -3228,10 +3246,10 @@ const MemoContext = ({ props }: any) => {
                                       </td>
 
                                       <td>
-                                       
+
                                         <Select
-                                          options={UserRoles}
-                                          // options={rows1}
+                                          //options={UserRoles}
+                                          options={rows1}
                                           // isMulti
                                           className={`recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                           value={row.auditor}
@@ -3250,6 +3268,7 @@ const MemoContext = ({ props }: any) => {
                                 </tbody>
 
                               </table>
+                              </div>
                             ) : formData.RecommendationTypeValue === "TextBox" ? (
                               <div className="row mb-3">
                                 <div className="col-lg-12">
@@ -3452,7 +3471,7 @@ const MemoContext = ({ props }: any) => {
                             </div>
 
                             <div style={{ overflow: 'inherit' }} className="table-responsive mt-3 pt-0">
-                              <table style={{ overflow: 'inherit' }} className="mtbalenew  table-centered table-nowrap table-borderless mb-0 overhi" id="myTabl">
+                              <table  style={{ overflow: 'inherit' }} className="mtbalenew  table-centered table-nowrap table-borderless mb-0 overhi"  id="myTabl">
                                 <thead >
                                   <tr>
                                     <th style={{ minWidth: "30px", maxWidth: "30px" }}>S.No</th>
@@ -3463,7 +3482,7 @@ const MemoContext = ({ props }: any) => {
                                     <th style={{ minWidth: '40px', maxWidth: '40px' }}>Action</th>
                                   </tr>
                                 </thead>
-                                <tbody style={{ maxHeight: "8007px", overflow: 'inherit' }}>
+                                <tbody style={{maxHeight:'8000000000px', overflow:'inherit'}}>
                                   {forwardToArr.map((row, index) => (
                                     <tr>
                                       <td style={{ minWidth: "30px", maxWidth: "30px", overflow: 'inherit' }}> <div
@@ -3590,13 +3609,13 @@ const MemoContext = ({ props }: any) => {
                           <div className="col-12 text-center">
 
 
-                            {((InputDisabled != true && editItemID == null && MainEditItem == null) || (modeValue === "" || modeValue === "edit") || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "Initiator" && editID.IsInitiator == "Yes" && (editID?.Status === "Pending" || editID?.Status === "Save as draft"))) &&
+                            {((InputDisabled != true && editItemID == null && MainEditItem == null) || (modeValue === "" || (modeValue === "edit" && (MainEditItem?.Status == "Rework" || MainEditItem?.Status == "Save as draft"))) || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "Initiator" && editID.IsInitiator == "Yes" && (editID?.Status === "Pending" || editID?.Status === "Save as draft"))) &&
                               <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
                                 <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
                                 Save As Draft</button>
                             }
 
-                            {((InputDisabled != true && editItemID == null && MainEditItem == null) || (modeValue === "" || modeValue === "edit") || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "Initiator" && editID.IsInitiator == "Yes" && (editID?.Status === "Pending" || editID?.Status === "Save as draft"))) &&
+                            {((InputDisabled != true && editItemID == null && MainEditItem == null) || (modeValue === "" || (modeValue === "edit" && (MainEditItem?.Status == "Rework" || MainEditItem?.Status == "Save as draft"))) || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "Initiator" && editID.IsInitiator == "Yes" && (editID?.Status === "Pending" || editID?.Status === "Save as draft"))) &&
                               <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
                                 <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
                                 Submit</button>
@@ -3653,63 +3672,77 @@ const MemoContext = ({ props }: any) => {
                               </thead>
                               <tbody>
                                 {FilesArr.length > 0 && (
-                                  FilesArr.map((row: any, index: number) => (
-                                    <tr>
-                                      <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
-                                      {/* <td title={`${formData.memoNo}_${row.name}` || (row.FileLeafRef)?.split('_')[2]}>
-                                        {`${formData.memoNo}_${row.name}` || (row.FileLeafRef)?.split('_')[2]}
-                                      </td> */}
-                                      <td title={row.name ? `${formData.memoFileName}_${row.name}` : (row.FileLeafRef)}>
-                                        {/* {`${formData.memoFileName}_${row.name}` || (row.FileLeafRef)} */}
-                                        {row.name ? `${formData.memoFileName}_${row.name}` : (row.FileLeafRef)}
-                                      </td>
-                                      {/* {row.Id && <td style={{ textAlign: 'center' }} >
-                                                                                <span onClick={() => OpenFile(row, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                    <FontAwesomeIcon icon={faDownload} /></span>
-                                                                               {row.Id && <span onClick={() => OpenFile(row, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                    <FontAwesomeIcon icon={faEye} /></span>}
-                                                                            </td>} */}
-                                      {/* <td>{DocumentLink.Created
-                                                                                        ? new Intl.DateTimeFormat('en-GB', {
-                                                                                            day: '2-digit',
-                                                                                            month: 'short',
-                                                                                            year: 'numeric'
-                                                                                        }).format(new Date(DocumentLink.Created)).replace(/ /g, "/")
-                                                                                        : ""}</td> */}
-                                      <td style={{ minWidth: '50px', maxWidth: '50px' }}>{row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
-                                        day: "2-digit",
-                                        month: "short",
-                                        year: "numeric"
-                                      }).replace(/ /g, "/") : new Date().toLocaleDateString("en-GB", {
-                                        day: "2-digit",
-                                        month: "short",
-                                        year: "numeric"
-                                      }).replace(/ /g, "/")}</td>
-
-                                      <td>
-                                        {row.Id && (
-                                          <>
-                                            <span
-                                              onClick={() => OpenFile(row, "Download")}
-                                              style={{ color: "blue", cursor: "pointer", margin: "10px" }}
-                                            >
-                                              <FontAwesomeIcon icon={faDownload} />
-                                            </span>
-                                            <span
-                                              onClick={() => OpenFile(row, "Open")}
-                                              style={{ color: "blue", cursor: "pointer", margin: "10px" }}
-                                            >
-                                              <FontAwesomeIcon icon={faEye} />
-                                            </span>
-                                          </>
-                                        )}
-
-                                        {!InputDisabled && <img src={require("../../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} />}
-                                      </td>
-
-
-                                    </tr>
-                                  ))
+                                  FilesArr.map((row: any, index: number) => {
+                                    const date = new Date();
+                                    const components = [
+                                      date.getDate().toString().padStart(2, '0'),
+                                      (date.getMonth() + 1).toString().padStart(2, '0'),
+                                      date.getFullYear().toString(),
+                                      date.getHours().toString().padStart(2, '0'),
+                                      date.getMinutes().toString().padStart(2, '0'),
+                                      date.getSeconds().toString().padStart(2, '0'),
+                                      date.getMilliseconds().toString().padStart(3, '0')
+                                    ];
+                                    const fileExtension = row.name ? row.name.split('.').pop() : "";
+                                    const fileNameWithoutExtension = row.name ? row.name.split('.').slice(0, -1).join('.') : "";
+                                    const NewFileName = `${formData.memoFileName}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`;
+                                    return (
+                                      <tr key={index}>
+                                        <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
+                                        <td title={row.name ? NewFileName : row.FileLeafRef}>
+                                          {row.name ? NewFileName : row.FileLeafRef}
+                                        </td>
+                                        <td style={{ minWidth: '50px', maxWidth: '50px' }} title={row.Created
+                                            ? new Date(row.Created).toLocaleDateString("en-GB", {
+                                              day: "2-digit",
+                                              month: "short",
+                                              year: "numeric",
+                                            }).replace(/ /g, "/")
+                                            : new Date().toLocaleDateString("en-GB", {
+                                              day: "2-digit",
+                                              month: "short",
+                                              year: "numeric",
+                                            }).replace(/ /g, "/")}>
+                                          {row.Created
+                                            ? new Date(row.Created).toLocaleDateString("en-GB", {
+                                              day: "2-digit",
+                                              month: "short",
+                                              year: "numeric",
+                                            }).replace(/ /g, "/")
+                                            : new Date().toLocaleDateString("en-GB", {
+                                              day: "2-digit",
+                                              month: "short",
+                                              year: "numeric",
+                                            }).replace(/ /g, "/")}
+                                        </td>
+                                        <td>
+                                          {row.Id && (
+                                            <>
+                                              <span
+                                                onClick={() => OpenFile(row, "Download")}
+                                                style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                                              >
+                                                <FontAwesomeIcon icon={faDownload} />
+                                              </span>
+                                              <span
+                                                onClick={() => OpenFile(row, "Open")}
+                                                style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                                              >
+                                                <FontAwesomeIcon icon={faEye} />
+                                              </span>
+                                            </>
+                                          )}
+                                          {!InputDisabled && (
+                                            <img
+                                              src={require("../../assets/del.png")}
+                                              style={{ cursor: "pointer" }}
+                                              onClick={() => handleDelete(index)}
+                                            />
+                                          )}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })
                                 )}
                               </tbody>
                             </table>

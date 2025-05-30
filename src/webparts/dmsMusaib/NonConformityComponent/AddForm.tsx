@@ -136,7 +136,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       revisionDate: null,
       referenceNo: "",
       issueDate: null,
-      closeOutStatus: "",
+      closeOutStatus: "Open",
       categoryCheckOption: [],
       categoryValueIsCheck: [],
       subCategoryCheckOption: [],
@@ -746,10 +746,10 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       errors.criteria = "Criteria is required";
       isValid = false;
     }
-    if (!this.state.closeOutStatus) {
-      errors.closeOutStatus = "Close Out Status is required";
-      isValid = false;
-    }
+    // if (!this.state.closeOutStatus) {
+    //   errors.closeOutStatus = "Close Out Status is required";
+    //   isValid = false;
+    // }
 
     // Validate Category
     if (this.state.categoryValueIsCheck.length == 0) {
@@ -1400,7 +1400,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
 
                 </div>
                 <div className="form-group col-md-4 mb-3">
-                  <TextField label="Close Out Status:" name='closeOutStatus' required value={this.state.closeOutStatus} onChange={this.handleChange}
+                  <TextField label="Close Out Status:" name='closeOutStatus'  disabled={true}  required value={this.state.closeOutStatus} onChange={this.handleChange}
                     className={this.state.errors?.closeOutStatus ? 'textfield-error' : ''}
                   // styles={{
                   //   fieldGroup: {
