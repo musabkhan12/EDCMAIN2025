@@ -277,13 +277,13 @@ const MemoContext = ({ props }: any) => {
 
   // ////// Recommendation
   const [recommendationRows, setRecommendationRows] = React.useState([
-    { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null ,validtime:true}
+    { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null, validtime: true }
   ]);
 
   const [recommendationRowsEdit, setRecommendationRowsEdit] = React.useState([]);
 
   const handleAddRecommendationRow = () => {
-    setRecommendationRows([...recommendationRows, { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null ,validtime:true}]);
+    setRecommendationRows([...recommendationRows, { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null, validtime: true }]);
   };
 
   const handleRecommendationChange = (index: number, field: string, value: any) => {
@@ -531,7 +531,12 @@ const MemoContext = ({ props }: any) => {
 
       setEditItemID(Number(formitemid));
 
-      const setBannerById = await getItemByID(sp, Number(formitemid))
+      const setBannerById = await getItemByID(sp, Number(formitemid));
+      var increaseMemo = true;
+      const draftedItem = await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_Memo);
+      if (draftedItem != null && draftedItem != undefined && draftedItem.length > 0) {
+        increaseMemo = false;
+      }
 
       if (setBannerById.length > 0) {
         debugger
@@ -541,7 +546,8 @@ const MemoContext = ({ props }: any) => {
         setMainEditItem(setBannerById[0]);
         if (formMode == "edit") {
           const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${setBannerById[0]?.DepartmentId}`).orderBy("SerialNumber", false).top(1)();
-          if (listItems.length > 0 && (setBannerById[0].Status == "Rework" || setBannerById[0].Status == "Save as draft")) {
+          // if (listItems.length > 0 && (setBannerById[0].Status == "Rework" || setBannerById[0].Status == "Save as draft")) {
+            if (listItems.length > 0 && ( (setBannerById[0].Status == "Save as draft" && increaseMemo))) {
             if (listItems[0].SerialNumber >= setBannerById[0].MemoSerialNumber) {
               memo = listItems[0].SerialNumber + 1;
             }
@@ -566,7 +572,7 @@ const MemoContext = ({ props }: any) => {
         else {
           varmemoNum = setBannerById[0].MemoNumber;
           memo = setBannerById[0].MemoSerialNumber;
-            varmemofilename = setBannerById[0].MemoNumber.replace(/\//g, "_");
+          varmemofilename = setBannerById[0].MemoNumber.replace(/\//g, "_");
         }
         // setFormData((prevFormData) => ({
         //   ...prevFormData,
@@ -704,13 +710,13 @@ const MemoContext = ({ props }: any) => {
           const initialRows = rowData.map((item: any) => ({
             id: item.Id,
             // AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
-            section: item.Section ||"",
-            date: item.Date ?new Date(item.Date).toLocaleDateString("en-CA"): "",
+            section: item.Section || "",
+            date: item.Date ? new Date(item.Date).toLocaleDateString("en-CA") : "",
             startTime: item.Time,
             auditorIds: item.AuditorId,
             endTime: "",
             auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null, // Convert single object
-            validtime:true
+            validtime: true
           }));
           if (setBannerById[0].RecommendationType?.RecommendationTypeValue == "Table") {
             setRecommendationRows(initialRows);
@@ -1024,7 +1030,7 @@ const MemoContext = ({ props }: any) => {
           validRec = false;
         }
 
-        if (recommendationRows.length > 0 && recommendationRows.every((row: any) => row.section.trim() !== "" && row.date.trim() !== "" && row.startTime !== null&& row.startTime.trim() !== "" && row.auditor != null && row.auditor.length != 0 ) == false) {
+        if (recommendationRows.length > 0 && recommendationRows.every((row: any) => row.section.trim() !== "" && row.date.trim() !== "" && row.startTime !== null && row.startTime.trim() !== "" && row.auditor != null && row.auditor.length != 0) == false) {
           // document.getElementById("date")?.classList.add("border-on-error");
           validRec = false;
           // recommendationRows.forEach(row => {
@@ -1035,7 +1041,7 @@ const MemoContext = ({ props }: any) => {
             validtime: (row.startTime === "" || row.startTime === null) ? false : true
           }));
           setRecommendationRows(updatedRows); // triggers re-render
-         
+
 
 
           Array.from(document.getElementsByClassName("recommendClsErr")).forEach((element: Element) => {
@@ -1266,7 +1272,7 @@ const MemoContext = ({ props }: any) => {
               ToId: formData.to,
               CcId: formData.CC,
               Subject: formData.subject,
-              Date:formData.date? formData.date : null,
+              Date: formData.date ? formData.date : null,
               Background: formData.background,
               Issues: formData.issues,
               RecommendedforApproval: formData.recommendationforApproval,
@@ -1571,7 +1577,7 @@ const MemoContext = ({ props }: any) => {
               ToId: formData.to,
               CcId: formData.CC,
               Subject: formData.subject,
-              Date:formData.date? formData.date : null,
+              Date: formData.date ? formData.date : null,
               Background: formData.background,
               Issues: formData.issues,
               RecommendedforApproval: formData.recommendationforApproval,
@@ -1826,7 +1832,7 @@ const MemoContext = ({ props }: any) => {
               ToId: formData.to,
               CcId: formData.CC,
               Subject: formData.subject,
-              Date: formData.date ?formData.date : null,
+              Date: formData.date ? formData.date : null,
               Background: formData.background,
               Issues: formData.issues,
               RecommendedforApproval: formData.recommendationforApproval,
@@ -2111,7 +2117,7 @@ const MemoContext = ({ props }: any) => {
               ToId: formData.to,
               CcId: formData.CC,
               Subject: formData.subject,
-              Date: formData.date ?formData.date : null,
+              Date: formData.date ? formData.date : null,
               Background: formData.background,
               Issues: formData.issues,
               RecommendedforApproval: formData.recommendationforApproval,
@@ -3174,56 +3180,56 @@ const MemoContext = ({ props }: any) => {
                             </div>
                             {formData.RecommendationTypeValue === "Table" ? (
                               // className='newclasstabls scroll-container'
-                                <div style={{ display: 'grid' }} >
-                               <table id="tabRec" className='mtbalenew overhi mb-3 cont-scroll-mtb'>
+                              <div style={{ display: 'grid' }} >
+                                <table id="tabRec" className='mtbalenew overhi mb-3 cont-scroll-mtb'>
 
-                                <thead>
-                                  <tr><th style={{ minWidth: '190px', maxWidth: '190px' }}>Section<span className="text-danger1"> *</span></th>
-                                    <th>Date<span className="text-danger1"> *</span></th>
-                                    <th colSpan={2}>Time<span className="text-danger1"> *</span></th>
-                                    <th>Auditor<span className="text-danger1"> *</span></th>
-                                    {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>}
-                                  </tr>
-                                </thead>
+                                  <thead>
+                                    <tr><th style={{ minWidth: '190px', maxWidth: '190px' }}>Section<span className="text-danger1"> *</span></th>
+                                      <th>Date<span className="text-danger1"> *</span></th>
+                                      <th colSpan={2}>Time<span className="text-danger1"> *</span></th>
+                                      <th>Auditor<span className="text-danger1"> *</span></th>
+                                      {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>}
+                                    </tr>
+                                  </thead>
 
-                                <tbody style={{maxHeight:'800007px', overflowY:'auto'}}>
+                                  <tbody style={{ maxHeight: '800007px', overflowY: 'auto' }}>
 
-                                  {recommendationRows.map((row, index) => (
-                                    <tr key={index}>
-                                      <td style={{ minWidth: '190px', maxWidth: '190px' }}>
-                                        <input
-                                          type="text"
-                                          className={`form-control recommendClsErr }`}
-                                          // className="form-control"
-                                          value={row.section}
-                                          title={row.section}
-                                          onChange={(e) => handleRecommendationChange(index, 'section', e.target.value)}
-                                          disabled={InputDisabled}
-                                        />
-                                      </td>
-                                      <td title={
-                                        row?.date
-                                          ? moment(row?.date).format('DD/MMM/YYYY')
-                                          : "Select a date"
-                                      }>
-                                        <DatePicker
-                                          value={
-                                            row?.date
-                                              ? new Date(moment(row?.date).format('YYYY-MM-DD'))
-                                              : null
-                                          }
-                                          onSelectDate={(date: Date | null) => {
-                                            if (date) {
-                                              const formattedDate = new Date(date).toLocaleDateString("en-CA"); // Format as "yyyy-MM-dd"
-                                              handleRecommendationChange(index, 'date', formattedDate); // Pass formatted date to handleRecommendationChange
+                                    {recommendationRows.map((row, index) => (
+                                      <tr key={index}>
+                                        <td style={{ minWidth: '190px', maxWidth: '190px' }}>
+                                          <input
+                                            type="text"
+                                            className={`form-control recommendClsErr }`}
+                                            // className="form-control"
+                                            value={row.section}
+                                            title={row.section}
+                                            onChange={(e) => handleRecommendationChange(index, 'section', e.target.value)}
+                                            disabled={InputDisabled}
+                                          />
+                                        </td>
+                                        <td title={
+                                          row?.date
+                                            ? moment(row?.date).format('DD/MMM/YYYY')
+                                            : "Select a date"
+                                        }>
+                                          <DatePicker
+                                            value={
+                                              row?.date
+                                                ? new Date(moment(row?.date).format('YYYY-MM-DD'))
+                                                : null
                                             }
-                                          }}
-                                          // maxDate={new Date()}
-                                          minDate={new Date()}
-                                          disabled={InputDisabled}
-                                          formatDate={(date: any) => moment(date).format('DD/MMM/YYYY')}
-                                        />
-                                        {/* <input
+                                            onSelectDate={(date: Date | null) => {
+                                              if (date) {
+                                                const formattedDate = new Date(date).toLocaleDateString("en-CA"); // Format as "yyyy-MM-dd"
+                                                handleRecommendationChange(index, 'date', formattedDate); // Pass formatted date to handleRecommendationChange
+                                              }
+                                            }}
+                                            // maxDate={new Date()}
+                                            minDate={new Date()}
+                                            disabled={InputDisabled}
+                                            formatDate={(date: any) => moment(date).format('DD/MMM/YYYY')}
+                                          />
+                                          {/* <input
                                           type="date"
                                           className={`form-control recommendClsErr`}
                                           value={
@@ -3242,7 +3248,7 @@ const MemoContext = ({ props }: any) => {
                                           }}
                                           disabled={InputDisabled}
                                         /> */}
-                                        {/* <input
+                                          {/* <input
                                           type="date"
                                           className={`form-control recommendClsErr`}
                                           // className="form-control"
@@ -3278,42 +3284,42 @@ const MemoContext = ({ props }: any) => {
                                                 handleRecommendationChange(index, 'startTime', formattedTime);
                                               }}
                                               disabled={InputDisabled}
-                                            slotProps={{
+                                              slotProps={{
                                                 textField: {
-                                                    fullWidth: true,
-                                                    className: `form-control ${row.validtime == false ? 'ErrBorder-ErrColor' : ''}`
+                                                  fullWidth: true,
+                                                  className: `form-control ${row.validtime == false ? 'ErrBorder-ErrColor' : ''}`
 
-                                                    // className: `form-control ${row?.startTime =="" && ValidDRecomm == false ? 'border-on-error' : ''}`
-                                                    // className: `form-control recommendClsErr}`
+                                                  // className: `form-control ${row?.startTime =="" && ValidDRecomm == false ? 'border-on-error' : ''}`
+                                                  // className: `form-control recommendClsErr}`
 
                                                 }
-                                            }}
+                                              }}
                                             />
                                           </LocalizationProvider></td>
 
-                                      <td title={row?.auditor?.label || "Select an auditor"}>
+                                        <td title={row?.auditor?.label || "Select an auditor"}>
 
-                                        <Select
-                                          //options={UserRoles}
-                                          options={rows1}
-                                          // isMulti
-                                          className={`recommendClsErr }`}
-                                          value={row.auditor}
-                                          onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
-                                          placeholder="Select"
-                                          isDisabled={InputDisabled}
-                                         
-                                        />
-                                      </td>
-                                      {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '70px', maxWidth: '70px' }}>
-                                        <img src={require("../../assets/del.png")} onClick={() => handleDeleteRecommendationRow(index)} />
-                                      </td>
-                                      }
-                                    </tr>
-                                  ))}
-                                </tbody>
+                                          <Select
+                                            //options={UserRoles}
+                                            options={rows1}
+                                            // isMulti
+                                            className={`recommendClsErr }`}
+                                            value={row.auditor}
+                                            onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
+                                            placeholder="Select"
+                                            isDisabled={InputDisabled}
 
-                              </table>
+                                          />
+                                        </td>
+                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '70px', maxWidth: '70px' }}>
+                                          <img src={require("../../assets/del.png")} onClick={() => handleDeleteRecommendationRow(index)} />
+                                        </td>
+                                        }
+                                      </tr>
+                                    ))}
+                                  </tbody>
+
+                                </table>
                               </div>
                             ) : formData.RecommendationTypeValue === "TextBox" ? (
                               <div className="row mb-3">
@@ -3517,7 +3523,7 @@ const MemoContext = ({ props }: any) => {
                             </div>
 
                             <div style={{ overflow: 'inherit' }} className="table-responsive mt-3 pt-0">
-                              <table  style={{ overflow: 'inherit' }} className="mtbalenew  table-centered table-nowrap table-borderless mb-0 overhi"  id="myTabl">
+                              <table style={{ overflow: 'inherit' }} className="mtbalenew  table-centered table-nowrap table-borderless mb-0 overhi" id="myTabl">
                                 <thead >
                                   <tr>
                                     <th style={{ minWidth: "30px", maxWidth: "30px" }}>S.No</th>
@@ -3528,7 +3534,7 @@ const MemoContext = ({ props }: any) => {
                                     <th style={{ minWidth: '40px', maxWidth: '40px' }}>Action</th>
                                   </tr>
                                 </thead>
-                                <tbody style={{maxHeight:'8000000000px', overflow:'inherit'}}>
+                                <tbody style={{ maxHeight: '8000000000px', overflow: 'inherit' }}>
                                   {forwardToArr.map((row, index) => (
                                     <tr>
                                       <td style={{ minWidth: "30px", maxWidth: "30px", overflow: 'inherit' }}> <div
@@ -3557,7 +3563,7 @@ const MemoContext = ({ props }: any) => {
 
                                       </td>
                                       <td style={{ minWidth: '40px', maxWidth: '40px', overflow: 'inherit' }}>Level {index + 1}</td>
-                                      <td style={{ overflow: 'inherit' }}    title={row?.approvers.map((approver: any) => approver.label).join(", ") || "Enter Approver Name"}
+                                      <td style={{ overflow: 'inherit' }} title={row?.approvers.map((approver: any) => approver.label).join(", ") || "Enter Approver Name"}
                                       >
 
                                         <Select
@@ -3740,16 +3746,16 @@ const MemoContext = ({ props }: any) => {
                                           {row.name ? NewFileName : row.FileLeafRef}
                                         </td>
                                         <td style={{ minWidth: '50px', maxWidth: '50px' }} title={row.Created
-                                            ? new Date(row.Created).toLocaleDateString("en-GB", {
-                                              day: "2-digit",
-                                              month: "short",
-                                              year: "numeric",
-                                            }).replace(/ /g, "/")
-                                            : new Date().toLocaleDateString("en-GB", {
-                                              day: "2-digit",
-                                              month: "short",
-                                              year: "numeric",
-                                            }).replace(/ /g, "/")}>
+                                          ? new Date(row.Created).toLocaleDateString("en-GB", {
+                                            day: "2-digit",
+                                            month: "short",
+                                            year: "numeric",
+                                          }).replace(/ /g, "/")
+                                          : new Date().toLocaleDateString("en-GB", {
+                                            day: "2-digit",
+                                            month: "short",
+                                            year: "numeric",
+                                          }).replace(/ /g, "/")}>
                                           {row.Created
                                             ? new Date(row.Created).toLocaleDateString("en-GB", {
                                               day: "2-digit",

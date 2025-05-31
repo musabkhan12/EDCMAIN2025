@@ -1043,6 +1043,8 @@ textarea:focus{
   
   /* Highlight the field borders */
   .border-on-error {
-    border: 1px solid #dc3545 !important;
+    // border: 1px solid #dc3545 !important;
+     background-color: #ffe6e6 !important; 
+     border-color: red !important;
   }
   

@@ -286,13 +286,13 @@ const FormContext = ({ props }: any) => {
 
   // ////// Recommendation
   const [recommendationRows, setRecommendationRows] = React.useState([
-    { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null,validtime:true }
+    { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null, validtime: true }
   ]);
 
   const [recommendationRowsEdit, setRecommendationRowsEdit] = React.useState([]);
 
   const handleAddRecommendationRow = () => {
-    setRecommendationRows([...recommendationRows, { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null ,validtime:true}]);
+    setRecommendationRows([...recommendationRows, { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null, validtime: true }]);
   };
 
   const handleRecommendationChange = (index: number, field: string, value: any) => {
@@ -477,7 +477,7 @@ const FormContext = ({ props }: any) => {
         memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]
           ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
           : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-          memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]
+        memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]
           ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
           : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
       }));
@@ -545,12 +545,12 @@ const FormContext = ({ props }: any) => {
           //  ProcessListItem =await getApprovalByID(sp, Number(segments[paramIndex + 2]),CONTENTTYPE_DocumentCancel);
           // setInputDisabled((ProcessListItem.Status == "Pending" || ProcessListItem?.Status === "Save as draft") && ProcessListItem.Level === 0 && ProcessListItem.CurrentUserRole !=="OES")
           setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditProgram));
-          
+
           setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditProgram));
         }
         // else {
 
-       
+
         // }
       }
 
@@ -562,7 +562,12 @@ const FormContext = ({ props }: any) => {
 
       setEditItemID(Number(formitemid));
 
-      const setBannerById = await getItemByID(sp, Number(formitemid))
+      const setBannerById = await getItemByID(sp, Number(formitemid));
+      var increaseMemo = true;
+      const draftedItem = await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditProgram);
+      if (draftedItem != null && draftedItem != undefined && draftedItem.length > 0) {
+        increaseMemo = false;
+      }
 
       if (setBannerById.length > 0) {
         debugger
@@ -574,7 +579,9 @@ const FormContext = ({ props }: any) => {
         setBannerById[0].value = setBannerById[0].MemorandumIDId;
         if (formMode == "edit") {
           const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${setBannerById[0]?.DepartmentId}`).orderBy("SerialNumber", false).top(1)();
-          if (listItems.length > 0 && (setBannerById[0].Status == "Rework" || setBannerById[0].Status == "Save as draft")) {
+          // if (listItems.length > 0 && (setBannerById[0].Status == "Rework" || setBannerById[0].Status == "Save as draft")) {
+          
+          if (listItems.length > 0 && ( (setBannerById[0].Status == "Save as draft" && increaseMemo))) {
             if (listItems[0].SerialNumber >= setBannerById[0].MemoSerialNumber) {
               memo = listItems[0].SerialNumber + 1;
             }
@@ -736,12 +743,12 @@ const FormContext = ({ props }: any) => {
           const initialRows = rowData.map((item: any) => ({
             id: item.Id,
             // AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
-            section: item.Section ||"",
-            date: item.Date ? new Date(item.Date).toLocaleDateString("en-CA") :"",
+            section: item.Section || "",
+            date: item.Date ? new Date(item.Date).toLocaleDateString("en-CA") : "",
             startTime: item.Time,
             auditorIds: item.AuditorId,
             endTime: "",
-            validtime:true,
+            validtime: true,
             auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
           }));
           if (setBannerById[0].RecommendationType?.RecommendationTypeValue == "Table") {
@@ -761,7 +768,7 @@ const FormContext = ({ props }: any) => {
             deptId: year.DepartmentId,
             departmentOption: year.Department ? { label: year.Department?.Department, value: year.Department?.ID } : null,
             // area: year.Area ||"",
-            procedure: year.RelatedProcedure ||"",
+            procedure: year.RelatedProcedure || "",
             // Year: formData.Year || 0,
             auditorIds: year.AuditorId || null,
             auditor: year.Auditor ? { label: year.Auditor?.Role, value: year.Auditor?.ID } : null, // Convert single object
@@ -782,15 +789,15 @@ const FormContext = ({ props }: any) => {
 
             custodianId: year.CustodianId || 0,
             custodian: year.Custodian ? { label: year.Custodian?.Custodian, value: year.Custodian?.ID } : null,
-            locationId:year.LocationId || 0,
-            location: year.Location? { label: year.Location?.Location, value: year.Location?.ID } : null,
+            locationId: year.LocationId || 0,
+            location: year.Location ? { label: year.Location?.Location, value: year.Location?.ID } : null,
             OtherDetails: year.OtherDetails || "",
-            ShiftId:year.ShiftId || 0,
-            Shift:year.Shift? { label: year.Shift?.Shift, value: year.Shift?.ID } : null,
+            ShiftId: year.ShiftId || 0,
+            Shift: year.Shift ? { label: year.Shift?.Shift, value: year.Shift?.ID } : null,
 
           })) || [];
 
-         
+
           setYearlyList(EditApprowData);
           setYearlyListEdit(EditApprowData);
 
@@ -806,7 +813,7 @@ const FormContext = ({ props }: any) => {
     setListNameId(await getListNameID(sp, LIST_TITLE_AuditProgram))
     setAuditProgDept(await getAuditProgDepartment(sp));
     setAuditProgCustodian(await getAuditProgCustodian(sp));
-    setAuditProgShift( await getAuditProgShift(sp));
+    setAuditProgShift(await getAuditProgShift(sp));
     createTooltipContent(filteredDeptArrayCC);
     createTooltipContentTo(filteredDeptArrayTo)
 
@@ -819,7 +826,7 @@ const FormContext = ({ props }: any) => {
         ...prevFormData,
         changeReqListID: template.ID,
         DocCode: template.DocumentCode || "",
-        RevisionNo: template.RevisionNumber ,
+        RevisionNo: template.RevisionNumber,
         IssueNo: template.IssueNumber,
         RevisionDate: new Date(template.RevisionDate).toLocaleDateString("en-CA") || null,
         IssueDate: new Date(template.IssueDate).toLocaleDateString("en-CA") || null,
@@ -908,17 +915,17 @@ const FormContext = ({ props }: any) => {
       // Close the dropdown on scroll
       document.activeElement && (document.activeElement as HTMLElement).blur();
     };
-  
+
     const container = document.querySelector('.scroll-container');
     container?.addEventListener('scroll', handleScroll);
-  
+
     return () => {
       container?.removeEventListener('scroll', handleScroll);
     };
 
   }, [useHide]);
 
- 
+
 
   const handleCancel = () => {
     // window.location.reload();
@@ -1126,15 +1133,15 @@ const FormContext = ({ props }: any) => {
       }
 
       // if (YearlyList.length > 0 && YearlyList.every((row: any) => row.procedure.trim() !== ""  && row.deptId != null && row.auditor != null && row.auditor.length != 0 && row.Shift !=null && row.ShiftId !=0 && row.custodianId !=0 ) == false) {
-        if (YearlyList.length > 0 && YearlyList.every((row: any) => row.procedure.trim() !== ""  && row.deptId != null && row.auditor != null && row.auditor.length != 0 && row.custodianId !=0 ) == false) {
-  
-      // document.getElementById("date")?.classList.add("border-on-error");
+      if (YearlyList.length > 0 && YearlyList.every((row: any) => row.procedure.trim() !== "" && row.deptId != null && row.auditor != null && row.auditor.length != 0 && row.custodianId != 0) == false) {
+
+        // document.getElementById("date")?.classList.add("border-on-error");
         validRec = false;
 
         Array.from(document.getElementsByClassName("YearlylistclsErr")).forEach((element: Element) => {
           if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "Select Department" || element.textContent?.trim() === "Select Custodian" || element.textContent?.trim() === "")) {
 
-          // if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "Select Department" || element.textContent?.trim() === "Select Custodian" || element.textContent?.trim() === "Select Location"|| element.textContent?.trim() === "Select Shift" || element.textContent?.trim() === "")) {
+            // if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "Select Department" || element.textContent?.trim() === "Select Custodian" || element.textContent?.trim() === "Select Location"|| element.textContent?.trim() === "Select Shift" || element.textContent?.trim() === "")) {
             element.classList.add("border-on-error");
           }
           else if (element.tagName === "INPUT" && (element as HTMLInputElement).value.trim() === "") {
@@ -1150,7 +1157,7 @@ const FormContext = ({ props }: any) => {
           // document.getElementById("date")?.classList.add("border-on-error");
           validRec = false;
         }
-        if (recommendationRows.length > 0 && recommendationRows.every((row: any) => row.section.trim() !== "" && row.date.trim() !== ""&& row.startTime !== null && row.startTime.trim() !== "" && row.auditor != null && row.auditor.length != 0 ) == false) {
+        if (recommendationRows.length > 0 && recommendationRows.every((row: any) => row.section.trim() !== "" && row.date.trim() !== "" && row.startTime !== null && row.startTime.trim() !== "" && row.auditor != null && row.auditor.length != 0) == false) {
           // document.getElementById("date")?.classList.add("border-on-error");
           validRec = false;
 
@@ -1232,7 +1239,7 @@ const FormContext = ({ props }: any) => {
         validAudit = false;
       }
       if (auditTypeTitle == 'Monthly') {
-        if(!MonthName){
+        if (!MonthName) {
           document.getElementById("drpMonths")?.classList.add("border-on-error");
           validAudit = false;
         }
@@ -1240,7 +1247,7 @@ const FormContext = ({ props }: any) => {
           document.getElementById("drpYear")?.classList.add("border-on-error");
           validAudit = false;
         }
-       
+
       }
       if (auditTypeTitle == 'Annual' && !Year) {
         document.getElementById("drpYear")?.classList.add("border-on-error");
@@ -1442,7 +1449,7 @@ const FormContext = ({ props }: any) => {
                 const postPayload2 = {
                   AnnualAuditProgramId: editItemID, // Assuming "Title" column exists
                   Section: row.section,
-                  Date: row.date ||null,
+                  Date: row.date || null,
                   Time: row.startTime,
                   AuditorId: row.auditorIds || null
                 }
@@ -1550,7 +1557,7 @@ const FormContext = ({ props }: any) => {
 
               const Yeararr = {
                 AnnualAuditProgramIDId: editItemID,
-                DepartmentId: year.deptId||null,
+                DepartmentId: year.deptId || null,
                 // Area: year.area,
                 RelatedProcedure: year.procedure,
                 Year: formData.Year || 0,
@@ -1558,8 +1565,8 @@ const FormContext = ({ props }: any) => {
                 // Location: year.location || "",
                 LocationId: year.locationId || null,
                 OtherDetails: year.OtherDetails || "",
-                CustodianId: year.custodianId ||null,
-                ShiftId: year.ShiftId ||null,
+                CustodianId: year.custodianId || null,
+                ShiftId: year.ShiftId || null,
                 Jan: year.Jan,
                 Feb: year.Feb,
                 Mar: year.Mar,
@@ -1595,7 +1602,7 @@ const FormContext = ({ props }: any) => {
                   year.Nov !== "No" ||
                   year.Dec !== "No" ||
                   // year.area.trim() !== "" ||
-                  year.procedure.trim() !== "" ||(year.ShiftId !== null && year.ShiftId !== 0) ||(year.custodianId !== null && year.custodianId !== 0)||(year.locationId !== null && year.locationId !== 0) ||
+                  year.procedure.trim() !== "" || (year.ShiftId !== null && year.ShiftId !== 0) || (year.custodianId !== null && year.custodianId !== 0) || (year.locationId !== null && year.locationId !== 0) ||
                   (year.deptId !== null && year.deptId !== 0) || (year.auditorIds !== null && year.auditorIds !== 0) ||
                   (year.auditor && year.auditor !== 0 && year.auditor.length > 0)
                 ) {
@@ -1610,10 +1617,10 @@ const FormContext = ({ props }: any) => {
                 }
 
 
-             
 
 
-            }
+
+              }
 
 
             }
@@ -1831,7 +1838,7 @@ const FormContext = ({ props }: any) => {
               MRevisionNumber: formData.MRevisionNumber,
               MIssueNumber: formData.MIssueNumber,
               MRevisionDate: formData.MRevisionDate,
-              MIssueDate:formData.MIssueDate
+              MIssueDate: formData.MIssueDate
 
 
             }
@@ -1979,13 +1986,13 @@ const FormContext = ({ props }: any) => {
                 year.Nov !== "No" ||
                 year.Dec !== "No" ||
                 // year.area.trim() !== "" ||
-                year.procedure.trim() !== ""  ||(year.ShiftId !== null && year.ShiftId !== 0) ||(year.custodianId !== null && year.custodianId !== 0)||(year.locationId !== null && year.locationId !== 0)  ||
+                year.procedure.trim() !== "" || (year.ShiftId !== null && year.ShiftId !== 0) || (year.custodianId !== null && year.custodianId !== 0) || (year.locationId !== null && year.locationId !== 0) ||
                 (year.deptId !== null && year.deptId !== 0) || (year.auditorIds !== null && year.auditorIds !== 0) ||
                 (year.auditor && year.auditor !== 0 && year.auditor.length > 0)
               ) {
                 const Yeararr = {
                   AnnualAuditProgramIDId: postId,
-                  DepartmentId: year.deptId||null,
+                  DepartmentId: year.deptId || null,
                   // Area: year.area,
                   RelatedProcedure: year.procedure,
                   Year: formData.Year || 0,
@@ -1993,8 +2000,8 @@ const FormContext = ({ props }: any) => {
                   // Location: year.location || "",
                   LocationId: year.locationId || null,
                   OtherDetails: year.OtherDetails || "",
-                  CustodianId: year.custodianId ||null,
-                  ShiftId: year.ShiftId||null,
+                  CustodianId: year.custodianId || null,
+                  ShiftId: year.ShiftId || null,
                   Jan: year.Jan,
                   Feb: year.Feb,
                   Mar: year.Mar,
@@ -2009,12 +2016,12 @@ const FormContext = ({ props }: any) => {
                   Dec: year.Dec,
                 }
 
-              // if (year.id) {
-              //   const postResult2 = await UpdatYearlyList(Yeararr, sp, year.id);
-              //   const postId2 = postResult2?.data?.ID;
+                // if (year.id) {
+                //   const postResult2 = await UpdatYearlyList(Yeararr, sp, year.id);
+                //   const postId2 = postResult2?.data?.ID;
 
-              // }
-              // else {
+                // }
+                // else {
                 // if (forwardToArr.every(row => row.role == 0 && row.approvers.length == 0 &&
                 const postResulte = await addYearlyList(Yeararr, sp);
                 const postId2 = postResulte?.data?.ID;
@@ -2026,7 +2033,7 @@ const FormContext = ({ props }: any) => {
                 // }
                 // }
 
-             
+
 
 
               }
@@ -2282,7 +2289,7 @@ const FormContext = ({ props }: any) => {
 
               const Yeararr = {
                 AnnualAuditProgramIDId: editItemID,
-                DepartmentId: year.deptId||null,
+                DepartmentId: year.deptId || null,
                 // Area: year.area,
                 RelatedProcedure: year.procedure,
                 Year: formData.Year || 0,
@@ -2290,8 +2297,8 @@ const FormContext = ({ props }: any) => {
                 // Location: year.location || "",
                 LocationId: year.locationId || null,
                 OtherDetails: year.OtherDetails || "",
-                CustodianId: year.custodianId||null,
-                ShiftId: year.ShiftId ||null,
+                CustodianId: year.custodianId || null,
+                ShiftId: year.ShiftId || null,
                 Jan: year.Jan,
                 Feb: year.Feb,
                 Mar: year.Mar,
@@ -2325,8 +2332,8 @@ const FormContext = ({ props }: any) => {
                   year.Oct !== "No" ||
                   year.Nov !== "No" ||
                   year.Dec !== "No" ||
- 
-                  year.procedure.trim() !== "" ||(year.ShiftId !== null && year.ShiftId !== 0) ||(year.custodianId !== null && year.custodianId !== 0)||(year.locationId !== null && year.locationId !== 0) ||
+
+                  year.procedure.trim() !== "" || (year.ShiftId !== null && year.ShiftId !== 0) || (year.custodianId !== null && year.custodianId !== 0) || (year.locationId !== null && year.locationId !== 0) ||
                   (year.deptId !== null && year.deptId !== 0) || (year.auditorIds !== null && year.auditorIds !== 0) ||
                   (year.auditor && year.auditor !== 0 && year.auditor.length > 0)
                 ) {
@@ -2340,7 +2347,7 @@ const FormContext = ({ props }: any) => {
                 }
                 // }
 
-             
+
 
 
               }
@@ -2664,14 +2671,14 @@ const FormContext = ({ props }: any) => {
                 year.Oct !== "No" ||
                 year.Nov !== "No" ||
                 year.Dec !== "No" ||
-               
-                year.procedure.trim() !== "" ||(year.ShiftId !== null && year.ShiftId !== 0) ||(year.custodianId !== null && year.custodianId !== 0)||(year.locationId !== null && year.locationId !== 0)||
+
+                year.procedure.trim() !== "" || (year.ShiftId !== null && year.ShiftId !== 0) || (year.custodianId !== null && year.custodianId !== 0) || (year.locationId !== null && year.locationId !== 0) ||
                 (year.deptId !== null && year.deptId !== 0) || (year.auditorIds !== null && year.auditorIds !== 0) ||
                 (year.auditor && year.auditor !== 0 && year.auditor.length > 0)
               ) {
                 const Yeararr = {
                   AnnualAuditProgramIDId: postId,
-                  DepartmentId: year.deptId||null,
+                  DepartmentId: year.deptId || null,
                   // Area: year.area,
                   RelatedProcedure: year.procedure,
                   Year: formData.Year || 0,
@@ -2679,8 +2686,8 @@ const FormContext = ({ props }: any) => {
                   // Location: year.location || "",
                   LocationId: year.locationId || null,
                   OtherDetails: year.OtherDetails || "",
-                  CustodianId: year.custodianId||null,
-                  ShiftId: year.ShiftId ||null,
+                  CustodianId: year.custodianId || null,
+                  ShiftId: year.ShiftId || null,
                   Jan: year.Jan,
                   Feb: year.Feb,
                   Mar: year.Mar,
@@ -3017,7 +3024,7 @@ const FormContext = ({ props }: any) => {
     else if (field == "departmentOption") {
       // const valuesOnly = value.map((option: any) => option.value);
       updatedRows = YearlyList.map((row, i) =>
-        i === index ? { ...row, [field]: value, deptId: value.value, location: value.Location||"",OtherDetails:"" } : row
+        i === index ? { ...row, [field]: value, deptId: value.value, location: value.Location || "", OtherDetails: "" } : row
       );
 
     }
@@ -3028,7 +3035,7 @@ const FormContext = ({ props }: any) => {
       );
 
     }
-    else if(field == "location"){
+    else if (field == "location") {
 
       updatedRows = YearlyList.map((row, i) =>
         i === index ? { ...row, [field]: value, locationId: value.value } : row
@@ -3277,7 +3284,7 @@ const FormContext = ({ props }: any) => {
                                         id="IssueNo"
                                         value={formData.IssueNo}
                                         title={formData.IssueNo}
-                                        
+
 
                                       />
                                     </div>
@@ -3295,7 +3302,7 @@ const FormContext = ({ props }: any) => {
                                         // className="form-control"
                                         id="RevNo"
                                         value={formData.RevisionNo}
-                                         title={formData.RevisionNo}
+                                        title={formData.RevisionNo}
 
                                       />
                                     </div>
@@ -3304,7 +3311,7 @@ const FormContext = ({ props }: any) => {
                                 <div className="col-lg-4">
                                   <div className="mb-3">
                                     <label htmlFor="Department" className="col-form-label">From Department<span className="text-danger1"> *</span></label>
-                                    <div  title={selectUserDept?.label || "Select Department"}>
+                                    <div title={selectUserDept?.label || "Select Department"}>
                                       <Select
                                         // options={AllDept}
                                         options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
@@ -3602,40 +3609,40 @@ const FormContext = ({ props }: any) => {
                                   </div>
                                 </div>
                                 <div className="col-lg-4">
-                                <div className="mb-3">
-                                  <label htmlFor="attachment" className="col-form-label">Attachment</label>
-                                  <div className="">
+                                  <div className="mb-3">
+                                    <label htmlFor="attachment" className="col-form-label">Attachment</label>
+                                    <div className="">
 
-                                    <div>
-                                      <input
-                                        type="file"
-                                        // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                        className="form-control"
-                                        id="attachment"
-                                        accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                                        onChange={(e) => onFileChange(e, "Gallery", "AnnualAuditProgramDocs")}
-                                        // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
-                                        disabled={InputDisabled}
-                                        multiple
-                                      />
+                                      <div>
+                                        <input
+                                          type="file"
+                                          // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                          className="form-control"
+                                          id="attachment"
+                                          accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                          onChange={(e) => onFileChange(e, "Gallery", "AnnualAuditProgramDocs")}
+                                          // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
+                                          disabled={InputDisabled}
+                                          multiple
+                                        />
+
+                                      </div>
+
+                                      <div>
+                                        {FilesArr.length > 0 ?
+                                          (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
+                                            <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
+                                          </a>) : ""
+
+                                        }
+                                      </div>
+
+
 
                                     </div>
-
-                                    <div>
-                                      {FilesArr.length > 0 ?
-                                        (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
-                                          <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
-                                        </a>) : ""
-
-                                      }
-                                    </div>
-
-
 
                                   </div>
-
                                 </div>
-                              </div>
 
                                 <div className="col-lg-12 mb-3">
                                   <div className="mb-0">
@@ -3799,7 +3806,7 @@ const FormContext = ({ props }: any) => {
                                         />
 
                                       </td> */}
-                                      <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime || "Select a time"}>
+                                      <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime ? new Date(`1970-01-01T${row.startTime}`).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : "Select a time"}>
                                         <LocalizationProvider dateAdapter={AdapterDateFns}>
                                           <TimePicker
                                             label="Select Time"
@@ -3812,13 +3819,13 @@ const FormContext = ({ props }: any) => {
                                               handleRecommendationChange(index, 'startTime', formattedTime);
                                             }}
                                             disabled={InputDisabled}
-                                          slotProps={{
+                                            slotProps={{
                                               textField: {
-                                                  fullWidth: true,
-                                                  className: `form-control ${row.validtime == false ? 'ErrBorder-ErrColor' : ''}`
-                                                  // className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
+                                                fullWidth: true,
+                                                className: `form-control ${row.validtime == false ? 'ErrBorder-ErrColor' : ''}`
+                                                // className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
                                               }
-                                          }}
+                                            }}
                                           />
                                         </LocalizationProvider></td>
 
@@ -3832,7 +3839,7 @@ const FormContext = ({ props }: any) => {
                                           onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
                                           placeholder="Select"
                                           isDisabled={InputDisabled}
-                                           // Add title tooltip
+                                        // Add title tooltip
                                         />
                                       </td>
                                       {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '55px', maxWidth: '55px' }}>
@@ -4005,7 +4012,7 @@ const FormContext = ({ props }: any) => {
 
                                 {/* {formData.RecommendationTypeValue === "Table" ? ( */}
                                 <div style={{ display: 'grid' }} className='newclasstabls scroll-container'>
-                                {/* mtbalenewscrollnew4  mtbalenew   className='mtbalenew overhi mb-3 cont-scroll-mtb'>*/}
+                                  {/* mtbalenewscrollnew4  mtbalenew   className='mtbalenew overhi mb-3 cont-scroll-mtb'>*/}
                                   {/* <table id="tabCov" className='  mtbalenew mb-3 cont-scroll-mtb'> */}
                                   <table id="tabCov" className='mtbalenew overhi mb-3 cont-scroll-mtb'>
                                     <thead>
@@ -4078,14 +4085,14 @@ const FormContext = ({ props }: any) => {
                                               menuPortalTarget={document.body}
                                               // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
                                               styles={{
-                                                menu: (base:any) => ({
+                                                menu: (base: any) => ({
                                                   ...base,
                                                   position: 'absolute',
                                                   zIndex: 9,
                                                   top: '100%',
                                                   left: 0,
                                                 }),
-                                                container: (base:any) => ({
+                                                container: (base: any) => ({
                                                   ...base,
                                                   zIndex: 0,
                                                   position: 'relative'
@@ -4111,7 +4118,7 @@ const FormContext = ({ props }: any) => {
                                               disabled={InputDisabled}
                                             />
                                           </td> */ }
-                                           <td style={{ overflow: 'inherit', minWidth: '200px', maxWidth: '200px' }} title={row.departmentOption?.label || "Select Department"}>
+                                          <td style={{ overflow: 'inherit', minWidth: '200px', maxWidth: '200px' }} title={row.location?.label || "Select Department"}>
                                             <Select
                                               options={AuditProgLocation}
                                               isclearable={true}
@@ -4205,12 +4212,12 @@ const FormContext = ({ props }: any) => {
                                           </td>
 
 
-                                          <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px'  }} title={row.auditor?.label || "Select"}>
+                                          <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }} title={row.auditor?.label || "Select"}>
                                             <Select
                                               options={UserRoles}
                                               isclearable={true}
                                               menuPortalTarget={document.body}
-                                              styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute' }) }}
+                                              styles={{ menuPortal: (base: any) => ({ ...base, zIndex: 9, position: 'absolute' }) }}
                                               className={`YearlylistclsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                               value={row.auditor}
                                               title={row.auditor?.label || "Select Auditor"} // Added title tooltip
@@ -4221,7 +4228,7 @@ const FormContext = ({ props }: any) => {
                                           </td>
 
 
-                                          <td style={{minWidth: '70px', maxWidth: '70px'}}>
+                                          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
                                               value={row.Jan || "No"}
@@ -4232,7 +4239,7 @@ const FormContext = ({ props }: any) => {
                                               <option value="No">No</option>
                                             </select>
                                           </td>
-                                          <td style={{minWidth: '70px', maxWidth: '70px'}}>
+                                          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
                                               value={row.Feb || "No"}
@@ -4243,7 +4250,7 @@ const FormContext = ({ props }: any) => {
                                               <option value="No">No</option>
                                             </select>
                                           </td>
-                                          <td style={{minWidth: '70px', maxWidth: '70px'}}>
+                                          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
                                               value={row.Mar || "No"}
@@ -4254,7 +4261,7 @@ const FormContext = ({ props }: any) => {
                                               <option value="No">No</option>
                                             </select>
                                           </td>
-                                          <td style={{minWidth: '70px', maxWidth: '70px'}}>
+                                          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
                                               value={row.Apr || "No"}
@@ -4265,7 +4272,7 @@ const FormContext = ({ props }: any) => {
                                               <option value="No">No</option>
                                             </select>
                                           </td>
-                                          <td style={{minWidth: '70px', maxWidth: '70px'}}>
+                                          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select "
                                               value={row.May || "No"}
@@ -4276,7 +4283,7 @@ const FormContext = ({ props }: any) => {
                                               <option value="No">No</option>
                                             </select>
                                           </td>
-                                          <td style={{minWidth: '70px', maxWidth: '70px'}}>
+                                          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
                                               value={row.Jun || "No"}
@@ -4287,7 +4294,7 @@ const FormContext = ({ props }: any) => {
                                               <option value="No">No</option>
                                             </select>
                                           </td>
-                                          <td style={{minWidth: '70px', maxWidth: '70px'}}>
+                                          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
                                               value={row.Jul || "No"}
@@ -4298,7 +4305,7 @@ const FormContext = ({ props }: any) => {
                                               <option value="No">No</option>
                                             </select>
                                           </td>
-                                          <td style={{minWidth: '70px', maxWidth: '70px'}}>
+                                          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select "
                                               value={row.Aug || "No"}
@@ -4309,7 +4316,7 @@ const FormContext = ({ props }: any) => {
                                               <option value="No">No</option>
                                             </select>
                                           </td>
-                                          <td style={{minWidth: '70px', maxWidth: '70px'}}>
+                                          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select "
                                               value={row.Sep || "No"}
@@ -4320,7 +4327,7 @@ const FormContext = ({ props }: any) => {
                                               <option value="No">No</option>
                                             </select>
                                           </td>
-                                          <td style={{minWidth: '70px', maxWidth: '70px'}}>
+                                          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
                                               value={row.Oct || "No"}
@@ -4331,7 +4338,7 @@ const FormContext = ({ props }: any) => {
                                               <option value="No">No</option>
                                             </select>
                                           </td>
-                                          <td style={{minWidth: '70px', maxWidth: '70px'}}>
+                                          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
                                               value={row.Nov || "No"}
@@ -4342,7 +4349,7 @@ const FormContext = ({ props }: any) => {
                                               <option value="No">No</option>
                                             </select>
                                           </td>
-                                          <td style={{minWidth: '70px', maxWidth: '70px'}}>
+                                          <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
                                               value={row.Dec || "No"}
@@ -4371,7 +4378,7 @@ const FormContext = ({ props }: any) => {
 
                               </fieldset>
 
-                            
+
 
 
                             </div>
@@ -4415,7 +4422,7 @@ const FormContext = ({ props }: any) => {
                                     <th style={{ minWidth: '40px', maxWidth: '40px' }}>Action</th>
                                   </tr>
                                 </thead>
-                                <tbody style={{maxHeight:'8007', overflow:'inherit'}}>
+                                <tbody style={{ maxHeight: '8007', overflow: 'inherit' }}>
                                   {forwardToArr.map((row, index) => (
                                     <tr>
                                       <td style={{ minWidth: "30px", maxWidth: "30px", overflow: 'inherit' }}> <div
@@ -4642,56 +4649,56 @@ const FormContext = ({ props }: any) => {
                                                                                {row.Id && <span onClick={() => OpenFile(row, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                                                                     <FontAwesomeIcon icon={faEye} /></span>}
                                                                             </td>} */}
-                                      {/* <td>{DocumentLink.Created
+                                        {/* <td>{DocumentLink.Created
                                                                                         ? new Intl.DateTimeFormat('en-GB', {
                                                                                             day: '2-digit',
                                                                                             month: 'short',
                                                                                             year: 'numeric'
                                                                                         }).format(new Date(DocumentLink.Created)).replace(/ /g, "/")
                                                                                         : ""}</td> */}
-                                      <td style={{ minWidth: '50px', maxWidth: '50px' }} title={row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
-                                        day: "2-digit",
-                                        month: "short",
-                                        year: "numeric"
-                                      }).replace(/ /g, "/") : new Date().toLocaleDateString("en-GB", {
-                                        day: "2-digit",
-                                        month: "short",
-                                        year: "numeric"
-                                      }).replace(/ /g, "/")}>
-                                        
-                                        {row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
-                                        day: "2-digit",
-                                        month: "short",
-                                        year: "numeric"
-                                      }).replace(/ /g, "/") : new Date().toLocaleDateString("en-GB", {
-                                        day: "2-digit",
-                                        month: "short",
-                                        year: "numeric"
-                                      }).replace(/ /g, "/")}
-                                      
-                                      </td>
+                                        <td style={{ minWidth: '50px', maxWidth: '50px' }} title={row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
+                                          day: "2-digit",
+                                          month: "short",
+                                          year: "numeric"
+                                        }).replace(/ /g, "/") : new Date().toLocaleDateString("en-GB", {
+                                          day: "2-digit",
+                                          month: "short",
+                                          year: "numeric"
+                                        }).replace(/ /g, "/")}>
 
-                                      <td>
-                                        {row.Id && (
-                                          <>
-                                            
-                                            <span
-                                              onClick={() => OpenFile(row, "Open")}
-                                              style={{ color: "blue", cursor: "pointer", margin: "10px" }}
-                                            >
-                                              <FontAwesomeIcon icon={faEye} />
-                                            </span>
-                                            <span
-                                              onClick={() => OpenFile(row, "Download")}
-                                              style={{ color: "blue", cursor: "pointer", margin: "10px" }}
-                                            >
-                                              <FontAwesomeIcon icon={faDownload} />
-                                            </span>
-                                          </>
-                                        )}
+                                          {row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
+                                            day: "2-digit",
+                                            month: "short",
+                                            year: "numeric"
+                                          }).replace(/ /g, "/") : new Date().toLocaleDateString("en-GB", {
+                                            day: "2-digit",
+                                            month: "short",
+                                            year: "numeric"
+                                          }).replace(/ /g, "/")}
 
-                                        {!InputDisabled && <img src={require("../../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} />}
-                                      </td>
+                                        </td>
+
+                                        <td>
+                                          {row.Id && (
+                                            <>
+
+                                              <span
+                                                onClick={() => OpenFile(row, "Open")}
+                                                style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                                              >
+                                                <FontAwesomeIcon icon={faEye} />
+                                              </span>
+                                              <span
+                                                onClick={() => OpenFile(row, "Download")}
+                                                style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                                              >
+                                                <FontAwesomeIcon icon={faDownload} />
+                                              </span>
+                                            </>
+                                          )}
+
+                                          {!InputDisabled && <img src={require("../../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} />}
+                                        </td>
 
 
                                       </tr>

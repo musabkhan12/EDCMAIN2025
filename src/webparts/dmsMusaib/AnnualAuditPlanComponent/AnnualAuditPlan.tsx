@@ -276,11 +276,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
     // ////// Recommendation
     const [recommendationRows, setRecommendationRows] = React.useState([
-        { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null,validtime:true }
+        { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null, validtime: true }
     ]);
 
     const [coverageAuditCriteria, setcoverageAuditCriteria] = React.useState([
-        { id: 0, ProcessActivity: "", date: "", dept: null, deptId: null, startTime: "", auditor: null, auditorIds: null, LocationId: null, Location: null ,validtime:true}
+        { id: 0, ProcessActivity: "", date: "", dept: null, deptId: null, startTime: "", auditor: null, auditorIds: null, LocationId: null, Location: null, validtime: true }
     ]);
 
     const [coverageAuditCriteriaEdit, setcoverageAuditCriteriaEdit] = React.useState([]);
@@ -288,11 +288,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     const [recommendationRowsEdit, setRecommendationRowsEdit] = React.useState([]);
 
     const handleAddRecommendationRow = () => {
-        setRecommendationRows([...recommendationRows, { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null ,validtime:true}]);
+        setRecommendationRows([...recommendationRows, { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null, validtime: true }]);
     };
 
     const handleAddCoverageRow = () => {
-        setcoverageAuditCriteria([...coverageAuditCriteria, { id: 0, ProcessActivity: "", date: "", dept: null, deptId: null, startTime: "", auditor: null, auditorIds: null, LocationId: null, Location: null,validtime:true }]);
+        setcoverageAuditCriteria([...coverageAuditCriteria, { id: 0, ProcessActivity: "", date: "", dept: null, deptId: null, startTime: "", auditor: null, auditorIds: null, LocationId: null, Location: null, validtime: true }]);
     };
 
     const handleRecommendationChange = (index: number, field: string, value: any) => {
@@ -708,7 +708,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 // }
             }
 
-            setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditPlan))
+           
+
+            setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditPlan));
+
+           
 
         }
         // formitemid =20;
@@ -716,7 +720,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
             setEditItemID(Number(formitemid));
 
+
             const setBannerById = await getItemByID(sp, Number(formitemid))
+            var increaseMemo = true;
+            const draftedItem = await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditPlan);
+            if (draftedItem != null && draftedItem != undefined && draftedItem.length > 0) {
+                increaseMemo = false;
+            }
 
             if (setBannerById.length > 0) {
                 debugger
@@ -728,7 +738,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 setBannerById[0].value = setBannerById[0].MemorandumIDId;
                 if (formMode == "edit") {
                     const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${setBannerById[0]?.DepartmentId}`).orderBy("SerialNumber", false).top(1)();
-                    if (listItems.length > 0 && (setBannerById[0].Status == "Rework" || setBannerById[0].Status == "Save as draft")) {
+                    // if (listItems.length > 0 && (setBannerById[0].Status == "Rework" || (setBannerById[0].Status == "Save as draft"))) {
+                        if (listItems.length > 0 && ( (setBannerById[0].Status == "Save as draft" && increaseMemo))) {
                         if (listItems[0].SerialNumber > setBannerById[0].MemoSerialNumber) {
                             memo = listItems[0].SerialNumber + 1;
                         }
@@ -885,7 +896,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         startTime: item.Time || "",
                         auditorIds: item.AuditorId,
                         endTime: "",
-                        validtime:true,
+                        validtime: true,
                         auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
                     }));
                     if (setBannerById[0].RecommendationType?.RecommendationTypeValue == "Table") {
@@ -911,7 +922,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         deptId: item.DepartmentId ? item.DepartmentId : null,
                         Location: item.Location ? { label: item.Location.Location, value: item.Location.ID } : null,
                         auditorIds: item.AuditorId,
-                        validtime:true,
+                        validtime: true,
                         auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
                     }));
                     // if (setBannerById[0].RecommendationType?.RecommendationTypeValue == "Table") {
@@ -1119,14 +1130,14 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         const updatedRows1 = coverageAuditCriteria.map(row => ({
             ...row,
             validtime: true
-          }));
-          setcoverageAuditCriteria(updatedRows1); // triggers re-render
+        }));
+        setcoverageAuditCriteria(updatedRows1); // triggers re-render
 
-          const updatedRows = recommendationRows.map(row => ({
+        const updatedRows = recommendationRows.map(row => ({
             ...row,
             validtime: true
-          }));
-          setRecommendationRows(updatedRows); // triggers re-render
+        }));
+        setRecommendationRows(updatedRows); // triggers re-render
 
         setValidSubmit(true);
         setValidCancelReason(true);
@@ -1260,7 +1271,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     validRec = false;
                 }
 
-                if (recommendationRows.length > 0 && recommendationRows.every((row: any) => row.section.trim() !== "" && row.date.trim() !== ""  && row.startTime !== null&& row.startTime.trim() !== "" && row.auditor != null && row.auditor.length != 0 ) == false) {
+                if (recommendationRows.length > 0 && recommendationRows.every((row: any) => row.section.trim() !== "" && row.date.trim() !== "" && row.startTime !== null && row.startTime.trim() !== "" && row.auditor != null && row.auditor.length != 0) == false) {
                     // document.getElementById("date")?.classList.add("border-on-error");
                     validRec = false;
                     // recommendationRows.forEach(row => {
@@ -1269,8 +1280,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     const updatedRows = recommendationRows.map(row => ({
                         ...row,
                         validtime: (row.startTime === "" || row.startTime === null) ? false : true
-                      }));
-                      setRecommendationRows(updatedRows); // triggers re-render
+                    }));
+                    setRecommendationRows(updatedRows); // triggers re-render
 
                     Array.from(document.getElementsByClassName("recommendClsErr")).forEach((element: Element) => {
                         if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "")) {
@@ -1343,18 +1354,18 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             }
             if (coverageAuditCriteria.length > 0 && coverageAuditCriteria.every((row: any) => row.Location != null && row.LocationId != null
                 // && row.StandardClauses.trim() !== ""
-                && row.ProcessActivity.trim() !== "" && row.date.trim() !== "" && row.startTime !== null && row.startTime.trim() !== "" && row.auditorIds != null && row.auditor != null && row.auditor.length != 0 && row.deptId !=0 && row.dept != null && row.dept != null) == false) {
+                && row.ProcessActivity.trim() !== "" && row.date.trim() !== "" && row.startTime !== null && row.startTime.trim() !== "" && row.auditorIds != null && row.auditor != null && row.auditor.length != 0 && row.deptId != 0 && row.dept != null && row.dept != null) == false) {
                 valid1 = false;
 
                 // coverageAuditCriteria.forEach(row => {
                 //     row.validtime = row.startTime === "" ? false : true;
                 //   });
 
-                  const updatedRows1 = coverageAuditCriteria.map(row => ({
+                const updatedRows1 = coverageAuditCriteria.map(row => ({
                     ...row,
                     validtime: (row.startTime === "" || row.startTime === null) ? false : true
-                  }));
-                  setcoverageAuditCriteria(updatedRows1); // triggers re-render
+                }));
+                setcoverageAuditCriteria(updatedRows1); // triggers re-render
 
                 Array.from(document.getElementsByClassName("coverageClsErr")).forEach((element: Element) => {
                     if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "Select department" || element.textContent?.trim() === "")) {
@@ -1745,7 +1756,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 AnnualAuditPlanIDId: editItemID, // Assuming "Title" column exists
                                 ProcessActivity: cov.ProcessActivity || "",
                                 // StandardClauses: cov.StandardClauses || "",
-                                DepartmentId : cov.deptId ? cov.deptId : null,
+                                DepartmentId: cov.deptId ? cov.deptId : null,
                                 Date: cov.date ? cov.date : null,
                                 Time: cov.startTime || "",
                                 AuditorId: cov.auditorIds ? cov.auditorIds : null,
@@ -2096,7 +2107,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
                                     ProcessActivity: cov.ProcessActivity || "",
                                     // StandardClauses: cov.StandardClauses || "",
-                                    DepartmentId : cov.deptId ? cov.deptId : null,
+                                    DepartmentId: cov.deptId ? cov.deptId : null,
                                     Date: cov.date ? cov.date : null,
                                     Time: cov.startTime || "",
                                     AuditorId: cov.auditorIds ? cov.auditorIds : null,
@@ -2399,7 +2410,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     AnnualAuditPlanIDId: editItemID, // Assuming "Title" column exists
                                     ProcessActivity: cov.ProcessActivity || "",
                                     // StandardClauses: cov.StandardClauses || "",
-                                    DepartmentId : cov.deptId ? cov.deptId : null,
+                                    DepartmentId: cov.deptId ? cov.deptId : null,
                                     Date: cov.date ? cov.date : null,
                                     Time: cov.startTime || "",
                                     AuditorId: cov.auditorIds ? cov.auditorIds : null,
@@ -2706,7 +2717,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     AnnualAuditPlanIDId: postId, // Assuming "Title" column exists
                                     ProcessActivity: cov.ProcessActivity || "",
                                     // StandardClauses: cov.StandardClauses || "",
-                                    DepartmentId : cov.deptId ? cov.deptId : null,
+                                    DepartmentId: cov.deptId ? cov.deptId : null,
                                     Date: cov.date ? cov.date : null,
                                     Time: cov.startTime || "",
                                     AuditorId: cov.auditorIds ? cov.auditorIds : null,
@@ -3031,7 +3042,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 startTime: item.Time || "",
                 auditorIds: item.AuditorId,
                 endTime: "",
-                validtime:true,
+                validtime: true,
                 auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
             }));
             // if (selectedOption.RecommendationType?.RecommendationTypeValue == "Table") {
@@ -3780,7 +3791,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     />
 
                                                                                 </td> */}
-                                                                                <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime|| "Select a time"}>
+                                                                                <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime ? new Date(`1970-01-01T${row.startTime}`).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : "Select a time"}>
                                                                                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                                                                                         <TimePicker
                                                                                             label="Select Time"
@@ -3793,13 +3804,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                                 handleRecommendationChange(index, 'startTime', formattedTime);
                                                                                             }}
                                                                                             disabled={InputDisabled}
-                                                                                        slotProps={{
-                                                                                            textField: {
-                                                                                                fullWidth: true,
-                                                                                                className: `form-control ${row.validtime == false ? 'ErrBorder-ErrColor' : ''}`
-                                                                                                // className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
-                                                                                            }
-                                                                                        }}
+                                                                                            slotProps={{
+                                                                                                textField: {
+                                                                                                    fullWidth: true,
+                                                                                                    className: `form-control ${row.validtime == false ? 'ErrBorder-ErrColor' : ''}`
+                                                                                                    // className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
+                                                                                                }
+                                                                                            }}
                                                                                         />
                                                                                     </LocalizationProvider></td>
 
@@ -3812,7 +3823,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                         onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
                                                                                         placeholder="Select"
                                                                                         isDisabled={InputDisabled}
-                                                                                        // Added title tooltip
+                                                                                    // Added title tooltip
                                                                                     />
                                                                                 </td>
                                                                                 {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '70px', maxWidth: '70px' }}>
@@ -4093,7 +4104,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 />
 
                                                                             </td> */}
-                                                                            <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime || "Select a time"}>
+                                                                            <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime ? new Date(`1970-01-01T${row.startTime}`).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : "Select a time"}>
                                                                                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                                                                                     <TimePicker
                                                                                         label="Select Time"
@@ -4106,17 +4117,17 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                             handleCoverageRow(index, 'startTime', formattedTime);
                                                                                         }}
                                                                                         disabled={InputDisabled}
-                                                                                    slotProps={{
-                                                                                        textField: {
-                                                                                            fullWidth: true,
-                                                                                            className: `form-control ${row.validtime == false ? 'ErrBorder-ErrColor' : ''}`
-                                                                                            // className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
-                                                                                        }
-                                                                                    }}
+                                                                                        slotProps={{
+                                                                                            textField: {
+                                                                                                fullWidth: true,
+                                                                                                className: `form-control ${row.validtime == false ? 'ErrBorder-ErrColor' : ''}`
+                                                                                                // className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
+                                                                                            }
+                                                                                        }}
                                                                                     />
                                                                                 </LocalizationProvider>
                                                                             </td>
-                                                                            <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }}>
+                                                                            <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }} title={row.dept?.label || "Select department"} >
                                                                                 <Select
                                                                                     options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
                                                                                     // isMulti
@@ -4155,9 +4166,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 ></textarea>
                                                                             </td>
 
-                                                                            
 
-                                                                            <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }}>
+
+                                                                            <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }} title={row.Location?.label || "Select Location"}>
                                                                                 <Select
                                                                                     options={LocationOpt}
                                                                                     // isMulti
