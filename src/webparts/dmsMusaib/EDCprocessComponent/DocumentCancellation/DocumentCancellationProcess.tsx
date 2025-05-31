@@ -712,6 +712,10 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         setValidCancelReason(true);
         let errormsg = "";
 
+        Array.from(document.getElementsByClassName("border-on-error")).forEach((element: Element) => {
+            element.classList.remove("border-on-error");
+        });
+
         if (fmode == FormSubmissionMode.SUBMIT) {
             if (!RequesterName) {
                 //Swal.fire('Error', 'Title is required!', 'error');
@@ -725,15 +729,26 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             //     //Swal.fire('Error', 'Category is required!', 'error');
             //     valid = false;
             //   }
-            else if (selectedOption == null || !selectedOption.value) {
+            if (selectedOption == null || !selectedOption.value) {
                 //Swal.fire('Error', 'Entity is required!', 'error');
                 valid = false;
             }
-            else if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" && row.reason.trim() !== "") == false) {
+            if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" && row.reason.trim() !== "") == false) {
                 // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
                 valid1 = false;
+
+                Array.from(document.getElementsByClassName("recommendClsErr")).forEach((element: Element) => {
+                    if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "")) {
+                        element.classList.add("border-on-error");
+                    }
+                    else if ((element.tagName === "INPUT" || element.tagName === "TEXTAREA") && (element as HTMLInputElement).value.trim() === "") {
+                        element.classList.add("border-on-error");
+                    }
+
+
+                });
             }
-            else if (cancellReason.length == 0) {
+            if (cancellReason.length == 0) {
                 // const isValid = rows.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
                 valid1 = false;
             }
@@ -751,7 +766,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             }
 
             setValidSubmit(valid);
-            setValidCancelReason(valid1);
+            // setValidCancelReason(valid1);
 
         }
         else {
@@ -773,7 +788,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             // }
 
             setValidDraft(valid);
-            setValidCancelReason(valid1);
+            // setValidCancelReason(valid1);
 
         }
 
@@ -1309,6 +1324,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         let successMessage = "";
         // setValidSubmit(true);
         setValidForwardTo(true);
+        Array.from(document.getElementsByClassName("border-on-error")).forEach((element: Element) => {
+            element.classList.remove("border-on-error");
+          });
         switch (status) {
             case "Forward":
                 actionMessage = "Do you want to forward this request?";
@@ -1341,9 +1359,23 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
             if (!valid) {
                 Swal.fire('Please fill all the mandatory fields.');
-                // setValidDraft(true);
-                // setValidSubmit(false);
-                setValidForwardTo(false);
+                Array.from(document.getElementsByClassName("ForwardClsErr")).forEach((element: Element) => {
+                    if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "Enter Approver Name" || element.textContent?.trim() === "")) {
+                        element.classList.add("border-on-error");
+                    }
+                    else if (element.tagName === "SELECT" && (element as HTMLSelectElement).value.trim() === "") {
+                        element.classList.add("border-on-error");
+                    }
+                    else if (element.tagName === "SELECT" && (element as HTMLInputElement).value.trim() === "") {
+                        element.classList.add("border-on-error");
+                    }
+
+
+                });
+
+
+
+                // setValidForwardTo(false);
                 return;
             }
 
@@ -2057,7 +2089,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                             name="DocumentCode"
                                                                             className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                                                             onChange={(selectedOption: any) => onSelect(selectedOption)}
-                                                                            placeholder="Search Document Code" isDisabled={InputDisabled}
+                                                                            placeholder="Search Document Code" isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false)}
                                                                         />
                                                                     </div>
                                                                 </div>
@@ -2243,7 +2275,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                             <td>
                                                                                 <textarea id="simpleinput" disabled={InputDisabled}
                                                                                     // className="form-control"                                                                      
-                                                                                    className={`newse mb-0 ${(!ValidCancelReason) ? "border-on-error" : ""}`}
+                                                                                    className={`newse mb-0 recommendClsErr ${(!ValidCancelReason) ? "border-on-error" : ""}`}
                                                                                     title={row.description}
                                                                                     value={row.description}
                                                                                     onChange={(e) => {
@@ -2260,7 +2292,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                             <td>
                                                                                 <textarea id="simpleinput" disabled={InputDisabled}
                                                                                     //  className="form-control"
-                                                                                    className={`newse mb-0 ${(!ValidCancelReason) ? "border-on-error" : ""}`}
+                                                                                    className={`newse mb-0 recommendClsErr ${(!ValidCancelReason) ? "border-on-error" : ""}`}
                                                                                     title={row.reason}
                                                                                     value={row.reason}
                                                                                     onChange={(e) => {
@@ -2343,7 +2375,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding" title={UserRoles.find((role: any) => role.value === row.role)?.label || "Select Role"}>
                                                                                     <select
                                                                                         // className="form-select"
-                                                                                        className={`form-select newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
+                                                                                        className={`form-select ForwardClsErr newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
                                                                                         title={UserRoles.find((role: any) => role.value === row.role)?.label || "Select Role"}
 
                                                                                         onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={!(editID.CurrentUserRole == "OES"&& editID.Status == "Pending")}>
@@ -2366,7 +2398,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                         isMulti
                                                                                         value={row.approvers}
                                                                                         name="Approvers"
-                                                                                        className={`newse ${(!ValidForwardTo) ? "border-on-error" : ""}`}
+                                                                                        className={`newse ForwardClsErr ${(!ValidForwardTo) ? "border-on-error" : ""}`}
                                                                                         // onChange={(selectedOption: any) => onSelect(selectedOption)}
                                                                                         onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
                                                                                         placeholder="Enter Approver Name"
@@ -2378,8 +2410,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 </td>
                                                                                 <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
                                                                                     {/* <label htmlFor="approvalType">Approval Type: </label> */}
-                                                                                    <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={!(editID.CurrentUserRole == "OES" && editID.Status == "Pending")} title={row.approvalType === "One" ? "Anyone" : row.approvalType === "All" ? "Everyone" : "Select Approval Type"}>                                                                        
-
+                                                                                    <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse ForwardClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={!(editID.CurrentUserRole == "OES" && editID.Status == "Pending")} title={row.approvalType === "One" ? "Anyone" : row.approvalType === "All" ? "Everyone" : "Select Approval Type"}>
+                                                                                        <option value="">Select </option>
                                                                                         <option value="One">Anyone</option>
                                                                                         <option value="All">Everyone</option>
                                                                                     </select>

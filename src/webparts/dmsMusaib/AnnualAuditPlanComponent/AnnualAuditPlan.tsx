@@ -66,7 +66,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     const { useHide }: any = React.useContext(UserContext);
     const [InputDisabled, setInputDisabled] = React.useState(false);
     const selectedTextDiv = document.getElementById('selectedText');
-
+    const [disableDepartment, setdisableDepartment] = React.useState(false);
     selectedTextDiv.style.display = 'none';
 
 
@@ -276,11 +276,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
     // ////// Recommendation
     const [recommendationRows, setRecommendationRows] = React.useState([
-        { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null }
+        { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null,validtime:true }
     ]);
 
     const [coverageAuditCriteria, setcoverageAuditCriteria] = React.useState([
-        { id: 0, ProcessActivity: "", date: "",dept:null,deptId:null, startTime: "", auditor: null, auditorIds: null, LocationId: null, Location: null }
+        { id: 0, ProcessActivity: "", date: "", dept: null, deptId: null, startTime: "", auditor: null, auditorIds: null, LocationId: null, Location: null ,validtime:true}
     ]);
 
     const [coverageAuditCriteriaEdit, setcoverageAuditCriteriaEdit] = React.useState([]);
@@ -288,11 +288,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     const [recommendationRowsEdit, setRecommendationRowsEdit] = React.useState([]);
 
     const handleAddRecommendationRow = () => {
-        setRecommendationRows([...recommendationRows, { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null }]);
+        setRecommendationRows([...recommendationRows, { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null ,validtime:true}]);
     };
 
     const handleAddCoverageRow = () => {
-        setcoverageAuditCriteria([...coverageAuditCriteria, { id: 0, ProcessActivity: "", date: "",dept:null,deptId:null, startTime: "", auditor: null, auditorIds: null, LocationId: null, Location: null }]);
+        setcoverageAuditCriteria([...coverageAuditCriteria, { id: 0, ProcessActivity: "", date: "", dept: null, deptId: null, startTime: "", auditor: null, auditorIds: null, LocationId: null, Location: null,validtime:true }]);
     };
 
     const handleRecommendationChange = (index: number, field: string, value: any) => {
@@ -806,6 +806,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     classificationId: setBannerById[0].ClassificationId,
                     classificationValue: ClassificationVal?.[0] || null,
                 }));
+                setdisableDepartment(setBannerById[0].DepartmentId ? true : false);
 
                 setselectUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentId)?.[0] || null);
 
@@ -884,6 +885,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         startTime: item.Time || "",
                         auditorIds: item.AuditorId,
                         endTime: "",
+                        validtime:true,
                         auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
                     }));
                     if (setBannerById[0].RecommendationType?.RecommendationTypeValue == "Table") {
@@ -909,7 +911,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         deptId: item.DepartmentId ? item.DepartmentId : null,
                         Location: item.Location ? { label: item.Location.Location, value: item.Location.ID } : null,
                         auditorIds: item.AuditorId,
-
+                        validtime:true,
                         auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
                     }));
                     // if (setBannerById[0].RecommendationType?.RecommendationTypeValue == "Table") {
@@ -1114,6 +1116,18 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         let validRec = true;
         let validAudit = true;
 
+        const updatedRows1 = coverageAuditCriteria.map(row => ({
+            ...row,
+            validtime: true
+          }));
+          setcoverageAuditCriteria(updatedRows1); // triggers re-render
+
+          const updatedRows = recommendationRows.map(row => ({
+            ...row,
+            validtime: true
+          }));
+          setRecommendationRows(updatedRows); // triggers re-render
+
         setValidSubmit(true);
         setValidCancelReason(true);
         setValidForwardTo(true);
@@ -1246,9 +1260,17 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     validRec = false;
                 }
 
-                if (recommendationRows.length > 0 && recommendationRows.every((row: any) => row.section.trim() !== "" && row.date.trim() !== "" && row.startTime.trim() !== "" && row.auditor != null && row.auditor.length != 0) == false) {
+                if (recommendationRows.length > 0 && recommendationRows.every((row: any) => row.section.trim() !== "" && row.date.trim() !== ""  && row.startTime !== null&& row.startTime.trim() !== "" && row.auditor != null && row.auditor.length != 0 ) == false) {
                     // document.getElementById("date")?.classList.add("border-on-error");
                     validRec = false;
+                    // recommendationRows.forEach(row => {
+                    //     row.validtime = row.startTime === "" ? false : true;
+                    //   });
+                    const updatedRows = recommendationRows.map(row => ({
+                        ...row,
+                        validtime: (row.startTime === "" || row.startTime === null) ? false : true
+                      }));
+                      setRecommendationRows(updatedRows); // triggers re-render
 
                     Array.from(document.getElementsByClassName("recommendClsErr")).forEach((element: Element) => {
                         if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "")) {
@@ -1320,12 +1342,22 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 valid1 = false;
             }
             if (coverageAuditCriteria.length > 0 && coverageAuditCriteria.every((row: any) => row.Location != null && row.LocationId != null
-                // && row.StandardClauses.trim() !== "" 
-                && row.ProcessActivity.trim() !== "" && row.date.trim() !== "" && row.startTime.trim() !== "" && row.auditorIds != null && row.auditor != null && row.auditor.length != 0) == false) {
+                // && row.StandardClauses.trim() !== ""
+                && row.ProcessActivity.trim() !== "" && row.date.trim() !== "" && row.startTime !== null && row.startTime.trim() !== "" && row.auditorIds != null && row.auditor != null && row.auditor.length != 0 && row.deptId !=0 && row.dept != null && row.dept != null) == false) {
                 valid1 = false;
 
+                // coverageAuditCriteria.forEach(row => {
+                //     row.validtime = row.startTime === "" ? false : true;
+                //   });
+
+                  const updatedRows1 = coverageAuditCriteria.map(row => ({
+                    ...row,
+                    validtime: (row.startTime === "" || row.startTime === null) ? false : true
+                  }));
+                  setcoverageAuditCriteria(updatedRows1); // triggers re-render
+
                 Array.from(document.getElementsByClassName("coverageClsErr")).forEach((element: Element) => {
-                    if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "")) {
+                    if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "Select department" || element.textContent?.trim() === "")) {
                         element.classList.add("border-on-error");
                     }
                     else if ((element.tagName === "INPUT" || element.tagName === "TEXTAREA") && (element as HTMLInputElement).value.trim() === "") {
@@ -2999,6 +3031,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 startTime: item.Time || "",
                 auditorIds: item.AuditorId,
                 endTime: "",
+                validtime:true,
                 auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
             }));
             // if (selectedOption.RecommendationType?.RecommendationTypeValue == "Table") {
@@ -3178,7 +3211,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 disabled
                                                                                 type="text"
                                                                                 className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
-
+                                                                                title={formData.memoNo}
                                                                                 // className="form-control"
                                                                                 id="memoNo"
                                                                                 value={formData.memoNo}
@@ -3314,7 +3347,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 }}
                                                                             />
                                                                             <span className="text-danger1"> *</span></label>
-                                                                        <div className="">
+                                                                        <div className="" title={selectUserDeptTo?.map((dept: any) => dept.label).join(", ") || "Select Department"}
+                                                                        >
                                                                             <Select
                                                                                 // options={AllDept}
                                                                                 options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
@@ -3328,7 +3362,6 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                                 onChange={(selectedOptions: any) => handleDepartmentChangeTo(selectedOptions)}
                                                                                 placeholder="Select"
-                                                                                title={selectUserDeptTo?.map((dept: any) => dept.label).join(", ") || "Select Department"}
                                                                             />
                                                                             {/* <Select
                                                                                 options={rows1}
@@ -3375,7 +3408,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 }}
                                                                             />
                                                                             <span className="text-danger1"> *</span></label>
-                                                                        <div className="">
+                                                                        <div className="" title={selectUserDeptCC?.map((dept: any) => dept.label).join(", ") || "Select Department"}>
                                                                             <Select
                                                                                 // options={AllDept}
                                                                                 options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
@@ -3392,7 +3425,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 onChange={(selectedOptions: any) => handleDepartmentChangeCC(selectedOptions)}
                                                                                 // onChange={(selectedOptions: any) => setFormData({ ...formData, CC: selectedOptions })}
                                                                                 placeholder="Select"
-                                                                                title={selectUserDeptCC?.map((dept: any) => dept.label).join(", ") || "Select Department"}
+
 
                                                                             />
                                                                             {/* <Select
@@ -3474,7 +3507,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="date" className="col-form-label">Date<span className="text-danger1"> *</span></label>
-                                                                        <div className="">
+                                                                        <div className="" title={
+                                                                            formData?.date
+                                                                                ? moment(formData.date).format('DD/MMM/YYYY')
+                                                                                : ""
+                                                                        }>
 
                                                                             <DatePicker id="date"
                                                                                 value={
@@ -3745,27 +3782,28 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 </td> */}
                                                                                 <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime|| "Select a time"}>
                                                                                     <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                                                                    <TimePicker
-                                                                                        label="Select Time"
-                                                                                        className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
-                                                                                        value={row.startTime ? new Date(`1970-01-01T${row.startTime}`) : null}
-                                                                                        onChange={(newValue: any) => {
-                                                                                            const formattedTime = newValue
-                                                                                                ? newValue.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
-                                                                                                : '';
-                                                                                            handleRecommendationChange(index, 'startTime', formattedTime);
+                                                                                        <TimePicker
+                                                                                            label="Select Time"
+                                                                                            className={`form-control recommendClsErr `}
+                                                                                            value={row.startTime ? new Date(`1970-01-01T${row.startTime}`) : null}
+                                                                                            onChange={(newValue: any) => {
+                                                                                                const formattedTime = newValue
+                                                                                                    ? newValue.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                                                                                                    : '';
+                                                                                                handleRecommendationChange(index, 'startTime', formattedTime);
+                                                                                            }}
+                                                                                            disabled={InputDisabled}
+                                                                                        slotProps={{
+                                                                                            textField: {
+                                                                                                fullWidth: true,
+                                                                                                className: `form-control ${row.validtime == false ? 'ErrBorder-ErrColor' : ''}`
+                                                                                                // className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
+                                                                                            }
                                                                                         }}
-                                                                                        disabled={InputDisabled}
-                                                                                        // slotProps={{
-                                                                                        //     textField: {
-                                                                                        //         fullWidth: true,
-                                                                                        //         className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
-                                                                                        //     }
-                                                                                        // }}
-                                                                                    />
-                                                                                </LocalizationProvider></td>
+                                                                                        />
+                                                                                    </LocalizationProvider></td>
 
-                                                                                <td>
+                                                                                <td title={row?.auditor?.label || "Select Auditor"} >
                                                                                     <Select
                                                                                         options={rows1}
                                                                                         // isMulti
@@ -3774,7 +3812,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                         onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
                                                                                         placeholder="Select"
                                                                                         isDisabled={InputDisabled}
-                                                                                        title={row.auditor?.label || "Select Auditor"} // Added title tooltip
+                                                                                        // Added title tooltip
                                                                                     />
                                                                                 </td>
                                                                                 {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '70px', maxWidth: '70px' }}>
@@ -4055,27 +4093,28 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 />
 
                                                                             </td> */}
-                                                                         <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime|| "Select a time"}>
-                                                                            <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                                                                <TimePicker
-                                                                                    label="Select Time"
-                                                                                    className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
-                                                                                    value={row.startTime ? new Date(`1970-01-01T${row.startTime}`) : null}
-                                                                                    onChange={(newValue: any) => {
-                                                                                        const formattedTime = newValue
-                                                                                            ? newValue.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
-                                                                                            : '';
+                                                                            <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime || "Select a time"}>
+                                                                                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                                                                    <TimePicker
+                                                                                        label="Select Time"
+                                                                                        className={`form-control recommendClsErr`}
+                                                                                        value={row.startTime ? new Date(`1970-01-01T${row.startTime}`) : null}
+                                                                                        onChange={(newValue: any) => {
+                                                                                            const formattedTime = newValue
+                                                                                                ? newValue.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                                                                                                : '';
                                                                                             handleCoverageRow(index, 'startTime', formattedTime);
+                                                                                        }}
+                                                                                        disabled={InputDisabled}
+                                                                                    slotProps={{
+                                                                                        textField: {
+                                                                                            fullWidth: true,
+                                                                                            className: `form-control ${row.validtime == false ? 'ErrBorder-ErrColor' : ''}`
+                                                                                            // className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
+                                                                                        }
                                                                                     }}
-                                                                                    disabled={InputDisabled}
-                                                                                // slotProps={{
-                                                                                //     textField: {
-                                                                                //         fullWidth: true,
-                                                                                //         className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
-                                                                                //     }
-                                                                                // }}
-                                                                                />
-                                                                            </LocalizationProvider>
+                                                                                    />
+                                                                                </LocalizationProvider>
                                                                             </td>
                                                                             <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }}>
                                                                                 <Select
@@ -4149,7 +4188,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                             </td>
 
 
-                                                                            <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }}>
+                                                                            <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }} title={row?.auditor?.label || "Select Auditor"} >
                                                                                 <Select
                                                                                     options={rows1}
                                                                                     // isMulti
@@ -4292,7 +4331,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                             </td>
                                                                             <td style={{ minWidth: '40px', maxWidth: '40px', overflow: 'inherit' }}>Level {index + 1}</td>
-                                                                            <td style={{ overflow: 'inherit' }}>
+                                                                            <td style={{ overflow: 'inherit' }} title={row?.approvers.map((approver: any) => approver.label).join(", ") || "Enter Approver Name"}>
 
                                                                                 <Select
                                                                                     options={rows1}

@@ -195,8 +195,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [selectToUsers, setSelectToUsers] = React.useState([]);
 
     const handleDepartmentChange =async (selectedOption: any) => {
-        const setAuditreportNC = await getItemsAuditReportNC(sp,);
-        const setAuditreportObs = await getItemsAuditReportObs(sp);
+        const setAuditreportNC = await getItemsAuditReportNC(sp, selectedOption.value);
+        const setAuditreportObs = await getItemsAuditReportObs(sp, selectedOption.value);
 
         if (setAuditreportNC.length > 0) {
             setFormData(prevData => ({

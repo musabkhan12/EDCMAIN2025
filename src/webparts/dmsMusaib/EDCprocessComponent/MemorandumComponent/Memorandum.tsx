@@ -39,6 +39,7 @@ import moment from 'moment';
 import { DatePicker } from 'office-ui-fabric-react';
 import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import "./Memo.scss";
 
 
 const datePickerErrorStyles: Partial<IDatePickerStyles> = {
@@ -276,13 +277,13 @@ const MemoContext = ({ props }: any) => {
 
   // ////// Recommendation
   const [recommendationRows, setRecommendationRows] = React.useState([
-    { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null }
+    { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null ,validtime:true}
   ]);
 
   const [recommendationRowsEdit, setRecommendationRowsEdit] = React.useState([]);
 
   const handleAddRecommendationRow = () => {
-    setRecommendationRows([...recommendationRows, { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null }]);
+    setRecommendationRows([...recommendationRows, { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null ,validtime:true}]);
   };
 
   const handleRecommendationChange = (index: number, field: string, value: any) => {
@@ -708,7 +709,8 @@ const MemoContext = ({ props }: any) => {
             startTime: item.Time,
             auditorIds: item.AuditorId,
             endTime: "",
-            auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
+            auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null, // Convert single object
+            validtime:true
           }));
           if (setBannerById[0].RecommendationType?.RecommendationTypeValue == "Table") {
             setRecommendationRows(initialRows);
@@ -899,6 +901,12 @@ const MemoContext = ({ props }: any) => {
     // const selectedAuditType = auditTypes.find(type => type.Id === auditTypesId);
     // const auditTypeTitle = selectedAuditType ? selectedAuditType.Title : '';
 
+    const updatedRows = recommendationRows.map(row => ({
+      ...row,
+      validtime: true
+    }));
+    setRecommendationRows(updatedRows); // triggers re-render
+
     let valid = true;
     let validraft = true;
     let valid1 = true;
@@ -1016,9 +1024,19 @@ const MemoContext = ({ props }: any) => {
           validRec = false;
         }
 
-        if (recommendationRows.length > 0 && recommendationRows.every((row: any) => row.section.trim() !== "" && row.date.trim() !== "" && row.startTime.trim() !== "" && row.auditor != null && row.auditor.length != 0) == false) {
+        if (recommendationRows.length > 0 && recommendationRows.every((row: any) => row.section.trim() !== "" && row.date.trim() !== "" && row.startTime !== null&& row.startTime.trim() !== "" && row.auditor != null && row.auditor.length != 0 ) == false) {
           // document.getElementById("date")?.classList.add("border-on-error");
           validRec = false;
+          // recommendationRows.forEach(row => {
+          //   row.validtime = row.startTime === "" ? false : true;
+          // });
+          const updatedRows = recommendationRows.map(row => ({
+            ...row,
+            validtime: (row.startTime === "" || row.startTime === null) ? false : true
+          }));
+          setRecommendationRows(updatedRows); // triggers re-render
+         
+
 
           Array.from(document.getElementsByClassName("recommendClsErr")).forEach((element: Element) => {
             if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "" || element.textContent?.trim() === "")) {
@@ -3175,7 +3193,7 @@ const MemoContext = ({ props }: any) => {
                                       <td style={{ minWidth: '190px', maxWidth: '190px' }}>
                                         <input
                                           type="text"
-                                          className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                          className={`form-control recommendClsErr }`}
                                           // className="form-control"
                                           value={row.section}
                                           title={row.section}
@@ -3251,7 +3269,7 @@ const MemoContext = ({ props }: any) => {
                                           <LocalizationProvider dateAdapter={AdapterDateFns}>
                                             <TimePicker
                                               label="Select Time"
-                                              className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                              className={`form-control recommendClsErr`}
                                               value={row.startTime ? new Date(`1970-01-01T${row.startTime}`) : null}
                                               onChange={(newValue: any) => {
                                                 const formattedTime = newValue
@@ -3260,27 +3278,31 @@ const MemoContext = ({ props }: any) => {
                                                 handleRecommendationChange(index, 'startTime', formattedTime);
                                               }}
                                               disabled={InputDisabled}
-                                            // slotProps={{
-                                            //     textField: {
-                                            //         fullWidth: true,
-                                            //         className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
-                                            //     }
-                                            // }}
+                                            slotProps={{
+                                                textField: {
+                                                    fullWidth: true,
+                                                    className: `form-control ${row.validtime == false ? 'ErrBorder-ErrColor' : ''}`
+
+                                                    // className: `form-control ${row?.startTime =="" && ValidDRecomm == false ? 'border-on-error' : ''}`
+                                                    // className: `form-control recommendClsErr}`
+
+                                                }
+                                            }}
                                             />
                                           </LocalizationProvider></td>
 
-                                      <td>
+                                      <td title={row?.auditor?.label || "Select an auditor"}>
 
                                         <Select
                                           //options={UserRoles}
                                           options={rows1}
                                           // isMulti
-                                          className={`recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                          className={`recommendClsErr }`}
                                           value={row.auditor}
                                           onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
                                           placeholder="Select"
                                           isDisabled={InputDisabled}
-                                          title={row.auditor?.label || "Select an auditor"}
+                                         
                                         />
                                       </td>
                                       {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '70px', maxWidth: '70px' }}>
@@ -3535,7 +3557,8 @@ const MemoContext = ({ props }: any) => {
 
                                       </td>
                                       <td style={{ minWidth: '40px', maxWidth: '40px', overflow: 'inherit' }}>Level {index + 1}</td>
-                                      <td style={{ overflow: 'inherit' }}>
+                                      <td style={{ overflow: 'inherit' }}    title={row?.approvers.map((approver: any) => approver.label).join(", ") || "Enter Approver Name"}
+                                      >
 
                                         <Select
                                           options={rows1}

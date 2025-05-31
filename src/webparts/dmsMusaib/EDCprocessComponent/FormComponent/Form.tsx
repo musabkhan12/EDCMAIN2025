@@ -39,7 +39,7 @@ import { DatePicker } from 'office-ui-fabric-react';
 import moment from 'moment';
 import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-
+import "./AuditProg.scss"
 
 
 // let myloader = '../../'
@@ -286,13 +286,13 @@ const FormContext = ({ props }: any) => {
 
   // ////// Recommendation
   const [recommendationRows, setRecommendationRows] = React.useState([
-    { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null }
+    { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null,validtime:true }
   ]);
 
   const [recommendationRowsEdit, setRecommendationRowsEdit] = React.useState([]);
 
   const handleAddRecommendationRow = () => {
-    setRecommendationRows([...recommendationRows, { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null }]);
+    setRecommendationRows([...recommendationRows, { id: 0, section: "", date: "", startTime: "", endTime: "", auditor: null, auditorIds: null ,validtime:true}]);
   };
 
   const handleRecommendationChange = (index: number, field: string, value: any) => {
@@ -741,6 +741,7 @@ const FormContext = ({ props }: any) => {
             startTime: item.Time,
             auditorIds: item.AuditorId,
             endTime: "",
+            validtime:true,
             auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
           }));
           if (setBannerById[0].RecommendationType?.RecommendationTypeValue == "Table") {
@@ -1003,6 +1004,11 @@ const FormContext = ({ props }: any) => {
     const selectedAuditType = auditTypes.find(type => type.Id === auditTypesId);
     const auditTypeTitle = selectedAuditType ? selectedAuditType.Title : '';
 
+    const updatedRows = recommendationRows.map(row => ({
+      ...row,
+      validtime: true
+    }));
+    setRecommendationRows(updatedRows); // triggers re-render
     let valid = true;
     let validraft = true;
     let valid1 = true;
@@ -1144,9 +1150,19 @@ const FormContext = ({ props }: any) => {
           // document.getElementById("date")?.classList.add("border-on-error");
           validRec = false;
         }
-        if (recommendationRows.length > 0 && recommendationRows.every((row: any) => row.section.trim() !== "" && row.date.trim() !== "" && row.startTime.trim() !== "" && row.auditor != null && row.auditor.length != 0) == false) {
+        if (recommendationRows.length > 0 && recommendationRows.every((row: any) => row.section.trim() !== "" && row.date.trim() !== ""&& row.startTime !== null && row.startTime.trim() !== "" && row.auditor != null && row.auditor.length != 0 ) == false) {
           // document.getElementById("date")?.classList.add("border-on-error");
           validRec = false;
+
+          // recommendationRows.forEach(row => {
+          //   row.validtime = row.startTime === "" ? false : true;
+          // });
+
+          const updatedRows = recommendationRows.map(row => ({
+            ...row,
+            validtime: (row.startTime === "" || row.startTime === null) ? false : true
+          }));
+          setRecommendationRows(updatedRows); // triggers re-render
 
           Array.from(document.getElementsByClassName("recommendClsErr")).forEach((element: Element) => {
             if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "")) {
@@ -3356,7 +3372,8 @@ const FormContext = ({ props }: any) => {
                                         }}
                                       />
                                       <span className="text-danger1"> *</span></label>
-                                    <div >
+                                    <div title={selectUserDeptTo?.map((option: any) => option.label).join(", ") || "Select"}
+                                    >
                                       <Select
                                         // options={AllDept}
                                         options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
@@ -3372,7 +3389,6 @@ const FormContext = ({ props }: any) => {
                                         // onChange={handleDepartmentChange}
                                         onChange={(selectedOptions: any) => handleDepartmentChangeTo(selectedOptions)}
                                         placeholder="Select"
-                                        title={selectUserDeptTo?.map((option: any) => option.label).join(", ") || "Select"}
                                       />
                                       {/* <Select
                                                                                 options={rows1}
@@ -3419,7 +3435,8 @@ const FormContext = ({ props }: any) => {
                                         }}
                                       />
                                       <span className="text-danger1"> *</span></label>
-                                    <div >
+                                    <div title={selectUserDeptCC?.map((option: any) => option.label).join(", ") || "Select"}
+                                    >
                                       <Select
                                         // options={AllDept}
                                         options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
@@ -3436,7 +3453,6 @@ const FormContext = ({ props }: any) => {
                                         onChange={(selectedOptions: any) => handleDepartmentChangeCC(selectedOptions)}
                                         // onChange={(selectedOptions: any) => setFormData({ ...formData, CC: selectedOptions })}
                                         placeholder="Select"
-                                        title={selectUserDeptCC?.map((option: any) => option.label).join(", ") || "Select"}
                                       />
                                       {/* <Select
                                                                             options={rows1}
@@ -3516,7 +3532,11 @@ const FormContext = ({ props }: any) => {
                                 <div className="col-lg-4">
                                   <div className="mb-3">
                                     <label htmlFor="date" className=" col-form-label">Date<span className="text-danger1"> *</span></label>
-                                    <div className="">
+                                    <div className="" title={
+                                      formData?.date
+                                        ? moment(formData.date).format('DD/MMM/YYYY')
+                                        : ""
+                                    }>
 
                                       <DatePicker id="date"
                                         value={
@@ -3792,16 +3812,17 @@ const FormContext = ({ props }: any) => {
                                               handleRecommendationChange(index, 'startTime', formattedTime);
                                             }}
                                             disabled={InputDisabled}
-                                          // slotProps={{
-                                          //     textField: {
-                                          //         fullWidth: true,
-                                          //         className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
-                                          //     }
-                                          // }}
+                                          slotProps={{
+                                              textField: {
+                                                  fullWidth: true,
+                                                  className: `form-control ${row.validtime == false ? 'ErrBorder-ErrColor' : ''}`
+                                                  // className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
+                                              }
+                                          }}
                                           />
                                         </LocalizationProvider></td>
 
-                                      <td>
+                                      <td title={row?.auditor?.label || "Select"}>
                                         <Select
                                           // options={UserRoles}
                                           options={rows1}
@@ -3811,7 +3832,7 @@ const FormContext = ({ props }: any) => {
                                           onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
                                           placeholder="Select"
                                           isDisabled={InputDisabled}
-                                          title={row.auditor?.label || "Select"} // Add title tooltip
+                                           // Add title tooltip
                                         />
                                       </td>
                                       {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '55px', maxWidth: '55px' }}>
@@ -4428,7 +4449,8 @@ const FormContext = ({ props }: any) => {
 
                                       </td>
                                       <td style={{ minWidth: '40px', maxWidth: '40px', overflow: 'inherit' }}>Level {index + 1}</td>
-                                      <td style={{ overflow: 'inherit' }}>
+                                      <td style={{ overflow: 'inherit' }} title={row?.approvers.map((approver: any) => approver.label).join(", ") || "Enter Approver Name"} // Added title tooltip
+                                      >
 
                                         <Select
                                           options={rows1}
