@@ -41,6 +41,7 @@ import moment from 'moment';
 //MUI time picker
 import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { getAuditProgShift } from '../EDCprocessComponent/FormComponent/FormService';
 //SYnc time picker
 // import { TimePickerComponent } from '@syncfusion/ej2-react-calendars';
 
@@ -56,6 +57,8 @@ let newfileupload: any
 let newfilepreview: any;
 let filechanged: boolean = false;
 let ncrow: any = [];
+let maxncseq: number = 0;
+let maxobsseq: number = 0;
 interface ForwardTo {
     id: number;
     role: number;
@@ -72,6 +75,7 @@ interface ncNumber {
     ncsequenceNC: number,
     observationsequenceObs: number,
     nctype: string,
+    DepartmentNCId: number;
     descriptionNC: string
 }
 const AnnualAuditReportContext = ({ props }: any) => {
@@ -84,7 +88,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
     selectedTextDiv.style.display = 'none';
 
-
+    const [AuditProgShift, setAuditProgShift] = React.useState([]);
     const [FilesArr, setFilesArr] = React.useState<any>([]);
     const [FilesArr1, setFilesArr1] = React.useState<any>([]);
     const [FilesArrDoclink, setFilesArrDoclink] = React.useState<any>([]);
@@ -117,13 +121,15 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [showviewdownload, setshowviewdownload] = React.useState(true);
     const [currentUserDept, setcurrentUserDept] = React.useState(null);
     const [selectUserDept, setselectUserDept] = React.useState(null);
+    const [selectshift, setselectshift] = React.useState(null);
+
     const [reportCode, setreportCode] = React.useState("");
 
     const [selectAuditplan, setselectAuditplan] = React.useState(null);
     const [doccode, setdoccode] = React.useState("");
     const [auditplandate, setauditplandate] = React.useState("");
     const [AllDept, setAllDept] = React.useState([]);
-    const [RowErrors, setRowErrors] = React.useState([]);
+    const [RowErrors, setRowErrors] = React.useState<any[]>([]);
     const [DocumentLink, setDocumentLink] = React.useState(null);
     const [DraftApprovalItem, setDraftApprovalItem] = React.useState(null);
     // const [cancellReason, setcancellReason] = React.useState([{ id: 0, description: "", reason: "" }]);
@@ -172,6 +178,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         memoNumber: "",
         approvedauditplanId: 0,
         deptId: 0,
+        shiftId: 0,
         fromdeptId: 0,
         date: "",
         Auditplandate: "",
@@ -194,17 +201,19 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
     const [selectToUsers, setSelectToUsers] = React.useState([]);
 
-    const handleDepartmentChange =async (selectedOption: any) => {
+    const handleDepartmentChange = async (selectedOption: any) => {
         const setAuditreportNC = await getItemsAuditReportNC(sp, selectedOption.value);
         const setAuditreportObs = await getItemsAuditReportObs(sp, selectedOption.value);
 
         if (setAuditreportNC.length > 0) {
+            maxncseq = setAuditreportNC[0].NCSequence;
             setFormData(prevData => ({
                 ...prevData,
                 NCSequence: setAuditreportNC[0].NCSequence
             }));
         }
         if (setAuditreportObs.length > 0) {
+            maxobsseq = setAuditreportObs[0].ObservationSequence;
             setFormData(prevData => ({
                 ...prevData,
                 ObservationSequence: setAuditreportObs[0].ObservationSequence,
@@ -218,6 +227,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
         }
         setreportCode(reportcode);
         setFormData({ ...formData, deptId: selectedOption.value, reportCode: reportcode });
+    };
+    const handleShiftChange = async (selectedOption: any) => {
+        setselectshift(selectedOption);
+        setFormData({ ...formData, shiftId: selectedOption.value });
     };
     const handleActualAuditDateChange = (date: any) => {
 
@@ -334,10 +347,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
             const ids = ncrowsnew.map((row: any) => row.id);
             maxid = Math.max(...ids);
         }
-
+        const deptId = formData.deptId;
         // Find the max sequence number from existing rows of this type
-        const existingRows = ncrow.filter((row: any) => row.nctype === type);
-
+        const existingRows = ncrow.filter((row: any) => row.DepartmentNCId === deptId && row.nctype === type);
+        // const departmentRows = ncrowsnew.filter(
+        //     (row) => row.DepartmentNCId === deptId && row.nctype === type
+        // );
         let maxSequence = 0;
         if (editItemID) {
             if (existingRows.length > 0) {
@@ -349,18 +364,18 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 }
             } else {
                 if (type === "NC Number") {
-                    maxSequence = Math.max(formData.NCSequence, ...existingRows.map((r: any) => r.ncsequenceNC || 0));
+                    maxSequence = Math.max(maxncseq, ...existingRows.map((r: any) => r.ncsequenceNC || 0));
 
                 } else if (type === "Observation Number") {
-                    maxSequence = Math.max(formData.ObservationSequence, ...existingRows.map((r: any) => r.observationsequenceObs || 0));
+                    maxSequence = Math.max(maxobsseq, ...existingRows.map((r: any) => r.observationsequenceObs || 0));
                 }
             }
         } else {
             if (type === "NC Number") {
-                maxSequence = Math.max(formData.NCSequence, ...existingRows.map((r: any) => r.ncsequenceNC || 0));
+                maxSequence = Math.max(maxncseq, ...existingRows.map((r: any) => r.ncsequenceNC || 0));
 
             } else if (type === "Observation Number") {
-                maxSequence = Math.max(formData.ObservationSequence, ...existingRows.map((r: any) => r.observationsequenceObs || 0));
+                maxSequence = Math.max(maxobsseq, ...existingRows.map((r: any) => r.observationsequenceObs || 0));
             }
         }
 
@@ -376,6 +391,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
             ncsequenceNC: type === "NC Number" ? nextSequenceNumber : 0,
             observationsequenceObs: type === "Observation Number" ? nextSequenceNumber : 0,
             nctype: type,
+            DepartmentNCId: formData.deptId,
             descriptionNC: ""
         }]);
 
@@ -554,7 +570,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
         }));
         setRows(options);
-
+        let shiftoptions = await getAuditProgShift(sp);
+        setAuditProgShift(shiftoptions);
         const path1 = window.location.href;
 
         if (path1.includes("/view/") || path1.includes("/approve/")) {
@@ -696,9 +713,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                     //  ProcessListItem =await getApprovalByID(sp, Number(segments[paramIndex + 2]),CONTENTTYPE_DocumentCancel);
                     // setInputDisabled((ProcessListItem.Status == "Pending" || ProcessListItem?.Status === "Save as draft") && ProcessListItem.Level === 0 && ProcessListItem.CurrentUserRole !=="OES")
-                    setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditReport,CONTENTTYPE_AuditReportNew));
+                    setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditReport, CONTENTTYPE_AuditReportNew));
                     // var ProcessItemId: any = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditReport);
-                    setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditReport,CONTENTTYPE_AuditReportNew));
+                    setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_AuditReport, CONTENTTYPE_AuditReportNew));
                 }
                 // else {
 
@@ -707,7 +724,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 // }
             }
 
-            setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditReport,CONTENTTYPE_AuditReportNew))
+            setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditReport, CONTENTTYPE_AuditReportNew))
 
         }
         // if (setAuditreportNC.length > 0) {
@@ -750,6 +767,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     memoNumber: setBannerById[0].MemoNumber,
                     description: setBannerById[0].Description,
                     deptId: setBannerById[0].DepartmentAuditedId,
+                    shiftId: setBannerById[0].ShiftId, // Default to 0 if ShiftId is null
                     fromdeptId: setBannerById[0].DepartmentId,
                     issueNo: setBannerById[0].IssueNumber,
                     revisionNo: setBannerById[0].RevisionNumber,
@@ -807,6 +825,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 const selectedauditplan = options.filter((cust: { value: any; }) => cust.value === setBannerById[0].ApprovedAuditPlanId) || null;
                 setselectAuditplan(selectedauditplan);
                 setSelectedOption(selectedauditplan);
+                setselectshift(shiftoptions.filter((x: { value: any; }) => x.value == setBannerById[0].ShiftId) || null);
                 console.log(" setBannerById[0].AttachmentId if", setBannerById[0], selectedauditplan)
                 if (setBannerById[0].AttachmentId) {
                     // setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId));
@@ -830,7 +849,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     //setFilesArrDoclink([...FilesArrDoclink, ...arrn]);
                     console.log("arrrrrrn5ghjghj6 audit doc");
                 }
-                const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_AuditReport, setBannerById[0].ReferenceNumber,CONTENTTYPE_AuditReportNew)
+                const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_AuditReport, setBannerById[0].ReferenceNumber, CONTENTTYPE_AuditReportNew)
 
                 if (ApprowData.length > 0) {
 
@@ -861,6 +880,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         ncsequenceNC: item.NCType == "NC Number" ? item.NCSequence : 0,
                         observationsequenceObs: item.NCType == "NC Number" ? 0 : item.NCSequence,
                         nctype: item.NCType,
+                        DepartmentNCId: item.DepartmentId,
                         descriptionNC: item.Description
                     }));
                     setNCNumberrows(initialRows);
@@ -1178,13 +1198,59 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 validRec = false;
             }
 
+            // if (recommendationRows.length > 0) {
+            //     debugger
+            //     //let validRec = true; // Assume valid initially
+            //     let rowErrors: any[] = []; // Store errors for each row
+
+            //     recommendationRows.forEach((row: any, index: number) => {
+            //         let rowError: any = {}; // Store errors for this row
+
+            //         if (!row.isoreference || row.isoreference.trim() === "") {
+            //             rowError.isoreference = true;
+            //         }
+            //         if (!row.imsprocedure || row.imsprocedure.trim() === "") {
+            //             rowError.imsprocedure = true;
+            //         }
+            //         if (!row.inquiries || row.inquiries.trim() === "") {
+            //             rowError.inquiries = true;
+            //         }
+            //         if (!row.time || row.time.trim() === "") {
+            //             rowError.time = true;
+            //         }
+            //         if (!row.auditorcomments || row.auditorcomments.trim() === "") {
+            //             rowError.auditorcomments = true;
+            //         }
+            //         // if (!row.sharewith || row.sharewith.length === 0) {
+            //         //     rowError.sharewith = true;
+            //         // }
+
+            //         // If there are errors in this row, store them
+            //         if (Object.keys(rowError).length > 0) {
+            //             rowErrors[index] = rowError; // Assign the errors for this row
+            //             validRec = false; // Mark as invalid
+            //         }
+            //     });
+
+            //     // Update the state or UI with the errors
+            //     setRowErrors(rowErrors);
+
+            //     // Set validation flag
+            //     if (!validRec) {
+            //         console.log("Validation failed. Highlight errors accordingly.");
+            //     }
+            //     if (rowErrors.length > 0) {
+            //         validRec = false;
+            //     }
+            // }
             if (recommendationRows.length > 0) {
-                debugger
-                //let validRec = true; // Assume valid initially
-                let rowErrors: any[] = []; // Store errors for each row
+                let rowErrors: any[] = [];
+                //let validRec = true;
+
+                const timeMap: Record<string, number[]> = {}; // To track which times are selected and by which rows
 
                 recommendationRows.forEach((row: any, index: number) => {
-                    let rowError: any = {}; // Store errors for this row
+                    let rowError: any = {};
 
                     if (!row.isoreference || row.isoreference.trim() === "") {
                         rowError.isoreference = true;
@@ -1197,6 +1263,13 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     }
                     if (!row.time || row.time.trim() === "") {
                         rowError.time = true;
+                    } else {
+                        // Track which rows have selected the same time
+                        const trimmedTime = row.time.trim();
+                        if (!timeMap[trimmedTime]) {
+                            timeMap[trimmedTime] = [];
+                        }
+                        timeMap[trimmedTime].push(index);
                     }
                     if (!row.auditorcomments || row.auditorcomments.trim() === "") {
                         rowError.auditorcomments = true;
@@ -1207,20 +1280,28 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                     // If there are errors in this row, store them
                     if (Object.keys(rowError).length > 0) {
-                        rowErrors[index] = rowError; // Assign the errors for this row
-                        validRec = false; // Mark as invalid
+                        rowErrors[index] = rowError;
+                        validRec = false;
                     }
                 });
 
-                // Update the state or UI with the errors
+                // Now handle duplicate time selections
+                Object.keys(timeMap).forEach((timeKey) => {
+                    const indices = timeMap[timeKey];
+                    if (indices.length > 1) {
+                        // Mark all rows with duplicate times as having an error
+                        indices.forEach((idx) => {
+                            if (!rowErrors[idx]) rowErrors[idx] = {};
+                            rowErrors[idx].time = true;
+                            validRec = false;
+                        });
+                    }
+                });
+
                 setRowErrors(rowErrors);
 
-                // Set validation flag
                 if (!validRec) {
                     console.log("Validation failed. Highlight errors accordingly.");
-                }
-                if (rowErrors.length > 0) {
-                    validRec = false;
                 }
             }
 
@@ -1463,6 +1544,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             Title: doccode,
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
+                            ShiftId: formData.shiftId,
                             DepartmentAuditedId: formData.deptId,
                             Date: formData.date,
                             AuditPlanDate: auditplandate,
@@ -1502,6 +1584,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 ReportCode: formData.reportCode,
                                 NCType: row.nctype,
                                 Description: row.descriptionNC,
+                                DepartmentId: formData.deptId,
                                 Title: row.id.toString()
                             }
                             if (row.Id) {
@@ -1816,6 +1899,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             Title: doccode,
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
+                            ShiftId: formData.shiftId,
                             DepartmentAuditedId: formData.deptId,
                             Date: formData.date,
                             AuditPlanDate: auditplandate,
@@ -1863,6 +1947,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 ReportCode: formData.reportCode,
                                 NCType: row.nctype,
                                 Description: row.descriptionNC,
+                                DepartmentId: formData.deptId,
                                 Title: row.id.toString()
                             }
 
@@ -2112,6 +2197,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             NCSequence: maxNCSequence,
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
+                            ShiftId: formData.shiftId,
                             DepartmentAuditedId: formData.deptId,
                             Date: formData.date,
                             AuditPlanDate: auditplandate,
@@ -2154,6 +2240,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 ReportCode: formData.reportCode,
                                 NCType: row.nctype,
                                 Description: row.descriptionNC,
+                                DepartmentId: formData.deptId,
                                 Title: row.id.toString()
                             }
                             if (row.Id) {
@@ -2448,6 +2535,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             Title: doccode,
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
+                            ShiftId: formData.shiftId,
                             DepartmentAuditedId: formData.deptId,
                             Date: formData.date,
                             AuditPlanDate: auditplandate,
@@ -2494,6 +2582,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 ReportCode: formData.reportCode,
                                 NCType: row.nctype,
                                 Description: row.descriptionNC,
+                                DepartmentId: formData.deptId,
                                 Title: row.id.toString()
                             }
                             const postResultNC = await addItemNC(postPayloadNC, sp);
@@ -3651,6 +3740,31 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         </div>
                                                                     </div>
                                                                 </div>
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="Department" className="col-form-label">Shift<span className="text-danger1"> *</span></label>
+                                                                        <div >
+                                                                            <div
+                                                                                title={selectshift?.label || "Select a shift"}
+                                                                                style={{ width: "100%" }}
+                                                                            >
+                                                                                <Select
+                                                                                    options={AuditProgShift}
+                                                                                    isDisabled={InputDisabled}
+                                                                                    value={selectshift}
+                                                                                    name="shiftId"
+                                                                                    className={`newse`}
+                                                                                    // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
+                                                                                    // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
+                                                                                    // onChange={handleDepartmentChange}
+                                                                                    onChange={(selectedOptions: any) => handleShiftChange(selectedOptions)}
+                                                                                    placeholder="Select Shift"
+                                                                                />
+                                                                            </div>
+
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </form>
                                                     </div>
@@ -3670,7 +3784,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                 </section>
 
                                                 <section className='card card-body mt-2'>
-                                                    <fieldset style={{display:'grid'}}>
+                                                    <fieldset style={{ display: 'grid' }}>
                                                         <div className='row'>
                                                             <div className='col-sm-6'>
                                                                 <h3 className='text-dark font-16 fw-bold mb-3'>Checklist</h3>
@@ -3992,7 +4106,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                 {/* ////////////Audit History card */}
                                                 {/* {editID !== null && editID.length != 0 && modeValue === "approve" && */}
                                                 {MainEditItem !== null && MainEditItem.length != 0 && MainEditItem?.Status !== "Save as draft" &&
-                                                    <WorkflowAuditHistory ContentItemId={MainEditItem} ContentType={CONTENTTYPE_AuditReport} ctx={props.context} />
+                                                    <WorkflowAuditHistory ContentItemId={MainEditItem} ContentType={CONTENTTYPE_AuditReportNew} ctx={props.context} />
                                                 }
                                                 {/* ////////////Audit History card */}
 
@@ -4021,8 +4135,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                         {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</button>}
  */}
 
-
-                                                        {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.ApprovalType !== "Approval")) &&
+                                                        {console.log("eddddd", editID)}
+                                                        {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID?.ApprovalType !== "Approval") || (modeValue === "approve" && editID?.Status == "Approved") ) &&
                                                             <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                                                 className='me-1' alt="x" /> Cancel</button>
                                                         }

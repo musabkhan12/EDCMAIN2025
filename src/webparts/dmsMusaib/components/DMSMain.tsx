@@ -547,7 +547,7 @@ const ArgPoc = ({ props }: any) => {
         returnFromMyRequest = true;
         setlistorgriddata('AnnualAuditPlan')
       }
-      else if (arrayToStoreURLParameter[1] === 'Annual%20Audit%20Report') {
+      else if (arrayToStoreURLParameter[1] === 'Annual%20Audit%20Report' || arrayToStoreURLParameter[1] === 'IMS%20Audit%20Report%20and%20Checklist') {
         //  alert("Document Camcetllation")
         const get = document.getElementById('files-container')
         get.innerHTML = '';

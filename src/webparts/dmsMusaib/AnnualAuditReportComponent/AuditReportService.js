@@ -105,7 +105,7 @@ export const getItemByID = async (_sp, id) => {
   let bannerimg = []
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("AnnualAuditReportList").items.getById(id)
-    .select("*,Author/ID,Author/Title,ApprovedAuditPlan/MemoNumber,ApprovedAuditPlan/ID,Department/ID,Department/Department,AnnualAuditPlanDocumentLink/ID,Attachment/ID,Sharewith/Title,Sharewith/ID").expand("Author,Department,ApprovedAuditPlan,AnnualAuditPlanDocumentLink,Attachment,Sharewith")()
+    .select("*,Author/ID,Author/Title,ApprovedAuditPlan/MemoNumber,ApprovedAuditPlan/ID,Department/ID,Department/Department,AnnualAuditPlanDocumentLink/ID,Attachment/ID,Sharewith/Title,Sharewith/ID,Shift/ID,Shift/Shift").expand("Author,Shift,Department,ApprovedAuditPlan,AnnualAuditPlanDocumentLink,Attachment,Sharewith")()
     .then((res) => {
       console.log(res, ' let arrs=[]');
 
@@ -125,8 +125,8 @@ export const getItemsAuditReportNC = async (_sp,dept) => {
   let bannerimg = []
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("AnnualAuditReportList").items
-    .select("NCSequence,ID,ObservationSequence,NCNumber,ObservationNumber,Department/ID").expand("Department")
-    .filter(`DepartmentId eq '${dept}'`)
+    .select("NCSequence,ID,ObservationSequence,NCNumber,ObservationNumber,DepartmentAudited/ID,DepartmentAudited/Department,Shift/ID,Shift/Shift,DepartmentAuditedId").expand("DepartmentAudited,Shift")
+    .filter(`DepartmentAuditedId eq '${dept}'`)
     .orderBy("NCSequence", false)
     .top(1)
     ()
@@ -151,8 +151,8 @@ export const getItemsAuditReportObs = async (_sp,dept) => {
   let bannerimg = []
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("AnnualAuditReportList").items
-    .select("NCSequence,ID,ObservationSequence,NCNumber,ObservationNumber").expand("")
-    .filter(`DepartmentId eq '${dept}'`)
+    .select("NCSequence,ID,ObservationSequence,NCNumber,ObservationNumber,DepartmentAudited/ID,DepartmentAudited/Department,Shift/ID,Shift/Shift,DepartmentAuditedId").expand("DepartmentAudited,Shift")
+    .filter(`DepartmentAuditedId eq '${dept}'`)
     .orderBy("ObservationSequence", false)
     .top(1)
     ()
@@ -177,8 +177,8 @@ export const getMemoNumberAuditReport = async (_sp) => {
   let bannerimg = []
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("AnnualAuditReportList").items
-  .select("*,ApprovedAuditPlan/MemoNumber,ApprovedAuditPlan/ID,FailureofIntentNonconformity,DepartmentAudited/ID,DepartmentAudited/Department")
-  .expand("ApprovedAuditPlan,DepartmentAudited")
+    .select("*,ApprovedAuditPlan/MemoNumber,ApprovedAuditPlan/ID,FailureofIntentNonconformity,DepartmentAudited/ID,DepartmentAudited/Department,Shift/ID,Shift/Shift")
+  .expand("ApprovedAuditPlan,DepartmentAudited,Shift")
     .filter(`FailureofIntentNonconformity eq 'Yes' or Observations eq 'Yes'`)
     .orderBy("Modified", false)
     ()
@@ -523,7 +523,7 @@ export const getApprovalByID = async (_sp, id, processName,processName1) => {
   await _sp.web.lists.getByTitle("ProcessApprovalList").items.getById(id)
     .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
     .then((res) => {
-      console.log(res, ' let arrs=[]');
+      console.log(res, 'ttttt let arrs=[]');
       if (res && res.AssignedTo.Id == currentUser.Id && (res.ProcessName === processName || res.ProcessName === processName1)) {
         arr = res;
       }
@@ -549,7 +549,7 @@ export const getApprovalByID2 = async (_sp, id, processName,processname1) => {
     .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
     .then((res) => {
       console.log(res, ' let arrs=[]');
-      if (res && res.AssignedTo.Id == currentUser.Id && (res.ProcessName === processName || res.ProcessName === processName1) && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+      if (res && res.AssignedTo.Id == currentUser.Id && (res.ProcessName === processName || res.ProcessName === processname1) && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
         arr = false;
       }
       else {
@@ -583,7 +583,7 @@ export const getNCNumberbyID = async (sp, AuditID) => {
   debugger
   let arr = []
   let sampleDataArray = []
-  arr = await sp.web.lists.getByTitle("AuditReportNCNumber").items.select("*,AnnualAuditReportList/ID").expand("AnnualAuditReportList").filter(`AnnualAuditReportList/ID eq ${AuditID}`).getAll();
+  arr = await sp.web.lists.getByTitle("AuditReportNCNumber").items.select("*,AnnualAuditReportList/ID,Department/ID,Department/Department").expand("AnnualAuditReportList,Department").filter(`AnnualAuditReportList/ID eq ${AuditID}`).getAll();
   // .then((res) => {
   //   arr = res
   //   console.log(arr, 'arr');
