@@ -5,7 +5,7 @@ import { updateItemApproval, updateItemApproval2 } from "./ApprovalService";
 import { getSP } from "../loc/pnpjsConfig";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import Swal from "sweetalert2";
-import { getallProcessApprovalitems, getItemByIDCR, updateItem, updateItemChangeRequestList } from "./DocumentCancellation";
+import { getallProcessApprovalitems, getDocumentCodeselectedApproved, getItemByIDCR, getItemByIDCRlatest, updateItem, updateItemChangeRequestList } from "./DocumentCancellation";
 
 export interface IWorkflowActionProps {
   currentItem: any;
@@ -45,11 +45,19 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
   const handleCancel = () => {
     window.location.href = `${siteUrl}/SitePages/MyApprovals.aspx`;
   }
-  const handleFromSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, Status: string) => {
+    const handleKeyDowntextarea = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault(); // Prevent form submission or unwanted behavior
+        // Optional: do something when Enter is pressed (like submit or blur)
+      }
+    };
+  const handleFromSubmit = async (e: any, Status: string) => {
 
     let url = window.location.href.split('/sites/')[0];
     debugger
     let currentchangerequest = await getItemByIDCR(sp, Number(props.currentItem.ListItemId));
+    
+    let currentchangerequestLatest = await getItemByIDCRlatest(sp, Number(props.currentItem.ListItemId));
     let allprocessitems = await getallProcessApprovalitems(sp, Number(props.currentItem.ListItemId));
 
     let currentReferenceNo = currentchangerequest[0].ReferenceNumber;
@@ -60,6 +68,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         arrrr[i] = arrrr[i].replace("TMP", "RRF");
       }
     }
+   
     console.log("props.currentItem", props.currentItem, currentchangerequest);
     let test = arrrr.join('.');
     let testRev = currentchangerequest[0].RequestType?.RequestCode == "Edit" && RevisionNumber != null ? Number(RevisionNumber) : Number(RevisionNumber);
@@ -110,11 +119,11 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         Status: Status,
         ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
       };
-      let finalrevisiondate = currentchangerequest[0].RevisionDate == null || currentchangerequest[0].RevisionDate == undefined ? undefined : new Date(currentchangerequest[0].RevisionDate).toISOString();
-      let finalissuedate = currentchangerequest[0].IssueDate == null || currentchangerequest[0].IssueDate == undefined ? undefined : new Date(currentchangerequest[0].IssueDate).toISOString();
+      let finalrevisiondate = currentchangerequestLatest[0].RevisionDate == null || currentchangerequestLatest[0].RevisionDate == undefined ? undefined : new Date(currentchangerequestLatest[0].RevisionDate).toISOString();
+      let finalissuedate = currentchangerequestLatest[0].IssueDate == null || currentchangerequestLatest[0].IssueDate == undefined ? undefined : new Date(currentchangerequestLatest[0].IssueDate).toISOString();
       if (currentchangerequest[0].RequestType?.RequestCode == "Edit") {
         postPayloadapp1 = {
-          IssueDate: new Date().toISOString(),
+          //IssueDate: new Date(ApprovedChanedoc && ApprovedChanedoc[0]?.IssueDate).toISOString(),
           CIssueDate: currentchangerequest[0]?.TemplateType?.TemplateTypeName != "Change Request" ? finalissuedate : new Date().toISOString(),
           CRevisionDate: currentchangerequest[0].TemplateType?.TemplateTypeName != "Change Request" ? finalrevisiondate : new Date().toISOString(),
           RevisionDate: new Date().toISOString(),
@@ -229,7 +238,11 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
     <div className="card">
 
-      <div className="card-body">
+      <div className="card-body" onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault(); // Prevent page reload from any source
+        }
+      }}>
 
         <div className="row">
           {
@@ -240,7 +253,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
                 <label htmlFor="example-textarea" className="form-label text-dark font-14">Remarks:</label>
 
-                <textarea style={{ height: '80px' }} className={`form-control ${(!ValidRemark) ? "border-on-error" : ""}`} id="example-textarea" rows={5} name="Remark" value={formData.Remark}
+                <textarea  style={{ height: '80px' }} className={`form-control ${(!ValidRemark) ? "border-on-error" : ""}`} id="example-textarea" rows={5} name="Remark" value={formData.Remark}
 
                   onChange={(e) => onChange(e.target.name, e.target.value)}></textarea>
 
@@ -264,11 +277,26 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
                 {!props.DisableApproval ? (<a >
 
-                  <button type="button" className="btn btn-success waves-effect waves-light m-1" onClick={(e) => handleFromSubmit(e, 'Approved')}>
+                  {/* <button type="button" className="btn btn-success waves-effect waves-light m-1" onClick={(e) => handleFromSubmit(e, 'Approved')}>
 
                     <i className="fe-check-circle me-1"></i> Approve
 
-                  </button>
+                  </button> */}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    className="btn btn-success waves-effect waves-light m-1"
+                    onClick={(e) => handleFromSubmit(e, 'Approved')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleFromSubmit(e, 'Approved');
+                      }
+                    }}
+                  >
+                    <i className="fe-check-circle me-1"></i> Approve
+                  </div>
+
 
                 </a>) : (<div></div>)}
 
@@ -276,29 +304,74 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
                 //href="my-approval.html"
                 >
 
-                  <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={(e) => handleFromSubmit(e, 'Rework')}>
+                  {/* <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={(e) => handleFromSubmit(e, 'Rework')}>
 
                     <i className="fe-corner-up-left me-1"></i> Rework
 
-                  </button>
+                  </button> */}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    className="btn btn-warning waves-effect waves-light m-1"
+                    onClick={(e) => handleFromSubmit(e, 'Rework')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleFromSubmit(e, 'Rework');
+                      }
+                    }}
+                  >
+                    <i className="fe-corner-up-left me-1"></i> Rework
+                  </div>
 
                 </a>) : (<div></div>)}
 
                 {!props.DisableApproval ? (<a >
 
-                  <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={(e) => handleFromSubmit(e, 'Rejected')}>
+                  {/* <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={(e) => handleFromSubmit(e, 'Rejected')}>
 
                     <i className="fe-x-circle me-1"></i> Reject
 
-                  </button>
+                  </button> */}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    className="btn btn-danger waves-effect waves-light m-1"
+                    onClick={(e) => handleFromSubmit(e, 'Rejected')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleFromSubmit(e, 'Rejected');
+                      }
+                    }}
+                  >
+                    <i className="fe-x-circle me-1"></i> Reject
+                  </div>
 
                 </a>) : (<div></div>)}
 
-                {!props.DisableCancel ? (<button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={(e) => handleCancel()}>
+                {!props.DisableCancel ? (
+                //   <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={(e) => handleCancel()}>
 
-                  <i className="fe-x me-1"></i> Cancel
+                //   <i className="fe-x me-1"></i> Cancel
 
-                </button>) : (<div></div>)}
+                // </button>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    className="btn cancel-btn waves-effect waves-light m-1"
+                    onClick={() => handleCancel()}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleCancel();
+                      }
+                    }}
+                  >
+                    <i className="fe-x me-1"></i> Cancel
+                  </div>
+
+              ) : (<div></div>)}
 
               </div>
 

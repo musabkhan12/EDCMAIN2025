@@ -57,6 +57,7 @@ let newfileupload: any
 let newfilepreview: any;
 let filechanged: boolean = false;
 let ncrow: any = [];
+let EnableNC: boolean = false;
 let maxncseq: number = 0;
 let maxobsseq: number = 0;
 interface ForwardTo {
@@ -84,6 +85,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const siteUrl = props.siteUrl;
     const { useHide }: any = React.useContext(UserContext);
     const [InputDisabled, setInputDisabled] = React.useState(false);
+    const [EnableNCObs, setEnableNCObs] = React.useState(false);
     const selectedTextDiv = document.getElementById('selectedText');
 
     selectedTextDiv.style.display = 'none';
@@ -202,9 +204,39 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [selectToUsers, setSelectToUsers] = React.useState([]);
 
     const handleDepartmentChange = async (selectedOption: any) => {
-        const setAuditreportNC = await getItemsAuditReportNC(sp, selectedOption.value);
-        const setAuditreportObs = await getItemsAuditReportObs(sp, selectedOption.value);
+        debugger
+        EnableNC = true;
+        setEnableNCObs(true);
+        setNCNumberrows([]);
+        const setAuditreportNC = await getItemsAuditReportNC(sp, selectedOption?.value);
+        const setAuditreportObs = await getItemsAuditReportObs(sp, selectedOption?.value);
+        setCheckboxValues(prev => ({
+            ...prev,
+            FailureofIntentNonconformity: false,
+            Observations: false,
+            FailureofEffectiveness: false,
+            FailureofImplementation: false,
+            ConformingPositiveFindings: false,
+            OpportunitiesforImprovement: false
+        }));
+        const updatedValues: Record<string, number> = { ...checkboxNumberValues };
 
+        AuditFindingsOptions.forEach((checkbox) => {
+            //const fieldKey = CheckboxFieldMap[checkbox.value];
+            const fieldKeyN = CheckboxFieldMapN[checkbox.value];
+            if (checkbox.value === 'Observations') {
+                updatedValues[fieldKeyN] = 0;
+            }
+
+            if (checkbox.value === 'Failure of Intent / Nonconformity') {
+                updatedValues[fieldKeyN] = 0;
+            }
+        });
+
+        setCheckboxNumberValues(prev => ({
+            ...prev,
+            ...updatedValues
+        }));
         if (setAuditreportNC.length > 0) {
             maxncseq = setAuditreportNC[0].NCSequence;
             setFormData(prevData => ({
@@ -226,11 +258,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
             reportcode = selectedOption.departmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
         }
         setreportCode(reportcode);
-        setFormData({ ...formData, deptId: selectedOption.value, reportCode: reportcode });
+        setFormData({ ...formData, deptId: selectedOption?.value, reportCode: reportcode });
     };
     const handleShiftChange = async (selectedOption: any) => {
         setselectshift(selectedOption);
-        setFormData({ ...formData, shiftId: selectedOption.value });
+        setFormData({ ...formData, shiftId: selectedOption?.value });
     };
     const handleActualAuditDateChange = (date: any) => {
 
@@ -251,7 +283,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const handleFromDepartmentChange = (selectedOption: any) => {
         setcurrentUserDept(selectedOption);
 
-        setFormData({ ...formData, fromdeptId: selectedOption.value });
+        setFormData({ ...formData, fromdeptId: selectedOption?.value });
     };
     // ////// Recommendation
     const [recommendationRows, setRecommendationRows] = React.useState([
@@ -447,7 +479,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         if (field == "sharewith") {
             // const valuesOnly = value.map((option: any) => option.value);
             updatedRows = recommendationRows.map((row, i) =>
-                i === index ? { ...row, [field]: value, sharewithIds: value.value } : row
+                i === index ? { ...row, [field]: value, sharewithIds: value?.value } : row
             );
         } else {
             updatedRows = recommendationRows.map((row, i) =>
@@ -1045,10 +1077,25 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
 
     }
-
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLSelectElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // 🛑 Prevents page reload
+        }
+    };
+    // const handleKeyDowntext = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    //     if (e.key === 'Enter') {
+    //         e.preventDefault();
+    //     }
+    // };
+    // const handleKeyDowntextarea = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    //     if (e.key === 'Enter' && !e.shiftKey) {
+    //         e.preventDefault(); // Prevent form submission or unwanted behavior
+    //         // Optional: do something when Enter is pressed (like submit or blur)
+    //     }
+    // };
     const onSelectDocCode = async (selectedList: any) => {
         debugger
-        setTemplateDocAudit(await getGeneratedTemplateDocAuditplan(sp, Number(selectedList.value)));
+        setTemplateDocAudit(await getGeneratedTemplateDocAuditplan(sp, Number(selectedList?.value)));
         console.log(selectedList, "selectedList");
         if (selectedList != null) {
             setLoading(true);
@@ -1057,22 +1104,22 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 //issueNo: selectedList.IssueNumber != "" || selectedList.IssueNumber != null ? selectedList.IssueNumber : 0,
                 //referenceNo: selectedList.ReferenceNumber != "" || selectedList.ReferenceNumber != null ? selectedList.ReferenceNumber : 0,
                 //revisionNo: selectedList.RevisionNumber != "" || selectedList.RevisionNumber != null ? selectedList.RevisionNumber : 0,
-                deptId: selectedList.DepartmentId,
-                AuditplanDocId: Number(selectedList.value),
-                attachmentIds: selectedList.AttachmentId,
-                attachmentJson: selectedList.AttachmentJson,
-                ApprovedAuditPlanId: selectedList.ID,
-                Auditplandate: new Date(selectedList.Date).toLocaleDateString("en-CA"),
+                deptId: selectedList?.DepartmentId,
+                AuditplanDocId: Number(selectedList?.value),
+                attachmentIds: selectedList?.AttachmentId,
+                attachmentJson: selectedList?.AttachmentJson,
+                ApprovedAuditPlanId: selectedList?.ID,
+                Auditplandate: new Date(selectedList?.Date).toLocaleDateString("en-CA"),
                 //documentCode: selectedList.MemoNumber
                 // Format as YYYY-MM-DD
             }));
             setSelectedOption(selectedList);
             setFormData(prevData => ({
                 ...prevData,
-                deptId: selectedList.DepartmentId
+                deptId: selectedList?.DepartmentId
             }));
-            setdoccode(selectedList.MemoNumber);
-            setauditplandate(new Date(selectedList.Date).toLocaleDateString("en-CA"))
+            setdoccode(selectedList?.MemoNumber);
+            setauditplandate(new Date(selectedList?.Date).toLocaleDateString("en-CA"))
             //const rowData: any[] = await getItemByID2(sp, Number(selectedList.ID)) //baseUrl
             // const rowData: any[] = await getItemfromChecklistMaster(sp) //baseUrl
             // if (rowData.length > 0) {
@@ -2802,23 +2849,25 @@ const AnnualAuditReportContext = ({ props }: any) => {
     }
     type CheckboxLabel = keyof typeof CheckboxFieldMap;
     const renderCheckboxes = () => {
-        console.log("formdataaaaaaaaa", formData);
+        console.log("formdataaaaaaaaa", formData, EnableNC, InputDisabled, formData?.Status !== "Rework", EnableNC, EnableNCObs);
         return (
             <div className="row">
                 {AuditFindingsOptions.map((checkbox) => {
                     const fieldKey = CheckboxFieldMap[checkbox.value];
                     const fieldKeyN = CheckboxFieldMapN[checkbox.value];
-
+                    const shouldDisableCheckbox =
+                        (InputDisabled && formData?.Status !== "Rework") || !EnableNCObs;
                     return (
                         <div className="col-lg-6 mb-3" key={checkbox.value}>
                             <div className="d-flex justify-content-between align-items-center">
                                 {/* Left side: checkbox and label */}
                                 <div className="d-flex align-items-center">
                                     <input
+                                        //onKeyDown={handleKeyDowntext}
                                         type="checkbox"
                                         className="form-check-input me-2"
                                         id={`checkbox-${fieldKey}`}
-                                        disabled={InputDisabled && formData?.Status !== "Rework"}
+                                        disabled={shouldDisableCheckbox}
                                         checked={checkboxValues[fieldKey]}
                                         onChange={() => handleCheckboxChange(checkbox.value)}
                                     />
@@ -2829,6 +2878,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                 {/* Right side: number input */}
                                 <input
+                                    //onKeyDown={handleKeyDowntext}
                                     type="number"
                                     className="form-control"
                                     style={{ maxWidth: '70px', minWidth: '60px' }}
@@ -2850,6 +2900,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         <label htmlFor="Description" className="col-form-label">Conforming & Positive Findings</label>
                         <div>
                             <textarea
+                                //onKeyDown={handleKeyDowntextarea}
                                 title={formData.description}
                                 id="simpleinput"
                                 disabled={InputDisabled}
@@ -3044,6 +3095,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                         <td style={{ minWidth: '60px', maxWidth: '60px' }} title={row.ncnumberNC}>
                                                             <input
+                                                                //onKeyDown={handleKeyDowntext}
                                                                 type="number"
                                                                 className={`form-control ${(RowErrors[index]?.ncnumberNC) ? "border-on-error" : ""}`}
                                                                 value={row.ncnumberNC}
@@ -3065,6 +3117,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                         </td>
                                                         <td style={{ minWidth: '220px', maxWidth: '220px' }}>
                                                             <textarea
+                                                                //onKeyDown={handleKeyDowntextarea}
                                                                 id="simpleinput"
                                                                 className={`form-control`}
                                                                 // className="form-control"
@@ -3123,6 +3176,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                             <tr key={index}>
                                                 <td style={{ minWidth: '60px', maxWidth: '60px' }} title={row.observationnumberObs}>
                                                     <input
+                                                       // onKeyDown={handleKeyDowntext}
                                                         type="number"
                                                         className={`form-control ${(RowErrors[index]?.observationnumberObs) ? "border-on-error" : ""}`}
                                                         value={row.observationnumberObs}
@@ -3145,6 +3199,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                 <td style={{ minWidth: '220px', maxWidth: '220px' }}>
                                                     <textarea
+                                                        //onKeyDown={handleKeyDowntextarea}
                                                         id="simpleinput"
                                                         className={`form-control`}
                                                         // className="form-control"
@@ -3425,10 +3480,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                             style={{ width: "100%" }}
                                                                         >
                                                                             <Select
+                                                                                onKeyDown={handleKeyDown}
+                                                                                isClearable={true}
                                                                                 options={rows}
                                                                                 value={selectedOption}
                                                                                 name="AuditPlan"
-                                                                                isClearable={true}
+
                                                                                 isSearchable={true}
                                                                                 className={`newse  ${(!ValidSubmit && approvedauditplanerr) ? "border-on-error" : ""} ${(!ValidDraft && approvedauditplanerr) ? "border-on-error" : ""}`}
                                                                                 onChange={(selectedOption: any) => onSelectDocCode(selectedOption)}
@@ -3448,6 +3505,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 style={{ width: "100%" }}
                                                                             >
                                                                                 <Select
+                                                                                    onKeyDown={handleKeyDown}
+                                                                                    isClearable={true}
                                                                                     options={AllDept}
                                                                                     isDisabled={InputDisabled}
                                                                                     value={currentUserDept}
@@ -3472,6 +3531,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         <label htmlFor="memoNo" className="col-form-label">Report Code<span className="text-danger1"> *</span></label>
                                                                         <div title={formData.reportCode || "Select a report code"}>
                                                                             <input
+                                                                                //onKeyDown={handleKeyDowntext}
                                                                                 disabled
                                                                                 type="text"
                                                                                 className={`form-control`}
@@ -3616,18 +3676,33 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 <div className="col-lg-4">
                                                                     <div className="row mb-3">
                                                                         <label htmlFor="date" className="col-form-label">Audit Plan Date<span className="text-danger1"> *</span></label>
-                                                                        <div title={auditplandate}>
-                                                                            <input
+                                                                        <div title={moment(auditplandate).format('DD/MMM/YYYY')}>
+                                                                            {/* <input
 
                                                                                 type="date"
                                                                                 className={`form-control`}
                                                                                 // className="form-control"
                                                                                 id="date"
-                                                                                value={auditplandate}
+                                                                                //formatDate={(date: any) => moment(date).format('DD/MMM/YYYY')}
+                                                                                value={moment(auditplandate).format('DD/MMM/YYYY')}
                                                                                 //onChange={(e) => setFormData({ ...formData, Auditplandate: new Date(e.target.value).toLocaleDateString("en-CA") })}
                                                                                 disabled={true}
-                                                                            />
+                                                                            /> */}
+                                                                            <DatePicker id="date"
+                                                                                value={
+                                                                                    auditplandate
+                                                                                        ? new Date(moment(auditplandate).format('YYYY-MM-DD'))
+                                                                                        : null
+                                                                                }
+                                                                                // onSelectDate={(date: Date | null) => {
+                                                                                //     handleActualAuditDateChange(date)
+                                                                                // }}
+                                                                                //className={`${(!ValidSubmit && dateerr) ? "textfield-error" : ""}${(!ValidDraft && dateerr) ? "textfield-error" : ""}`}
 
+                                                                                minDate={new Date()}
+                                                                                disabled={true}
+                                                                                formatDate={(date: any) => moment(date).format('DD/MMM/YYYY')}
+                                                                            />
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -3640,6 +3715,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 style={{ width: "100%" }}
                                                                             >
                                                                                 <Select
+                                                                                    onKeyDown={handleKeyDown}
+                                                                                    isClearable={true}
                                                                                     options={AllDept}
                                                                                     isDisabled={InputDisabled}
                                                                                     value={selectUserDept}
@@ -3697,6 +3774,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                                             <div>
                                                                                 <input
+                                                                                    //onKeyDown={handleKeyDowntext}
                                                                                     type="file"
                                                                                     className={`form-control ${(!ValidSubmit && attachmenterr) ? "border-on-error" : ""}`}
                                                                                     // className="form-control"
@@ -3727,6 +3805,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         <label htmlFor="revisionNo" className="col-form-label">Share With<span className="text-danger1"> *</span></label>
                                                                         <div title={sharewithusers.map(user => user.label).join(', ')}>
                                                                             <Select
+                                                                                onKeyDown={handleKeyDown}
+                                                                                isClearable={true}
                                                                                 options={rows1}
                                                                                 isMulti
                                                                                 value={sharewithusers}
@@ -3742,13 +3822,15 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 </div>
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
-                                                                        <label htmlFor="Department" className="col-form-label">Shift<span className="text-danger1"> *</span></label>
+                                                                        <label htmlFor="Department" className="col-form-label">Shift</label>
                                                                         <div >
                                                                             <div
                                                                                 title={selectshift?.label || "Select a shift"}
                                                                                 style={{ width: "100%" }}
                                                                             >
                                                                                 <Select
+                                                                                    onKeyDown={handleKeyDown}
+                                                                                    isClearable={true}
                                                                                     options={AuditProgShift}
                                                                                     isDisabled={InputDisabled}
                                                                                     value={selectshift}
@@ -3817,6 +3899,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         <tr key={row.id}>
                                                                             <td title={row?.isoreference ? row?.isoreference : row?.isoreference} style={{ minWidth: '200px', maxWidth: '200px' }}>
                                                                                 <input
+                                                                                    //onKeyDown={handleKeyDowntext}
                                                                                     type="text"
                                                                                     className={`form-control ${(RowErrors[index]?.isoreference) ? "border-on-error" : ""}`}
                                                                                     // className="form-control"
@@ -3837,6 +3920,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         </td> */}
                                                                             <td title={row?.imsprocedure ? row?.imsprocedure : row?.imsprocedure} style={{ minWidth: '220px', maxWidth: '220px' }}>
                                                                                 <input
+                                                                                    //onKeyDown={handleKeyDowntext}
                                                                                     type="text"
                                                                                     className={`form-control ${RowErrors[index]?.imsprocedure ? "border-on-error" : ""}`}
                                                                                     value={row.imsprocedure}
@@ -3846,6 +3930,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                             </td>
                                                                             <td title={row?.inquiries ? row?.inquiries : row?.inquiries} style={{ minWidth: '300px', maxWidth: '300px' }}>
                                                                                 <textarea
+                                                                                    //onKeyDown={handleKeyDowntextarea}
                                                                                     id="simpleinput"
                                                                                     className={`form-control ${(RowErrors[index]?.inquiries) ? "border-on-error" : ""}`}
                                                                                     // className="form-control"
@@ -3864,6 +3949,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                             </td>
                                                                             <td title={row?.auditorcomments ? row?.auditorcomments : row?.auditorcomments} style={{ minWidth: '300px', maxWidth: '300px' }}>
                                                                                 <textarea
+                                                                                   // onKeyDown={handleKeyDowntextarea}
                                                                                     id="simpleinput"
                                                                                     className={`form-control ${(RowErrors[index]?.auditorcomments) ? "border-on-error" : ""}`}
                                                                                     // className="form-control"
@@ -4026,6 +4112,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                             <td title={row.approvers.map(user => user.label).join(', ')} style={{ overflow: 'inherit' }}>
 
                                                                                 <Select
+                                                                                    onKeyDown={handleKeyDown}
+                                                                                    isClearable={true}
                                                                                     options={rows1}
                                                                                     isMulti
                                                                                     value={row.approvers}
@@ -4136,7 +4224,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
  */}
 
                                                         {console.log("eddddd", editID)}
-                                                        {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID?.ApprovalType !== "Approval") || (modeValue === "approve" && editID?.Status == "Approved") ) &&
+                                                        {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID?.ApprovalType !== "Approval") || (modeValue === "approve" && editID?.Status == "Approved")) &&
                                                             <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                                                 className='me-1' alt="x" /> Cancel</button>
                                                         }

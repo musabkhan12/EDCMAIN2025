@@ -198,6 +198,14 @@ const HorizontalNavbar = ({ _context, siteUrl,context }: any) => {
   };
   // const imgLogo = require("../assets/useimg.png");
 
+  // this code is added to minimize the effect when user enter in search input and press enter key then it was editing webpart page
+  document.getElementById("searchInput")?.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      alert("Enter key pressed in search input");
+      event.preventDefault();
+      return false;
+    }
+  });
 
   const ApiCall = async () => {
     setCurrentUser(await getCurrentUserName(_context))

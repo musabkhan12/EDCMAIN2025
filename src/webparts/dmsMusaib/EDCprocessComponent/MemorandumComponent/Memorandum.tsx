@@ -195,7 +195,19 @@ const MemoContext = ({ props }: any) => {
     let memo: number = 0;
     let memoId: number = 0;
 
-    const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${selectedOption.value}`).orderBy("SerialNumber", false).top(1)();
+    let listItems = [];
+    let onloadDeptId: any;
+    if (selectedOption == null) {
+      onloadDeptId = AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]?.value || 0;
+
+      listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
+
+
+    }
+    else {
+      listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${selectedOption.value}`).orderBy("SerialNumber", false).top(1)();
+
+    }
     if (listItems.length > 0) {
       if (modeValue == "") {
         memo = listItems[0].SerialNumber ? listItems[0].SerialNumber + 1 : 1;
@@ -212,24 +224,42 @@ const MemoContext = ({ props }: any) => {
       memoId = 0;
 
     }
-    // const formattedMemoSerialNo = formData.memoSerialNo < 10
-    //   ? `00${formData.memoSerialNo}`
-    //   : formData.memoSerialNo < 100
-    //     ? `0${formData.memoSerialNo}`
-    //     : formData.memoSerialNo;
+
     const formattedMemoSerialNo = memo < 10
       ? `00${memo}`
       : memo < 100
         ? `0${memo}`
         : memo;
-    setFormData({
-      ...formData,
-      MemoListId: memoId,
-      memoSerialNo: memo,
-      deptId: selectedOption.value,
-      memoNo: `${selectedOption.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-      memoFileName: `${selectedOption.DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
-    });
+
+    if (selectedOption == null) {
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        MemoListId: memoId,
+        memoSerialNo: memo,
+        deptId: onloadDeptId,
+        // memoNo: setAllDept1.filter(user => user.label === UserDept)[0]
+        //     ? `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        memoNo: AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0]
+          ? `${AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+          : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+        memoFileName: AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]
+          ? `${AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+          : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+      }));
+
+
+    }
+    else {
+      setFormData({
+        ...formData,
+        MemoListId: memoId,
+        memoSerialNo: memo,
+        deptId: selectedOption.value,
+        memoNo: `${selectedOption.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+        memoFileName: `${selectedOption.DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+      });
+    }
 
     if (selectedOption) {
       document.getElementById("DeptID")?.classList.remove("border-on-error");
@@ -292,7 +322,7 @@ const MemoContext = ({ props }: any) => {
     if (field == "auditor") {
       // const valuesOnly = value.map((option: any) => option.value);
       updatedRows = recommendationRows.map((row, i) =>
-        i === index ? { ...row, [field]: value, auditorIds: value.value } : row
+        i === index ? { ...row, [field]: value ? value : null, auditorIds: value ? value.value : null } : row
       );
 
     } else {
@@ -315,6 +345,7 @@ const MemoContext = ({ props }: any) => {
 
   // Handle change event
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>, lvl: number) => {
+    event.preventDefault();
     const updatedArr = forwardToArr.map(row =>
       row.level === lvl ? { ...row, approvalType: event.target.value } : row
     );
@@ -344,6 +375,17 @@ const MemoContext = ({ props }: any) => {
   // Function to handle People Picker selection
   const onPeoplePickerChange = (items: any[]) => {
     setSelectedUsers(items);
+  };
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLSelectElement>) => {
+    // if (e.key === 'Enter') {
+    //   e.preventDefault(); // 🛑 Prevents page reload
+    // }
+  };
+
+  const handleKeyDowntext = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // if (e.key === 'Enter') {
+    //   e.preventDefault();
+    // }
   };
 
   const ApiCallFunc = async () => {
@@ -547,7 +589,7 @@ const MemoContext = ({ props }: any) => {
         if (formMode == "edit") {
           const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${setBannerById[0]?.DepartmentId}`).orderBy("SerialNumber", false).top(1)();
           // if (listItems.length > 0 && (setBannerById[0].Status == "Rework" || setBannerById[0].Status == "Save as draft")) {
-            if (listItems.length > 0 && ( (setBannerById[0].Status == "Save as draft" && increaseMemo))) {
+          if (listItems.length > 0 && ((setBannerById[0].Status == "Save as draft" && increaseMemo))) {
             if (listItems[0].SerialNumber >= setBannerById[0].MemoSerialNumber) {
               memo = listItems[0].SerialNumber + 1;
             }
@@ -790,6 +832,7 @@ const MemoContext = ({ props }: any) => {
 
 
   const onSelectRole = (event: React.ChangeEvent<HTMLSelectElement>, lvl: number) => {
+    event.preventDefault();
     const updatedArr = forwardToArr.map(row =>
       row.level === lvl ? { ...row, role: Number(event.target.value) } : row
     );
@@ -1461,7 +1504,8 @@ const MemoContext = ({ props }: any) => {
               const postId = postResult?.data?.ID;
 
             }
-            else {
+            if (DraftApprovalItem == null || DraftApprovalItem == undefined || DraftApprovalItem.length == 0) {
+              // else {
               if (modeValue != "approve") {
                 let arry = {
                   DepartmentId: formData.deptId,
@@ -1819,51 +1863,106 @@ const MemoContext = ({ props }: any) => {
             }
 
             // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
-            let arr = {
-              Title: formData.subject,
-              MemoNumber: formData.memoNo,
-              ClassificationId: formData.classificationId,
-              // MemoSerialNumber:formData.memoSerialNo,
-              // IssueNumber:,
-              // RevisionNumber:,
-              AuditTypeId: formData.auditProgramTypeId,
-              // AuditProgramTypeId: formData.auditTypesId,
-              FromId: formData.from,
-              ToId: formData.to,
-              CcId: formData.CC,
-              Subject: formData.subject,
-              Date: formData.date ? formData.date : null,
-              Background: formData.background,
-              Issues: formData.issues,
-              RecommendedforApproval: formData.recommendationforApproval,
-              DepartmentId: formData.deptId,
-              // Exclusions: formData.exclusions,
-              // Boundary: formData.boundary,
-              // AimObjective: formData.objective,
-              // Criteria: formData.criteria,
-              // Scope: formData.scope,
-              // Year: formData.Year || 0,
-              // MonthName: formData.MonthName,
-              ToDepartmentsId: formData.ToDepartments || [],
-              CCDepartmentsId: formData.CCDepartments || [],
-              SubmiitedDate: new Date().toLocaleDateString("en-CA"),
-              SubmitStatus: "No",
-              Status: "Save as draft",
-              // DocumentName:"",
-              IsRework: "No",
-              RecommendationTypeId: formData.recommendationTypeId,
-              RecommendationDetails: formData.RecommendationTypeValue === "TextBox" ? formData.recommendationDetails : "",
-              DocumentCode: formData.DocCode,
-              RevisionDate: formData.RevisionDate,
-              RevisionNumber: formData.RevisionNo,
-              IssueDate: formData.IssueDate,
-              IssueNumber: formData.IssueNo,
+            let arr = {};
+
+            if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
+
+              arr = {
+                Title: formData.subject,
+                MemoNumber: formData.memoNo,
+                ClassificationId: formData.classificationId,
+                // MemoSerialNumber:formData.memoSerialNo,
+                // IssueNumber:,
+                // RevisionNumber:,
+                AuditTypeId: formData.auditProgramTypeId,
+                // AuditProgramTypeId: formData.auditTypesId,
+                FromId: formData.from,
+                ToId: formData.to,
+                CcId: formData.CC,
+                Subject: formData.subject,
+                Date: formData.date ? formData.date : null,
+                Background: formData.background,
+                Issues: formData.issues,
+                RecommendedforApproval: formData.recommendationforApproval,
+                DepartmentId: formData.deptId,
+                // Exclusions: formData.exclusions,
+                // Boundary: formData.boundary,
+                // AimObjective: formData.objective,
+                // Criteria: formData.criteria,
+                // Scope: formData.scope,
+                // Year: formData.Year || 0,
+                // MonthName: formData.MonthName,
+                ToDepartmentsId: formData.ToDepartments || [],
+                CCDepartmentsId: formData.CCDepartments || [],
+                SubmiitedDate: new Date().toLocaleDateString("en-CA"),
+                SubmitStatus: "No",
+                Status: "Save as draft",
+                // DocumentName:"",
+                IsRework: "No",
+                RecommendationTypeId: formData.recommendationTypeId,
+                RecommendationDetails: formData.RecommendationTypeValue === "TextBox" ? formData.recommendationDetails : "",
+                DocumentCode: formData.DocCode,
+                RevisionDate: formData.RevisionDate,
+                RevisionNumber: formData.RevisionNo,
+                IssueDate: formData.IssueDate,
+                IssueNumber: formData.IssueNo,
 
 
-              AttachmentId: attachmentIds || [],
-              ChangeRequestIDId: formData.changeReqListID,
-              // AttachmentJson: JSON.stringify(bannerImageArray) || ""
+                AttachmentId: attachmentIds || [],
+                ChangeRequestIDId: formData.changeReqListID,
+                // AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
+
+              }
+            }
+            else {
+              arr = {
+                Title: formData.subject,
+                MemoNumber: formData.memoNo,
+                ClassificationId: formData.classificationId,
+                // MemoSerialNumber:formData.memoSerialNo,
+                // IssueNumber:,
+                // RevisionNumber:,
+                AuditTypeId: formData.auditProgramTypeId,
+                // AuditProgramTypeId: formData.auditTypesId,
+                FromId: formData.from,
+                ToId: formData.to,
+                CcId: formData.CC,
+                Subject: formData.subject,
+                Date: formData.date ? formData.date : null,
+                Background: formData.background,
+                Issues: formData.issues,
+                RecommendedforApproval: formData.recommendationforApproval,
+                DepartmentId: formData.deptId,
+                // Exclusions: formData.exclusions,
+                // Boundary: formData.boundary,
+                // AimObjective: formData.objective,
+                // Criteria: formData.criteria,
+                // Scope: formData.scope,
+                // Year: formData.Year || 0,
+                // MonthName: formData.MonthName,
+                ToDepartmentsId: formData.ToDepartments || [],
+                CCDepartmentsId: formData.CCDepartments || [],
+                SubmiitedDate: new Date().toLocaleDateString("en-CA"),
+                SubmitStatus: "No",
+                Status: "Save as draft",
+                // DocumentName:"",
+                IsRework: "No",
+                RecommendationTypeId: formData.recommendationTypeId,
+                RecommendationDetails: formData.RecommendationTypeValue === "TextBox" ? formData.recommendationDetails : "",
+                DocumentCode: formData.DocCode,
+                RevisionDate: formData.RevisionDate,
+                RevisionNumber: formData.RevisionNo,
+                IssueDate: formData.IssueDate,
+                IssueNumber: formData.IssueNo,
+
+
+                AttachmentId: attachmentIds || [],
+                ChangeRequestIDId: formData.changeReqListID,
+                // AttachmentJson: JSON.stringify(bannerImageArray) || ""
+
+
+              }
 
             }
             const postResult = await updateItem(arr, sp, editItemID);
@@ -2010,20 +2109,20 @@ const MemoContext = ({ props }: any) => {
               }
             }
 
-            if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
+            // if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
 
-              let arr2 = {
-                ActionTakenById: currentUser.Id,
-                ActionTakenOn: new Date().toLocaleDateString("en-CA"),
-                // ActionTakenRoleId: formData.RequesterDesignation,
-                Status: "Save as draft",
-                // Remark: remark,
+            //   let arr2 = {
+            //     ActionTakenById: currentUser.Id,
+            //     ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+            //     // ActionTakenRoleId: formData.RequesterDesignation,
+            //     Status: "Save as draft",
+            //     // Remark: remark,
 
-              }
-              const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
-              const postId = postResult?.data?.ID;
+            //   }
+            //   const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
+            //   const postId = postResult?.data?.ID;
 
-            }
+            // }
 
 
             let boolval = false;
@@ -2714,10 +2813,10 @@ const MemoContext = ({ props }: any) => {
                                       <Select
                                         // options={AllDept}
                                         options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
-
+                                        isClearable
                                         isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false)}
                                         value={selectUserDept}
-
+                                        
                                         name="deptId"
                                         id="DeptID"
                                         className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""} ${(!ValidDraft) ? "border-on-error" : ""}`}
@@ -2784,7 +2883,7 @@ const MemoContext = ({ props }: any) => {
                                       <Select
                                         // options={AllDept}
                                         options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
-
+                                        
                                         isDisabled={InputDisabled}
                                         value={selectUserDeptTo}
                                         isMulti
@@ -2846,7 +2945,7 @@ const MemoContext = ({ props }: any) => {
                                       <Select
                                         // options={AllDept}
                                         options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
-
+                                        
                                         isDisabled={InputDisabled}
                                         isMulti
                                         value={selectUserDeptCC}
@@ -3007,19 +3106,20 @@ const MemoContext = ({ props }: any) => {
                                       <Select
                                         options={Classificationopt}
                                         value={formData.classificationValue}
-
+                                        isClearable
                                         name="Classification"
                                         id="Classification"
                                         className={`${(!ValidSubmit) ? "border-on-error" : ""}`}
                                         onChange={(selectedOption: any) => {
                                           setFormData({
                                             ...formData,
-                                            classificationValue: selectedOption,
-                                            classificationId: selectedOption.value,
+                                            classificationValue: selectedOption ? selectedOption : null,
+                                            classificationId: selectedOption ? selectedOption.value : 0,
                                           });
                                         }}
                                         placeholder="Select Classification"
                                         isDisabled={InputDisabled}
+                                        
                                       />
                                     </div>
 
@@ -3201,6 +3301,7 @@ const MemoContext = ({ props }: any) => {
                                             type="text"
                                             className={`form-control recommendClsErr }`}
                                             // className="form-control"
+                                            // onKeyDown={handleKeyDowntext}
                                             value={row.section}
                                             title={row.section}
                                             onChange={(e) => handleRecommendationChange(index, 'section', e.target.value)}
@@ -3303,11 +3404,13 @@ const MemoContext = ({ props }: any) => {
                                             //options={UserRoles}
                                             options={rows1}
                                             // isMulti
+                                            isClearable
                                             className={`recommendClsErr }`}
                                             value={row.auditor}
                                             onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
                                             placeholder="Select"
                                             isDisabled={InputDisabled}
+                                            
 
                                           />
                                         </td>
@@ -3546,6 +3649,7 @@ const MemoContext = ({ props }: any) => {
                                       <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding">
                                         <select
                                           // className="form-select"
+                                          
                                           className={`form-select HierarchyClsErr newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
                                           onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={InputDisabled}
                                           title={row.role ? UserRoles.find((role: any) => role.value === row.role)?.label : "Select Role"}
@@ -3570,6 +3674,7 @@ const MemoContext = ({ props }: any) => {
                                           options={rows1}
                                           isMulti
                                           value={row.approvers}
+                                          
                                           name="Approvers"
                                           className={`newse HierarchyClsErr ${(!ValidForwardTo) ? "border-on-error" : ""}`}
                                           onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
@@ -3583,7 +3688,7 @@ const MemoContext = ({ props }: any) => {
                                       </td>
                                       <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
                                         <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse HierarchyClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={InputDisabled}
-                                          title={row.approvalType ? (row.approvalType === "One" ? "Anyone" : "Everyone") : "Select Approval Type"}
+                                          title={row.approvalType ? (row.approvalType === "One" ? "Anyone" : "Everyone") : "Select Approval Type"} 
                                         >
                                           <option value="">Select </option>
                                           <option value="One">Anyone</option>
@@ -3608,30 +3713,6 @@ const MemoContext = ({ props }: any) => {
                               </table>
                             </div>
 
-
-
-                            {/* {editID.CurrentUserRole === "OES" &&  */}
-                            {/* <div className="row mt-3">
-                                                            <div className="col-12 text-center">
-                                                                <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardApproval("Forward")} >
-                                                                    <i className="fe-check-circle me-1"></i> Forward
-                                                                </button>
-
-                                                                <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={() => ForwardApproval("Rework")} >
-                                                                    <i className="fe-corner-up-left me-1"></i> Rework
-                                                                </button>
-
-                                                                <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={() => ForwardApproval("Rejected")} >
-                                                                    <i className="fe-x me-1"></i> Reject
-                                                                </button>
-
-                                                                <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}>
-                                                                    <i className="fe-x me-1"></i> Cancel
-                                                                </button>
-
-                                                            </div>
-                                                        </div> */}
-                            {/* } */}
                           </div>
                         </div>
                         {/* // } */}
@@ -3662,7 +3743,7 @@ const MemoContext = ({ props }: any) => {
                           <div className="col-12 text-center">
 
 
-                            {((InputDisabled != true && editItemID == null && MainEditItem == null) || (modeValue === "" || (modeValue === "edit" && (MainEditItem?.Status == "Rework" || MainEditItem?.Status == "Save as draft"))) || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "Initiator" && editID.IsInitiator == "Yes" && (editID?.Status === "Pending" || editID?.Status === "Save as draft"))) &&
+                            {/* {((InputDisabled != true && editItemID == null && MainEditItem == null) || (modeValue === "" || (modeValue === "edit" && (MainEditItem?.Status == "Rework" || MainEditItem?.Status == "Save as draft"))) || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "Initiator" && editID.IsInitiator == "Yes" && (editID?.Status === "Pending" || editID?.Status === "Save as draft"))) &&
                               <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
                                 <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
                                 Save As Draft</button>
@@ -3674,16 +3755,29 @@ const MemoContext = ({ props }: any) => {
                                 Submit</button>
                             }
 
-                            {/* {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</button>}
-
-
-                                                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</button>}
- */}
-
-
+                            
                             {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.ApprovalType !== "Approval")) &&
                               <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                 className='me-1' alt="x" /> Cancel</button>
+                            } */}
+
+
+                            {((InputDisabled != true && editItemID == null && MainEditItem == null) || (modeValue === "" || (modeValue === "edit" && (MainEditItem?.Status == "Rework" || MainEditItem?.Status == "Save as draft"))) || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "Initiator" && editID.IsInitiator == "Yes" && (editID?.Status === "Pending" || editID?.Status === "Save as draft"))) &&
+                              <div className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
+                                <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
+                                Save As Draft</div>
+                            }
+
+                            {((InputDisabled != true && editItemID == null && MainEditItem == null) || (modeValue === "" || (modeValue === "edit" && (MainEditItem?.Status == "Rework" || MainEditItem?.Status == "Save as draft"))) || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "Initiator" && editID.IsInitiator == "Yes" && (editID?.Status === "Pending" || editID?.Status === "Save as draft"))) &&
+                              <div className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
+                                <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
+                                Submit</div>
+                            }
+
+
+                            {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.ApprovalType !== "Approval")) &&
+                              <div className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
+                                className='me-1' alt="x" /> Cancel</div>
                             }
 
                           </div>

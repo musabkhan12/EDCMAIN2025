@@ -96,6 +96,33 @@ export const getDocumentCodeselected = async (_sp, locId, custoId, doctypeId) =>
     });
   return arr;
 };
+export const getDocumentCodeselectedApproved = async (_sp, locId, custoId, doctypeId) => {
+  let arr = [];
+
+  await _sp.web.lists.getByTitle("ChangeRequestList").items
+    .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title")
+    .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")
+    .filter(`LocationId eq '${locId}' and CustodianId eq '${custoId}' and DocumentTypeId eq '${doctypeId}' and Status eq 'Approved'`)
+    .orderBy("ID", true).top(1)() // Order by Modified descending to get latest first
+    .then((res) => {
+      console.log(res);
+      let SnoArr = [];
+      if (res.length > 0) {
+        SnoArr.push({
+          SerialNo: Number(res[0].SerialNumber),
+          IssueNo: Number(res[0].IssueNumber),
+          RevisionNo: Number(res[0].RevisionNumber),
+          IssueDate:res[0].IssueDate
+        })
+      }
+      console.log("resresr serialnumber", res, SnoArr);
+      arr = SnoArr
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  return arr;
+};
 // export const getAllDepartment = async (_sp) => {
  
 //   let arr = []
@@ -514,8 +541,33 @@ export const getItemByIDCR = async (_sp, id) => {
   let bannerimg = []
 
   await _sp.web.lists.getByTitle("ChangeRequestList").items.getById(id)
-    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,RequestType/ID,RequestType/RequestType,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId")
+    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,RequestType/ID,RequestType/RequestType,RequestType/RequestCode,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId")
     .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,RequestType,Author,Department")
+    ()
+    .then((res) => {
+      console.log(res, ' let arrs=[]');
+
+      arr.push(res)
+      // arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  console.log(arr, 'arr');
+  return arr;
+}
+export const getItemByIDCRlatest = async (_sp, id) => {
+
+  let arr = []
+  let arrs = []
+  let bannerimg = []
+
+  await _sp.web.lists.getByTitle("ChangeRequestList").items
+    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,RequestType/ID,RequestType/RequestType,RequestType/RequestCode,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateType/TemplateTypeValue,TemplateTypeId")
+    .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,RequestType,Author,Department")
+    .filter(`TemplateType/TemplateTypeValue eq 'Change Request'`)
+    .orderBy("ID", false) // Order by ID descending to get latest first
+    .top(1)
     ()
     .then((res) => {
       console.log(res, ' let arrs=[]');
@@ -791,7 +843,7 @@ export const getDocumentLinkByIDarr = async (_sp, itemId) => {
   await _sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(itemId)
     .select("*,FileRef, FileLeafRef")()
     .then((res) => {
-      console.log(res, ' let arrs=[]');
+      console.log(res, 'file let arrs=[]');
 
 
       //  arr =(res[0].Id)

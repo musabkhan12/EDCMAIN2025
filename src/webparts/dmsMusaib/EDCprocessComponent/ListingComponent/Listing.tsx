@@ -221,7 +221,9 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             return (
                 <tr key={i}>
                     <td style={{ minWidth: '40px', maxWidth: '40px' }}>
-                        <div style={{ marginLeft: '5px' }} className='indexdesign'>{i + 1}</div>
+                        {/* <div style={{ marginLeft: '5px' }} className='indexdesign'>{i + 1}</div> */}
+                           {/* <div style={{ marginLeft: '5px' }} className='indexdesign'>{i + 1}</div> */}
+                           <div style={{ marginLeft: '5px' }} className='indexdesign'> {(currentPage - 1) * itemsPerPage + i + 1}</div>
                     </td>
                     <td title={item.ProcessName == "Non Conformity" ? item?.NCNumber : item?.RequestId} style={{ minWidth: '105px', maxWidth: '105px' }}>{item.ProcessName == "Non Conformity" ? item?.NCNumber : item?.RequestId}</td>
                     <td title={item.ProcessName == "Non Conformity" ? item?.ProblemDescription : item.Title} style={{ minWidth: '105px', maxWidth: '105px' }}>{item.ProcessName == "Non Conformity" ? item?.ProblemDescription : item.Title}</td>
@@ -241,7 +243,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                     : item?.ProcessName}
                     </td>
                     <td title={item.ReqName} style={{ minWidth: '80px', maxWidth: '80px' }}>{item.ReqName}</td>
-                    <td title={moment(item.ReqDt).format("DD-MMM-YYYY")} style={{ minWidth: '85px', maxWidth: '85px' }}>{moment(item.ReqDt).format("DD-MMM-YYYY")}</td>
+                    <td title={moment(item.ReqDt).format("DD/MMM/YYYY")} style={{ minWidth: '85px', maxWidth: '85px' }}>{moment(item.ReqDt).format("DD/MMM/YYYY")}</td>
                     <td title={item.SubmitStatus == "No" ? "Save as Draft" : item.Status} style={{ minWidth: '70px', maxWidth: '70px' }}>{item.SubmitStatus == "No" ? "Save as Draft" : item.Status}</td>
                     <td style={{ minWidth: '50px', maxWidth: '50px' }}>
                         <a href={path} onClick={() => this.editItem(item)}>

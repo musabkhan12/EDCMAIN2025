@@ -149,6 +149,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
     // Handle change event
     const handleChange = (event: React.ChangeEvent<HTMLSelectElement>, lvl: number) => {
+        event.preventDefault();
         const updatedArr = forwardToArr.map(row =>
             row.level === lvl ? { ...row, approvalType: event.target.value } : row
         );
@@ -179,10 +180,20 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     const onPeoplePickerChange = (items: any[]) => {
         setSelectedUsers(items);
     };
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLSelectElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // 🛑 Prevents page reload
+        }
+    };
+    const handleKeyDowntext = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+        }
+    };
 
     const ApiCallFunc = async () => {
 
-       
+
         var ReqId = await getRequestTypeID(sp);
         setRequestTypeId(ReqId);
         // setRequestTypeId(await getRequestTypeID(sp));
@@ -192,7 +203,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         if (path1.includes("/view/") || path1.includes("/approve/")) {
             setFormLoading(true); ////
             setInputDisabled(true);
-            if(path1.includes("/approve/")){
+            if (path1.includes("/approve/")) {
                 setForwardToArr((prev) => [
                     ...prev,
                     { id: 0, role: 0, level: prev.length + 1, approvers: [], approvalType: "One" }
@@ -238,7 +249,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
         setRows1(Selectedoptions);
 
-        var fetchUserDept = await getUserDepartment(sp,UserDept)
+        var fetchUserDept = await getUserDepartment(sp, UserDept)
 
         setFormData(prevData => ({
             ...prevData,
@@ -254,11 +265,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 year: "numeric"
             }).replace(/ /g, "/"),
 
-            DepartmentName:fetchUserDept
+            DepartmentName: fetchUserDept
 
         }));
 
-        var DocCodeArr = await getAllDocumentCode(sp,UserDept);
+        var DocCodeArr = await getAllDocumentCode(sp, UserDept);
         // var DocCodeArr = await getAllDocumentCode(sp);
         const options = DocCodeArr.map((item: any) => ({
             value: item.DocumentCode,
@@ -281,7 +292,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             SubmitStatus: item.SubmitStatus,
             DocumentTypeId: item.DocumentTypeId,
             Department: item.DepartmentId || null,
-            DepartmentName: item.Department?.Department||"",
+            DepartmentName: item.Department?.Department || "",
             AttachmentId: item.AttachmentId,
             AttachmentJson: item.AttachmentJson,
 
@@ -291,7 +302,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             Classification: item.Classification.Classification,
             DocumentType: item.DocumentType.DocumentType,
             TemplateTypeId: item.TemplateTypeId,
-            TemplateTypeValue: item.TemplateType?.TemplateTypeName||"",
+            TemplateTypeValue: item.TemplateType?.TemplateTypeName || "",
 
 
         }));
@@ -340,13 +351,15 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     var ProcessItemId: any = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_DocumentCancel);
                     setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_DocumentCancel));
                 }
-                else{
+                // else{
 
-                    setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_DocumentCancel))
 
-                }
+                // }
             }
-          
+
+            setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_DocumentCancel))
+
+
 
         }
         // formitemid =20;
@@ -395,7 +408,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     RequesterDesignation: setBannerById[0].RequesterDesignation,
                     // Department: setBannerById[0].Department.Department||"",
                     Department: setBannerById[0].DepartmentId || null,
-                    DepartmentName: setBannerById[0].Department?.Department||"",
+                    DepartmentName: setBannerById[0].Department?.Department || "",
                     RequestDate: setBannerById[0].RequestDate,
                     RequestDateNew: new Date(setBannerById[0].RequestDate).toLocaleDateString("en-GB", {
                         day: "2-digit",
@@ -437,7 +450,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     Classification: setBannerById[0].Classification.Classification,
                     DocumentType: setBannerById[0].DocumentType.DocumentType,
                     TemplateTypeId: setBannerById[0].TemplateTypeId,
-                    TemplateTypeValue: setBannerById[0].TemplateType?.TemplateTypeName||"",
+                    TemplateTypeValue: setBannerById[0].TemplateType?.TemplateTypeName || "",
 
                 }
 
@@ -470,7 +483,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     SubmitStatus: setBannerById[0].SubmitStatus,
                     DocumentCode: setBannerById[0].DocumentCode,
                     DocumentTypeId: setBannerById[0].DocumentTypeId,
-                    DepartmentName: setBannerById[0].Department?.Department||"",
+                    DepartmentName: setBannerById[0].Department?.Department || "",
                     Department: setBannerById[0].DepartmentId || null,
                     AttachmentId: setBannerById[0].AttachmentId,
                     AttachmentJson: setBannerById[0].AttachmentJson,
@@ -481,7 +494,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     Classification: setBannerById[0].Classification.Classification,
                     DocumentType: setBannerById[0].DocumentType.DocumentType,
                     TemplateTypeId: setBannerById[0].TemplateTypeId,
-                    TemplateTypeValue: setBannerById[0].TemplateType?.TemplateTypeName||"",
+                    TemplateTypeValue: setBannerById[0].TemplateType?.TemplateTypeName || "",
 
                     // Format as YYYY-MM-DD
                 }));
@@ -526,8 +539,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 CDocumentCode: template.DocumentCode || "",
                 CRevisionNumber: template.RevisionNumber,
                 CIssueNumber: template.IssueNumber,
-                CRevisionDate:template.RevisionDate? new Date(template.RevisionDate).toLocaleDateString("en-CA") : null,
-                CIssueDate: template.IssueDate ?new Date(template.IssueDate).toLocaleDateString("en-CA") : null,
+                CRevisionDate: template.RevisionDate ? new Date(template.RevisionDate).toLocaleDateString("en-CA") : null,
+                CIssueDate: template.IssueDate ? new Date(template.IssueDate).toLocaleDateString("en-CA") : null,
 
             }));
         }
@@ -540,41 +553,74 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
     const onSelect = async (selectedList: any) => {
         console.log(selectedList, "selectedList");
-        setFormData(prevData => ({
-            ...prevData,
-            IssueNumber: selectedList.IssueNumber,
-            ReferenceNumber: selectedList.ReferenceNumber,
-            RevisionNumber: selectedList.RevisionNumber,
-            ChangeRequestID: selectedList.ChangeRequestID,
-            IssueDate: selectedList.IssueDate,
-            LocationId: selectedList.LocationId,
-            CustodianId: selectedList.CustodianId,
-            SerialNumber: selectedList.SerialNumber,
-            RevisionDate: selectedList.RevisionDate,
-            AmendmentTypeId: selectedList.AmendmentTypeId,
-            ClassificationId: selectedList.ClassificationId,
-            ChangeRequestTypeId: selectedList.ChangeRequestTypeId,
-            RequestTypeId: RequestTypeId,
-            SubmiitedDate: selectedList.SubmiitedDate,
-            SubmitStatus: selectedList.SubmitStatus,
-            DocumentCode: selectedList.value,
-            DocumentTypeId: selectedList.DocumentTypeId,
-            Department: selectedList.Department,
-            DepartmentName: selectedList.DepartmentName||"",
-            AttachmentId: selectedList.AttachmentId,
-            AttachmentJson: selectedList.AttachmentJson,
-
-            Location: selectedList.Location,
-            Custodian: selectedList.Custodian,
-            AmendmentType: selectedList.AmendmentType,
-            Classification: selectedList.Classification,
-            DocumentType: selectedList.DocumentType,
-            TemplateTypeId: selectedList.TemplateTypeId,
-            TemplateTypeValue: selectedList.TemplateTypeValue||"",
-            // Format as YYYY-MM-DD
-        }));
+        event.preventDefault();
+        if (selectedList) {
+            setFormData(prevData => ({
+                ...prevData,
+                IssueNumber: selectedList.IssueNumber,
+                ReferenceNumber: selectedList.ReferenceNumber,
+                RevisionNumber: selectedList.RevisionNumber,
+                ChangeRequestID: selectedList.ChangeRequestID,
+                IssueDate: selectedList.IssueDate,
+                LocationId: selectedList.LocationId,
+                CustodianId: selectedList.CustodianId,
+                SerialNumber: selectedList.SerialNumber,
+                RevisionDate: selectedList.RevisionDate,
+                AmendmentTypeId: selectedList.AmendmentTypeId,
+                ClassificationId: selectedList.ClassificationId,
+                ChangeRequestTypeId: selectedList.ChangeRequestTypeId,
+                RequestTypeId: RequestTypeId,
+                SubmiitedDate: selectedList.SubmiitedDate,
+                SubmitStatus: selectedList.SubmitStatus,
+                DocumentCode: selectedList.value,
+                DocumentTypeId: selectedList.DocumentTypeId,
+                Department: selectedList.Department,
+                DepartmentName: selectedList.DepartmentName || "",
+                AttachmentId: selectedList.AttachmentId,
+                AttachmentJson: selectedList.AttachmentJson,
+                Location: selectedList.Location,
+                Custodian: selectedList.Custodian,
+                AmendmentType: selectedList.AmendmentType,
+                Classification: selectedList.Classification,
+                DocumentType: selectedList.DocumentType,
+                TemplateTypeId: selectedList.TemplateTypeId,
+                TemplateTypeValue: selectedList.TemplateTypeValue || "",
+            }));
+        } else {
+            setFormData(prevData => ({
+                ...prevData,
+                IssueNumber: "",
+                ReferenceNumber: "",
+                RevisionNumber: "",
+                ChangeRequestID: null,
+                IssueDate: "",
+                LocationId: null,
+                CustodianId: null,
+                SerialNumber: "",
+                RevisionDate: "",
+                AmendmentTypeId: null,
+                ClassificationId: null,
+                ChangeRequestTypeId: [],
+                RequestTypeId: 0,
+                SubmiitedDate: "",
+                SubmitStatus: "",
+                DocumentCode: "",
+                DocumentTypeId: null,
+                Department: null,
+                DepartmentName: "",
+                AttachmentId: [],
+                AttachmentJson: "",
+                Location: "",
+                Custodian: "",
+                AmendmentType: "",
+                Classification: "",
+                DocumentType: "",
+                TemplateTypeId: null,
+                TemplateTypeValue: "",
+            }));
+        }
         setSelectedOption(selectedList);
-        if (selectedList.AttachmentId) {
+        if (selectedList?.AttachmentId) {
             setDocumentLink(await getDocumentLinkByID(sp, selectedList.AttachmentId))
         }
         else {
@@ -597,6 +643,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     // };
 
     const onSelectRole = (event: React.ChangeEvent<HTMLSelectElement>, lvl: number) => {
+        event.preventDefault();
         const updatedArr = forwardToArr.map(row =>
             row.level === lvl ? { ...row, role: Number(event.target.value) } : row
         );
@@ -733,7 +780,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 //Swal.fire('Error', 'Entity is required!', 'error');
                 valid = false;
             }
-            if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" && row.reason.trim() !== "") == false) {
+            if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== null && row.reason.trim() !== null && row.description.trim() !== "" && row.reason.trim() !== "") == false) {
                 // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
                 valid1 = false;
 
@@ -865,7 +912,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             CurrentUserRole: "OES",
                             AttachmentId: selectedOption.AttachmentId,
                             AttachmentJson: selectedOption.AttachmentJson,
-                            TemplateTypeId:selectedOption.TemplateTypeId,
+                            TemplateTypeId: selectedOption.TemplateTypeId,
 
 
                         }
@@ -899,7 +946,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                         }
 
-                        if(DraftApprovalItem != null && DraftApprovalItem != undefined&& DraftApprovalItem.length > 0){
+                        if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
 
                             let arr2 = {
                                 ActionTakenById: currentUser.Id,
@@ -907,7 +954,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                 // ActionTakenRoleId: formData.RequesterDesignation,
                                 Status: "Approved",
                                 // Remark: remark,
-    
+
                             }
                             const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
                             const postId = postResult?.data?.ID;
@@ -915,7 +962,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         }
 
 
-                        
+
                         // /*********** */
 
                         // Find items that are in cancellReasonEdit but NOT in cancellReason
@@ -1000,7 +1047,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             OESSubmitStatus: "No",
                             InitiatorSubmitStatus: "Yes",
                             CurrentUserRole: "OES",
-                            TemplateTypeId:selectedOption.TemplateTypeId,
+                            TemplateTypeId: selectedOption.TemplateTypeId,
                             AttachmentId: selectedOption.AttachmentId,
                             AttachmentJson: selectedOption.AttachmentJson ? selectedOption.AttachmentJson : "",
 
@@ -1012,7 +1059,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             CRevisionNumber: formData.CRevisionNumber,
                             CIssueNumber: formData.CIssueNumber,
                             CRevisionDate: formData.CRevisionDate,
-                            CIssueDate:formData.CIssueDate,
+                            CIssueDate: formData.CIssueDate,
 
 
                         };
@@ -1082,44 +1129,87 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     if (result.isConfirmed) {
                         setLoading(true);
 
+                        let arr = {};
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
-                        let arr = {
-                            // Title: formData.RequesterName,
-                            // RequesterNameId: formData.RequesterNameId,
-                            // RequesterDesignation: formData.RequesterDesignation,
-                            DepartmentId: formData.Department,
-                            RequestDate: formData.RequestDate,
-                            IssueDate: formData.IssueDate,
-                            LocationId: selectedOption.LocationId,
-                            CustodianId: selectedOption.CustodianId,
-                            SerialNumber: selectedOption.SerialNumber,
-                            IssueNumber: selectedOption.IssueNumber,
-                            RevisionNumber: selectedOption.RevisionNumber,
-                            RevisionDate: selectedOption.RevisionDate,
-                            DocumentCode: selectedOption.value,
-                            ReferenceNumber: selectedOption.ReferenceNumber,
-                            AmendmentTypeId: selectedOption.AmendmentTypeId,
-                            RequestTypeId: RequestTypeId,
-                            ClassificationId: selectedOption.ClassificationId,
-                            ChangeRequestTypeId: selectedOption.ChangeRequestTypeId ? selectedOption.ChangeRequestTypeId : [],
-                            SubmiitedDate: selectedOption.SubmiitedDate,
-                            // SubmitStatus: selectedOption.SubmitStatus,
-                            SubmitStatus: "No",
-                            Status: "Save as draft",
-                            // DocumentName: "",
-                            // IsRework: false,
-                            // DigitalSignStatus: false,
-                            ChangeRequestIDId: formData.ChangeRequestID,
-                            DocumentTypeId: selectedOption.DocumentTypeId,
-                            OESSubmitStatus: "No",
-                            InitiatorSubmitStatus: "No",
-                            CurrentUserRole: "OES",
-                            AttachmentId: selectedOption.AttachmentId,
-                            AttachmentJson: selectedOption.AttachmentJson,
-                            TemplateTypeId:selectedOption.TemplateTypeId,
+                        if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
+                            arr = {
+                                // Title: formData.RequesterName,
+                                // RequesterNameId: formData.RequesterNameId,
+                                // RequesterDesignation: formData.RequesterDesignation,
+                                DepartmentId: formData.Department,
+                                RequestDate: formData.RequestDate,
+                                IssueDate: formData.IssueDate,
+                                LocationId: selectedOption.LocationId,
+                                CustodianId: selectedOption.CustodianId,
+                                SerialNumber: selectedOption.SerialNumber,
+                                IssueNumber: selectedOption.IssueNumber,
+                                RevisionNumber: selectedOption.RevisionNumber,
+                                RevisionDate: selectedOption.RevisionDate,
+                                DocumentCode: selectedOption.value,
+                                ReferenceNumber: selectedOption.ReferenceNumber,
+                                AmendmentTypeId: selectedOption.AmendmentTypeId,
+                                RequestTypeId: RequestTypeId,
+                                ClassificationId: selectedOption.ClassificationId,
+                                ChangeRequestTypeId: selectedOption.ChangeRequestTypeId ? selectedOption.ChangeRequestTypeId : [],
+                                SubmiitedDate: selectedOption.SubmiitedDate,
+                                // SubmitStatus: selectedOption.SubmitStatus,
+                                SubmitStatus: "No",
+                                Status: "Save as draft",
+                                // DocumentName: "",
+                                // IsRework: false,
+                                // DigitalSignStatus: false,
+                                ChangeRequestIDId: formData.ChangeRequestID,
+                                DocumentTypeId: selectedOption.DocumentTypeId,
+                                OESSubmitStatus: "No",
+                                InitiatorSubmitStatus: "No",
+                                CurrentUserRole: "OES",
+                                AttachmentId: selectedOption.AttachmentId,
+                                AttachmentJson: selectedOption.AttachmentJson,
+                                TemplateTypeId: selectedOption.TemplateTypeId,
 
 
+                            }
                         }
+                        else {
+                            arr = {
+                                // Title: formData.RequesterName,
+                                // RequesterNameId: formData.RequesterNameId,
+                                // RequesterDesignation: formData.RequesterDesignation,
+                                DepartmentId: formData.Department,
+                                RequestDate: formData.RequestDate,
+                                IssueDate: formData.IssueDate,
+                                LocationId: selectedOption.LocationId,
+                                CustodianId: selectedOption.CustodianId,
+                                SerialNumber: selectedOption.SerialNumber,
+                                IssueNumber: selectedOption.IssueNumber,
+                                RevisionNumber: selectedOption.RevisionNumber,
+                                RevisionDate: selectedOption.RevisionDate,
+                                DocumentCode: selectedOption.value,
+                                ReferenceNumber: selectedOption.ReferenceNumber,
+                                AmendmentTypeId: selectedOption.AmendmentTypeId,
+                                RequestTypeId: RequestTypeId,
+                                ClassificationId: selectedOption.ClassificationId,
+                                ChangeRequestTypeId: selectedOption.ChangeRequestTypeId ? selectedOption.ChangeRequestTypeId : [],
+                                SubmiitedDate: selectedOption.SubmiitedDate,
+                                // SubmitStatus: selectedOption.SubmitStatus,
+                                SubmitStatus: "No",
+                                Status: "Save as draft",
+                                // DocumentName: "",
+                                // IsRework: false,
+                                // DigitalSignStatus: false,
+                                ChangeRequestIDId: formData.ChangeRequestID,
+                                DocumentTypeId: selectedOption.DocumentTypeId,
+                                OESSubmitStatus: "No",
+                                InitiatorSubmitStatus: "No",
+                                CurrentUserRole: "OES",
+                                AttachmentId: selectedOption.AttachmentId,
+                                AttachmentJson: selectedOption.AttachmentJson,
+                                TemplateTypeId: selectedOption.TemplateTypeId,
+
+
+                            }
+                        }
+
                         const postResult = await updateItem(arr, sp, editItemID);
                         const postId = postResult?.data?.ID;
 
@@ -1150,7 +1240,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                         }
 
-                        
+
 
                         // if(DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0){
 
@@ -1160,11 +1250,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         //         // ActionTakenRoleId: formData.RequesterDesignation,
                         //         Status: "Save as draft",
                         //         // Remark: remark,
-    
+
                         //     }
                         //     const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
                         //     const postId = postResult?.data?.ID;
-                            
+
                         // }
                         // /*********** */
 
@@ -1250,7 +1340,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             CurrentUserRole: "OES",
                             AttachmentId: selectedOption.AttachmentId,
                             AttachmentJson: selectedOption.AttachmentJson,
-                            TemplateTypeId:selectedOption.TemplateTypeId,
+                            TemplateTypeId: selectedOption.TemplateTypeId,
 
 
 
@@ -1259,7 +1349,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             CRevisionNumber: formData.CRevisionNumber,
                             CIssueNumber: formData.CIssueNumber,
                             CRevisionDate: formData.CRevisionDate,
-                            CIssueDate:formData.CIssueDate
+                            CIssueDate: formData.CIssueDate
 
 
                         };
@@ -1326,7 +1416,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         setValidForwardTo(true);
         Array.from(document.getElementsByClassName("border-on-error")).forEach((element: Element) => {
             element.classList.remove("border-on-error");
-          });
+        });
         switch (status) {
             case "Forward":
                 actionMessage = "Do you want to forward this request?";
@@ -1982,7 +2072,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                         {Loading ?
 
-                                            <div  className="loadernewadd mt-10">
+                                            <div className="loadernewadd mt-10">
                                                 <div>
                                                     <img
                                                         src={require("../../assets/edc-gif.gif")}
@@ -2022,7 +2112,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                         {FormLoading ?
 
-                                                            <div  className="loadernewadd mt-10">
+                                                            <div className="loadernewadd mt-10">
                                                                 <div>
                                                                     <img
                                                                         src={require("../../assets/edc-gif.gif")}
@@ -2063,14 +2153,14 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="RequesterDesignation" className="form-label">Designation</label>
-                                                                        <input type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" title={formData.RequesterDesignation}  value={formData.RequesterDesignation} disabled={true} />
+                                                                        <input type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" title={formData.RequesterDesignation} value={formData.RequesterDesignation} disabled={true} />
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="RequestDate" className="form-label">Request Date</label>
-                                                                        <input type="text" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDateNew} title={formData.RequestDateNew}  onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={true} />
+                                                                        <input type="text" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDateNew} title={formData.RequestDateNew} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={true} />
 
                                                                         {/* <input type="date" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDate} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} /> */}
                                                                     </div>
@@ -2084,6 +2174,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
                                                                         <Select
                                                                             title={selectedOption?.value}
+
+                                                                            isClearable
                                                                             options={rows}
                                                                             value={selectedOption}
                                                                             name="DocumentCode"
@@ -2126,7 +2218,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Location</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder=""title={formData.Location} value={formData.Location} />
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Location} value={formData.Location} />
                                                                     </div>
                                                                 </div>
 
@@ -2134,7 +2226,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Custodian</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Custodian}value={formData.Custodian} />
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Custodian} value={formData.Custodian} />
                                                                     </div>
                                                                 </div>
 
@@ -2150,7 +2242,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Classification</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder=""title={formData.Classification} value={formData.Classification} />
+                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Classification} value={formData.Classification} />
                                                                     </div>
                                                                 </div>
 
@@ -2180,7 +2272,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         <div className='d-flex justify-content-between'>
                                                                             <div>
                                                                                 <label htmlFor="bannerImage" className="form-label">
-                                                                             Attachment
+                                                                                    Attachment
                                                                                 </label>
                                                                             </div>
                                                                             <div>
@@ -2375,13 +2467,14 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding" title={UserRoles.find((role: any) => role.value === row.role)?.label || "Select Role"}>
                                                                                     <select
                                                                                         // className="form-select"
+
                                                                                         className={`form-select ForwardClsErr newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
                                                                                         title={UserRoles.find((role: any) => role.value === row.role)?.label || "Select Role"}
 
-                                                                                        onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={!(editID.CurrentUserRole == "OES"&& editID.Status == "Pending")}>
+                                                                                        onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={!(editID.CurrentUserRole == "OES" && editID.Status == "Pending")}>
 
                                                                                         <option value="" selected>Select Role</option>
-                                                                                        
+
                                                                                         {UserRoles.filter((role: any) =>
                                                                                             !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
                                                                                         ).map((role: any, idx: number) => (
@@ -2391,10 +2484,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                                 </td>
                                                                                 <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>Level {index + 1}</td>
-                                                                                <td style={{ overflow: 'inherit' }}  title={row.approvers.map((approver: any) => approver.label).join(", ")}>
+                                                                                <td style={{ overflow: 'inherit' }} title={row.approvers.map((approver: any) => approver.label).join(", ")}>
 
                                                                                     <Select
                                                                                         options={rows1}
+
                                                                                         isMulti
                                                                                         value={row.approvers}
                                                                                         name="Approvers"
@@ -2402,7 +2496,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                         // onChange={(selectedOption: any) => onSelect(selectedOption)}
                                                                                         onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
                                                                                         placeholder="Enter Approver Name"
-                                                                                        isDisabled={!(editID.CurrentUserRole == "OES"&& editID.Status == "Pending") }
+                                                                                        isDisabled={!(editID.CurrentUserRole == "OES" && editID.Status == "Pending")}
                                                                                     />
 
 
@@ -2420,7 +2514,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                     {/* <i className="fe-trash-2 text-danger"></i> */}
                                                                                     {/* {editID.CurrentUserRole === "OES"? <img src={require("../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} />:
                                                                                 <img src={require("../assets/recycle-bin.png")}  className='sidebariconsmall' />} */}
-                                                                                    {((editID.CurrentUserRole === "OES"&& editID.Status === "Pending")) ? <img src={require("../../assets/del.png")} onClick={() => handleDeleteRow(index)} /> :
+                                                                                    {((editID.CurrentUserRole === "OES" && editID.Status === "Pending")) ? <img src={require("../../assets/del.png")} onClick={() => handleDeleteRow(index)} /> :
                                                                                         <img src={require("../../assets/recycle-bin.png")} className='sidebariconsmall' />}
 
                                                                                 </td>
@@ -2437,26 +2531,39 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                             {editID.CurrentUserRole === "OES" && editID.Status === "Pending" && <div className="row mt-3">
                                                                 <div className="col-12 text-center">
-                                                                    {/* <a href="my-approval.html"> */}
-                                                                    <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardApproval("Forward")} >
+
+                                                                    {/* <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardApproval("Forward")} >
                                                                         <i className="fe-check-circle me-1"></i> Forward
                                                                     </button>
-                                                                    {/* </a> */}
-                                                                    {/* <a href="#"> */}
+                                                                    
                                                                     <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={() => ForwardApproval("Rework")} >
                                                                         <i className="fe-corner-up-left me-1"></i> Rework
                                                                     </button>
-                                                                    {/* </a> */}
-                                                                    {/* <a href="#"> */}
+                                                                    
                                                                     <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={() => ForwardApproval("Rejected")} >
                                                                         <i className="fe-x me-1"></i> Reject
                                                                     </button>
-                                                                    {/* </a> */}
-                                                                    {/* <a href="my-approval.html"> */}
+                                                                    
                                                                     <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}>
                                                                         <i className="fe-x me-1"></i> Cancel
-                                                                    </button>
-                                                                    {/* </a> */}
+                                                                    </button> */}
+
+                                                                    <div className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardApproval("Forward")} >
+                                                                        <i className="fe-check-circle me-1"></i> Forward
+                                                                    </div>
+
+                                                                    <div className="btn btn-warning waves-effect waves-light m-1" onClick={() => ForwardApproval("Rework")} >
+                                                                        <i className="fe-corner-up-left me-1"></i> Rework
+                                                                    </div>
+
+                                                                    <div className="btn btn-danger waves-effect waves-light m-1" onClick={() => ForwardApproval("Rejected")} >
+                                                                        <i className="fe-x me-1"></i> Reject
+                                                                    </div>
+
+                                                                    <div className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}>
+                                                                        <i className="fe-x me-1"></i> Cancel
+                                                                    </div>
+
                                                                 </div>
                                                             </div>
                                                             }
@@ -2464,7 +2571,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                     </div>
                                                 }
 
-                                                {(modeValue === "view")&& forwardToArr.length >0 && MainEditItem !== null && MainEditItem?.Status !== "Save as draft" &&
+                                                {(modeValue === "view") && forwardToArr.length > 0 && MainEditItem !== null && MainEditItem?.Status !== "Save as draft" &&
 
                                                     <div className="card mt-3" style={{ marginBottom: '17px' }}>
                                                         <div className="card-body">
@@ -2510,6 +2617,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding" >
                                                                                     <select
                                                                                         // className="form-select"
+
                                                                                         className={`form-select newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
                                                                                         title={UserRoles.find((role: any) => role.value === row.role)?.label || "Select Role"}
 
@@ -2532,6 +2640,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                                     <Select
                                                                                         options={rows1}
+
                                                                                         isMulti
                                                                                         value={row.approvers}
                                                                                         name="Approvers"
@@ -2573,28 +2682,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
 
-                                                            {/* {editID.CurrentUserRole === "OES" && <div className="row mt-3">
-                                                                <div className="col-12 text-center">
-                                                                    
-                                                                    <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardApproval("Forward")} >
-                                                                        <i className="fe-check-circle me-1"></i> Forward
-                                                                    </button>
-                                                                    
-                                                                    <button type="button" className="btn btn-warning waves-effect waves-light m-1" onClick={() => ForwardApproval("Rework")} >
-                                                                        <i className="fe-corner-up-left me-1"></i> Rework
-                                                                    </button>
-                                                                   
-                                                                    <button type="button" className="btn btn-danger waves-effect waves-light m-1" onClick={() => ForwardApproval("Rejected")} >
-                                                                        <i className="fe-x me-1"></i> Reject
-                                                                    </button>
-                                                                   
-                                                                    <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}>
-                                                                        <i className="fe-x me-1"></i> Cancel
-                                                                    </button>
-                                                                   
-                                                                </div>
-                                                            </div>
-                                                            } */}
+
                                                         </div>
                                                     </div>
                                                 }
@@ -2642,46 +2730,59 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                 {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
 
                                                 <div className="row mt-3">
-                                                    <div className="col-12 text-center">
-                                                        {/* <a href="my-approval.html">   */}
-                                                        {/* {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" || MainEditItem?.Status === "Rework")) || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "OES" && editID.IsInitiator == "No")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}><i className="fe-check-circle me-1"></i> Save As Draft</button>}
+                                                    {/* <div className="col-12 text-center">
 
-                                                {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" || MainEditItem?.Status === "Rework")) || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "OES" && editID.IsInitiator == "No")) && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}><i className="fe-check-circle me-1"></i> Submit</button>}
-                                                */}
-
-                                                        {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button style={{width:'145px'}} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
-                                                            {/* <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />  */}
+                                                        {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
                                                             <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
                                                             Save As Draft</button>}
 
-                                                        {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button style={{width:'145px'}} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
-                                                            {/* <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />  */}
+                                                        {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
                                                             <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
                                                             Submit</button>}
 
-                                                        {/* {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</button>} */}
-                                                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button style={{width:'145px'}} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</button>}
-
-                                                        {/* {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</button>} */}
-
-                                                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button style={{width:'145px'}} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</button>}
+                                                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</button>}
 
 
-                                                        {/* </a> */}
-                                                        {/* <a href="../sites/ededms/SitePages/EDCMAIN.aspx">       */}
-                                                        {/* {((modeValue === "" || modeValue === "edit"|| modeValue === "view") ||(editID !== null && editID.IsInitiator == "Yes")) &&
-                                     
-                                                        className='me-1' alt="x" /> Cancel</button>
-                                                    } */}
+                                                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</button>}
+
+
+                                                       
                                                         {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.IsInitiator == "Yes")) &&
-                                                            <button style={{width:'145px'}} type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
+                                                            <button style={{ width: '145px' }} type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                                                 className='me-1' alt="x" /> Cancel</button>
                                                         }
                                                         {((modeValue === "approve") && (editID !== null && editID.Status == "Approved")) &&
-                                                            <button style={{width:'145px'}} type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
+                                                            <button style={{ width: '145px' }} type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                                                 className='me-1' alt="x" /> Cancel</button>
                                                         }
-                                                        {/* </a> */}
+                                                        
+                                                    </div> */}
+                                                    <div className="col-12 text-center">
+
+                                                        {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) &&<div style={{ width: '145px' }} className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
+                                                            <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
+                                                            Save As Draft</div>}
+
+                                                        {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) &&<div style={{ width: '145px' }} className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
+                                                            <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
+                                                            Submit</div>}
+
+                                                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") &&<div style={{ width: '145px' }} className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</div>}
+
+
+                                                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") &&<div style={{ width: '145px' }} className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</div>}
+
+
+
+                                                        {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.IsInitiator == "Yes")) &&
+                                                           <div style={{ width: '145px' }} className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
+                                                                className='me-1' alt="x" /> Cancel</div>
+                                                        }
+                                                        {((modeValue === "approve") && (editID !== null && editID.Status == "Approved")) &&
+                                                           <div style={{ width: '145px' }} className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
+                                                                className='me-1' alt="x" /> Cancel</div>
+                                                        }
+
                                                     </div>
                                                 </div>
 
@@ -2716,12 +2817,12 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 <tr>
                                                                                     <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
                                                                                     <td title={DocumentLink?.FileLeafRef}>{DocumentLink?.FileLeafRef}</td>
-                                                                                    <td style={{ textAlign: 'center',minWidth: '50px', maxWidth: '50px' }} >
-                                                                                    <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span>
+                                                                                    <td style={{ textAlign: 'center', minWidth: '50px', maxWidth: '50px' }} >
+                                                                                        <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span>
 
                                                                                         <span onClick={() => OpenFile(DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                        <FontAwesomeIcon icon={faDownload} /></span>
-                                                                                         </td>
+                                                                                            <FontAwesomeIcon icon={faDownload} /></span>
+                                                                                    </td>
                                                                                     <td style={{ minWidth: '70px', maxWidth: '70px' }}>{DocumentLink.Created
                                                                                         ? new Intl.DateTimeFormat('en-GB', {
                                                                                             day: '2-digit',
