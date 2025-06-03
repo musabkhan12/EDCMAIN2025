@@ -3105,7 +3105,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 disabled={true}
                                                             />
                                                         </td>
-                                                        <td style={{ minWidth: '70px', maxWidth: '70px' }}>
+                                                        <td style={{ minWidth: '70px', maxWidth: '70px' }} title={"NC"}>
                                                             <select
                                                                 id="approvalType"
                                                                 value="NC Number"
@@ -3115,7 +3115,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 <option value="NC Number">NC</option>
                                                             </select>
                                                         </td>
-                                                        <td style={{ minWidth: '220px', maxWidth: '220px' }}>
+                                                        <td style={{ minWidth: '220px', maxWidth: '220px' }} title={row.descriptionNC}>
                                                             <textarea
                                                                 //onKeyDown={handleKeyDowntextarea}
                                                                 id="simpleinput"
@@ -3186,7 +3186,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                         disabled={true}
                                                     />
                                                 </td>
-                                                <td style={{ minWidth: '70px', maxWidth: '70px' }}>
+                                                <td style={{ minWidth: '70px', maxWidth: '70px' }} title={"Observation"}>
                                                     <select
                                                         id="approvalType"
                                                         value="Observation Number"
@@ -3197,7 +3197,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                     </select>
                                                 </td>
 
-                                                <td style={{ minWidth: '220px', maxWidth: '220px' }}>
+                                                <td style={{ minWidth: '220px', maxWidth: '220px' }} title={row.descriptionNC}>
                                                     <textarea
                                                         //onKeyDown={handleKeyDowntextarea}
                                                         id="simpleinput"
@@ -3597,7 +3597,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="revisionNo" className="col-form-label">Revision No<span className="text-danger1"> *</span></label>
-                                                                        <div title={formData.revisionNo || "Select a revision no"}>
+                                                                        <div title={formData.revisionNo}>
                                                                             <input
                                                                                 disabled
                                                                                 type="text"

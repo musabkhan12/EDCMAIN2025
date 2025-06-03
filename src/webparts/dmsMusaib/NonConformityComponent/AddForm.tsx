@@ -235,6 +235,10 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     let selecteddepartment = this.state.departmentOption.filter((x: any) => x.value == item.value);
     this.setState({ department: item.value, departmentCode: item.data.departmentCode, departmentselected: selecteddepartment });
   };
+  public changefromDepartment = (item: any): void => {
+    let selecteddepartment = this.state.departmentOption.filter((x: any) => x.value == item.value);
+    this.setState({ fromdepartment: item.value, departmentCode: item.data.departmentCode, fromdepartmentselected: selecteddepartment });
+  };
   // private onChangenctype = (name: string, value: string) => {
   //   debugger
   //   this.setState({ ncType: value })
@@ -1056,7 +1060,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
           if (this.state.copyFil.length > 0) {
             debugger
             this.state.copyFil.forEach(async function (file) {
-              
+
               const sp = spfi().using(SPFx(this.props.context));
               const currentUser = await sp.web.currentUser();
               const userId = currentUser.Id; // Or however you get the current user ID
@@ -1313,61 +1317,87 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                 <div className="form-group col-md-4 mb-3">
                   <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }} >From Department:<span className="text-danger1">*</span>
                   </label>
-                  <Select
-                    options={this.state.departmentOption}
-                    value={this.state.fromdepartmentselected}
-                    name="Department"
-                    isDisabled
-                    isClearable={true}
-                    isSearchable={true}
-                    className={this.state.errors?.department ? 'border-on-error' : ''}
-                    onChange={(selectedOption: any) => this.changeDepartment(selectedOption)}
-                    placeholder={"Department"}
+                  <TooltipHost
+                    content={this.state.departmentOption.filter((x: any) => x.value == this.state.fromdepartment)[0].label || ""}
+                    calloutProps={{ gapSpace: 0 }}
+                    styles={{ root: { display: 'inline-block', width: '100%' } }}
+                  >
+                    <Select
+                      options={this.state.departmentOption}
+                      value={this.state.fromdepartmentselected}
+                      name="Department"
+                      isDisabled
+                      isClearable={true}
+                      isSearchable={true}
+                      className={this.state.errors?.department ? 'border-on-error' : ''}
+                      onChange={(selectedOption: any) => this.changeDepartment(selectedOption)}
+                      placeholder={"Department"}
 
-                  />
+                    />
+                  </TooltipHost>
                 </div>
                 <div className="form-group col-md-4 mb-3">
-                  <TextField label="Document Code:" name='DocumentCode' required value={this.state.documentCode} disabled={true} onChange={this.handleChange}
-                    styles={{
-                      fieldGroup: {
-                        backgroundColor: this.state.errors.documentcode ? "#ffcccb" : "white",
-                      },
-                    }}
-                  />
+                  <TooltipHost
+                    content={this.state.documentCode || ""}
+                    calloutProps={{ gapSpace: 0 }}
+                    styles={{ root: { display: 'inline-block', width: '100%' } }}
+                  >
+                    <TextField label="Document Code:" name='DocumentCode' required value={this.state.documentCode} disabled={true} onChange={this.handleChange}
+                      styles={{
+                        fieldGroup: {
+                          backgroundColor: this.state.errors.documentcode ? "#ffcccb" : "white",
+                        },
+                      }}
+                    /></TooltipHost>
                 </div>
                 <div className="form-group col-md-4 mb-3">
-                  <TextField label="Issue Number:" name='IssueNumber' required value={this.state.issueNo + ""} disabled={true} onChange={this.handleChange}
-                    styles={{
-                      fieldGroup: {
-                        backgroundColor: this.state.errors.issuenumber ? "#ffcccb" : "white",
-                      },
-                    }}
-                  />
+                  <TooltipHost
+                    content={this.state.issueNo + "" || ""}
+                    calloutProps={{ gapSpace: 0 }}
+                    styles={{ root: { display: 'inline-block', width: '100%' } }}
+                  >
+                    <TextField label="Issue Number:" name='IssueNumber' required value={this.state.issueNo + ""} disabled={true} onChange={this.handleChange}
+                      styles={{
+                        fieldGroup: {
+                          backgroundColor: this.state.errors.issuenumber ? "#ffcccb" : "white",
+                        },
+                      }}
+                    /></TooltipHost>
                 </div>
                 <div className="form-group col-md-4 mb-3">
-                  <TextField label="Revision Number:" name='RevisionNumber' required value={this.state.revisionNo + ""} disabled={true} onChange={this.handleChange}
-                    styles={{
-                      fieldGroup: {
-                        backgroundColor: this.state.errors.revisionnumber ? "#ffcccb" : "white",
-                      },
-                    }}
-                  />
+                  <TooltipHost
+                    content={this.state.revisionNo + "" || ""}
+                    calloutProps={{ gapSpace: 0 }}
+                    styles={{ root: { display: 'inline-block', width: '100%' } }}
+                  >
+                    <TextField label="Revision Number:" name='RevisionNumber' required value={this.state.revisionNo + ""} disabled={true} onChange={this.handleChange}
+                      styles={{
+                        fieldGroup: {
+                          backgroundColor: this.state.errors.revisionnumber ? "#ffcccb" : "white",
+                        },
+                      }}
+                    /></TooltipHost>
                 </div>
                 <div className="form-group col-md-4 mb-3">
                   <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }} >Department:<span className="text-danger1">*</span>
                   </label>
-                  <Select
-                    options={this.state.departmentOption}
-                    value={this.state.departmentselected}
-                    name="Department"
-                    isDisabled
-                    isClearable={true}
-                    isSearchable={true}
-                    className={this.state.errors?.department ? 'border-on-error' : ''}
-                    onChange={(selectedOption: any) => this.changeDepartment(selectedOption)}
-                    placeholder={"Department"}
+                  <TooltipHost
+                    content={this.state.departmentOption.filter((x: any) => x.value == this.state.department)[0].label || ""}
+                    calloutProps={{ gapSpace: 0 }}
+                    styles={{ root: { display: 'inline-block', width: '100%' } }}
+                  >
+                    <Select
+                      options={this.state.departmentOption}
+                      value={this.state.departmentselected}
+                      name="Department"
+                      isDisabled
+                      isClearable={true}
+                      isSearchable={true}
+                      className={this.state.errors?.department ? 'border-on-error' : ''}
+                      onChange={(selectedOption: any) => this.changeDepartment(selectedOption)}
+                      placeholder={"Department"}
 
-                  />
+                    /></TooltipHost>
                   {/* <Dropdown
                     required
                     placeholder="Department"
@@ -1385,29 +1415,39 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                   /> */}
                 </div>
                 <div className="col-md-4 mb-3">
-                  <TextField label="Criteria:" name='criteria' required value={this.state.criteria} onChange={this.handleChange}
-                    className={this.state.errors?.criteria ? 'textfield-error' : ''}
-                  // styles={{
-                  //   fieldGroup: {
-                  //     border: this.state.errors?.criteria ? '1px solid red !important' : undefined,
-                  //     backgroundColor: this.state.errors?.criteria ? '#ffcccb !important' : 'white',
-                  //   },
-                  //   field: {
-                  //     backgroundColor: this.state.errors?.criteria ? '#ffcccb' : 'white',
-                  //   },
-                  // }}
-                  />
+                  <TooltipHost
+                    content={this.state.criteria || ""}
+                    calloutProps={{ gapSpace: 0 }}
+                    styles={{ root: { display: 'inline-block', width: '100%' } }}
+                  >
+                    <TextField label="Criteria:" name='criteria' required value={this.state.criteria} onChange={this.handleChange}
+                      className={this.state.errors?.criteria ? 'textfield-error' : ''}
+                    // styles={{
+                    //   fieldGroup: {
+                    //     border: this.state.errors?.criteria ? '1px solid red !important' : undefined,
+                    //     backgroundColor: this.state.errors?.criteria ? '#ffcccb !important' : 'white',
+                    //   },
+                    //   field: {
+                    //     backgroundColor: this.state.errors?.criteria ? '#ffcccb' : 'white',
+                    //   },
+                    // }}
+                    /></TooltipHost>
 
                 </div>
                 <div className="form-group col-md-4 mb-3">
-                  <TextField label="Close Out Status:" name='closeOutStatus'  disabled={true}  required value={this.state.closeOutStatus} onChange={this.handleChange}
-                    className={this.state.errors?.closeOutStatus ? 'textfield-error' : ''}
-                  // styles={{
-                  //   fieldGroup: {
-                  //     backgroundColor: this.state.errors.closeOutStatus ? "#ffcccb" : "white",
-                  //   },
-                  // }}
-                  />
+                  <TooltipHost
+                    content={this.state.closeOutStatus || ""}
+                    calloutProps={{ gapSpace: 0 }}
+                    styles={{ root: { display: 'inline-block', width: '100%' } }}
+                  >
+                    <TextField label="Close Out Status:" name='closeOutStatus' disabled={true} required value={this.state.closeOutStatus} onChange={this.handleChange}
+                      className={this.state.errors?.closeOutStatus ? 'textfield-error' : ''}
+                    // styles={{
+                    //   fieldGroup: {
+                    //     backgroundColor: this.state.errors.closeOutStatus ? "#ffcccb" : "white",
+                    //   },
+                    // }}
+                    /></TooltipHost>
                 </div>
               </div>
               <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
@@ -1450,37 +1490,47 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
               </div>
               <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                 <div className="form-group col-md-4" id="AssigntoPeoplepicker">
-                  <PeoplePicker
-                    context={peoplePickerContext}
-                    titleText="Auditee:"
-                    personSelectionLimit={1}
-                    required={true}
-                    groupName={""} // Leave this blank in case you want to filter from all users
-                    showtooltip={true}
-                    disabled={false}
-                    ensureUser={true}
-                    onChange={this._handlePeoplePickerChange("assignTo", "assignToId")}
-                    principalTypes={[PrincipalType.User]}
-                    resolveDelay={1000}
-                    styles={{
-                      root: {
-                        backgroundColor: this.state.errors.assignTo ? "#ffcccb" : "white",
-                      },
-                    }}
-                  />
+                  <TooltipHost
+                    content={this.state.assignTo}
+                    calloutProps={{ gapSpace: 0 }}
+                    styles={{ root: { display: 'inline-block', width: '100%' } }}
+                  >
+                    <PeoplePicker
+                      context={peoplePickerContext}
+                      titleText="Auditee:"
+                      personSelectionLimit={1}
+                      required={true}
+                      groupName={""} // Leave this blank in case you want to filter from all users
+                      showtooltip={true}
+                      disabled={false}
+                      ensureUser={true}
+                      onChange={this._handlePeoplePickerChange("assignTo", "assignToId")}
+                      principalTypes={[PrincipalType.User]}
+                      resolveDelay={1000}
+                      styles={{
+                        root: {
+                          backgroundColor: this.state.errors.assignTo ? "#ffcccb" : "white",
+                        },
+                      }}
+                    /></TooltipHost>
                 </div>
                 <div className="form-group col-md-4">
                   <Label>
                     Due Date <span className={styles.textdanger}>*</span>
                   </Label>
-                  <DatePicker
-                    formatDate={(date: Date) => moment(date).format("DD/MMM/YYYY")}
-                    placeholder="Select a Due Date"
-                    value={this.state.dueDate}
-                    onSelectDate={(date: Date) => this.setState({ dueDate: date })}
-                    //styles={this.state.errors.dueDate ? datePickerErrorStyles : {}}
-                    className={this.state.errors?.dueDate ? 'textfield-error' : ''}
-                  />
+                  <TooltipHost
+                    content={moment(this.state.dueDate).format("DD/MMM/YYYY")}
+                    calloutProps={{ gapSpace: 0 }}
+                    styles={{ root: { display: 'inline-block', width: '100%' } }}
+                  >
+                    <DatePicker
+                      formatDate={(date: Date) => moment(date).format("DD/MMM/YYYY")}
+                      placeholder="Select a Due Date"
+                      value={this.state.dueDate}
+                      onSelectDate={(date: Date) => this.setState({ dueDate: date })}
+                      //styles={this.state.errors.dueDate ? datePickerErrorStyles : {}}
+                      className={this.state.errors?.dueDate ? 'textfield-error' : ''}
+                    /></TooltipHost>
                 </div>
                 <div style={{ position: 'relative' }} className="col-lg-4 mt-1">
                   <label htmlFor="Attchments" style={{ marginRight: "10px" }}>Attachments </label>
@@ -1552,21 +1602,26 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
               </div>
               <div style={{ justifyContent: 'left', textAlign: 'left' }} className='row mb-3'>
                 <div className="form-group col-md-12 newdes">
-                  <TextField label="NC/Observation Description:"
-                    required
-                    name='problemDescription'
-                    value={this.state.problemDescription}
-                    multiline rows={5}
-                    //onChange={(e) => this.setState({ ...formData, issueNo: e.target.value })}
-                    onChange={this.handleChangeobsdescriptiob}
-                    //errorMessage={this.state.errors.problemDescription}
-                    className={this.state.errors?.problemDescription ? 'textfield-error' : ''}
-                  // styles={{
-                  //   fieldGroup: {
-                  //     backgroundColor: this.state.errors.problemDescription ? "#ffcccb" : "white", // Red tint for errors
-                  //   },
-                  // }}
-                  />
+                  <TooltipHost
+                    content={this.state.problemDescription}
+                    calloutProps={{ gapSpace: 0 }}
+                    styles={{ root: { display: 'inline-block', width: '100%' } }}
+                  >
+                    <TextField label="NC/Observation Description:"
+                      required
+                      name='problemDescription'
+                      value={this.state.problemDescription}
+                      multiline rows={5}
+                      //onChange={(e) => this.setState({ ...formData, issueNo: e.target.value })}
+                      onChange={this.handleChangeobsdescriptiob}
+                      //errorMessage={this.state.errors.problemDescription}
+                      className={this.state.errors?.problemDescription ? 'textfield-error' : ''}
+                    // styles={{
+                    //   fieldGroup: {
+                    //     backgroundColor: this.state.errors.problemDescription ? "#ffcccb" : "white", // Red tint for errors
+                    //   },
+                    // }}
+                    /></TooltipHost>
                 </div>
               </div>
               {/* Button Section 4 */}

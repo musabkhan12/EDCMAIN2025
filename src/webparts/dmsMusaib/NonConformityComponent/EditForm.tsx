@@ -3150,7 +3150,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     var upFilesauditee = this.state.exFilesauditee.map((item: any, i: number) => {
       return (
         <tr >
-          <td style={{ minWidth: '50px', maxWidth: '50px' }} >
+          <td style={{ minWidth: '60px', maxWidth: '60px' }} >
             {i + 1}
           </td>
           {/* <td title={decodeURIComponent(item.Name)}>
@@ -3879,7 +3879,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                             <table className={styles.mtbalenew}>
                               <thead>
                                 <tr>
-                                  <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                                  <th style={{ minWidth: '60px', maxWidth: '60px' }}>S.No.</th>
                                   <th>File Name</th>
                                   {this.state.exFilesauditee.length > 0 && <th className="text-center">File Link</th>}
                                   <th style={{ minWidth: '100px' }} className="text-center">Upload Date</th>

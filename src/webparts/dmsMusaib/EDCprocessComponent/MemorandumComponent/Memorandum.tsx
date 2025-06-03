@@ -2731,7 +2731,7 @@ const MemoContext = ({ props }: any) => {
 
                             <div style={{ clear: "both" }}></div>
 
-                            <form className="form-horizontal">
+                            <form className="form-horizontal" noValidate>
                               <div className="row">
                                 <div className="col-lg-4">
                                   <div className="mb-3">
