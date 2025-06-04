@@ -8,17 +8,32 @@ export const getAllDocumentCode = async (_sp) => {
     .filter("Status eq 'Approved'")
     .orderBy("Modified", false)() // Order by Modified descending to get latest first
     .then((res) => {
-      console.log(res);
-
+      console.log("eeee", res);
+      debugger
       // Filter only latest entry for each unique DocumentCode
-      const latestDocuments = res.reduce((acc, item) => {
-        if (!acc[item.DocumentCode]) {
-          acc[item.DocumentCode] = item;
-        }
-        return acc;
-      }, {});
+      // const latestDocuments = res.reduce((acc, item) => {
+      //   if (!acc[item.DocumentCode]) {
+      //     acc[item.DocumentCode] = item;
+      //   }
+      //   return acc;
+      // }, {});
 
-      arr = Object.values(latestDocuments);
+      // arr = Object.values(latestDocuments);
+      var latestByDocumentCode = {};
+
+      for (var i = 0; i < res.length; i++) {
+        var item = res[i];
+        var docCode = item.DocumentCode;
+
+        // Store the first (latest) item per unique DocumentCode
+        if (!latestByDocumentCode[docCode]) {
+          latestByDocumentCode[docCode] = item;
+        }
+      }
+
+      arr = Object.values(latestByDocumentCode);
+
+      console.log("arrarr fetching data: ", arr);
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);

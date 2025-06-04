@@ -72,8 +72,8 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         Status: Status,
 
         ActionTakenById: currentUser.Id,
-        ActionTakenOn: new Date().toLocaleDateString("en-CA")
-
+        // ActionTakenOn: new Date().toLocaleDateString("en-CA")
+        ActionTakenOn: new Date().toISOString(),
       };
 
       postPayload2 = {

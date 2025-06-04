@@ -950,7 +950,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                             let arr2 = {
                                 ActionTakenById: currentUser.Id,
-                                ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                                // ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                                ActionTakenOn: new Date().toISOString(),
                                 // ActionTakenRoleId: formData.RequesterDesignation,
                                 Status: "Approved",
                                 // Remark: remark,
@@ -1487,7 +1488,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                         let arr = {
                             ActionTakenById: currentUser.Id,
-                            ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                            // ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                            ActionTakenOn: new Date().toISOString(),
                             // ActionTakenRoleId: formData.RequesterDesignation,
                             Status: "Approved",
                             // Remark: remark,
@@ -1638,7 +1640,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
                             ActionTakenById: currentUser.Id,
-                            ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                            // ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                            ActionTakenOn: new Date().toISOString(),
                             // ActionTakenRoleId: formData.RequesterDesignation,
                             Status: status,
                             // Remark: remark,
@@ -1795,7 +1798,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // //////////////Update Process Approval List when Submitted
                         let arr = {
                             ActionTakenById: currentUser.Id,
-                            ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                            // ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                            ActionTakenOn: new Date().toISOString(),
                             // ActionTakenRoleId: formData.RequesterDesignation,
                             Status: "Approved",
                             // Remark: remark,
@@ -1925,7 +1929,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
                             ActionTakenById: currentUser.Id,
-                            ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                            // ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                            ActionTakenOn: new Date().toISOString(),
                             // ActionTakenRoleId: formData.RequesterDesignation,
                             Status: status,
                             // Remark: remark,

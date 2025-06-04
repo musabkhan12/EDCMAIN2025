@@ -195,7 +195,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         let listItems = [];
         let onloadDeptId: any;
         if (selectedOption == null) {
-             onloadDeptId = AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]?.value || 0;
+            onloadDeptId = AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]?.value || 0;
 
             listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
 
@@ -228,42 +228,42 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 ? `0${memo}`
                 : memo;
 
-    if (selectedOption == null) {    
-        setFormData((prevFormData) => ({
-            ...prevFormData,
-            MemoListId: memoId,
-            memoSerialNo: memo,
-            deptId: onloadDeptId,
-            // memoNo: setAllDept1.filter(user => user.label === UserDept)[0]
-            //     ? `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-            //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-            memoNo: AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0]
-                ? `${AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-                : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-            memoFileName: AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]
-                ? `${AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
-                : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
-        }));
+        if (selectedOption == null) {
+            setFormData((prevFormData) => ({
+                ...prevFormData,
+                MemoListId: memoId,
+                memoSerialNo: memo,
+                deptId: onloadDeptId,
+                // memoNo: setAllDept1.filter(user => user.label === UserDept)[0]
+                //     ? `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+                //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+                memoNo: AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0]
+                    ? `${AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+                    : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+                memoFileName: AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]
+                    ? `${AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+                    : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+            }));
 
 
-    }  
-    else{
+        }
+        else {
 
-        setFormData({
-            ...formData,
-            MemoListId: memoId,
-            memoSerialNo: memo,
-            deptId: selectedOption?.value,
-            memoNo: `${selectedOption.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-            memoFileName: `${selectedOption.DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+            setFormData({
+                ...formData,
+                MemoListId: memoId,
+                memoSerialNo: memo,
+                deptId: selectedOption?.value,
+                memoNo: `${selectedOption.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+                memoFileName: `${selectedOption.DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
 
-        });
+            });
 
-    }  
-       
-       
+        }
 
-       
+
+
+
 
         if (selectedOption) {
             document.getElementById("DeptID")?.classList.remove("border-on-error");
@@ -335,7 +335,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         if (field == "auditor") {
             // const valuesOnly = value.map((option: any) => option.value);
             updatedRows = recommendationRows.map((row, i) =>
-                i === index ? { ...row, [field]: value ?value:null, auditorIds:value? value.value:null } : row
+                i === index ? { ...row, [field]: value ? value : null, auditorIds: value ? value.value : null } : row
             );
 
         } else {
@@ -364,21 +364,21 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         if (field == "auditor") {
             // const valuesOnly = value.map((option: any) => option.value);
             updatedRows = coverageAuditCriteria.map((row, i) =>
-                i === index ? { ...row, [field]:value? value:null, auditorIds:value? value.value:null } : row
+                i === index ? { ...row, [field]: value ? value : null, auditorIds: value ? value.value : null } : row
             );
 
         }
         else if (field == "Location") {
             // const valuesOnly = value.map((option: any) => option.value);
             updatedRows = coverageAuditCriteria.map((row, i) =>
-                i === index ? { ...row, [field]: value?value:null, LocationId:value? value.value :null} : row
+                i === index ? { ...row, [field]: value ? value : null, LocationId: value ? value.value : null } : row
             );
 
         }
         else if (field == "dept") {
             // const valuesOnly = value.map((option: any) => option.value);
             updatedRows = coverageAuditCriteria.map((row, i) =>
-                i === index ? { ...row, [field]:value? value:null, deptId:value? value.value:null } : row
+                i === index ? { ...row, [field]: value ? value : null, deptId: value ? value.value : null } : row
             );
 
         }
@@ -744,11 +744,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 // }
             }
 
-           
+
 
             setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditPlan));
 
-           
+
 
         }
         // formitemid =20;
@@ -775,7 +775,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 if (formMode == "edit") {
                     const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${setBannerById[0]?.DepartmentId}`).orderBy("SerialNumber", false).top(1)();
                     // if (listItems.length > 0 && (setBannerById[0].Status == "Rework" || (setBannerById[0].Status == "Save as draft"))) {
-                        if (listItems.length > 0 && ( (setBannerById[0].Status == "Save as draft" && increaseMemo))) {
+                    if (listItems.length > 0 && ((setBannerById[0].Status == "Save as draft" && increaseMemo))) {
                         if (listItems[0].SerialNumber > setBannerById[0].MemoSerialNumber) {
                             memo = listItems[0].SerialNumber + 1;
                         }
@@ -1084,9 +1084,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     }, [useHide]);
 
     const handleCancel = () => {
-        // window.location.reload();
+
         window.history.back();
-        // window.location.reload();
+
         setTimeout(() => {
             location.reload();
         }, 100);
@@ -1849,7 +1849,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                             let arr2 = {
                                 ActionTakenById: currentUser.Id,
-                                ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                                // ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                                ActionTakenOn: new Date().toISOString(),
                                 // ActionTakenRoleId: formData.RequesterDesignation,
                                 Status: "Approved",
                                 // Remark: remark,
@@ -1890,7 +1891,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         setTimeout(() => {
 
                             window.history.back();
-                            // window.location.reload();
+
                             setTimeout(() => {
                                 location.reload();
                             }, 100);
@@ -2243,15 +2244,15 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                             }
                         }
-                       
-                        let arr={};
+
+                        let arr = {};
 
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
 
-                             arr = {
+                            arr = {
                                 // MemorandumIDId: formData.MemoId,
-   
+
                                 // MemoNumber: formData.memoNo.label,
                                 MemoNumber: formData.memoNo,
                                 MemoSerialNumber: formData.memoSerialNo,
@@ -2290,21 +2291,21 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 ClassificationId: formData.classificationId,
                                 AttachmentId: attachmentIds || [],
                                 AttachmentJson: JSON.stringify(bannerImageArray) || "",
-   
+
                                 // MDocumentCode: formData.MDocumentCode,
                                 // MRevisionNumber: formData.MRevisionNumber,
                                 // MIssueNumber: formData.MIssueNumber,
                                 // MRevisionDate: formData.MRevisionDate,
                                 // MIssueDate:formData.MIssueDate
-   
-   
+
+
                             }
 
                         }
-                        else{
-                             arr = {
+                        else {
+                            arr = {
                                 // MemorandumIDId: formData.MemoId,
-   
+
                                 // MemoNumber: formData.memoNo.label,
                                 MemoNumber: formData.memoNo,
                                 MemoSerialNumber: formData.memoSerialNo,
@@ -2343,14 +2344,14 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 ClassificationId: formData.classificationId,
                                 AttachmentId: attachmentIds || [],
                                 AttachmentJson: JSON.stringify(bannerImageArray) || "",
-   
+
                                 // MDocumentCode: formData.MDocumentCode,
                                 // MRevisionNumber: formData.MRevisionNumber,
                                 // MIssueNumber: formData.MIssueNumber,
                                 // MRevisionDate: formData.MRevisionDate,
                                 // MIssueDate:formData.MIssueDate
-   
-   
+
+
                             }
                         }
                         const postResult = await updateItem(arr, sp, editItemID);
@@ -2851,15 +2852,15 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
     }
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLSelectElement>) => {
-        // if (e.key === 'Enter') {
-        //   e.preventDefault(); // 🛑 Prevents page reload
-        // }
-      };
-      const handleKeyDowntext = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        // if (e.key === 'Enter') {
-        //     e.preventDefault();
-        // }
+    // const handleKeyDown = (e: React.KeyboardEvent<HTMLSelectElement>) => {
+    //     // if (e.key === 'Enter') {
+    //     //   e.preventDefault(); // 🛑 Prevents page reload
+    //     // }
+    // };
+    const handleKeyDowntext = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+        }
     };
 
 
@@ -3166,6 +3167,100 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     };
 
 
+
+
+
+    // const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    //     // if (dropdownOpen && highlightedIndex !== -1 && event.key === "Enter") {
+    //     //   // Let the dropdown handle selection
+    //     //   return;
+    //     // }
+    //     // If dropdown is closed or no option is highlighted, prevent form submit
+    //     if (event.key === "Enter") {
+    //       event.preventDefault();
+    //     }
+    //   };
+    // const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>, field: string, indx: number) => {
+    //     if (event.key === 'Enter') {
+    //         // Get currently focused option from react-select
+    //         //   const focusedOption = document.querySelector('.react-select__option--is-focused');
+
+    //         //   if (focusedOption && focusedOption.textContent && selectUserDept != null) {
+    //         let alreadySelected = false;
+    //         // switch (field) {
+    //         //     case 'deptId': if (selectUserDept != null && selectUserDept?.length > 0) {
+    //         //         alreadySelected = true;
+    //         //         if (alreadySelected) {
+    //         //             //   console.log('Option already selected — preventing default.');
+    //         //             event.preventDefault();
+    //         //         }
+    //         //         // else {
+    //         //         //   console.log('Option not selected yet — allowing default.');
+    //         //         // }
+    //         //     }
+    //         //         break;
+    //         //     case 'auditor': if (recommendationRows[indx].auditor != null && recommendationRows[indx].auditor?.length != 0) {
+    //         //         alreadySelected = true;
+    //         //         if (alreadySelected) {
+
+    //         //             event.preventDefault();
+    //         //         }
+
+    //         //     }
+    //         //     case 'Covauditor': if (coverageAuditCriteria[indx].auditor != null && coverageAuditCriteria[indx].auditor?.length != 0) {
+    //         //         alreadySelected = true;
+    //         //         if (alreadySelected) {
+
+    //         //             event.preventDefault();
+    //         //         }
+
+    //         //     }
+
+    //         //     case 'dept': if (coverageAuditCriteria[indx].dept != null && coverageAuditCriteria[indx].dept?.length != 0) {
+    //         //         alreadySelected = true;
+    //         //         if (alreadySelected) {
+
+    //         //             event.preventDefault();
+    //         //         }
+
+    //         //     }
+
+    //         //     case 'Location': if (coverageAuditCriteria[indx].Location != null && coverageAuditCriteria[indx].Location?.length != 0) {
+    //         //         alreadySelected = true;
+    //         //         if (alreadySelected) {
+
+    //         //             event.preventDefault();
+    //         //         }
+
+    //         //     }
+
+
+    //         // }
+    //     }
+    // };
+
+    // const [selectedOpt, setSelectedOpt] = React.useState(null);
+    // const [menuIsOpen, setMenuIsOpen] = React.useState(false);
+    // const [inputValue, setInputValue] = React.useState('');
+    // const [focusedOption, setFocusedOption] = React.useState(null);
+
+    // const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    //     if (event.key === 'Enter') {
+    //       // ✅ If menu is open and an option is focused, allow default behavior
+    //       if (menuIsOpen && focusedOption) {
+    //         console.log('Focused option exists — allow Enter');
+    //         return;
+    //       }
+    
+    //       // ❌ No focused option, already selected — prevent
+    //       if (selectedOpt) {
+    //         console.log('No focused option — prevent default');
+    //         event.preventDefault();
+    //       }
+    //     }
+    //   };
+
+
     return (
         <div id="wrapper" ref={elementRef}>
             {/* <div
@@ -3306,7 +3401,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                         <div style={{ clear: "both" }}></div>
 
-                                                        <form className="form-horizontal" noValidate onSubmit ={(e)=>{ e.preventDefault();return false;}}>
+                                                        <form className="form-horizontal" noValidate onSubmit={(e) => { e.preventDefault(); return false; }}>
+                                                            {/*<div className="form-horizontal">*/}
+
                                                             <div className="row">
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
@@ -3391,6 +3488,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
                                                                                 isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false)}
                                                                                 value={selectUserDept}
+                                                                                // onKeyDown={(e: any) => handleKeyDown(e, 'deptId', 0)}
                                                                                 isClearable
                                                                                 name="deptId"
                                                                                 id="DeptID"
@@ -3400,7 +3498,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 // onChange={handleDepartmentChange}
                                                                                 onChange={(selectedOptions: any) => handleDepartmentChange(selectedOptions)}
                                                                                 placeholder="Select Department"
-                                                                                
+
                                                                             />
                                                                         </div>
                                                                     </div>
@@ -3469,9 +3567,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                                 onChange={(selectedOptions: any) => handleDepartmentChangeTo(selectedOptions)}
                                                                                 placeholder="Select"
-                                                                                
+
                                                                             />
-                                                                           
+
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -3521,7 +3619,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 onChange={(selectedOptions: any) => handleDepartmentChangeCC(selectedOptions)}
                                                                                 // onChange={(selectedOptions: any) => setFormData({ ...formData, CC: selectedOptions })}
                                                                                 placeholder="Select"
-                                                                                
+
 
 
                                                                             />
@@ -3621,13 +3719,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 onChange={(selectedOption: any) => {
                                                                                     setFormData({
                                                                                         ...formData,
-                                                                                        classificationValue: selectedOption ? selectedOption:null,
-                                                                                        classificationId: selectedOption?selectedOption.value:0,
+                                                                                        classificationValue: selectedOption ? selectedOption : null,
+                                                                                        classificationId: selectedOption ? selectedOption.value : 0,
                                                                                     });
                                                                                 }}
                                                                                 placeholder="Select Classification"
                                                                                 isDisabled={InputDisabled}
-                                                                                
+
                                                                             />
                                                                         </div>
                                                                     </div>
@@ -3712,7 +3810,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                            {/* // changes */}
+                                                            {/* </div> */}
                                                         </form>
+
                                                     </div>
                                                 </div>
 
@@ -3785,7 +3886,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                         type="text"
                                                                                         className={`form-control recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                         // className="form-control"
-                                                                                        //onKeyDown={handleKeyDowntext}
+                                                                                        onKeyDown={handleKeyDowntext}
                                                                                         value={row.section}
                                                                                         title={row.section}
                                                                                         onChange={(e) => handleRecommendationChange(index, 'section', e.target.value)}
@@ -3867,10 +3968,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                         className={`recommendClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                         value={row.auditor}
                                                                                         isClearable
+                                                                                        // onKeyDown={(e: any) => handleKeyDown(e, 'auditor', index)}
                                                                                         onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
                                                                                         placeholder="Select"
                                                                                         isDisabled={InputDisabled}
-                                                                                        
+
                                                                                     // Added title tooltip
                                                                                     />
                                                                                 </td>
@@ -4182,11 +4284,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     className={`coverageClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                     value={row.dept}
                                                                                     isClearable
+                                                                                    // onKeyDown={(e: any) => handleKeyDown(e, 'dept', index)}
                                                                                     title={row.dept?.label || "Select department"} // Added title tooltip
                                                                                     onChange={(selectedOptions: any) => handleCoverageRow(index, 'dept', selectedOptions)}
                                                                                     placeholder="Select department"
                                                                                     isDisabled={InputDisabled}
-                                                                                    
+
                                                                                     menuPortalTarget={document.body}
                                                                                     // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
                                                                                     styles={{
@@ -4224,11 +4327,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     className={`coverageClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                     value={row.Location}
                                                                                     isClearable
+                                                                                    // onKeyDown={(e: any) => handleKeyDown(e, 'Location', index)}
                                                                                     title={row.Location?.label || "Select Location"} // Added title tooltip
                                                                                     onChange={(selectedOptions: any) => handleCoverageRow(index, 'Location', selectedOptions)}
                                                                                     placeholder="Select"
                                                                                     isDisabled={InputDisabled}
-                                                                                    
+
                                                                                     menuPortalTarget={document.body}
                                                                                     // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
                                                                                     styles={{
@@ -4245,6 +4349,28 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                             position: 'relative'
                                                                                         }),
                                                                                     }}
+
+
+
+                                                                                    // 
+
+                                                                                    // onKeyDown={handleKeyDown}
+                                                                                    // onMenuOpen={() => setMenuIsOpen(true)}
+                                                                                    // onMenuClose={() => {
+                                                                                    //   setMenuIsOpen(false);
+                                                                                    //   setFocusedOption(null);
+                                                                                    // }}
+                                                                                    // onInputChange={(value: string, { action }: { action: string }) => {
+                                                                                    //   if (action === 'input-change') {
+                                                                                    //     setInputValue(value);
+                                                                                    //   }
+                                                                                    // }}
+                                                                                    // onFocus={() => setMenuIsOpen(true)}
+                                                                                    // menuIsOpen={menuIsOpen}
+                                                                                    // onMenuScrollToTop={() => setFocusedOption(null)}
+                                                                                    // onFocusOptionChange={(option:any) => {
+                                                                                    //   setFocusedOption(option); // Custom prop - not native
+                                                                                    // }}
                                                                                 />
                                                                             </td>
 
@@ -4256,12 +4382,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     className={`coverageClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                     value={row.auditor}
                                                                                     isClearable
+                                                                                    // onKeyDown={(e: any) => handleKeyDown(e, 'Covauditor', index)}
                                                                                     title={row.auditor?.label || "Select Auditor"} // Added title tooltip
                                                                                     onChange={(selectedOptions: any) => handleCoverageRow(index, 'auditor', selectedOptions)}
                                                                                     placeholder="Select"
                                                                                     isDisabled={InputDisabled}
                                                                                     menuPortalTarget={document.body}
-                                                                                    
+
                                                                                     // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
                                                                                     styles={{
                                                                                         menu: (base: any) => ({
@@ -4377,7 +4504,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     // className="form-select"
                                                                                     className={`form-select HierarchyClsErr newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
                                                                                     onChange={(e) => onSelectRole(e, row.level)}
-                                                                                    
+
                                                                                     value={row.role}
                                                                                     disabled={InputDisabled}
                                                                                     title={UserRoles.find((role: any) => role.value === row.role)?.label || "Select Role"} // Added title tooltip
@@ -4401,7 +4528,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     options={rows1}
                                                                                     isMulti
                                                                                     value={row.approvers}
-                                                                                    
+                                                                                    // onKeyDown={(e: any) => handleKeyDown(e, 'Approvers', index)}
                                                                                     name="Approvers"
                                                                                     className={`newse HierarchyClsErr ${(!ValidForwardTo) ? "border-on-error" : ""}`}
                                                                                     onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
@@ -4522,7 +4649,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 Submit</div>
                                                         }
 
-                                                       
+
                                                         {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.ApprovalType !== "Approval")) &&
                                                             <div className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                                                 className='me-1' alt="x" /> Cancel</div>

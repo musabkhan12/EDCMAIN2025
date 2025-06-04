@@ -4,7 +4,10 @@ export const getLatestChangeRequestTemplateType = async (_sp, List) => {
   // var List ="Annual Audit Program"
   // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
   // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
-  await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`TemplateType/TemplateTypeValue eq '${List}' and Status eq 'Approved'`).orderBy("ID", false).top(1)()
+  await _sp.web.lists.getByTitle("ChangeRequestList").items
+    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId")
+    .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department")
+    .filter(`TemplateType/TemplateTypeValue eq '${List}' and Status eq 'Approved'`).orderBy("ID", false).top(1)()
     .then((res) => {
       arr = res;
     })
@@ -118,7 +121,7 @@ export const getItemByID = async (_sp, id) => {
   console.log(arr, 'arr');
   return arr;
 }
-export const getItemsAuditReportNC = async (_sp,dept) => {
+export const getItemsAuditReportNC = async (_sp, dept) => {
 
   let arr = []
   let arrs = []
@@ -144,7 +147,7 @@ export const getItemsAuditReportNC = async (_sp,dept) => {
   console.log(arr, 'arr');
   return arr;
 }
-export const getItemsAuditReportObs = async (_sp,dept) => {
+export const getItemsAuditReportObs = async (_sp, dept) => {
 
   let arr = []
   let arrs = []
@@ -178,7 +181,7 @@ export const getMemoNumberAuditReport = async (_sp) => {
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("AnnualAuditReportList").items
     .select("*,ApprovedAuditPlan/MemoNumber,ApprovedAuditPlan/ID,FailureofIntentNonconformity,DepartmentAudited/ID,DepartmentAudited/Department,Shift/ID,Shift/Shift")
-  .expand("ApprovedAuditPlan,DepartmentAudited,Shift")
+    .expand("ApprovedAuditPlan,DepartmentAudited,Shift")
     .filter(`FailureofIntentNonconformity eq 'Yes' or Observations eq 'Yes'`)
     .orderBy("Modified", false)
     ()
@@ -218,7 +221,7 @@ export const getNCNumbers = async (_sp, Reportcode, type) => {
   console.log(arr, 'arr');
   return arr;
 }
-export const getAllProcessData = async (_sp, MainId, processName, docCode,processName1) => {
+export const getAllProcessData = async (_sp, MainId, processName, docCode, processName1) => {
 
   let arr;
   // .select("*,Author/ID,Author/Title,Approvers/Id,Approvers/Title,ApproverRole/Id").expand("Author,Approvers,ApproverRole").filter(`MainListID eq '${MainId}' and ProcessName eq '${processName}' and RequestId eq '${docCode}'`)()
@@ -332,7 +335,7 @@ export const getAllDepartment1 = async (_sp) => {
         value: item.Id,
         label: item.Department,
         Department: item.Department,
-        departmentcode:item.DepartmentCode
+        departmentcode: item.DepartmentCode
       }));
 
 
@@ -514,7 +517,7 @@ export const getFormNameID = async (_sp, formname) => {
   return reqId;
 }
 
-export const getApprovalByID = async (_sp, id, processName,processName1) => {
+export const getApprovalByID = async (_sp, id, processName, processName1) => {
 
   let arr = []
   let arrs = []
@@ -539,7 +542,7 @@ export const getApprovalByID = async (_sp, id, processName,processName1) => {
   return arr;
 }
 
-export const getApprovalByID2 = async (_sp, id, processName,processname1) => {
+export const getApprovalByID2 = async (_sp, id, processName, processname1) => {
 
   let arr;
   let arrs = []
@@ -602,7 +605,7 @@ export const getItemfromChecklistMaster = async (sp) => {
   return arr
 }
 
-export const getDraftApprovalByID = async (_sp, id, processName,processName1) => {
+export const getDraftApprovalByID = async (_sp, id, processName, processName1) => {
 
   let arr = [];
   let val = "Yes"

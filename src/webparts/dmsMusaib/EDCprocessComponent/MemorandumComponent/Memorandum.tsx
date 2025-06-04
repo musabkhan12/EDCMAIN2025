@@ -383,9 +383,9 @@ const MemoContext = ({ props }: any) => {
   };
 
   const handleKeyDowntext = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // if (e.key === 'Enter') {
-    //   e.preventDefault();
-    // }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+    }
   };
 
   const ApiCallFunc = async () => {
@@ -1494,7 +1494,8 @@ const MemoContext = ({ props }: any) => {
 
               let arr2 = {
                 ActionTakenById: currentUser.Id,
-                ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                // ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                ActionTakenOn: new Date().toISOString(),
                 // ActionTakenRoleId: formData.RequesterDesignation,
                 Status: "Approved",
                 // Remark: remark,
@@ -3301,7 +3302,7 @@ const MemoContext = ({ props }: any) => {
                                             type="text"
                                             className={`form-control recommendClsErr }`}
                                             // className="form-control"
-                                            // onKeyDown={handleKeyDowntext}
+                                            onKeyDown={handleKeyDowntext}
                                             value={row.section}
                                             title={row.section}
                                             onChange={(e) => handleRecommendationChange(index, 'section', e.target.value)}

@@ -111,6 +111,12 @@ export interface IEditState {
   IsFinalapprover: boolean;
   editCriteria: string;
   editCloseOutStatus: string;
+  showcategoryothers: boolean;
+  showsubcategoryothers: boolean;
+  showlocationothers: boolean;
+  CategoryOthers: string;
+  SubCategoryOthers: string;
+  LocationOthers: string;
   editCategoryCheckOption: IDropdownOption[];
   editCategoryValueIsCheck: number[];
   editSubCategoryCheckOption: IDropdownOption[];
@@ -225,6 +231,13 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       NCNumberselected: [],
       ApprovedAuditSelected: [],
       edittypeoptions: [],
+      showsubcategoryothers: false,
+      showlocationothers: false,
+      showcategoryothers: false,
+
+      CategoryOthers: "",
+      SubCategoryOthers: "",
+      LocationOthers: "",
       editncType: "",
       isIMSUpdated: "No",
       riskandopportunitiesUpdated: "No",
@@ -598,6 +611,30 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
     return result;
   }
+  public handleChangeCategoryOthers = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    debugger
+    const { name, value } = event.target;
+    this.setState((prevState) => ({
+      ...prevState,
+      CategoryOthers: value,
+    }));
+  };
+  public handleChangeSubCategoryOthers = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    debugger
+    const { name, value } = event.target;
+    this.setState((prevState) => ({
+      ...prevState,
+      SubCategoryOthers: value,
+    }));
+  };
+  public handleChangeLocationOthers = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    debugger
+    const { name, value } = event.target;
+    this.setState((prevState) => ({
+      ...prevState,
+      LocationOthers: value,
+    }));
+  };
   public changeMemoNumber = async (item: any): Promise<void> => {
     debugger
     const sp = spfi().using(SPFx(this.props.context));
@@ -701,8 +738,15 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     }
   };
 
-  private _handleCheckboxChange = (stateKey: keyof IEditState, itemKey: number) =>
+  private _handleCheckboxChange = (stateKey: keyof IEditState, itemKey: number, itemtext: String) =>
     (_ev: React.FormEvent<HTMLElement>, isChecked?: boolean) => {
+      if (stateKey == "editCategoryValueIsCheck" && itemtext == "Others") {
+        this.setState({ showcategoryothers: true })
+      } else if (stateKey == "editSubCategoryValueIsCheck" && itemtext == "Others") {
+        this.setState({ showsubcategoryothers: true })
+      } else if (stateKey == "editLocationValueIsCheck" && itemtext == "Others") {
+        this.setState({ showlocationothers: true })
+      }
       this.setState((prevState) => {
         const updatedValues = isChecked
           ? [...(prevState[stateKey] as number[]), itemKey]
@@ -912,6 +956,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         editIssueDate: Items.IssueDate,
         editRevisionNo: Items.RevisionNumber,
         editIssueNo: Items.IssueNumber,
+        CategoryOthers: Items.CategoryOthers,
+        LocationOthers: Items.LocationOthers,
+        SubCategoryOthers: Items.SubCategoryOthers,
         editCloseOutStatus: Items.CloseOutStatus,
         editCategoryValueIsCheck: Items.Category ? Items.Category.map((cat: any) => cat.Id) : [],
         editSubCategoryValueIsCheck: Items.SubCategory ? Items.SubCategory.map((sub: any) => sub.Id) : [],
@@ -954,6 +1001,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         remarks: Items.FinalRemarks,
         reworkremarks: Items.ReworkRemarks
       });
+      const showCategoryOthers = Items.Category?.some((cat: any) => cat.Title === "Others") || false;
+      const showSubCategoryOthers = Items.SubCategory?.some((sub: any) => sub.Title === "Others") || false;
+      const showLocationOthers = Items.Location?.some((loc: any) => loc.Title === "Others") || false;
+      this.setState({ showcategoryothers: showCategoryOthers, showlocationothers: showLocationOthers, showsubcategoryothers: showSubCategoryOthers });
       const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items();
       const optionsdept = deptItems.map((item: {
         DepartmentCode: any; Title: string; Id: number, ADDepartmentName: string
@@ -1914,7 +1965,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       DocumentCode: this.state.editDocumentCode,
       IMSUpdated: this.state.isIMSUpdated,
       RiskOpportunitiesUpdated: this.state.riskandopportunitiesUpdated,
-
+      LocationOthers: this.state.LocationOthers,
+      SubCategoryOthers: this.state.SubCategoryOthers,
+      CategoryOthers: this.state.CategoryOthers
     })
   }
 
@@ -2093,7 +2146,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             if (this.state.copyFilauditee.length > 0) {
               const uploadPromises = this.state.copyFilauditee.map(async (file) => {
                 debugger
-                
+
                 const currentUser = await sp.web.currentUser();
                 const userId = currentUser.Id; // Or however you get the current user ID
                 const date = new Date();
@@ -2531,7 +2584,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               Correctionapplicable: this.state.IsFinalapprover
                 ? test1
                 : "",
-              CloseOutStatus: this.state.IsFinalapprover ? "Completed" :"Open",
+              CloseOutStatus: this.state.IsFinalapprover ? "Completed" : "Open",
               NotEffective: this.state.IsFinalapprover
                 ? test2
                 : "",
@@ -3070,7 +3123,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         )
       })
     var fileData = this.state.copyFil.map((item: any, i: number) => {
-      
+
       return (
         <tr style={{ display: 'table', width: '100%' }}>
           <td style={{ minWidth: '50px', maxWidth: '50px' }} className="text-center">{i + 1}</td>
@@ -3504,34 +3557,74 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       {this.state.editCategoryCheckOption.map((item: any) => {
                         return (
                           <div style={{ margin: "2px", padding: "3px" }}>
-                            <Checkbox label={item.text} disabled={this.state.isDisabled} checked={this.state.editCategoryValueIsCheck.indexOf(item.key) !== -1} onChange={this._handleCheckboxChange("editCategoryValueIsCheck", item.key as number)} />
+                            <Checkbox label={item.text} disabled={this.state.isDisabled} checked={this.state.editCategoryValueIsCheck.indexOf(item.key) !== -1} onChange={this._handleCheckboxChange("editCategoryValueIsCheck", item.key as number, item.text)} />
                           </div>
                         )
                       }
                       )}
+                      {this.state.showcategoryothers &&
+                        <div style={{ margin: "2px", padding: "3px" }}>
+                          <TooltipHost
+                            content={this.state.CategoryOthers || ""}
+                            calloutProps={{ gapSpace: 0 }}
+                            styles={{ root: { display: 'inline-block', width: '100%' } }}
+                          >
+                            <TextField label="Category Others:" name='CategoryOthers' value={this.state.CategoryOthers} onChange={this.handleChangeCategoryOthers}
+                            //className={this.state.errors?.categoryothers ? 'textfield-error' : ''}
+                            /></TooltipHost>
+
+                        </div>
+
+                      }
                     </div>
                     <div className="form-group col-md-4" id="SubCategoryCheckbox">
                       <label>Sub Category: <span className={styles.textdanger}>*</span></label>
                       {this.state.editSubCategoryCheckOption.map((item: any) => {
                         return (
                           <div style={{ margin: "2px", padding: "3px" }}>
-                            <Checkbox label={item.text} disabled={this.state.isDisabled} checked={this.state.editSubCategoryValueIsCheck.indexOf(item.key) !== -1} onChange={this._handleCheckboxChange("editSubCategoryValueIsCheck", item.key as number)} />
+                            <Checkbox label={item.text} disabled={this.state.isDisabled} checked={this.state.editSubCategoryValueIsCheck.indexOf(item.key) !== -1} onChange={this._handleCheckboxChange("editSubCategoryValueIsCheck", item.key as number, item.text)} />
                           </div>
                         )
                       }
                       )}
+                      {this.state.showsubcategoryothers &&
+                        <div style={{ margin: "2px", padding: "3px" }}>
+                          <TooltipHost
+                            content={this.state.SubCategoryOthers || ""}
+                            calloutProps={{ gapSpace: 0 }}
+                            styles={{ root: { display: 'inline-block', width: '100%' } }}
+                          >
+                            <TextField label="SubCategory Others:" name='SubCategoryOthers' value={this.state.SubCategoryOthers} onChange={this.handleChangeSubCategoryOthers}
+                            //className={this.state.errors?.subCategoryothers ? 'textfield-error' : ''} 
+                            /></TooltipHost>
+
+                        </div>
+                      }
                     </div>
                     <div className="form-group col-md-4" id="locationCheckbox">
                       <label>Location: <span className={styles.textdanger}>*</span></label>
                       {this.state.editLocationCheckOption.map((item: any) => {
                         return (
                           <div style={{ margin: "2px", padding: "3px" }}>
-                            <Checkbox label={item.text} disabled={this.state.isDisabled} checked={this.state.editLocationValueIsCheck.indexOf(item.key) !== -1} onChange={this._handleCheckboxChange("editLocationValueIsCheck", item.key as number)}
+                            <Checkbox label={item.text} disabled={this.state.isDisabled} checked={this.state.editLocationValueIsCheck.indexOf(item.key) !== -1} onChange={this._handleCheckboxChange("editLocationValueIsCheck", item.key as number, item.text)}
                             />
                           </div>
                         )
                       }
                       )}
+                      {this.state.showlocationothers &&
+                        <div style={{ margin: "2px", padding: "3px" }}>
+                          <TooltipHost
+                            content={this.state.LocationOthers || ""}
+                            calloutProps={{ gapSpace: 0 }}
+                            styles={{ root: { display: 'inline-block', width: '100%' } }}
+                          >
+                            <TextField label="Location Others:" name='LocationOthers' value={this.state.LocationOthers} onChange={this.handleChangeLocationOthers}
+                            //className={this.state.errors?.locationthers ? 'textfield-error' : ''} 
+                            /></TooltipHost>
+
+                        </div>
+                      }
                     </div>
                   </div>
                   <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">

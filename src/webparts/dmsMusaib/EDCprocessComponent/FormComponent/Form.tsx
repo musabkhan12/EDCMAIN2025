@@ -1724,7 +1724,8 @@ const FormContext = ({ props }: any) => {
 
               let arr2 = {
                 ActionTakenById: currentUser.Id,
-                ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                ActionTakenOn: new Date().toISOString(),
+                // ActionTakenOn: new Date().toLocaleDateString("en-CA"),
                 // ActionTakenRoleId: formData.RequesterDesignation,
                 Status: "Approved",
                 // Remark: remark,
@@ -3859,7 +3860,7 @@ const FormContext = ({ props }: any) => {
                                           // className="form-control"
                                           value={row.section}
                                           title={row.section}
-                                          //onKeyDown={handleKeyDowntext}
+                                          onKeyDown={handleKeyDowntext}
                                           onChange={(e) => handleRecommendationChange(index, 'section', e.target.value)}
                                           disabled={InputDisabled}
                                         />

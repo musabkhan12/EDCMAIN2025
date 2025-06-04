@@ -78,10 +78,16 @@ export class IState {
   referenceNo: string;
   closeOutStatus: string;
   categoryCheckOption: IDropdownOption[];
+  showcategoryothers: boolean;
+  showsubcategoryothers: boolean;
+  showlocationothers: boolean;
   categoryValueIsCheck: number[];
   subCategoryCheckOption: IDropdownOption[];
   subCategoryIsCheck: number[];
   locationCheckOption: IDropdownOption[];
+  CategoryOthers: string;
+  SubCategoryOthers: string;
+  LocationOthers: string;
   locationValueIsCheck: number[];
   assignTo: string;
   assignToId: number | null;
@@ -116,6 +122,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       memonumberOptions: [],
       typeoptions: [],
       ncType: "",
+      showcategoryothers: false,
+      showsubcategoryothers: false,
+      showlocationothers: false,
       memonumberOptionsall: [],
       NCNumberOptions: [],
       NCNumberselected: [],
@@ -142,6 +151,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       subCategoryCheckOption: [],
       subCategoryIsCheck: [],
       locationCheckOption: [],
+      CategoryOthers: "",
+      SubCategoryOthers: "",
+      LocationOthers: "",
       locationValueIsCheck: [],
       assignTo: "",
       assignToId: null,
@@ -330,6 +342,30 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       [name]: value,
     }));
   };
+  public handleChangeCategoryOthers = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    debugger
+    const { name, value } = event.target;
+    this.setState((prevState) => ({
+      ...prevState,
+      CategoryOthers: value,
+    }));
+  };
+  public handleChangeSubCategoryOthers = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    debugger
+    const { name, value } = event.target;
+    this.setState((prevState) => ({
+      ...prevState,
+      SubCategoryOthers: value,
+    }));
+  };
+  public handleChangeLocationOthers = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    debugger
+    const { name, value } = event.target;
+    this.setState((prevState) => ({
+      ...prevState,
+      LocationOthers: value,
+    }));
+  };
   public handleChangeobsdescriptiob = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     debugger
     const { name, value } = event.target;
@@ -352,8 +388,15 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     }
   };
 
-  private _handleCheckboxChange = (stateKey: keyof IState, itemKey: number) =>
+  private _handleCheckboxChange = (stateKey: keyof IState, itemKey: number, itemtext: string) =>
     (_ev: React.FormEvent<HTMLElement>, isChecked?: boolean) => {
+      if (stateKey == "categoryValueIsCheck" && itemtext == "Others") {
+        this.setState({ showcategoryothers: true })
+      } else if (stateKey == "subCategoryIsCheck" && itemtext == "Others") {
+        this.setState({ showsubcategoryothers: true })
+      } else if (stateKey == "locationValueIsCheck" && itemtext == "Others") {
+        this.setState({ showlocationothers: true })
+      }
       this.setState((prevState) => {
         const updatedValues = isChecked
           ? [...(prevState[stateKey] as number[]), itemKey]
@@ -1049,6 +1092,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
           FirstAssignedToSubmitStatus: firstAssignedToSubmitStatus,
           Status: "Pending",
           SerialNumber: serialNumber,
+          LocationOthers: this.state.LocationOthers,
+          SubCategoryOthers: this.state.SubCategoryOthers,
+          CategoryOthers: this.state.CategoryOthers
           //DocumentCode: documentCode,
         }).then((i: any) => {
 
@@ -1318,7 +1364,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                   <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }} >From Department:<span className="text-danger1">*</span>
                   </label>
                   <TooltipHost
-                    content={this.state.departmentOption.filter((x: any) => x.value == this.state.fromdepartment)[0].label || ""}
+                    content={this.state.departmentOption.filter((x: any) => x.value == this.state.fromdepartment)[0]?.label || ""}
                     calloutProps={{ gapSpace: 0 }}
                     styles={{ root: { display: 'inline-block', width: '100%' } }}
                   >
@@ -1382,7 +1428,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                   <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }} >Department:<span className="text-danger1">*</span>
                   </label>
                   <TooltipHost
-                    content={this.state.departmentOption.filter((x: any) => x.value == this.state.department)[0].label || ""}
+                    content={this.state.departmentOption.filter((x: any) => x.value == this.state.department)[0]?.label || ""}
                     calloutProps={{ gapSpace: 0 }}
                     styles={{ root: { display: 'inline-block', width: '100%' } }}
                   >
@@ -1456,22 +1502,49 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                   {this.state.categoryCheckOption.map((item: any) => {
                     return (
                       <div style={{ margin: "2px", padding: "3px" }}>
-                        <Checkbox label={item.text} onChange={this._handleCheckboxChange("categoryValueIsCheck", item.key as number)} />
+                        <Checkbox label={item.text} onChange={this._handleCheckboxChange("categoryValueIsCheck", item.key as number, item.text)} />
                       </div>
                     );
                   }
                   )}
+                  {this.state.showcategoryothers &&
+                    <div style={{ margin: "2px", padding: "3px" }}>
+                      <TooltipHost
+                        content={this.state.CategoryOthers || ""}
+                        calloutProps={{ gapSpace: 0 }}
+                        styles={{ root: { display: 'inline-block', width: '100%' } }}
+                      >
+                        <TextField label="Category Others:" name='CategoryOthers' value={this.state.CategoryOthers} onChange={this.handleChangeCategoryOthers}
+                        // className={this.state.errors?.categoryothers ? 'textfield-error' : ''}
+                        /></TooltipHost>
+
+                    </div>
+
+                  }
                 </div>
                 <div className="form-group col-md-4" id="SubCategoryCheckbox">
                   <label>SubCategory: <span className={styles.textdanger}>*</span></label>
                   {this.state.subCategoryCheckOption.map((item: any) => {
                     return (
                       <div style={{ margin: "2px", padding: "3px" }}>
-                        <Checkbox label={item.text} onChange={this._handleCheckboxChange("subCategoryIsCheck", item.key as number)} />
+                        <Checkbox label={item.text} onChange={this._handleCheckboxChange("subCategoryIsCheck", item.key as number, item.text)} />
                       </div>
                     );
                   }
                   )}
+                  {this.state.showsubcategoryothers &&
+                    <div style={{ margin: "2px", padding: "3px" }}>
+                      <TooltipHost
+                        content={this.state.SubCategoryOthers || ""}
+                        calloutProps={{ gapSpace: 0 }}
+                        styles={{ root: { display: 'inline-block', width: '100%' } }}
+                      >
+                        <TextField label="SubCategory Others:" name='SubCategoryOthers' value={this.state.SubCategoryOthers} onChange={this.handleChangeSubCategoryOthers}
+                        //className={this.state.errors?.subCategoryothers ? 'textfield-error' : ''}
+                        /></TooltipHost>
+
+                    </div>
+                  }
                 </div>
                 <div className="form-group col-md-4" id="locationCheckbox">
                   <label>Location: <span className={styles.textdanger}>*</span></label>
@@ -1479,13 +1552,26 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                     return (
                       <div style={{ margin: "2px", padding: "3px" }}>
                         <Checkbox label={item.text}
-                          onChange={this._handleCheckboxChange("locationValueIsCheck", item.key as number)}
+                          onChange={this._handleCheckboxChange("locationValueIsCheck", item.key as number, item.text)}
                           className={this.state.errors?.criteria ? 'textfield-error' : ''}
                         />
                       </div>
                     );
                   }
                   )}
+                  {this.state.showlocationothers &&
+                    <div style={{ margin: "2px", padding: "3px" }}>
+                      <TooltipHost
+                        content={this.state.LocationOthers || ""}
+                        calloutProps={{ gapSpace: 0 }}
+                        styles={{ root: { display: 'inline-block', width: '100%' } }}
+                      >
+                        <TextField label="Location Others:" name='LocationOthers' value={this.state.LocationOthers} onChange={this.handleChangeLocationOthers}
+                        //className={this.state.errors?.locationthers ? 'textfield-error' : ''} 
+                        /></TooltipHost>
+
+                    </div>
+                  }
                 </div>
               </div>
               <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
