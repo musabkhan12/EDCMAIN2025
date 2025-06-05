@@ -1,4 +1,4 @@
-import * as React from 'react';
+import  * as React from 'react';
 import { IListingProps } from './IListingProps';
 import { IListingState } from './IListingState';
 import FormComponent from '../FormComponent/Form';
@@ -22,7 +22,7 @@ import MemoComponent from '../MemorandumComponent/Memorandum';
 let currentuserid: any;
 let currentusertitle: any;
 let setloading: boolean = false;
-export class Listing extends React.Component<IListingProps, IListingState, IFormProps> {
+export class Listing extends React.Component<IListingProps, IListingState> {
     private _sp: SPFI;
 
     constructor(props: IListingProps, state: IListingState) {
@@ -36,6 +36,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
             siteUrl: "",
             currentPage: 1,
             itemsPerPage: 10,
+            visiblePageStart:1,
             totalItems: 0,
             loading:false,
             sortColumn: 'ReqDt', // Track the currently sorted column
@@ -101,11 +102,28 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
     //         console.log("Editing item:", item);
     //         this.setState({ showform: !0, process: item.ProcessName });
     //     }
-
+   
+    // old code for pagination
+    // private handlePageChange(pageNumber: number) {
+    //     this.setState({ currentPage: pageNumber });
+    // }
     private handlePageChange(pageNumber: number) {
-        this.setState({ currentPage: pageNumber });
-    }
-
+        let { visiblePageStart } = this.state;
+        const visiblePageCount = 5;
+      
+        // Adjust the visible page range
+        if (pageNumber < visiblePageStart) {
+          visiblePageStart = Math.max(1, pageNumber - visiblePageCount + 1);
+        } else if (pageNumber >= visiblePageStart + visiblePageCount) {
+          visiblePageStart = pageNumber;
+        }
+      
+        this.setState({
+          currentPage: pageNumber,
+          visiblePageStart
+        });
+      }
+      
     private handleItemsPerPageChange(event: React.ChangeEvent<HTMLSelectElement>) {
         this.setState({ itemsPerPage: parseInt(event.target.value, 10), currentPage: 1 });
     }
@@ -130,7 +148,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
     }
 
     public render(): React.ReactElement<IListingProps> {
-        const { showform, items, currentPage, itemsPerPage, totalItems, sortColumn, sortDirection, searchValues } = this.state;
+        const { showform, items, currentPage, itemsPerPage, totalItems, visiblePageStart , sortColumn, sortDirection, searchValues } = this.state;
 
         // Filter items based on search values
         const filteredItems = items.filter(item => {
@@ -257,12 +275,19 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
 
         // Calculate the total number of pages
         const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+// Only show 5 pages at a time
+const visiblePageCount = 5;
+const visiblePageEnd = Math.min(visiblePageStart + visiblePageCount - 1, totalPages);
 
         // Generate page numbers for pagination
         const pageNumbers = [];
-        for (let i = 1; i <= totalPages; i++) {
-            pageNumbers.push(i);
-        }
+for (let i = visiblePageStart; i <= visiblePageEnd; i++) {
+  pageNumbers.push(i);
+}
+        // const pageNumbers = [];
+        // for (let i = 1; i <= totalPages; i++) {
+        //     pageNumbers.push(i);
+        // }
         console.log("let setloading: boolean = false;", setloading);
         return (
             <div>
@@ -396,6 +421,79 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                             }
                         </table>
                         <div className="pagination">
+                        <button 
+  onClick={(e) => {
+    e.preventDefault();  // Prevent default form submission
+    e.stopPropagation(); // Stop event bubbling
+    this.handlePageChange(currentPage - 1);
+  }}
+  disabled={currentPage === 1}
+  type="button"  // Explicitly set type to prevent form submission
+>
+  Previous
+</button>
+
+  {visiblePageStart > 1 && (
+  <button
+  type='button' 
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.setState({ visiblePageStart: visiblePageStart - 5 });
+    }}
+  >
+    «
+  </button>
+)}
+  {pageNumbers.map(number => (
+    <button
+        type="button"  // Crucial for SharePoint to prevent form submission
+      key={number}
+      onClick={() => this.handlePageChange(number)}
+      disabled={number === currentPage}
+      style={{ fontWeight: number === currentPage ? 'bold' : 'normal' }}
+    >
+      {number}
+    </button>
+  ))}
+
+{visiblePageEnd < totalPages && (
+  <button 
+    type="button"
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.setState({ visiblePageStart: visiblePageStart + 5 });
+    }}
+  >
+    »
+  </button>
+)}
+
+<button
+  onClick={(e) => {
+    e.preventDefault();    // Stop default form submission
+    e.stopPropagation();  // Prevent event bubbling
+    this.handlePageChange(currentPage + 1);
+  }}
+  disabled={currentPage === totalPages}
+  type="button"  // Crucial for SharePoint
+>
+  Next
+</button>
+
+  <select
+    style={{ height: '38px', marginTop: '19px' }}
+    value={this.state.itemsPerPage}
+    onChange={this.handleItemsPerPageChange}
+  >
+    <option value={5}>5</option>
+    <option value={10}>10</option>
+    <option value={20}>20</option>
+    <option value={50}>50</option>
+  </select>
+</div>
+                        {/* <div className="pagination">
                             <button onClick={() => this.handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Previous</button>
                             {pageNumbers.map(number => (
                                 <button
@@ -415,7 +513,7 @@ export class Listing extends React.Component<IListingProps, IListingState, IForm
                                 <option value={50}>50</option>
                             </select>
                             <button onClick={() => this.handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Next</button>
-                        </div>
+                        </div> */}
                     </section>
                 )}
             </div>

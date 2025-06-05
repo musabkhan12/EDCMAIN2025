@@ -266,7 +266,7 @@ const FormContext = ({ props }: any) => {
         memoNo: `${selectedOption.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
         memoFileName: `${selectedOption.DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
 
-    });
+      });
 
 
     }
@@ -334,7 +334,7 @@ const FormContext = ({ props }: any) => {
     if (field == "auditor") {
       // const valuesOnly = value.map((option: any) => option.value);
       updatedRows = recommendationRows.map((row, i) =>
-        i === index ? { ...row, [field]: value ?value:null, auditorIds:value? value.value:null } : row
+        i === index ? { ...row, [field]: value ? value : null, auditorIds: value ? value.value : null } : row
       );
 
     } else {
@@ -396,9 +396,9 @@ const FormContext = ({ props }: any) => {
   };
   const handleKeyDowntext = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-        e.preventDefault();
+      e.preventDefault();
     }
-};
+  };
 
   const ApiCallFunc = async () => {
     setAuditProgramType(await getAllAuditType(sp));
@@ -626,8 +626,8 @@ const FormContext = ({ props }: any) => {
         if (formMode == "edit") {
           const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${setBannerById[0]?.DepartmentId}`).orderBy("SerialNumber", false).top(1)();
           // if (listItems.length > 0 && (setBannerById[0].Status == "Rework" || setBannerById[0].Status == "Save as draft")) {
-          
-          if (listItems.length > 0 && ( (setBannerById[0].Status == "Save as draft" && increaseMemo))) {
+
+          if (listItems.length > 0 && ((setBannerById[0].Status == "Save as draft" && increaseMemo))) {
             if (listItems[0].SerialNumber >= setBannerById[0].MemoSerialNumber) {
               memo = listItems[0].SerialNumber + 1;
             }
@@ -1736,7 +1736,7 @@ const FormContext = ({ props }: any) => {
 
             }
             if (DraftApprovalItem == null || DraftApprovalItem == undefined || DraftApprovalItem.length == 0) {
-            // else {
+              // else {
               if (modeValue != "approve") {
                 let arry = {
                   DepartmentId: formData.deptId,
@@ -2169,13 +2169,13 @@ const FormContext = ({ props }: any) => {
 
             let arr = {};
             // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
-             if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
-               arr = {
+            if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
+              arr = {
                 Title: formData.subject,
                 MemoNumber: formData.memoNo,
                 MemoSerialNumber: formData.memoSerialNo,
                 // MemorandumIDId: formData.MemoId,
- 
+
                 // MemoNumber: formData.memoNo.label,
                 // MemoNumber: formData.memoNo,
                 // MemoSerialNumber:formData.memoSerialNo,
@@ -2221,19 +2221,19 @@ const FormContext = ({ props }: any) => {
                 // MIssueNumber: formData.MIssueNumber,
                 // MRevisionDate: formData.MRevisionDate,
                 // MIssueDate:formData.MIssueDate
- 
- 
+
+
               }
 
 
-             }
-             else{
-               arr = {
+            }
+            else {
+              arr = {
                 Title: formData.subject,
                 MemoNumber: formData.memoNo,
                 MemoSerialNumber: formData.memoSerialNo,
                 // MemorandumIDId: formData.MemoId,
- 
+
                 // MemoNumber: formData.memoNo.label,
                 // MemoNumber: formData.memoNo,
                 // MemoSerialNumber:formData.memoSerialNo,
@@ -2279,8 +2279,8 @@ const FormContext = ({ props }: any) => {
                 // MIssueNumber: formData.MIssueNumber,
                 // MRevisionDate: formData.MRevisionDate,
                 // MIssueDate:formData.MIssueDate
- 
- 
+
+
               }
 
             }
@@ -2512,20 +2512,22 @@ const FormContext = ({ props }: any) => {
               }
             }
 
-            // if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
+            if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
 
-            //   let arr2 = {
-            //     ActionTakenById: currentUser.Id,
-            //     ActionTakenOn: new Date().toLocaleDateString("en-CA"),
-            //     // ActionTakenRoleId: formData.RequesterDesignation,
-            //     Status: "Save as draft",
-            //     // Remark: remark,
+              let arr2 = {
+                // ActionTakenById: currentUser.Id,
+                // ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                // // ActionTakenRoleId: formData.RequesterDesignation,
+                // Status: "Save as draft",
+                // // Remark: remark,
+                Title: formData.subject,
+                ContentTitle: formData.subject,
 
-            //   }
-            //   const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
-            //   const postId = postResult?.data?.ID;
+              }
+              const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
+              const postId = postResult?.data?.ID;
 
-            // }
+            }
 
 
             let boolval = false;
@@ -3129,35 +3131,35 @@ const FormContext = ({ props }: any) => {
     if (field == "auditor") {
       // const valuesOnly = value.map((option: any) => option.value);
       updatedRows = YearlyList.map((row, i) =>
-        i === index ? { ...row, [field]:value? value:null, auditorIds:value ?value.value :null} : row
+        i === index ? { ...row, [field]: value ? value : null, auditorIds: value ? value.value : null } : row
       );
 
     }
     else if (field == "departmentOption") {
       // const valuesOnly = value.map((option: any) => option.value);
       updatedRows = YearlyList.map((row, i) =>
-        i === index ? { ...row, [field]:value? value:null, deptId: value?value.value:null, location: value?.Location || "", OtherDetails: "" } : row
+        i === index ? { ...row, [field]: value ? value : null, deptId: value ? value.value : null, location: value?.Location || "", OtherDetails: "" } : row
       );
 
     }
     else if (field == "custodian") {
       // const valuesOnly = value.map((option: any) => option.value);
       updatedRows = YearlyList.map((row, i) =>
-        i === index ? { ...row, [field]: value?value:null, custodianId:value? value.value:null } : row
+        i === index ? { ...row, [field]: value ? value : null, custodianId: value ? value.value : null } : row
       );
 
     }
     else if (field == "location") {
 
       updatedRows = YearlyList.map((row, i) =>
-        i === index ? { ...row, [field]:  value?value:null, locationId:value? value.value:null } : row
+        i === index ? { ...row, [field]: value ? value : null, locationId: value ? value.value : null } : row
       );
 
     }
     else if (field == "Shift") {
       // const valuesOnly = value.map((option: any) => option.value);
       updatedRows = YearlyList.map((row, i) =>
-        i === index ? { ...row, [field]:  value?value:null, ShiftId: value? value.value:null } : row
+        i === index ? { ...row, [field]: value ? value : null, ShiftId: value ? value.value : null } : row
       );
 
     }
@@ -3338,7 +3340,7 @@ const FormContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="memoNo" className="col-form-label">Memo No<span className="text-danger1"> *</span></label>
                                     <div className="">
-                                     
+
                                       <input
                                         disabled
                                         type="text"
@@ -3416,7 +3418,7 @@ const FormContext = ({ props }: any) => {
                                         // options={AllDept}
                                         options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
                                         isClearable
-                                        
+
                                         isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false)}
                                         value={selectUserDept}
                                         name="deptId"
@@ -3485,7 +3487,7 @@ const FormContext = ({ props }: any) => {
                                       <Select
                                         // options={AllDept}
                                         options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
-                                        
+
                                         isDisabled={InputDisabled}
                                         value={selectUserDeptTo}
                                         isMulti
@@ -3548,7 +3550,7 @@ const FormContext = ({ props }: any) => {
                                       <Select
                                         // options={AllDept}
                                         options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
-                                        
+
                                         isDisabled={InputDisabled}
                                         isMulti
                                         value={selectUserDeptCC}
@@ -3706,7 +3708,7 @@ const FormContext = ({ props }: any) => {
                                         }}
                                         placeholder="Select Classification"
                                         isDisabled={InputDisabled}
-                                        
+
                                       />
                                     </div>
                                   </div>
@@ -3910,7 +3912,7 @@ const FormContext = ({ props }: any) => {
                                         />
 
                                       </td> */}
-                                      <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime ? new Date(`1970-01-01T${row.startTime}`).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : "Select a time"}>
+                                      <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime ? new Date(`1970-01-01T${row.startTime}`).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : "Select a time"}>
                                         <LocalizationProvider dateAdapter={AdapterDateFns}>
                                           <TimePicker
                                             label="Select Time"
@@ -3944,7 +3946,7 @@ const FormContext = ({ props }: any) => {
                                           onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
                                           placeholder="Select"
                                           isDisabled={InputDisabled}
-                                          
+
                                         // Add title tooltip
                                         />
                                       </td>
@@ -4031,7 +4033,7 @@ const FormContext = ({ props }: any) => {
                                 <select
                                   id="drpType"
                                   value={formData.auditTypesId}
-                                  
+
                                   onChange={handleAuditTypeChange}
                                   className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`}
                                   disabled={InputDisabled}
@@ -4055,7 +4057,7 @@ const FormContext = ({ props }: any) => {
                                   disabled={InputDisabled}
                                   onChange={(e: any) => setFormData({ ...formData, Year: e.target.value })}
                                   title={formData.Year ? formData.Year.toString() : "Select"} // Add title tooltip
-                                  
+
                                 >
                                   <option value="">Select</option>
                                   {Array.from({ length: 3 }, (_, i) => new Date().getFullYear() + i).map((year) => (
@@ -4079,7 +4081,7 @@ const FormContext = ({ props }: any) => {
                                   disabled={InputDisabled || auditTypeOption === 'Annual'}
                                   onChange={(e: any) => setFormData({ ...formData, MonthName: e.target.value })}
                                   title={formData.MonthName || "Select"} // Add title tooltip
-                                  
+
                                 >
                                   <option value="">Select</option>
                                   {[
@@ -4162,7 +4164,7 @@ const FormContext = ({ props }: any) => {
                                               isClearable
                                               isDisabled={InputDisabled}
                                               value={row.custodian}
-                                              
+
                                               name="custodian"
                                               id="custodian"
                                               className={`newse YearlylistclsErr ${(!ValidSubmit) ? "border-on-error" : ""} ${(!ValidDraft) ? "border-on-error" : ""}`}
@@ -4193,7 +4195,7 @@ const FormContext = ({ props }: any) => {
                                               isClearable
                                               // options={AuditProgDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
                                               menuPortalTarget={document.body}
-                                              
+
                                               // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
                                               styles={{
                                                 menu: (base: any) => ({
@@ -4233,7 +4235,7 @@ const FormContext = ({ props }: any) => {
                                             <Select
                                               options={AuditProgLocation}
                                               isClearable
-                                              
+
                                               // options={AuditProgDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
                                               menuPortalTarget={document.body}
                                               // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
@@ -4285,7 +4287,7 @@ const FormContext = ({ props }: any) => {
                                             <Select
                                               options={AuditProgShift}
                                               isClearable
-                                              
+
                                               // options={AuditProgDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
                                               menuPortalTarget={document.body}
                                               // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
@@ -4330,7 +4332,7 @@ const FormContext = ({ props }: any) => {
                                             <Select
                                               options={UserRoles}
                                               isClearable
-                                              
+
                                               menuPortalTarget={document.body}
                                               styles={{ menuPortal: (base: any) => ({ ...base, zIndex: 9, position: 'absolute' }) }}
                                               className={`YearlylistclsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
@@ -4347,7 +4349,7 @@ const FormContext = ({ props }: any) => {
                                             <select
                                               className="form-select YearlylistclsErr"
                                               value={row.Jan || "No"}
-                                              
+
                                               onChange={(e) => handleYearlylistrow(index, 'Jan', e.target.value)}
                                               disabled={InputDisabled}
                                             >
@@ -4359,7 +4361,7 @@ const FormContext = ({ props }: any) => {
                                             <select
                                               className="form-select YearlylistclsErr"
                                               value={row.Feb || "No"}
-                                              
+
                                               onChange={(e) => handleYearlylistrow(index, 'Feb', e.target.value)}
                                               disabled={InputDisabled}
                                             >
@@ -4554,7 +4556,7 @@ const FormContext = ({ props }: any) => {
                                           className={`form-select HierarchyClsErr newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
 
                                           onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={InputDisabled}
-                                          title={row.role ? UserRoles.find((role: any) => role.value === row.role)?.label : "Select Role"} 
+                                          title={row.role ? UserRoles.find((role: any) => role.value === row.role)?.label : "Select Role"}
                                         >
 
                                           <option value="" selected>Select Role</option>
@@ -4587,7 +4589,7 @@ const FormContext = ({ props }: any) => {
                                           placeholder="Enter Approver Name"
                                           isDisabled={InputDisabled}
                                           title={row.approvers.map((approver: any) => approver.label).join(", ") || "Enter Approver Name"} // Added title tooltip
-                                          
+
 
                                         />
 
@@ -4622,7 +4624,7 @@ const FormContext = ({ props }: any) => {
 
 
 
-                            
+
                           </div>
                         </div>
                         {/* // } */}
@@ -4683,7 +4685,7 @@ const FormContext = ({ props }: any) => {
                                 Submit</div>
                             }
 
-                           
+
 
                             {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.ApprovalType !== "Approval")) &&
                               <div className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}

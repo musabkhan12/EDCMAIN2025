@@ -161,7 +161,7 @@ let Mp4icon = require("../assets/MP4.png");
 let Htmlicon = require("../assets/HTML.png");
 
 
-
+let showSearchInput = false;
 let AddMetaData = require("../assets/Add-Meta-Data.svg");
 let DeleteFolder = require("../assets/Delete-Folder.svg");
 let FilePreview = require("../assets/File-Preview.svg");
@@ -4440,6 +4440,7 @@ const ArgPoc = ({ props }: any) => {
   // }, []);
   // end
   const getdoclibdata = async (FolderPath: any, siteID: any, docLibName: any) => {
+    showSearchInput = true
     setlistorgriddata('');
     // here in edc spfx  i remove this from here and add it above updated breadcrumb because it was working fine in dms but not in edc 
     //   setlistorgriddata('');
@@ -7316,6 +7317,7 @@ const ArgPoc = ({ props }: any) => {
 
 
   const ShareWithOther = async (event: React.MouseEvent<HTMLButtonElement> = null, searchText: HTMLInputElement = null) => {
+    showSearchInput = true;
     entityclicktext = ''
     setdisplayuploadfileandcreatefolder(false)
     ismyrequordoclibforfilepreview = "sharewithothers";
@@ -8028,6 +8030,7 @@ const ArgPoc = ({ props }: any) => {
   //Toggle the menu card for share with me
   // @ts-ignore
   const ShareWithMe = async (event: React.MouseEvent<HTMLButtonElement> = null, searchText: HTMLInputElement = null) => {
+    showSearchInput = true;
     entityclicktext = ''
     setdisplayuploadfileandcreatefolder(false)
     ismyrequordoclibforfilepreview = "sharewithme"
@@ -8665,6 +8668,7 @@ const ArgPoc = ({ props }: any) => {
 
 
   const Recyclebin = async (event: React.MouseEvent<HTMLButtonElement> = null, siteIdToUpdate: string = null, searchText: any = null) => {
+    showSearchInput = true;
     entityclicktext = ''
     setdisplayuploadfileandcreatefolder(false)
     setlistorgriddata('');
@@ -11724,7 +11728,7 @@ const ArgPoc = ({ props }: any) => {
 
 
   const myFavorite = async (event: any = null, siteIdToUpdate: string = null, searchText: any = null) => {
-
+    showSearchInput = true;
 
     // setMyreqormyfav('Myfavourite')
     // // setShowButtons(true)
@@ -12300,6 +12304,7 @@ const ArgPoc = ({ props }: any) => {
       returnFromMyRequest = false;
       return;
     }
+    showSearchInput = false;
     MainListView(event)
     entityclicktext = ''
     setdisplayuploadfileandcreatefolder(false)
@@ -16022,7 +16027,12 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
                       <span className="sidebarText">Recycle Bin</span>
                     </button>
                   </div>
-                  <div style={{ position: 'sticky', top: '100px' }} className="is-sticky">  <div id="folderContainer2"></div></div>
+                  <div style={{ position: 'sticky', top: '100px' }} className="is-sticky">  
+                     <div id="loader" style={{display: "none"  }}>
+                            <img style={{width :'116px'  ,margin: '31px'}} src={require("../assets/EDCLoader.gif")} alt="Loading..." />
+                      </div>
+                    <div id="folderContainer2"></div>
+                    </div>
                 </div>
                 <div className="librarydata">
                   {showDeletepopup && (
@@ -16064,6 +16074,9 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
 
 
                     </div>
+                    {showSearchInput && (
+
+                   
                     <div className="col-xl-5">
                       <div className="search-container position-relative">
                         <input
@@ -16089,6 +16102,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
                       </div>
 
                     </div>
+                    )}
                   </div>
                   {/* End Code Update by Amjad */}
 

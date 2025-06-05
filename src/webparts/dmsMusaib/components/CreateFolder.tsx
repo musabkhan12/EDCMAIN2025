@@ -1372,7 +1372,7 @@ const validateFields = () => {
                     type="text"
                     className="form-control fieldmargin"
                     id="folderName"
-                    placeholder="Enter project name"
+                    placeholder="Enter folder name"
                     value={folderName}
                     onChange={(e) => setFolderName(e.target.value)}
                   />
@@ -1493,7 +1493,7 @@ const validateFields = () => {
                   <textarea style={{height:'70px'}}
                     className="form-control fieldmargin multilinetextWidth"
                     id="folderOverview"
-                    placeholder="Enter some brief about project"
+                    placeholder="Enter some brief about folder"
                     value={folderOverview}
                     onChange={(e) => setFolderOverview(e.target.value)}
                   />

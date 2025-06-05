@@ -2559,20 +2559,22 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         }
 
 
-                        // if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
+                        if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
 
-                        //     let arr2 = {
-                        //         ActionTakenById: currentUser.Id,
-                        //         ActionTakenOn: new Date().toLocaleDateString("en-CA"),
-                        //         // ActionTakenRoleId: formData.RequesterDesignation,
-                        //         Status: "Save as draft",
-                        //         // Remark: remark,
+                            let arr2 = {
+                                // ActionTakenById: currentUser.Id,
+                                // ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                                // // ActionTakenRoleId: formData.RequesterDesignation,
+                                // Status: "Save as draft",
+                                // // Remark: remark,
+                                Title: formData.subject,
+                                ContentTitle: formData.subject,
 
-                        //     }
-                        //     const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
-                        //     const postId = postResult?.data?.ID;
+                            }
+                            const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
+                            const postId = postResult?.data?.ID;
 
-                        // }
+                        }
 
 
                         let boolval = false;

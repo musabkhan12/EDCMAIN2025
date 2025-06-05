@@ -6,6 +6,7 @@ export interface IListingState {
   siteUrl: string;
   currentPage: number;
   itemsPerPage: number;
+  visiblePageStart: number;
   totalItems: number;
   sortColumn: string;
   loading:boolean;

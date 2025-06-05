@@ -2110,20 +2110,22 @@ const MemoContext = ({ props }: any) => {
               }
             }
 
-            // if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
+            if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
 
-            //   let arr2 = {
-            //     ActionTakenById: currentUser.Id,
-            //     ActionTakenOn: new Date().toLocaleDateString("en-CA"),
-            //     // ActionTakenRoleId: formData.RequesterDesignation,
-            //     Status: "Save as draft",
-            //     // Remark: remark,
+              let arr2 = {
+                // ActionTakenById: currentUser.Id,
+                // ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                // // ActionTakenRoleId: formData.RequesterDesignation,
+                // Status: "Save as draft",
+                // // Remark: remark,
+                Title: formData.subject,
+                ContentTitle: formData.subject,
 
-            //   }
-            //   const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
-            //   const postId = postResult?.data?.ID;
+              }
+              const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
+              const postId = postResult?.data?.ID;
 
-            // }
+            }
 
 
             let boolval = false;
@@ -2817,7 +2819,7 @@ const MemoContext = ({ props }: any) => {
                                         isClearable
                                         isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false)}
                                         value={selectUserDept}
-                                        
+
                                         name="deptId"
                                         id="DeptID"
                                         className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""} ${(!ValidDraft) ? "border-on-error" : ""}`}
@@ -2884,7 +2886,7 @@ const MemoContext = ({ props }: any) => {
                                       <Select
                                         // options={AllDept}
                                         options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
-                                        
+
                                         isDisabled={InputDisabled}
                                         value={selectUserDeptTo}
                                         isMulti
@@ -2946,7 +2948,7 @@ const MemoContext = ({ props }: any) => {
                                       <Select
                                         // options={AllDept}
                                         options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
-                                        
+
                                         isDisabled={InputDisabled}
                                         isMulti
                                         value={selectUserDeptCC}
@@ -3120,7 +3122,7 @@ const MemoContext = ({ props }: any) => {
                                         }}
                                         placeholder="Select Classification"
                                         isDisabled={InputDisabled}
-                                        
+
                                       />
                                     </div>
 
@@ -3373,7 +3375,7 @@ const MemoContext = ({ props }: any) => {
 
                                       </td> */}
 
-                                        <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime || "Select a time"}>
+                                        <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime ? new Date(`1970-01-01T${row.startTime}`).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : "Select a time"}>
                                           <LocalizationProvider dateAdapter={AdapterDateFns}>
                                             <TimePicker
                                               label="Select Time"
@@ -3411,7 +3413,7 @@ const MemoContext = ({ props }: any) => {
                                             onChange={(selectedOptions: any) => handleRecommendationChange(index, 'auditor', selectedOptions)}
                                             placeholder="Select"
                                             isDisabled={InputDisabled}
-                                            
+
 
                                           />
                                         </td>
@@ -3650,7 +3652,7 @@ const MemoContext = ({ props }: any) => {
                                       <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding">
                                         <select
                                           // className="form-select"
-                                          
+
                                           className={`form-select HierarchyClsErr newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
                                           onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={InputDisabled}
                                           title={row.role ? UserRoles.find((role: any) => role.value === row.role)?.label : "Select Role"}
@@ -3675,7 +3677,7 @@ const MemoContext = ({ props }: any) => {
                                           options={rows1}
                                           isMulti
                                           value={row.approvers}
-                                          
+
                                           name="Approvers"
                                           className={`newse HierarchyClsErr ${(!ValidForwardTo) ? "border-on-error" : ""}`}
                                           onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
@@ -3689,7 +3691,7 @@ const MemoContext = ({ props }: any) => {
                                       </td>
                                       <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
                                         <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse HierarchyClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={InputDisabled}
-                                          title={row.approvalType ? (row.approvalType === "One" ? "Anyone" : "Everyone") : "Select Approval Type"} 
+                                          title={row.approvalType ? (row.approvalType === "One" ? "Anyone" : "Everyone") : "Select Approval Type"}
                                         >
                                           <option value="">Select </option>
                                           <option value="One">Anyone</option>

@@ -143,6 +143,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         CIssueDate: "",
 
 
+        filename: "",
+
+
 
     });
 
@@ -304,6 +307,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             TemplateTypeId: item.TemplateTypeId,
             TemplateTypeValue: item.TemplateType?.TemplateTypeName || "",
 
+            filename:item?.FileName || "",
+
 
         }));
 
@@ -452,6 +457,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     TemplateTypeId: setBannerById[0].TemplateTypeId,
                     TemplateTypeValue: setBannerById[0].TemplateType?.TemplateTypeName || "",
 
+                    filename: setBannerById[0]?.FileName || "",
+
                 }
 
 
@@ -495,6 +502,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     DocumentType: setBannerById[0].DocumentType.DocumentType,
                     TemplateTypeId: setBannerById[0].TemplateTypeId,
                     TemplateTypeValue: setBannerById[0].TemplateType?.TemplateTypeName || "",
+
+                    filename: setBannerById[0]?.FileName || "",
 
                     // Format as YYYY-MM-DD
                 }));
@@ -553,7 +562,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
     const onSelect = async (selectedList: any) => {
         console.log(selectedList, "selectedList");
-        event.preventDefault();
+       
         if (selectedList) {
             setFormData(prevData => ({
                 ...prevData,
@@ -585,6 +594,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 DocumentType: selectedList.DocumentType,
                 TemplateTypeId: selectedList.TemplateTypeId,
                 TemplateTypeValue: selectedList.TemplateTypeValue || "",
+
+                filename: selectedList?.filename || "",
             }));
         } else {
             setFormData(prevData => ({
@@ -617,6 +628,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 DocumentType: "",
                 TemplateTypeId: null,
                 TemplateTypeValue: "",
+                filename: "",
             }));
         }
         setSelectedOption(selectedList);
@@ -780,7 +792,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 //Swal.fire('Error', 'Entity is required!', 'error');
                 valid = false;
             }
-            if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== null && row.reason.trim() !== null && row.description.trim() !== "" && row.reason.trim() !== "") == false) {
+            if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description !== null && row.reason !== null && row.description.trim() !== "" && row.reason.trim() !== "") == false) {
                 // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
                 valid1 = false;
 
@@ -913,6 +925,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             AttachmentId: selectedOption.AttachmentId,
                             AttachmentJson: selectedOption.AttachmentJson,
                             TemplateTypeId: selectedOption.TemplateTypeId,
+
+                            FileName: formData.filename,
 
 
                         }
@@ -1062,6 +1076,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             CRevisionDate: formData.CRevisionDate,
                             CIssueDate: formData.CIssueDate,
 
+                            FileName: formData.filename,
+
 
                         };
                         console.log(postPayload);
@@ -1207,6 +1223,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                 AttachmentJson: selectedOption.AttachmentJson,
                                 TemplateTypeId: selectedOption.TemplateTypeId,
 
+                                FileName: formData.filename,
+
 
                             }
                         }
@@ -1350,7 +1368,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             CRevisionNumber: formData.CRevisionNumber,
                             CIssueNumber: formData.CIssueNumber,
                             CRevisionDate: formData.CRevisionDate,
-                            CIssueDate: formData.CIssueDate
+                            CIssueDate: formData.CIssueDate,
+
+                            FileName: formData.filename,
 
 
                         };
@@ -2308,6 +2328,35 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                 </div>
 
 
+                                                                {/* changes  */}
+
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="RequesterName" className="form-label">Document Name</label>
+                                                                        {/* <input type="text" id="Name" name="department" className="form-control" value={formData.Department} disabled={true} />
+   */}
+                                                                        <div
+                                                                            title={formData.filename || ""}
+                                                                            style={{ width: "100%" }}
+                                                                        >
+                                                                            <input type="text"
+                                                                                id="example-email"
+                                                                                name="example-email"
+                                                                                // className={`form-control ${(!ValidDraft && filenameerr) ? "border-on-error" : ""} ${(!ValidSubmit && filenameerr) ? "border-on-error" : ""}`}
+                                                                                className={`form-control`}
+                                                                                // onChange={(e) => onChangefilename("filename", e.target.value)}
+                                                                                placeholder="Document name"
+                                                                                value={formData.filename} disabled={true}/>
+
+                                                                            
+                                                                        </div>
+
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* changes */}
+
+
 
 
 
@@ -2764,27 +2813,27 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                     </div> */}
                                                     <div className="col-12 text-center">
 
-                                                        {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) &&<div style={{ width: '145px' }} className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
+                                                        {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <div style={{ width: '145px' }} className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
                                                             <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
                                                             Save As Draft</div>}
 
-                                                        {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) &&<div style={{ width: '145px' }} className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
+                                                        {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && <div style={{ width: '145px' }} className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
                                                             <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
                                                             Submit</div>}
 
-                                                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") &&<div style={{ width: '145px' }} className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</div>}
+                                                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <div style={{ width: '145px' }} className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</div>}
 
 
-                                                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") &&<div style={{ width: '145px' }} className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</div>}
+                                                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <div style={{ width: '145px' }} className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</div>}
 
 
 
                                                         {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.IsInitiator == "Yes")) &&
-                                                           <div style={{ width: '145px' }} className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
+                                                            <div style={{ width: '145px' }} className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                                                 className='me-1' alt="x" /> Cancel</div>
                                                         }
                                                         {((modeValue === "approve") && (editID !== null && editID.Status == "Approved")) &&
-                                                           <div style={{ width: '145px' }} className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
+                                                            <div style={{ width: '145px' }} className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                                                 className='me-1' alt="x" /> Cancel</div>
                                                         }
 

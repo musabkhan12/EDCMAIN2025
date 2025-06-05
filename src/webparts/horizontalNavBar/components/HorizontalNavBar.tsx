@@ -201,7 +201,7 @@ const HorizontalNavbar = ({ _context, siteUrl,context }: any) => {
   // this code is added to minimize the effect when user enter in search input and press enter key then it was editing webpart page
   document.getElementById("searchInput")?.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
-      alert("Enter key pressed in search input");
+      // alert("Enter key pressed in search input");
       event.preventDefault();
       return false;
     }
@@ -410,7 +410,7 @@ const HorizontalNavbar = ({ _context, siteUrl,context }: any) => {
               value={query} className='searchcss desktoView'
               onChange={(e) => searchKeyPress(e)}
               onClick={toggleSearchDropdown}
-              
+              id='searchInput'
               
             />
             {query === "" && (
