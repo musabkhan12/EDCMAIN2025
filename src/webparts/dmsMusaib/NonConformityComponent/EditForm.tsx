@@ -641,8 +641,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     let nctypenew: string = this.state.editncType == "NC" ? "NC Number" : "Observation NUmber";
     //let NCNumberoptionnew = await getNCNumbers(sp, item.text, nctypenew);
     let optionsNCNumber: any = [];
-    const NCNumberoptionnew = await getNCNumbers(sp, item.label, nctypenew);
-    let existingrecords = await this.getNCdata(item.label);
+    const NCNumberoptionnew = item && await getNCNumbers(sp, item?.label, nctypenew);
+    let existingrecords = item && await this.getNCdata(item?.label);
     if (Array.isArray(NCNumberoptionnew) && NCNumberoptionnew.length > 0) {
       // Safely extract existing NCNumbers, even if the array is empty
       const existingNCNumbersSet = new Set(
@@ -661,14 +661,14 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         }));
     }
     let optionsNCNumbernew: any[] = [];
-    optionsNCNumbernew = await this.getUniqueBy(optionsNCNumber, "ncNo");
-    optionsNCNumbernew.sort((a, b) => a.label.localeCompare(b.label));
-    let approvedauditreportselected = this.state.editmemonumberOptions.filter((x: any) => x.value == item.value);
-    const selectedOption = this.state.editDepartmentOption.find(user => user?.value === approvedauditreportselected[0].department);
+    optionsNCNumbernew = optionsNCNumber.length > 0 && await this.getUniqueBy(optionsNCNumber, "ncNo");
+    optionsNCNumbernew && optionsNCNumbernew.sort((a, b) => a?.label.localeCompare(b?.label));
+    let approvedauditreportselected = this.state.editmemonumberOptions.filter((x: any) => x.value == item?.value);
+    const selectedOption = this.state.editDepartmentOption.find(user => user?.value === approvedauditreportselected[0]?.department);
     this.setState({ editNCNumberOptions: optionsNCNumbernew })
     this.setState({
-      editApprovedAuditReport: item.value, editMemoNumber: item.memoNumber, ApprovedAuditSelected: approvedauditreportselected,
-      departmentselected: selectedOption, editDepartment: approvedauditreportselected[0].department
+      editApprovedAuditReport: item?.value, editMemoNumber: item?.memoNumber, ApprovedAuditSelected: approvedauditreportselected,
+      departmentselected: selectedOption, editDepartment: approvedauditreportselected[0]?.department
 
     });
   };
@@ -697,8 +697,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     return arr;
   }
   public changeNCNumber = (item: any): void => {
-    let ncnumberselected = this.state.editNCNumberOptions.filter((x: any) => x.value == item.value);
-    this.setState({ editNCNumber: item.label, editNCNumberID: item.value, NCNumberselected: ncnumberselected });
+    let ncnumberselected = this.state.editNCNumberOptions.filter((x: any) => x.value == item?.value);
+    this.setState({ editNCNumber: item?.label, editNCNumberID: item?.value, NCNumberselected: ncnumberselected });
   };
   public handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
@@ -1535,6 +1535,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         document.querySelectorAll("#categoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
           el.classList.add(styles.errCh);
         });
+        editErrors.editcategory = "Category is required";
         Swal.fire({ title: "Please select at least one category!" });
       }
       else {
@@ -1546,6 +1547,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         document.querySelectorAll("#SubCategoryCheckbox .ms-Checkbox-checkbox").forEach((el) => {
           el.classList.add(styles.errCh);
         });
+        editErrors.editsubcategory = "Sub-Category is required";
         Swal.fire({ title: "Please select at least one Sub category!" });
       }
       else {
@@ -1557,6 +1559,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         document.querySelectorAll("#locationCheckbox .ms-Checkbox-checkbox").forEach((el) => {
           el.classList.add(styles.errCh);
         });
+        editErrors.editlocation = "location is required";
         Swal.fire({ title: "Please select at least one location!" });
       }
       else {
@@ -3342,7 +3345,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }}>Approved Report Code:<span className="text-danger1">*</span>
                       </label>
                       <TooltipHost
-                        content={this.state.editmemonumberOptions.filter((item: any) => item.value == this.state.editApprovedAuditReport)[0]?.label || ""}
+                        content={this.state.editmemonumberOptions.length > 0 && this.state.editmemonumberOptions.filter((item: any) => item?.value == this.state.editApprovedAuditReport)[0]?.label || ""}
                         calloutProps={{ gapSpace: 0 }}
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
                       >
@@ -3378,7 +3381,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }}>NC/Observation Number:<span className="text-danger1">*</span>
                       </label>
                       <TooltipHost
-                        content={this.state.editNCNumberOptions.filter((item: any) => item.value == this.state.editNCNumberID)[0]?.label || ""}
+                        content={this.state.editNCNumberOptions.length > 0 && this.state.editNCNumberOptions.filter((item: any) => item?.value == this.state.editNCNumberID)[0]?.label || ""}
                         calloutProps={{ gapSpace: 0 }}
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
                       >
@@ -3474,7 +3477,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                   <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                     <div className="form-group col-md-4 mb-3">
                       <TooltipHost
-                        content={this.state.editRevisionNo}
+                        content={this.state.editRevisionNo == 0 || this.state.editRevisionNo == "0" ? "0" : this.state.editRevisionNo}
                         calloutProps={{ gapSpace: 0 }}
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
                       >
@@ -3487,7 +3490,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }}>Department:<span className="text-danger1">*</span>
                       </label>
                       <TooltipHost
-                        content={this.state.editDepartmentOption.filter((item: any) => item.value == this.state.editDepartment)[0]?.label || ""}
+                        content={this.state.editDepartmentOption.filter((item: any) => item?.value == this.state.editDepartment)[0]?.label || ""}
                         calloutProps={{ gapSpace: 0 }}
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
                       >
@@ -3784,29 +3787,39 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       <Label>
                         Date <span className={styles.textdanger}>*</span>
                       </Label>
-                      <DatePicker
-                        disabled={this.state.deptSectionDisable}
-                        formatDate={(date: Date) => moment(date).format("DD/MMM/YYYY")}
-                        placeholder="Select a Date"
-                        value={this.state.editDate}
-                        onSelectDate={(date: Date) => this.setState({ editDate: date })}
-                        className={this.state.editErrors?.editDate ? 'textfield-error' : ''}
-                      //styles={this.state.editErrors.editDate ? datePickerErrorStyles : {}}
-                      />
+                      <TooltipHost
+                        content={this.state.editDate}
+                        calloutProps={{ gapSpace: 0 }}
+                        styles={{ root: { display: 'inline-block', width: '100%' } }}
+                      >
+                        <DatePicker
+                          disabled={this.state.deptSectionDisable}
+                          formatDate={(date: Date) => moment(date).format("DD/MMM/YYYY")}
+                          placeholder="Select a Date"
+                          value={this.state.editDate}
+                          onSelectDate={(date: Date) => this.setState({ editDate: date })}
+                          className={this.state.editErrors?.editDate ? 'textfield-error' : ''}
+                        //styles={this.state.editErrors.editDate ? datePickerErrorStyles : {}}
+                        /></TooltipHost>
                     </div>
                     <div className="form-group col-md-4">
                       <Label>
                         Deadline for completion <span className={styles.textdanger}>*</span>
                       </Label>
-                      <DatePicker
-                        formatDate={(date: Date) => moment(date).format("DD/MMM/YYYY")}
-                        disabled={this.state.deptSectionDisable}
-                        placeholder="Select a Deadline"
-                        value={this.state.editDeadlineCompletion}
-                        onSelectDate={(date: Date) => this.setState({ editDeadlineCompletion: date })}
-                        className={this.state.editErrors?.editDeadlineCompletion ? 'textfield-error' : ''}
-                      //styles={this.state.editErrors.editDeadlineCompletion ? datePickerErrorStyles : {}}
-                      />
+                      <TooltipHost
+                        content={this.state.editDeadlineCompletion}
+                        calloutProps={{ gapSpace: 0 }}
+                        styles={{ root: { display: 'inline-block', width: '100%' } }}
+                      >
+                        <DatePicker
+                          formatDate={(date: Date) => moment(date).format("DD/MMM/YYYY")}
+                          disabled={this.state.deptSectionDisable}
+                          placeholder="Select a Deadline"
+                          value={this.state.editDeadlineCompletion}
+                          onSelectDate={(date: Date) => this.setState({ editDeadlineCompletion: date })}
+                          className={this.state.editErrors?.editDeadlineCompletion ? 'textfield-error' : ''}
+                        //styles={this.state.editErrors.editDeadlineCompletion ? datePickerErrorStyles : {}}
+                        /></TooltipHost>
                     </div>
                   </div>
                   <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">

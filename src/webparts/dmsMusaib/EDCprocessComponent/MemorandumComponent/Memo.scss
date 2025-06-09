@@ -1,4 +1,33 @@
+.mtbalenew td input[type=text]:focus {
+    border: 1px solid #ccc !important;
+}
+.mtbalenew td input[type=text]:hover {
+    border: 1px solid #ccc !important;
+}
 .ErrBorder-ErrColor{
     background-color: #ffe6e6 !important;
-    border-color: red !important;
+    border-color: red !important;    border: 1px solid red !important;
+}
+
+.readOnlyTextField-142{
+   
+    line-height: 44px !important;
+  
+   
+   
+    font-weight: 500 !important;
+    color: #212529 !important;
+    font-size: 1rem !important;
+}
+.MuiPickersInputBase-sectionsContainer
+{
+    padding: 11.5px 0 !important;  font-weight: 500 !important;
+    color: #212529 !important;
+    font-size: 1rem !important;
+
+}
+td .MuiPickersInputBase-sectionsContainer label{
+    font-weight: 500 !important;
+    color: #212529 !important;
+    font-size: 1rem !important;
 }

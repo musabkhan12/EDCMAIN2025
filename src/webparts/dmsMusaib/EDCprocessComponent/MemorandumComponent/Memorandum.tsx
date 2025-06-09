@@ -1263,7 +1263,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
 
 
 
@@ -1570,7 +1570,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -1825,7 +1825,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2168,7 +2168,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2740,7 +2740,7 @@ const MemoContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="memoNo" className="col-form-label">Memo No<span className="text-danger1"> *</span></label>
                                     <div className="">
-                                      <input
+                                      <input style={{height:'47px'}}
                                         disabled
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -2758,7 +2758,7 @@ const MemoContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="memoNo" className="col-form-label">Document Code<span className="text-danger1"> *</span></label>
                                     <div className="">
-                                      <input
+                                      <input style={{height:'47px'}}
                                         disabled
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -2777,7 +2777,7 @@ const MemoContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="memoNo" className="col-form-label">Issue No<span className="text-danger1"> *</span></label>
                                     <div className="">
-                                      <input
+                                      <input style={{height:'47px'}}
                                         disabled
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -2795,7 +2795,7 @@ const MemoContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="memoNo" className="col-form-label">Revision No<span className="text-danger1"> *</span></label>
                                     <div className="">
-                                      <input
+                                      <input style={{height:'47px'}}
                                         disabled
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -2839,7 +2839,7 @@ const MemoContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="fromEmail" className="col-form-label">From<span className="text-danger1"> *</span></label>
                                     <div >
-                                      <input
+                                      <input style={{height:'47px'}}
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
 
@@ -3017,7 +3017,7 @@ const MemoContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="subject" className="col-form-label">Subject<span className="text-danger1"> *</span></label>
                                     <div className="">
-                                      <input
+                                      <input style={{height:'47px'}}
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                         id="subject"
@@ -3100,7 +3100,7 @@ const MemoContext = ({ props }: any) => {
                                 <div className="col-lg-4">
 
                                   <div className="mb-3">
-                                    <label htmlFor="DocumentCode" className=" col-form-label">Classification<span className="text-danger1">*</span></label>
+                                    <label htmlFor="DocumentCode" className=" col-form-label">Classification<span className="text-danger1"> *</span></label>
                                     {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
                                     <div
                                       title={formData.classificationValue?.label || "Select a classification"}
@@ -3135,8 +3135,8 @@ const MemoContext = ({ props }: any) => {
                                     <label htmlFor="attachment" className="col-form-label">Attachment</label>
                                     <div className="">
 
-                                      <div>
-                                        <input
+                                      <div> 
+                                        <input style={{height:'47px', padding:'10px'}}
                                           type="file"
                                           // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                           className="form-control"
@@ -3153,7 +3153,7 @@ const MemoContext = ({ props }: any) => {
                                       <div>
                                         {FilesArr.length > 0 ?
                                           (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
-                                            <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
+                                            <FontAwesomeIcon icon={faPaperclip} />{" "}{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
                                           </a>) : ""
 
                                         }
@@ -3289,7 +3289,7 @@ const MemoContext = ({ props }: any) => {
                                   <thead>
                                     <tr><th style={{ minWidth: '190px', maxWidth: '190px' }}>Section<span className="text-danger1"> *</span></th>
                                       <th>Date<span className="text-danger1"> *</span></th>
-                                      <th colSpan={2}>Time<span className="text-danger1"> *</span></th>
+                                      <th  colSpan={2}>Time<span className="text-danger1"> *</span></th>
                                       <th>Auditor<span className="text-danger1"> *</span></th>
                                       {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>}
                                     </tr>
@@ -3300,9 +3300,9 @@ const MemoContext = ({ props }: any) => {
                                     {recommendationRows.map((row, index) => (
                                       <tr key={index}>
                                         <td style={{ minWidth: '190px', maxWidth: '190px' }}>
-                                          <input
+                                          <input style={{border:'1px solid #ccc'}}
                                             type="text"
-                                            className={`form-control recommendClsErr }`}
+                                            className={`form-control recommendClsErr`}
                                             // className="form-control"
                                             onKeyDown={handleKeyDowntext}
                                             value={row.section}
@@ -3375,7 +3375,7 @@ const MemoContext = ({ props }: any) => {
 
                                       </td> */}
 
-                                        <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime ? new Date(`1970-01-01T${row.startTime}`).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : "Select a time"}>
+                                        <td style={{ overflow: "inherit" }} title={row.startTime ? new Date(`1970-01-01T${row.startTime}`).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : "Select a time"}>
                                           <LocalizationProvider dateAdapter={AdapterDateFns}>
                                             <TimePicker
                                               label="Select Time"
@@ -3796,7 +3796,7 @@ const MemoContext = ({ props }: any) => {
 
                         <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
                           <Modal.Header closeButton>
-                            <Modal.Title > <h4 className='font-16 text-dark fw-bold'>Attachment Details</h4>  <br></br>
+                            <Modal.Title > <h4 className='font-16 text-dark fw-bold mb-1'>Attachment Details</h4> 
                               <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for Memorandum
                               </p>
 
@@ -3817,7 +3817,7 @@ const MemoContext = ({ props }: any) => {
                                   {/* {editForm && <th>File Link</th>} */}
                                   <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th>
                                   {/* {!InputDisabled && <th className='text-center'>Action</th>} */}
-                                  <th className='text-center'>Action</th>
+                                  <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Action</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -3865,25 +3865,26 @@ const MemoContext = ({ props }: any) => {
                                               year: "numeric",
                                             }).replace(/ /g, "/")}
                                         </td>
-                                        <td>
+                                        <td style={{ minWidth: '50px', maxWidth: '50px' }}>
                                           {row.Id && (
                                             <>
-                                              <span
-                                                onClick={() => OpenFile(row, "Download")}
-                                                style={{ color: "blue", cursor: "pointer", margin: "10px" }}
-                                              >
-                                                <FontAwesomeIcon icon={faDownload} />
-                                              </span>
-                                              <span
+                                            <span title='preview file'
                                                 onClick={() => OpenFile(row, "Open")}
                                                 style={{ color: "blue", cursor: "pointer", margin: "10px" }}
                                               >
                                                 <FontAwesomeIcon icon={faEye} />
                                               </span>
+                                              <span title='download file'
+                                                onClick={() => OpenFile(row, "Download")}
+                                                style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                                              >
+                                                <FontAwesomeIcon icon={faDownload} />
+                                              </span>
+                                              
                                             </>
                                           )}
                                           {!InputDisabled && (
-                                            <img
+                                            <img title='delete file'
                                               src={require("../../assets/del.png")}
                                               style={{ cursor: "pointer" }}
                                               onClick={() => handleDelete(index)}

@@ -2161,7 +2161,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="RequesterName" className="form-label">Name</label>
-                                                                        <input type="text" id="Name" name="RequesterName" className="form-control" title={formData.RequesterName} value={formData.RequesterName} disabled={true} />
+                                                                        <input style={{height:'47px'}} type="text" id="Name" name="RequesterName" className="form-control" title={formData.RequesterName} value={formData.RequesterName} disabled={true} />
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
@@ -2169,7 +2169,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="Department" className="form-label">Department</label>
-                                                                        <input type="text" id="Department" name="DepartmentName" className="form-control" title={formData.DepartmentName} value={formData.DepartmentName} disabled={true} />
+                                                                        <input style={{height:'47px'}} type="text" id="Department" name="DepartmentName" className="form-control" title={formData.DepartmentName} value={formData.DepartmentName} disabled={true} />
                                                                     </div>
                                                                 </div>
 
@@ -2178,14 +2178,14 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="RequesterDesignation" className="form-label">Designation</label>
-                                                                        <input type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" title={formData.RequesterDesignation} value={formData.RequesterDesignation} disabled={true} />
+                                                                        <input style={{height:'47px'}} type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" title={formData.RequesterDesignation} value={formData.RequesterDesignation} disabled={true} />
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="RequestDate" className="form-label">Request Date</label>
-                                                                        <input type="text" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDateNew} title={formData.RequestDateNew} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={true} />
+                                                                        <input style={{height:'47px'}} type="text" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDateNew} title={formData.RequestDateNew} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={true} />
 
                                                                         {/* <input type="date" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDate} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} /> */}
                                                                     </div>
@@ -2195,7 +2195,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                 <div className="col-lg-4">
 
                                                                     <div className="mb-3">
-                                                                        <label htmlFor="DocumentCode" className="form-label">Document Code <span className="text-danger1">*</span></label>
+                                                                        <label htmlFor="DocumentCode" className="form-label">Document Code <span className="text-danger1"> *</span></label>
                                                                         {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
                                                                         <Select
                                                                             title={selectedOption?.value}
@@ -2214,7 +2214,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Issue No</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.IssueNumber} value={formData.IssueNumber} />
+                                                                        <input style={{height:'47px'}} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.IssueNumber} value={formData.IssueNumber} />
                                                                     </div>
                                                                 </div>
 
@@ -2222,28 +2222,28 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Revision No</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.RevisionNumber} value={formData.RevisionNumber} />
+                                                                        <input style={{height:'47px'}} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.RevisionNumber} value={formData.RevisionNumber} />
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Reference No</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.ReferenceNumber} value={formData.ReferenceNumber} />
+                                                                        <input style={{height:'47px'}} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.ReferenceNumber} value={formData.ReferenceNumber} />
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Document Type</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.DocumentType} value={formData.DocumentType} />
+                                                                        <input style={{height:'47px'}} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.DocumentType} value={formData.DocumentType} />
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Location</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Location} value={formData.Location} />
+                                                                        <input style={{height:'47px'}} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Location} value={formData.Location} />
                                                                     </div>
                                                                 </div>
 
@@ -2251,7 +2251,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Custodian</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Custodian} value={formData.Custodian} />
+                                                                        <input style={{height:'47px'}} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Custodian} value={formData.Custodian} />
                                                                     </div>
                                                                 </div>
 
@@ -2259,7 +2259,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Amendment Type</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.AmendmentType} value={formData.AmendmentType} />
+                                                                        <input style={{height:'47px'}} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.AmendmentType} value={formData.AmendmentType} />
                                                                     </div>
                                                                 </div>
 
@@ -2267,7 +2267,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Classification</label>
-                                                                        <input disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Classification} value={formData.Classification} />
+                                                                        <input style={{height:'47px'}} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Classification} value={formData.Classification} />
                                                                     </div>
                                                                 </div>
 
@@ -2275,14 +2275,14 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Template Type</label>
-                                                                        <input disabled type="text" id="templateid" name="example-email" className="form-control" placeholder="" title={formData.TemplateTypeValue} value={formData.TemplateTypeValue} />
+                                                                        <input style={{height:'47px'}} disabled type="text" id="templateid" name="example-email" className="form-control" placeholder="" title={formData.TemplateTypeValue} value={formData.TemplateTypeValue} />
                                                                     </div>
                                                                 </div>
 
                                                                 {/* <div className="col-lg-8">
 
                                                             <div className="mb-3">
-                                                                <label htmlFor="example-email" className="form-label">Document Link:</label>
+                                                                <label htmlFor="example-email" className="form-label">Document Link</label>
 
 
                                                                     <div className="text-dark mt-0"> <span onClick={() => OpenFile(DocumentLink)} style={{ color: "blue", cursor: "pointer" }}>{DocumentLink ? `${Tenant_URL}${DocumentLink?.FileRef}` : ""}</span>
@@ -2290,6 +2290,34 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                 </div>
                                                             </div> */}
+
+                                                            {/* changes  */}
+
+                                                            <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="RequesterName" className="form-label">Document Name</label>
+                                                                        {/* <input type="text" id="Name" name="department" className="form-control" value={formData.Department} disabled={true} />
+   */}
+                                                                        <div
+                                                                            title={formData.filename || ""}
+                                                                            style={{ width: "100%" }}
+                                                                        >
+                                                                            <input style={{height:'47px'}} type="text"
+                                                                                id="example-email"
+                                                                                name="example-email"
+                                                                                // className={`form-control ${(!ValidDraft && filenameerr) ? "border-on-error" : ""} ${(!ValidSubmit && filenameerr) ? "border-on-error" : ""}`}
+                                                                                className={`form-control`}
+                                                                                // onChange={(e) => onChangefilename("filename", e.target.value)}
+                                                                                placeholder="Document name"
+                                                                                value={formData.filename} disabled={true}/>
+
+                                                                            
+                                                                        </div>
+
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* changes */}
 
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
@@ -2304,7 +2332,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                 <div>
                                                                                     {DocumentLink != null ?
                                                                                         (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
-                                                                                            <FontAwesomeIcon icon={faPaperclip} />1 file Attached
+                                                                                            <FontAwesomeIcon icon={faPaperclip} /> 1 file Attached
                                                                                         </a>) : ""
 
                                                                                     }
@@ -2328,33 +2356,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                 </div>
 
 
-                                                                {/* changes  */}
-
-                                                                <div className="col-lg-4">
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="RequesterName" className="form-label">Document Name</label>
-                                                                        {/* <input type="text" id="Name" name="department" className="form-control" value={formData.Department} disabled={true} />
-   */}
-                                                                        <div
-                                                                            title={formData.filename || ""}
-                                                                            style={{ width: "100%" }}
-                                                                        >
-                                                                            <input type="text"
-                                                                                id="example-email"
-                                                                                name="example-email"
-                                                                                // className={`form-control ${(!ValidDraft && filenameerr) ? "border-on-error" : ""} ${(!ValidSubmit && filenameerr) ? "border-on-error" : ""}`}
-                                                                                className={`form-control`}
-                                                                                // onChange={(e) => onChangefilename("filename", e.target.value)}
-                                                                                placeholder="Document name"
-                                                                                value={formData.filename} disabled={true}/>
-
-                                                                            
-                                                                        </div>
-
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* changes */}
+                                                                
 
 
 
@@ -2398,6 +2400,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                     </p> */}
 
                                                         <div className="row">
+                                                        <div style={{ overflow: 'inherit' }} className="table-responsive mt-0 pt-0">
                                                             <table className="mtbalenewscrollnew4 table-centered table-nowrap table-borderless mb-0" id="tbl">
                                                                 <thead>
                                                                     <tr>
@@ -2467,6 +2470,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                             </table>
 
 
+                                                        </div>
                                                         </div>
 
 
@@ -2844,8 +2848,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                 <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
                                                     <Modal.Header closeButton>
-                                                        <Modal.Title> <h4 className='font-16 fw-bold text-dark'></h4> Attachment Details <br></br>
-                                                            <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for document cancellation
+                                                        <Modal.Title> <h4 className='font-16 fw-bold text-dark'></h4> Attachment Details <br/>
+                                                            <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for Document Cancellation
                                                             </p>
 
                                                         </Modal.Title>
@@ -2872,9 +2876,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                     <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
                                                                                     <td title={DocumentLink?.FileLeafRef}>{DocumentLink?.FileLeafRef}</td>
                                                                                     <td style={{ textAlign: 'center', minWidth: '50px', maxWidth: '50px' }} >
-                                                                                        <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span>
+                                                                                        <span onClick={() => OpenFile(DocumentLink, "Open")} title='preview file' style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span>
 
-                                                                                        <span onClick={() => OpenFile(DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                        <span onClick={() => OpenFile(DocumentLink, "Download")} title='download file' style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                                                                             <FontAwesomeIcon icon={faDownload} /></span>
                                                                                     </td>
                                                                                     <td style={{ minWidth: '70px', maxWidth: '70px' }}>{DocumentLink.Created

@@ -816,3 +816,31 @@ width: 100%;
   border-radius: 0 !important;
   padding: 6px 12px !important;
 }
+.ms-Dropdown,#ms-BasePicker-input{
+  height: 46px !important;
+}
+.readOnlyTextField-194{
+  line-height: 44px !important;height: 44px !important;
+  font-weight: 500 !important;
+  color: #212529 !important;
+  font-size: 1rem !important;
+}
+#DatePicker167-label{
+  line-height: 44px !important;height: 44px !important;
+  font-weight: 500 !important;
+  color: #212529 !important;
+  font-size: 1rem !important;
+}
+.readOnlyPlaceholder-190{
+  color: #212529 !important;
+  font-size: 1rem !important;
+}
+.ms-TextField-field, #TextField18,#TextField12,#DatePicker91-label, #DatePicker98-label, #TextField6,#TextField31,#combobox-id__38,#TextField25,#Dropdown1-option,#DatePicker40-label{
+
+  height: 44px !important; line-height: 44px !important;
+}
+.ms-Dropdown-title{
+  padding: 2px 10px !important;
+}
+.ms-TextField-field{line-height: 44px !important;}
+.form-control[type=file]:focus{border: 1px solid #ccc !important;}

@@ -1545,6 +1545,9 @@ color: #fff !important;
   .announcementner{
       height: auto;
   }
+  .table-responsive{overflow-x: auto !important; float: left; display: grid;}
+  .bx-bell{display: none;}
+  .dropcssUser{font-size: 12px;}
   .imagemani{
     float: left !important; width: 100% !important; margin-top: 0px !important;
   }
@@ -1581,6 +1584,7 @@ color: #fff !important;
   .tabview1,.tabcontentv, .tabv{
       width: 100% !important; 
   }
+  .mtbalenewscrollnew4 td,.mtbalenewscrollnew4 th{min-width: 130px !important; max-width: 130px !important;}
   .newbread .page-title{
     margin-top: 10px !important;
   }
@@ -1595,7 +1599,10 @@ color: #fff !important;
     margin-right: 0px;
     margin-left: 0px !important;
 }
-.app-menu{top: 76px !important;}
+.newclasstabls {
+  width: 310px;
+}
+.app-menu{top: 63px !important; left:-121px;}
 .logo_item{display: none;}
 .sidebar-openBa {
   column-gap: 5px;
@@ -1843,3 +1850,22 @@ color: #fff !important;
   /* justify-content: end; */
   justify-content: space-between;
 }
+.MuiPickersInputBase-sectionsContainer
+{
+    padding: 11.5px 0 !important;  font-weight: 500 !important;
+    color: #212529 !important;
+    font-size: 1rem !important;
+
+}
+.MuiPickersInputBase-adornedEnd{
+  padding: 0px 15px 0px 5px !important;
+}
+.Mui-disabled {
+  background: #f3f2f1;font-weight: 500 !important;
+  color: #212529 !important;
+  font-size: 1rem !important;color: rgba(33, 37, 41, 1) !important;
+}
+.Mui-selected{
+  color:#000 !important;
+}
+.MuiButtonBase-root{background: transparent !important; padding: 5px !important;}

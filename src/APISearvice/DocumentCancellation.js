@@ -3,10 +3,11 @@ export const getAllDocumentCode = async (_sp,dept) => {
   let arr = [];
   let sts = "Approved";
 
-  await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`Status eq '${sts}' and Department/ADDepartmentName eq '${dept}'`)
+  await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`Status eq '${sts}' and Department/ADDepartmentName eq '${dept}' and DocumentCancellationStatus eq 'No'`)
     .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId")
     .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department")
-    .orderBy("Modified", false)() // Order by Modified descending to get latest first
+    // .orderBy("Modified", false)() // Order by Modified descending to get latest first
+    .orderBy("ID", false)()
     .then((res) => {
       console.log(res);
 
@@ -15,6 +16,9 @@ export const getAllDocumentCode = async (_sp,dept) => {
         if (!acc[item.DocumentCode]) {
           acc[item.DocumentCode] = item;
         }
+        // if (!acc[item.Department] || acc[item.Department].ID < item.ID) {
+        //   acc[item.Department] = item;
+        // }
         return acc;
       }, {});
 

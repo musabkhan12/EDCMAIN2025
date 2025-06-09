@@ -269,8 +269,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     const sp = spfi().using(SPFx(this.props.context));
     const nctypenew: string = this.state.ncType === "NC" ? "NC Number" : "Observation Number";
     let optionsNCNumber: any = [];
-    const NCNumberoptionnew = await getNCNumbers(sp, item.label, nctypenew);
-    let existingrecords = await this.getNCdata(item.label);
+    const NCNumberoptionnew = item && await getNCNumbers(sp, item?.label, nctypenew);
+    let existingrecords = item && await this.getNCdata(item?.label);
     if (Array.isArray(NCNumberoptionnew) && NCNumberoptionnew.length > 0) {
       // Safely extract existing NCNumbers, even if the array is empty
       const existingNCNumbersSet = new Set(
@@ -289,16 +289,16 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
         }));
     }
     debugger
-    const uniqueOptions = await this.getUniqueBy(optionsNCNumber, "ncNo");
-    uniqueOptions.sort((a, b) => a.label.localeCompare(b.label));
+    const uniqueOptions = optionsNCNumber.length > 0 && await this.getUniqueBy(optionsNCNumber, "ncNo");
+    uniqueOptions && uniqueOptions.sort((a, b) => a.label.localeCompare(b.label));
 
-    let approvedauditreportselected = this.state.memonumberOptions.filter((x: any) => x.value == item.value);
-    const selectedOption = this.state.departmentOption.find(user => user?.value === approvedauditreportselected[0].department);
+    let approvedauditreportselected = this.state.memonumberOptions.filter((x: any) => x.value == item?.value);
+    const selectedOption = this.state.departmentOption.find(user => user?.value === approvedauditreportselected[0]?.department);
     this.setState({
-      department: approvedauditreportselected[0].department,
+      department: approvedauditreportselected && approvedauditreportselected[0]?.department,
       NCNumberOptions: uniqueOptions,
-      ApprovedAuditReport: Number(item.value),
-      MemoNumber: item.reportCode,
+      ApprovedAuditReport: item && Number(item?.value),
+      MemoNumber: item && item?.reportCode,
       ApprovedAuditSelected: approvedauditreportselected,
       departmentselected: selectedOption
     });
@@ -330,9 +330,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
   //   });
   // };
 
-  public changeNCNumber = (item: any): void => {
-    let ncnumberselected = this.state.NCNumberOptions.filter((x: any) => x.value == item.value);
-    this.setState({ NCNumber: item.label, NCNumberID: item.value, NCNumberselected: ncnumberselected });
+  public changeNCNumber = (item?: any): void => {
+    let ncnumberselected = this.state.NCNumberOptions.filter((x: any) => x.value == item?.value);
+    this.setState({ NCNumber: item?.label, NCNumberID: item?.value, NCNumberselected: ncnumberselected });
   };
   public handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     debugger
@@ -1107,7 +1107,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
             debugger
             this.state.copyFil.forEach(async function (file) {
 
-              const sp = spfi().using(SPFx(this.props.context));
+              //const sp = spfi().using(SPFx(this.props.context));
               const currentUser = await sp.web.currentUser();
               const userId = currentUser.Id; // Or however you get the current user ID
               const date = new Date();
@@ -1412,7 +1412,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                 </div>
                 <div className="form-group col-md-4 mb-3">
                   <TooltipHost
-                    content={this.state.revisionNo + "" || ""}
+                    content={this.state.revisionNo == 0 || this.state.revisionNo == "0" ? "0" : this.state.revisionNo + "" || ""}
                     calloutProps={{ gapSpace: 0 }}
                     styles={{ root: { display: 'inline-block', width: '100%' } }}
                   >

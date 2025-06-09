@@ -9,6 +9,7 @@ export const getLatestChangeRequestTemplateType = async (_sp, List) => {
     .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department")
     .filter(`TemplateType/TemplateTypeValue eq '${List}' and Status eq 'Approved'`).orderBy("ID", false).top(1)()
     .then((res) => {
+      debugger
       arr = res;
     })
     .catch((error) => {
@@ -656,7 +657,7 @@ export const uploadAllFiles = async (files, sp, docLib) => {
 export const uploadFileToLibrary = async (file, sp, docLib) => {
   let arrFIleData = [];
   let fileSize = 0;
-  const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
+  const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
   try {
     // await sp.web.lists.getByTitle(docLib).rootFolder
     const result = folder.files.addChunked(file.name, file, (progress, data) => {

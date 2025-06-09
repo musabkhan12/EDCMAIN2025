@@ -329,7 +329,7 @@ const FormContext = ({ props }: any) => {
   };
 
   const handleRecommendationChange = (index: number, field: string, value: any) => {
-    event.preventDefault();
+    // event.preventDefault();
     let updatedRows;
     if (field == "auditor") {
       // const valuesOnly = value.map((option: any) => option.value);
@@ -874,8 +874,8 @@ const FormContext = ({ props }: any) => {
         DocCode: template.DocumentCode || "",
         RevisionNo: template.RevisionNumber,
         IssueNo: template.IssueNumber,
-        RevisionDate: new Date(template.RevisionDate).toLocaleDateString("en-CA") || null,
-        IssueDate: new Date(template.IssueDate).toLocaleDateString("en-CA") || null,
+        RevisionDate:template?.RevisionDate ?new Date(template.RevisionDate).toLocaleDateString("en-CA") : null,
+        IssueDate:template?.IssueDate ? new Date(template.IssueDate).toLocaleDateString("en-CA") : null,
       }));
     }
 
@@ -890,8 +890,8 @@ const FormContext = ({ props }: any) => {
         MDocumentCode: template.DocumentCode || "",
         MRevisionNumber: template.RevisionNumber,
         MIssueNumber: template.IssueNumber,
-        MRevisionDate: new Date(template.RevisionDate).toLocaleDateString("en-CA") || null,
-        MIssueDate: new Date(template.IssueDate).toLocaleDateString("en-CA") || null,
+        MRevisionDate: template?.RevisionDate ? new Date(template.RevisionDate).toLocaleDateString("en-CA") : null,
+        MIssueDate: template.IssueDate ? new Date(template.IssueDate).toLocaleDateString("en-CA") : null,
 
       }));
     }
@@ -1396,7 +1396,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
 
 
 
@@ -1800,7 +1800,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
 
 
             if (FilesArr.length > 0) {
@@ -1854,7 +1854,7 @@ const FormContext = ({ props }: any) => {
               ToId: formData.to,
               CcId: formData.CC,
               Subject: formData.subject,
-              Date: formData.date,
+              Date: formData.date || null,
               Background: formData.background,
               Issues: formData.issues,
               RecommendedforApproval: formData.recommendationforApproval,
@@ -1876,9 +1876,9 @@ const FormContext = ({ props }: any) => {
               RecommendationTypeId: formData.recommendationTypeId,
               RecommendationDetails: formData.RecommendationTypeValue === "TextBox" ? formData.recommendationDetails : "",
               DocumentCode: formData.DocCode,
-              RevisionDate: formData.RevisionDate,
+              RevisionDate: formData.RevisionDate || null,
               RevisionNumber: formData.RevisionNo,
-              IssueDate: formData.IssueDate,
+              IssueDate: formData.IssueDate || null,
               IssueNumber: formData.IssueNo,
               ChangeRequestIDId: formData.changeReqListID,
               ClassificationId: formData.classificationId,
@@ -1886,8 +1886,8 @@ const FormContext = ({ props }: any) => {
               MDocumentCode: formData.MDocumentCode,
               MRevisionNumber: formData.MRevisionNumber,
               MIssueNumber: formData.MIssueNumber,
-              MRevisionDate: formData.MRevisionDate,
-              MIssueDate: formData.MIssueDate
+              MRevisionDate: formData.MRevisionDate || null,
+              MIssueDate: formData.MIssueDate || null
 
 
             }
@@ -2129,7 +2129,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2570,7 +2570,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2624,7 +2624,7 @@ const FormContext = ({ props }: any) => {
               ToId: formData.to,
               CcId: formData.CC,
               Subject: formData.subject,
-              Date: formData.date,
+              Date: formData.date || null,
               Background: formData.background,
               Issues: formData.issues,
               RecommendedforApproval: formData.recommendationforApproval,
@@ -2647,9 +2647,9 @@ const FormContext = ({ props }: any) => {
               RecommendationTypeId: formData.recommendationTypeId,
               RecommendationDetails: formData.RecommendationTypeValue === "TextBox" ? formData.recommendationDetails : "",
               DocumentCode: formData.DocCode,
-              RevisionDate: formData.RevisionDate,
+              RevisionDate: formData.RevisionDate || null,
               RevisionNumber: formData.RevisionNo,
-              IssueDate: formData.IssueDate,
+              IssueDate: formData.IssueDate || null,
               IssueNumber: formData.IssueNo,
               ChangeRequestIDId: formData.changeReqListID,
               ClassificationId: formData.classificationId,
@@ -2659,8 +2659,8 @@ const FormContext = ({ props }: any) => {
               MDocumentCode: formData.MDocumentCode,
               MRevisionNumber: formData.MRevisionNumber,
               MIssueNumber: formData.MIssueNumber,
-              MRevisionDate: formData.MRevisionDate,
-              MIssueDate: formData.MIssueDate
+              MRevisionDate: formData.MRevisionDate || null,
+              MIssueDate: formData.MIssueDate|| null
 
 
             }
@@ -2795,7 +2795,7 @@ const FormContext = ({ props }: any) => {
                   // Area: year.area,
                   RelatedProcedure: year.procedure,
                   Year: formData.Year || 0,
-                  AuditorId: year.auditorIds,
+                  AuditorId: year.auditorIds ||null,
                   // Location: year.location || "",
                   LocationId: year.locationId || null,
                   OtherDetails: year.OtherDetails || "",
@@ -3206,7 +3206,7 @@ const FormContext = ({ props }: any) => {
         <div>
           <div className="">
             <div className="row">
-              <div className="col-lg-4">
+              <div className="col-lg-6">
                 <CustomBreadcrumb Breadcrumb={Breadcrumb} />
               </div>
 
@@ -3341,7 +3341,7 @@ const FormContext = ({ props }: any) => {
                                     <label htmlFor="memoNo" className="col-form-label">Memo No<span className="text-danger1"> *</span></label>
                                     <div className="">
 
-                                      <input
+                                      <input style={{height:'47px'}}
                                         disabled
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -3358,7 +3358,7 @@ const FormContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="memoNo" className="col-form-label">Document Code<span className="text-danger1"> *</span></label>
                                     <div className="">
-                                      <input
+                                      <input style={{height:'47px'}}
                                         disabled
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -3377,7 +3377,7 @@ const FormContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="memoNo" className="col-form-label">Issue No<span className="text-danger1"> *</span></label>
                                     <div className="">
-                                      <input
+                                      <input style={{height:'47px'}}
                                         disabled
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -3396,7 +3396,7 @@ const FormContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="memoNo" className="col-form-label">Revision No<span className="text-danger1"> *</span></label>
                                     <div className="">
-                                      <input
+                                      <input style={{height:'47px'}}
                                         disabled
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -3440,7 +3440,7 @@ const FormContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="fromEmail" className="col-form-label">From<span className="text-danger1"> *</span></label>
                                     <div >
-                                      <input
+                                      <input style={{height:'47px'}}
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
 
@@ -3620,7 +3620,7 @@ const FormContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="subject" className="col-form-label">Subject<span className="text-danger1"> *</span></label>
                                     <div className="">
-                                      <input
+                                      <input style={{height:'47px'}}
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                         id="subject"
@@ -3686,7 +3686,7 @@ const FormContext = ({ props }: any) => {
                                 <div className="col-lg-4">
 
                                   <div className="mb-3">
-                                    <label htmlFor="DocumentCode" className=" col-form-label">Classification<span className="text-danger1">*</span></label>
+                                    <label htmlFor="DocumentCode" className=" col-form-label">Classification <span className="text-danger1"> *</span></label>
                                     {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
                                     <div
                                       title={formData.classificationValue?.label || "Select a classification"}
@@ -3736,7 +3736,7 @@ const FormContext = ({ props }: any) => {
                                       <div>
                                         {FilesArr.length > 0 ?
                                           (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
-                                            <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
+                                            <FontAwesomeIcon icon={faPaperclip} />{" "}{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
                                           </a>) : ""
 
                                         }
@@ -3844,7 +3844,7 @@ const FormContext = ({ props }: any) => {
                                 <thead>
                                   <tr><th style={{ minWidth: '190px', maxWidth: '190px' }}>Section<span className="text-danger1"> *</span></th>
                                     <th style={{ minWidth: '100px', maxWidth: '100px' }}>Date<span className="text-danger1"> *</span></th>
-                                    <th style={{ minWidth: '100px', maxWidth: '100px' }}>Time<span className="text-danger1"> *</span></th>
+                                    <th style={{ minWidth: '110px', maxWidth: '110px' }}>Time<span className="text-danger1"> *</span></th>
                                     <th>Auditor<span className="text-danger1"> *</span></th>
                                     {/* <th style={{ minWidth: '50px', maxWidth: '50px' }}>Action</th> */}
                                     {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: '50px', maxWidth: '50px' }}>Action</th>}
@@ -3912,7 +3912,7 @@ const FormContext = ({ props }: any) => {
                                         />
 
                                       </td> */}
-                                      <td style={{ overflow: "inherit", minWidth: '152px', maxWidth: '152px' }} title={row.startTime ? new Date(`1970-01-01T${row.startTime}`).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : "Select a time"}>
+                                      <td style={{ overflow: "inherit", minWidth: '110px', maxWidth: '110px' }} title={row.startTime ? new Date(`1970-01-01T${row.startTime}`).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : "Select a time"}>
                                         <LocalizationProvider dateAdapter={AdapterDateFns}>
                                           <TimePicker
                                             label="Select Time"
@@ -3950,7 +3950,7 @@ const FormContext = ({ props }: any) => {
                                         // Add title tooltip
                                         />
                                       </td>
-                                      {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '55px', maxWidth: '55px' }}>
+                                      {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: '55px', maxWidth: '55px', textAlign:'center' }}>
                                         <img src={require("../../assets/del.png")} onClick={() => handleDeleteRecommendationRow(index)} />
 
                                       </td>
@@ -4123,7 +4123,7 @@ const FormContext = ({ props }: any) => {
 
                                 {/* {formData.RecommendationTypeValue === "Table" ? ( */}
                                 <div style={{ display: 'grid' }} className='newclasstabls scroll-container'>
-                                  {/* mtbalenewscrollnew4  mtbalenew   className='mtbalenew overhi mb-3 cont-scroll-mtb'>*/}
+                                  {/* mtbalenewscrollnew4  mtbalenew   className='mtbalenew overhi mb-3 cont-scroll-mtb'> */}
                                   {/* <table id="tabCov" className='  mtbalenew mb-3 cont-scroll-mtb'> */}
                                   <table id="tabCov" className='mtbalenew overhi mb-3 cont-scroll-mtb'>
                                     <thead>
@@ -4132,11 +4132,11 @@ const FormContext = ({ props }: any) => {
 
                                         <th style={{ minWidth: '210px', maxWidth: '210px' }}>Department / Area<span className="text-danger1"> *</span></th>
                                         <th style={{ minWidth: '200px', maxWidth: '200px' }}>Location</th>
-                                        {/*<th style={{ minWidth: '150px', maxWidth: '150px' }}>Other Details<span className="text-danger1"> *</span></th>*/}
+                                        {/*<th style={{ minWidth: '150px', maxWidth: '150px' }}>Other Details<span className="text-danger1"> *</span></th> */}
                                         <th style={{ minWidth: '200px', maxWidth: '200px' }}>Shift</th>
 
                                         <th style={{ minWidth: '160px', maxWidth: '160px' }}>Related Procedure<span className="text-danger1"> *</span></th>
-                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>Auditor<span className="text-danger1"> *</span></th>
+                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>Auditor <span className="text-danger1"> *</span></th>
                                         <th style={{ minWidth: '70px', maxWidth: '70px' }}>Jan</th>
                                         <th style={{ minWidth: '70px', maxWidth: '70px' }}>Feb</th>
                                         <th style={{ minWidth: '70px', maxWidth: '70px' }}>Mar</th>
@@ -4706,7 +4706,7 @@ const FormContext = ({ props }: any) => {
                         <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
                           <Modal.Header closeButton>
                             <Modal.Title > <h4 className='font-16 text-dark fw-bold'>Attachment Details</h4>  <br></br>
-                              <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for Annual Audit Program
+                              <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for IMS Annual Audit Program
                               </p>
 
                             </Modal.Title>
@@ -4726,7 +4726,7 @@ const FormContext = ({ props }: any) => {
                                   {/* {editForm && <th>File Link</th>} */}
                                   <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th>
                                   {/* {!InputDisabled && <th className='text-center'>Action</th>} */}
-                                  <th className='text-center'>Action</th>
+                                  <th style={{ minWidth: '50px', maxWidth: '50px' }}  className='text-center'>Action</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -4790,17 +4790,17 @@ const FormContext = ({ props }: any) => {
 
                                         </td>
 
-                                        <td>
+                                        <td style={{ minWidth: '50px', maxWidth: '50px' }} >
                                           {row.Id && (
                                             <>
 
-                                              <span
+                                              <span title='preview file'
                                                 onClick={() => OpenFile(row, "Open")}
                                                 style={{ color: "blue", cursor: "pointer", margin: "10px" }}
                                               >
                                                 <FontAwesomeIcon icon={faEye} />
                                               </span>
-                                              <span
+                                              <span title='download file'
                                                 onClick={() => OpenFile(row, "Download")}
                                                 style={{ color: "blue", cursor: "pointer", margin: "10px" }}
                                               >

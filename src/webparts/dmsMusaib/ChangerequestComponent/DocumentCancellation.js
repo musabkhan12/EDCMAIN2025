@@ -111,13 +111,13 @@ export const getDocumentCodeselected = async (_sp, locId, custoId, doctypeId) =>
     });
   return arr;
 };
-export const getDocumentCodeselectedApproved = async (_sp, locId, custoId, doctypeId) => {
+export const getDocumentCodeselectedApproved = async (_sp, doccode, locId, custoId, doctypeId) => {
   let arr = [];
 
   await _sp.web.lists.getByTitle("ChangeRequestList").items
     .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title")
     .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")
-    .filter(`LocationId eq '${locId}' and CustodianId eq '${custoId}' and DocumentTypeId eq '${doctypeId}' and Status eq 'Approved'`)
+    .filter(`DocumentCode eq '${doccode}' and Status eq 'Approved'`)
     .orderBy("ID", true).top(1)() // Order by Modified descending to get latest first
     .then((res) => {
       console.log(res);
@@ -127,7 +127,7 @@ export const getDocumentCodeselectedApproved = async (_sp, locId, custoId, docty
           SerialNo: Number(res[0].SerialNumber),
           IssueNo: Number(res[0].IssueNumber),
           RevisionNo: Number(res[0].RevisionNumber),
-          IssueDate:res[0].IssueDate
+          IssueDate: res[0].IssueDate
         })
       }
       console.log("resresr serialnumber", res, SnoArr);
@@ -139,7 +139,7 @@ export const getDocumentCodeselectedApproved = async (_sp, locId, custoId, docty
   return arr;
 };
 // export const getAllDepartment = async (_sp) => {
- 
+
 //   let arr = []
 //   let arrs = []
 //   let bannerimg = []
@@ -151,7 +151,7 @@ export const getDocumentCodeselectedApproved = async (_sp, locId, custoId, docty
 //           value: item.Id,
 //           label: item.Department,
 //           Department:item.Department,
-       
+
 //     }));
 //     })
 //     .catch((error) => {
@@ -292,15 +292,32 @@ export const getAllClassificationMaster = async (_sp) => {
 export const getGeneratedTemplateDocCR = async (_sp, itemId) => {
   let results = [];
   // for (let itemId of AttachmentIds) {
-    await _sp.web.lists.getByTitle("ChangeRequestGeneratedTemplateDoc").items
-      .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
-      .then((res) => {
-        console.log(res, ' let arrs=[]');
+  await _sp.web.lists.getByTitle("ChangeRequestDigitalSignedDocs").items
+    .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
+    .then((res) => {
+      console.log(res, ' let arrs=[]');
+      if (res.length > 0) {
         results = res;
-      })
-      .catch((error) => {
-        console.log("Error fetching data: ", error);
-      });
+      } else {
+        results = [];
+      }
+
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  await _sp.web.lists.getByTitle("ChangeRequestGeneratedTemplateDoc").items
+    .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
+    .then((res) => {
+      console.log(res, ' let arrs=[]');
+      if(results.length == 0) {
+        results = res;
+      }
+      
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
   // }
   console.log(results, 'results');
   return results;
@@ -492,18 +509,18 @@ export const getallProcessApprovalitems = async (_sp, id) => {
       .expand("Author,RequesterName,Approvers")
       .filter(`MainListID eq ${id}`).orderBy("Level", false)
       ().then(async (res) => {
-        if(res.length > 0){
+        if (res.length > 0) {
           newItem = await _sp.web.lists.getByTitle('ProcessApprovalList').items
-          .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title")
-          .expand("Author,RequesterName,AssignedTo")
-          .filter(`ListItemId eq ${id} and Status eq 'Pending' and Level eq ${res[0].Level}`)
-          ();
-        console.log('all process itemss: of highest level', newItem);
+            .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title")
+            .expand("Author,RequesterName,AssignedTo")
+            .filter(`ListItemId eq ${id} and Status eq 'Pending' and Level eq ${res[0].Level}`)
+            ();
+          console.log('all process itemss: of highest level', newItem);
         }
-        
+
       })
     console.log("newitemnewnewitemnew", newitemnew);
-    
+
     resultArr = newItem
     // Perform any necessary actions after successful addition
   } catch (error) {
@@ -580,7 +597,7 @@ export const getItemByIDCRlatest = async (_sp, id) => {
   await _sp.web.lists.getByTitle("ChangeRequestList").items
     .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,RequestType/ID,RequestType/RequestType,RequestType/RequestCode,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateType/TemplateTypeValue,TemplateTypeId")
     .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,RequestType,Author,Department")
-    .filter(`TemplateType/TemplateTypeValue eq 'Change Request'`)
+    .filter(`TemplateType/TemplateTypeValue eq 'Change Request' and Status eq 'Approved'`)
     .orderBy("ID", false) // Order by ID descending to get latest first
     .top(1)
     ()

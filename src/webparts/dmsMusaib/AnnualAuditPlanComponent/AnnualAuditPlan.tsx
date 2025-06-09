@@ -1551,7 +1551,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditPlanDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditPlanDocs');
 
 
 
@@ -1922,7 +1922,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditPlanDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditPlanDocs');
 
 
                         if (FilesArr.length > 0) {
@@ -2207,7 +2207,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditPlanDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditPlanDocs');
 
 
                         if (FilesArr.length > 0) {
@@ -2617,7 +2617,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditPlanDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditPlanDocs');
 
 
                         if (FilesArr.length > 0) {
@@ -2964,11 +2964,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     //     const encodedFilePath = encodeURIComponent(serverRelativeUrl);
 
     //     // Example:
-    //     // serverRelativeUrl = "/sites/ededms/test/DocumentLibraryInsideTest/Book.xlsx"
+    //     // serverRelativeUrl = "/sites/edcspfx/test/DocumentLibraryInsideTest/Book.xlsx"
     //     const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
     //     const siteUrl = window.location.origin;
 
-    //     // const previewUrl = `${siteUrl}/sites/ededms/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    //     // const previewUrl = `${siteUrl}/sites/edcspfx/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     //     const previewUrl = `${siteUrl}${locationPath}/ChangeRequestDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     //     // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     //     console.log("Generated Preview URL:", previewUrl);
@@ -3404,7 +3404,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                         <div style={{ clear: "both" }}></div>
 
                                                         <form className="form-horizontal" noValidate onSubmit={(e) => { e.preventDefault(); return false; }}>
-                                                            {/*<div className="form-horizontal">*/}
+                                                            {/*<div className="form-horizontal"> */}
 
                                                             <div className="row">
                                                                 <div className="col-lg-4">
@@ -3412,7 +3412,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                         <label htmlFor="memoNo" className=" col-form-label">Memo No<span className="text-danger1"> *</span></label>
                                                                         <div className="">
 
-                                                                            <input
+                                                                            <input style={{height:'47px'}}
                                                                                 disabled
                                                                                 type="text"
                                                                                 className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -3430,7 +3430,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     <div className="mb-3">
                                                                         <label htmlFor="memoNo" className="col-form-label">Document Code<span className="text-danger1"> *</span></label>
                                                                         <div className="">
-                                                                            <input
+                                                                            <input style={{height:'47px'}}
                                                                                 disabled
                                                                                 type="text"
                                                                                 title={formData.DocCode}
@@ -3449,7 +3449,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     <div className="mb-3">
                                                                         <label htmlFor="memoNo" className="col-form-label">Issue No<span className="text-danger1"> *</span></label>
                                                                         <div className="">
-                                                                            <input
+                                                                            <input style={{height:'47px'}}
                                                                                 disabled
                                                                                 type="text"
                                                                                 className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -3467,7 +3467,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     <div className="mb-3">
                                                                         <label htmlFor="memoNo" className="col-form-label">Revision No<span className="text-danger1"> *</span></label>
                                                                         <div className="">
-                                                                            <input
+                                                                            <input style={{height:'47px'}}
                                                                                 disabled
                                                                                 type="text"
                                                                                 className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -3512,7 +3512,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     <div className="mb-3">
                                                                         <label htmlFor="fromEmail" className="col-form-label">From<span className="text-danger1"> *</span></label>
                                                                         <div className="">
-                                                                            <input
+                                                                            <input style={{height:'47px'}}
                                                                                 type="text"
                                                                                 className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
 
@@ -3638,7 +3638,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     <div className="mb-3">
                                                                         <label htmlFor="subject" className="col-form-label">Subject<span className="text-danger1"> *</span></label>
                                                                         <div className="">
-                                                                            <input
+                                                                            <input style={{height:'47px'}}
                                                                                 type="text"
                                                                                 className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                                                                 id="subject"
@@ -3705,7 +3705,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 <div className="col-lg-4">
 
                                                                     <div className="mb-3">
-                                                                        <label htmlFor="DocumentCode" className=" col-form-label">Classification<span className="text-danger1">*</span></label>
+                                                                        <label htmlFor="DocumentCode" className=" col-form-label">Classification<span className="text-danger1"> *</span></label>
                                                                         {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
                                                                         <div
                                                                             title={formData.classificationValue?.label || "Select a classification"}
@@ -3737,8 +3737,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                         <label htmlFor="attachment" className="col-form-label">Attachment</label>
                                                                         <div className="">
 
-                                                                            <div>
-                                                                                <input
+                                                                            <div> 
+                                                                                <input style={{height:'47px', padding:'10px'}}
                                                                                     type="file"
                                                                                     // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                                                                     className="form-control"
@@ -3755,7 +3755,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                             <div>
                                                                                 {FilesArr.length > 0 ?
                                                                                     (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
-                                                                                        <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
+                                                                                        <FontAwesomeIcon icon={faPaperclip} />{" "}{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
                                                                                     </a>) : ""
 
                                                                                 }
@@ -3869,7 +3869,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                         {formData.RecommendationTypeValue === "Table" ? (
                                                             // className='newclasstabls scroll-container'
                                                             <div style={{ display: 'grid' }} >
-                                                                <table id="tabRec" className='mtbalenew overhi mb-3 cont-scroll-mtb'>
+                                                                <table id="tabRec" className='mtbalenew  overhi mb-3 cont-scroll-mtb'>
                                                                     <thead>
                                                                         <tr><th style={{ minWidth: '190px', maxWidth: '190px' }}>Section<span className="text-danger1"> *</span></th>
                                                                             <th>Date<span className="text-danger1"> *</span></th>
@@ -4179,9 +4179,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                         <div style={{ display: 'grid' }} className='newclasstabls scroll-container'>
                                                             {/* mtbalenewscrollnew4 */}
                                                             {/* <table id="tabCov" className=' mtbalenew mb-3 cont-scroll-mtb'> */}
-                                                            <table id="tabCov" className='mtbalenew overhi mb-3 cont-scroll-mtb'>
+                                                            <table id="tabCov" className='mtbalenew  overhi mb-3 cont-scroll-mtb'>
                                                                 <thead>
-                                                                    <tr><th style={{ minWidth: '140px', maxWidth: '140px' }}>Date
+                                                                    <tr><th style={{ minWidth: '150px', maxWidth: '150px' }}>Date
                                                                         <span className="text-danger1"> *</span>
                                                                     </th>
                                                                         <th style={{ minWidth: '140px', maxWidth: '140px' }} colSpan={2}>Time
@@ -4210,7 +4210,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                                     {coverageAuditCriteria.map((row, index) => (
                                                                         <tr key={index}>
-                                                                            <td style={{ overflow: "inherit", minWidth: '140px', maxWidth: '140px' }} title={
+                                                                            <td style={{ overflow: "inherit", minWidth: '150px', maxWidth: '150px' }} title={
                                                                                 row?.date
                                                                                     ? moment(row?.date).format('DD/MMM/YYYY')
                                                                                     : "Select a date"
@@ -4279,7 +4279,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     />
                                                                                 </LocalizationProvider>
                                                                             </td>
-                                                                            <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }} title={row.dept?.label || "Select department"} >
+                                                                            <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }} title={row.dept?.label || "Select department"} className='mtbalenew3'>
                                                                                 <Select
                                                                                     options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
                                                                                     // isMulti
@@ -4670,8 +4670,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                 <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
                                                     <Modal.Header closeButton>
-                                                        <Modal.Title > <h4 className='font-16 text-dark fw-bold'>Attachment Details</h4>  <br></br>
-                                                            <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for Annual Audit Plan
+                                                        <Modal.Title > <h4 className='font-16 text-dark fw-bold mb-1'>Attachment Details</h4>
+                                                            <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for IMS Audit Plan
                                                             </p>
 
                                                         </Modal.Title>
@@ -4686,12 +4686,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                         <table className="mtbalenew">
                                                             <thead style={{ background: '#eef6f7' }}>
                                                                 <tr>
-                                                                    <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                                                                    <th style={{ minWidth: '30px', maxWidth: '30px' }}>S.No.</th>
                                                                     <th>File Name</th>
                                                                     {/* {editForm && <th>File Link</th>} */}
                                                                     <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th>
                                                                     {/* {!InputDisabled && <th className='text-center'>Action</th>} */}
-                                                                    <th className='text-center'>Action</th>
+                                                                    <th  style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Action</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -4713,7 +4713,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                         const NewFileName = `${formData.memoFileName}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`;
 
                                                                         return (<tr>
-                                                                            <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
+                                                                            <td style={{ minWidth: '30px', maxWidth: '30px' }} className='text-center'>{index + 1}</td>
                                                                             <td title={row.name ? NewFileName : row.FileLeafRef}>
                                                                                 {row.name ? NewFileName : row.FileLeafRef}
                                                                             </td>
@@ -4752,17 +4752,17 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     year: "numeric"
                                                                                 }).replace(/ /g, "/")}</td>
 
-                                                                            <td>
+                                                                            <td  style={{ minWidth: '50px', maxWidth: '50px' }}>
                                                                                 {row.Id && (
                                                                                     <>
 
-                                                                                        <span
+                                                                                        <span title='preview file'
                                                                                             onClick={() => OpenFile(row, "Open")}
                                                                                             style={{ color: "blue", cursor: "pointer", margin: "10px" }}
                                                                                         >
                                                                                             <FontAwesomeIcon icon={faEye} />
                                                                                         </span>
-                                                                                        <span
+                                                                                        <span title='download file'
                                                                                             onClick={() => OpenFile(row, "Download")}
                                                                                             style={{ color: "blue", cursor: "pointer", margin: "10px" }}
                                                                                         >

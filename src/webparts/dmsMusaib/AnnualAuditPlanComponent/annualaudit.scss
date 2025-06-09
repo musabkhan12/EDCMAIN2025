@@ -763,6 +763,9 @@ width: 100%;
     top: 0%;
     background: rgba(0, 0, 0, 0.1);
 }
+#DatePicker50-label{
+  height: 44px;
+}
 .librarydata .page-title{margin-top: -41px;}
 @media(max-width:1180px){
   .librarydata .page-title{margin-top: 10px;}
@@ -771,4 +774,6 @@ width: 100%;
 .ErrBorder-ErrColor{
   background-color: #ffe6e6 !important;
   border-color: red !important;
+  border: 1px solid red !important;
 }
+.mtbalenew td .css-hlgwow input[type=text]:focus{border:0px solid #ccc !important;}
