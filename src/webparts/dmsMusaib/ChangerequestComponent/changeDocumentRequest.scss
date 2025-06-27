@@ -7,7 +7,11 @@
 input::placeholder {
     color: #6b6b6b !important;
 }
-.text-danger1{color: maroon;}
+
+.text-danger1 {
+    color: maroon;
+}
+
 #tbl tbody td:nth-child(1) {
     min-width: 30px;
     max-width: 30px;
@@ -140,9 +144,10 @@ input::placeholder {
 .inbox-rightbar .card .fw-bold {
     font-weight: 500 !important;
 }
-.inbox-rightbar .card .fw-bold{
+
+.inbox-rightbar .card .fw-bold {
     font-weight: 700 !important;
-    }
+}
 
 .ms-inputBox,
 input:not([type]),
@@ -194,6 +199,7 @@ background-color: #ccc;
     padding: 0;
     line-height: 19px;
 }
+
 .previewIcon {
     display: flex;
     align-items: center;
@@ -547,10 +553,11 @@ a.nav-linkcss.px-4.py-3 {
 
     color: #6c757d !important;
 }
-textarea:focus{
+
+textarea:focus {
     border-color: #6c757d !important;
-  }
-  
+}
+
 .cardcss {
     // border-bottom-left-radius: 1rem !important;
     // border-top-left-radius: 1rem !important;
@@ -616,8 +623,9 @@ textarea:focus{
 .modal-dialog {
     min-width: 80% !important;
     border-radius: 20px !important;
+    margin: 10px auto !important;
 }
-
+.cui-statusbar{display: none !important;}
 .modal-content {
     min-width: 80% !important;
     border-radius: 20px !important;
@@ -632,10 +640,12 @@ textarea:focus{
 .btn-close {
     position: absolute;
 }
-.newmobmodal{
 
-}
-.modal-header{position: relative !important; width: 100% !important;
+.newmobmodal {}
+
+.modal-header {
+    position: relative !important;
+    width: 100% !important;
     height: auto !important;
     padding: 20px !important;
     right: auto !important;
@@ -643,18 +653,22 @@ textarea:focus{
     border-radius: 0px !important;
     border-top-left-radius: 20px !important;
     border-top-right-radius: 20px !important;
-    border-bottom: 1px solid #ccc !important;  
-    z-index:1 !important;
+    border-bottom: 1px solid #ccc !important;
+    z-index: 1 !important;
 }
-.btn-close{right:26px;top:21px;}
 
-.newmobmodal .modal-title{
-    display: block
-;
+.btn-close {
+    right: 26px;
+    top: 21px;
+}
+
+.newmobmodal .modal-title {
+    display: block;
     gap: 3px;
     align-items: center;
     font-size: 18px;
 }
+
 .small-image {
     grid-column: 2 / 3;
     /* Occupies the second column */
@@ -673,9 +687,12 @@ textarea {
     border: none;
 }
 
-textarea:focus{
-    outline: none !important;  box-shadow: none !important;border: none !important; border:1px solid #6c757d !important;
-    }
+textarea:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    border: 1px solid #6c757d !important;
+}
 
 .padd30px {
     padding-right: 54px;
@@ -983,12 +1000,22 @@ textarea:focus{
 .bg-light {
     background-color: #ececec !important;
 }
-.btn-primary{
-    padding:8px 12px !important;
+
+.btn-primary {
+    padding: 8px 12px !important;
 }
-.ms-BasePicker-text{height: 40px; overflow: hidden;    background: transparent;
-    padding: 7px;}
-.cancel-btn {padding:4px 12px !important;}
+
+.ms-BasePicker-text {
+    height: 40px;
+    overflow: hidden;
+    background: transparent;
+    padding: 7px;
+}
+
+.cancel-btn {
+    padding: 4px 12px !important;
+}
+
 .sidebariconsmall {
     width: 14px;
     margin-right: 5px;
@@ -996,16 +1023,21 @@ textarea:focus{
 
 .css-hlgwow {
     height: 44px !important;
-    padding: 0px 8px !important;line-height: 22px;
+    padding: 0px 8px !important;
+    line-height: 22px;
 }
-#DatePicker5-label{
-    height: 44px !important; line-height: 44px !important;
+
+#DatePicker5-label {
+    height: 44px !important;
+    line-height: 44px !important;
 }
+
 .form-control[type=file] {
-   
+
     height: 47px !important;
     padding: 10px !important;
 }
+
 .css-19bb58m {
     padding-top: 0px !important;
     margin: 0px !important;
@@ -1031,53 +1063,73 @@ textarea:focus{
 .mtbalenew input[type=text]:focus {
     border: 0px solid #f37421 !important;
 }
-.tpnew tbody{overflow-y: inherit !important;}
+
+.tpnew tbody {
+    overflow-y: inherit !important;
+}
+
 /* Default checkbox styling */
 .form-check-input {
-    accent-color: white; /* default tick color */
-  }
-  
-  /* When there's a validation error */
-  .form-check-input.border-on-error {
-    accent-color: black; /* makes the tick black on red background */
-    background-color: #f8d7da; /* optional: light red background for error */
-    border-color: #dc3545; /* optional: red border */
-  }
-  /* Highlight the row background */
+    accent-color: white;
+    /* default tick color */
+}
+
+/* When there's a validation error */
+.form-check-input.border-on-error {
+    accent-color: black;
+    /* makes the tick black on red background */
+    background-color: #f8d7da;
+    /* optional: light red background for error */
+    border-color: #dc3545;
+    /* optional: red border */
+}
+
+/* Highlight the row background */
 .row-error {
-    background-color: #f8d7da; /* light red */
-  }
-  
-  /* Highlight the field borders */
-  .border-on-error {
+    background-color: #f8d7da;
+    /* light red */
+}
+
+/* Highlight the field borders */
+.border-on-error {
     // border: 1px solid #dc3545 !important;
-     background-color: #ffe6e6 !important; 
-     border-color: red !important;
-  }
-  .readOnlyTextField-139{
+    background-color: #ffe6e6 !important;
+    border-color: red !important;
+}
+
+.readOnlyTextField-139 {
     height: 44px;
     line-height: 46px !important;
     line-height: 44px !important;
-  
-   
-   
+
+
+
     font-weight: 500 !important;
     color: #212529 !important;
     font-size: 1rem !important;
-  }
-  #DatePicker55-label{
-    font-weight: 500 !important;
-    color: #212529 !important;
-    font-size: 1rem !important;
-  }
-  .ms-TextField-fieldGroup {
-    
-    height: 46px !important;
-    min-height: max-content; 
-   
 }
-  @media(max-width:640px){
+
+#DatePicker55-label {
+    font-weight: 500 !important;
+    color: #212529 !important;
+    font-size: 1rem !important;
+}
+
+.ms-TextField-fieldGroup {
+
+    height: 46px !important;
+    min-height: max-content;
+
+}
+
+.modal-wide .modal-dialog {
+    max-width: 95vw;
+    /* or 100% if you want edge to edge */
+    width: 95vw;
+}
+
+@media(max-width:640px) {
     .indexdesign {
         margin-left: -10px !important;
     }
-  }
+}

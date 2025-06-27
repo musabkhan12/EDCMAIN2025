@@ -6,7 +6,7 @@ export const getAllDocumentCode = async (_sp) => {
     .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title")
     .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")
     .filter("Status eq 'Approved'")
-    .orderBy("Modified", false)() // Order by Modified descending to get latest first
+    .orderBy("Modified", false).top(5000)() // Order by Modified descending to get latest first
     .then((res) => {
       console.log("eeee", res);
       debugger
@@ -32,7 +32,15 @@ export const getAllDocumentCode = async (_sp) => {
       }
 
       arr = Object.values(latestByDocumentCode);
+      for (const item of res) {
+        const docCode = item.DocumentCode;
+        if (docCode && !latestByDocumentCode[docCode]) {
+          latestByDocumentCode[docCode] = item;
+        }
+      }
 
+      const uniqueLatestItems = Object.values(latestByDocumentCode);
+      console.log("Filtered latest by DocumentCode: ", uniqueLatestItems);
       console.log("arrarr fetching data: ", arr);
     })
     .catch((error) => {
@@ -310,10 +318,10 @@ export const getGeneratedTemplateDocCR = async (_sp, itemId) => {
     .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
     .then((res) => {
       console.log(res, ' let arrs=[]');
-      if(results.length == 0) {
+      if (results.length == 0) {
         results = res;
       }
-      
+
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
@@ -421,6 +429,95 @@ export const updateItem = async (itemData, _sp, id) => {
     resultArr = null
   }
   return resultArr;
+};
+
+export const updateDigitalsign = async (listname, _sp, id, formitemid) => {
+  let resultArr = []
+  try {
+    console.log("iddddd", id);
+    // const newItem = await _sp.web.lists.getByTitle('DigitalSignatureRequestList').items
+    //   .filter(`ListName eq '${listname}' and ListItemID eq ${id}`)
+    //   .top(1)
+    //   ().then(async (res) => {
+    let newItem;
+    const postPayload2 = {
+      DocSignedStatus: "Yes"
+    }
+    const newItem1 = await getdigitalsignaturerequestbyID("ChangeRequestList", _sp, Number(formitemid))
+      .then(async (res) => {
+        console.log("eeee digi doc", res);
+        for (var i = 0; i < res.length; i++) {
+          newItem = await _sp.web.lists.getByTitle('DigitalSignatureRequestList').items.getById(res[i].ID).update(postPayload2);
+          console.log('Item added successfully:', newItem);
+
+        }
+      })
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+  }
+  return resultArr;
+};
+export const getdigitalsignaturerequestbyID = async (listname, _sp, id) => {
+  let arr = []
+  try {
+    console.log("iddddd", id);
+    const newItem = await _sp.web.lists.getByTitle('DigitalSignatureRequestList').items
+      .filter(`ListName eq '${listname}' and ListItemID eq ${id} and DocSignedStatus eq 'No'`)
+      .top(100)
+      ()
+      .then((res) => {
+        console.log(res, ' let arrs=[]');
+
+        arr = res
+        // arr = res;
+      })
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    arr = null
+  }
+  return arr;
+};
+export const getdigitalsignaturerequestbyIDYes = async (listname, _sp, id) => {
+  let arr = [];
+  let Norecrodsexist = "No";
+  try {
+    console.log("iddddd", id);
+    const newItem = await _sp.web.lists.getByTitle('DigitalSignatureRequestList').items
+      .filter(`ListName eq '${listname}' and ListItemID eq ${id}`)
+      .top(100)
+      ()
+      .then((res) => {
+        console.log(res, ' let arrs=[]');
+        if (res.length > 0) {
+
+          for (let i = 0; i < res.length; i++) {
+            if (res[i].DocSignedStatus === "No" || res[i].DestinationIDUpdated === "No") {
+              Norecrodsexist = "Yes";
+              break; // Exit the loop early since we found a match
+            }
+          }
+
+          arr = res
+        } else {
+          Norecrodsexist = "NoRecord";
+        }
+
+        // arr = res;
+      })
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    arr = null
+  }
+  console.log("NorecrodsexistNorecrodsexist", Norecrodsexist);
+  return Norecrodsexist;
 };
 export const addItemChangeRequestReasonlist = async (itemData, _sp) => {
 
@@ -662,6 +759,33 @@ export const getApprovalByID = async (_sp, id, processName) => {
   console.log(arr, 'arr');
   return arr;
 }
+export const CheckIfAlreadyactionTaken = async (_sp, id, processName) => {
+  try {
+    const currentUser = await _sp.web.currentUser();
+
+    const item = await _sp.web.lists
+      .getByTitle("ProcessApprovalList")
+      .items
+      .getById(id)
+      .select("Id", "ActionTakenById", "ActionTakenOn", "AssignedTo/Id", "ProcessName")
+      .expand("AssignedTo")();
+
+    const isUnprocessed = (!item.ActionTakenById || item.ActionTakenById == null) && (!item.ActionTakenOn || item.ActionTakenOn == null);
+
+    // Optional: further check if it's assigned to current user and matches processName
+
+
+    if (isUnprocessed) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error("Error in CheckIfAlreadyactionTaken:", error);
+    return false;
+  }
+};
+
 export const getApprovalByID2 = async (_sp, id, processName) => {
 
   let arr;
@@ -850,18 +974,30 @@ export const getListNameID = async (_sp, formname) => {
   return reqId;
 }
 
-export const getDocumentLinkByID = async (_sp, itemId) => {
-
+export const getDocumentLinkByID = async (_sp, itemId, listid) => {
+  debugger
   var reqId;
-  await _sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(itemId)
-    .select("*,FileRef, FileLeafRef")()
-    .then((res) => {
-      console.log(res, ' let arrs=[]');
+  await _sp.web.lists.getByTitle("ChangeRequestAttachDigitalSignedDocs").items
+    .select("*,FileRef, FileLeafRef")
+    .expand()
+    .filter(`ListItemIDId eq ${listid}`)
+    ()
+    .then(async (res) => {
+      console.log(res, ' let arrs=[] ghghgh');
+      if (res.length > 0) {
+        reqId = res[0]
+      } else {
+        await _sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(itemId)
+          .select("*,FileRef, FileLeafRef")()
+          .then((res) => {
+            console.log(res, ' let arrs=[] ccc');
 
 
-      //  arr =(res[0].Id)
-      // arr = res;
-      reqId = res
+            //  arr =(res[0].Id)
+            // arr = res;
+            reqId = res
+          })
+      }
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
@@ -869,10 +1005,45 @@ export const getDocumentLinkByID = async (_sp, itemId) => {
   console.log(reqId, 'arr');
   return reqId;
 }
-export const getDocumentLinkByIDarr = async (_sp, itemId) => {
+export const getDocumentLinkByIDarr = async (_sp, itemId, listid) => {
 
   let reqId = [];
-  await _sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(itemId)
+  await _sp.web.lists.getByTitle("ChangeRequestAttachDigitalSignedDocs").items
+    .select("*,FileRef, FileLeafRef")
+    .expand()
+    .filter(`ListItemIDId eq ${listid}`)
+    ()
+    .then(async (res) => {
+      console.log(res, ' let arrs=[] ghghgh att');
+
+
+      //  arr =(res[0].Id)
+      // arr = res;
+      if (res.length > 0) {
+        reqId = res
+      } else {
+        await _sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(itemId)
+          .select("*,FileRef, FileLeafRef")()
+          .then((res) => {
+            console.log(res, 'file leatttttt arrs=[]');
+
+
+            //  arr =(res[0].Id)
+            // arr = res;
+            reqId.push(res)
+          })
+      }
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  console.log(reqId, 'arr arrrr');
+  return reqId;
+}
+export const getTemplatelink = async (_sp) => {
+
+  let reqId = [];
+  await _sp.web.lists.getByTitle("ChangeRequestTemplate").items
     .select("*,FileRef, FileLeafRef")()
     .then((res) => {
       console.log(res, 'file let arrs=[]');

@@ -24,14 +24,18 @@ import {
   addItemChangeRequestList, getAllAmendmentType, getAllClassificationMaster, getAllDocumentCode,
   getAllProcessData, getAllRequestType, getApprovalByID, getApprovalByID2, getDataRoles,
   getDocumentLinkByID, getFormNameID, getItemByID, getItemByIDChangeRequest, getItemByIDCR,
-  getListNameID, GetQueryString, getRequesterID, UpdateAllProcessItem, updateApprovalItem,
+  getListNameID, GetQueryString, getRequesterID, UpdateAllProcessItem, updateApprovalItem, getdigitalsignaturerequestbyID,
   updateItem, updateItemChangeRequestReasonList, updateItemChangeRequestList,
   getDocumentCodeselected, getDocumentLinkByIDarr,
   getAllDepartment,
   getAllTemplateType,
   getGeneratedTemplateDocCR,
   getchangerequesttemp,
-  getDocumentCodeselectedApproved
+  getDocumentCodeselectedApproved,
+  getTemplatelink,
+  updateDigitalsign,
+  getdigitalsignaturerequestbyIDYes,
+  CheckIfAlreadyactionTaken
 } from './DocumentCancellation';
 import Select from "react-select";
 import Swal from 'sweetalert2';
@@ -53,11 +57,13 @@ import { DatePicker } from 'office-ui-fabric-react';
 import * as XLSX from 'xlsx';
 import { SITE_URL } from '../../../Shared/Constants';
 import { set } from 'date-fns';
+import FileViewer from './fileviewer';
 let newfileupload: any
 let newfilepreview: any;
 let filechanged: boolean = false;
 let locationPath: any;
 let enableTemplatetype: boolean = false;
+let Showfile: boolean = false;
 export enum FormSubmissionMode {
   DRAFT, SUBMIT
 }
@@ -119,7 +125,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const { useHide }: any = React.useContext(UserContext);
   const [InputDisabled, setInputDisabled] = React.useState(false);
   const selectedTextDiv = document.getElementById('selectedText');
-
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
   selectedTextDiv.style.display = 'none';
   const Breadcrumb = [
     {
@@ -145,6 +151,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [changedescriptionerr, setchangedescriptionerr] = React.useState(false);
   const [changereasonerr, setchangereasonerr] = React.useState(false);
   const [changerequesttypeerr, setchangerequesttypeerr] = React.useState(false);
+  const [hidedigisign, sethidedigisign] = React.useState(false);
+  const [showdigisign, setshowdigisign] = React.useState(false);
   const [Loading, setLoading] = React.useState(false);
   const [FormItemId, setFormItemId] = React.useState(null);
   const [editID, setEditID] = React.useState(null);
@@ -165,6 +173,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [UserRoles, setUserRoles] = React.useState<any>([]);
   const [rows1, setRows1] = React.useState<any>([]);
   const [DocumentLink, setDocumentLink] = React.useState(null);
+  const [Templatelink, setTemplatelink] = React.useState(null);
+  const [DigitalsignID, setDigitalsignID] = React.useState(null);
+  const [redirecturl, setredirecturl] = React.useState(null);
+
   const [currentUser, setCurrentUser] = React.useState(null);
   const [selectedOption, setSelectedOption] = React.useState(null);
   const [selectedOptionReq, setSelectedOptionReq] = React.useState(null);
@@ -227,6 +239,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     Status: "",
     DocumentName: "",
     IsRework: false,
+    PreviousAttachmentID: "",
     DigitalSignStatus: false,
     ChangeRequestID: 0,
     AttachmentId: [],
@@ -238,7 +251,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
   const [showeditview, setshoweditview] = React.useState<boolean>(false);
   const [showModal, setShowModal] = React.useState(false);
+  const [showModaltemp, setShowModaltemp] = React.useState(false);
   const [ShowModalAtt, setShowModalAtt] = React.useState(false);
+  const [ShowModalTemplateDoc, setShowModalTemplateDoc] = React.useState(false);
 
   const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
     {
@@ -422,7 +437,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       AttachmentId: item.AttachmentId,
       AttachmentJson: item.AttachmentJson,
       ID: item.ID,
-      Status: item.Status
+      Status: item.Status,
+      PreviousAttachmentID: item.AttacmentId ? item.AttacmentId[0] : "", // Assuming AttachmentId is an array and we want the first element
       // DocumentName: "",
       // IsRework: false,
       // DigitalSignStatus: false,
@@ -436,6 +452,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     }
 
     setRows(doccodearrew);
+    let alltemplates = await getTemplatelink(sp);
+    if (alltemplates.length > 0) {
+      setTemplatelink(alltemplates[0]);
+    }
 
 
 
@@ -482,6 +502,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
 
     }
+    setLoading(false);
     // formitemid =20;
     // setLoading(true);
     if (formitemid) {
@@ -494,7 +515,22 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       else {
         setInputDisabled(false);
       }
-      const setBannerById = await getItemByIDCR(sp, Number(formitemid))
+      const setBannerById = await getItemByIDCR(sp, Number(formitemid));
+      const newItem1 = await getdigitalsignaturerequestbyID("ChangeRequestList", sp, Number(formitemid));
+      const isRecordExist = await getdigitalsignaturerequestbyIDYes("ChangeRequestList", sp, Number(formitemid));
+      console.log("newItem1newItem1", newItem1);
+
+      if (newItem1.length > 0) {
+        setDigitalsignID(newItem1[0].ID)
+      }
+
+      if (isRecordExist == "Yes" || isRecordExist == "NoRecord") {
+        setshowdigisign(false);
+      } else {
+        setshowdigisign(true);
+      }
+
+
       // setEditID(Number(setBannerById[0].ID))
       if (setBannerById.length > 0) {
         debugger
@@ -502,16 +538,22 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         setMainEditItem(setBannerById[0]);
         debugger
         // setCategoryData(await getCategory(sp, Number(setBannerById[0]?.TypeMaster))) // Category
-        if (setBannerById[0].AttachmentId.length > 0) {
-          let arrn = await getDocumentLinkByIDarr(sp, setBannerById[0].AttachmentId[0]);
-          //let arraynew: any[];
-          //arraynew.push(arrn)
-          console.log("arrrrrrnh", arrn);
-          if (setBannerById[0].Status != "Rework") {
+        if (((setBannerById[0].PreviousAttachmentID != null || setBannerById[0].PreviousAttachmentID != undefined
+          || setBannerById[0].PreviousAttachmentID != "") && setBannerById[0].PreviousAttachmentID > 0) || setBannerById[0].AttachmentId.length > 0) {
+          if (setBannerById[0].AttachmentId.length > 0) {
+            let arrn = await getDocumentLinkByIDarr(sp, setBannerById[0].AttachmentId[0], setBannerById[0].ID);
+            //let arraynew: any[];
+            //arraynew.push(arrn)
+            console.log("arrrrrrnh", arrn);
+            // if (setBannerById[0].Status != "Rework") {
             setAttachmentarr(arrn);
+            // }
+          }
+          if ((setBannerById[0].PreviousAttachmentID != null || setBannerById[0].PreviousAttachmentID != undefined
+            || setBannerById[0].PreviousAttachmentID != "") && setBannerById[0].PreviousAttachmentID > 0) {
+            setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].PreviousAttachmentID, setBannerById[0].ID))
           }
 
-          setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId[0]))
         }
 
         if (ProcessItemId && ProcessItemId.Level === 0 && ProcessItemId.CurrentUserRole === "OES" && ProcessItemId.IsInitiator == "No") {
@@ -589,6 +631,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           DepartmentId: setBannerById[0].DepartmentId,
           TemplateTypeId: setBannerById[0].TemplateTypeId,
           AttachmentId: setBannerById[0].AttachmentId,
+          PreviousAttachmentID: setBannerById[0].PreviousAttachmentID,
           AttachmentJson: setBannerById[0].AttachmentJson,
           Status: setBannerById[0].Status,
           RequesterName: setBannerById[0].Title,
@@ -620,16 +663,24 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         setselectedCheckboxIds(setBannerById[0].ChangeRequestTypeId);
         setSelectedOptionReq(selectedRequesttype);
 
-        if (setBannerById[0].AttachmentId.length > 0) {
-          setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId[0]));
-          let arrn = await getDocumentLinkByIDarr(sp, setBannerById[0].AttachmentId[0]);
-          //let arraynew: any[];
-          //arraynew.push(arrn)
-          console.log("arrrrrrnty", arrn);
+        if (((setBannerById[0].PreviousAttachmentID != null || setBannerById[0].PreviousAttachmentID != undefined
+          || setBannerById[0].PreviousAttachmentID != "") && setBannerById[0].PreviousAttachmentID > 0) || setBannerById[0].AttachmentId.length > 0) {
+          if (setBannerById[0].AttachmentId.length > 0) {
 
-          if (setBannerById[0].Status != "Rework") {
+            let arrn = await getDocumentLinkByIDarr(sp, setBannerById[0].AttachmentId[0], setBannerById[0].ID);
+            //let arraynew: any[];
+            //arraynew.push(arrn)
+            console.log("arrrrrrnty", arrn);
+
+            // if (setBannerById[0].Status != "Rework") {
             setAttachmentarr(arrn);
+            // }
           }
+          if ((setBannerById[0].PreviousAttachmentID != null || setBannerById[0].PreviousAttachmentID != undefined
+            || setBannerById[0].PreviousAttachmentID != "") && setBannerById[0].PreviousAttachmentID > 0) {
+            setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].PreviousAttachmentID, setBannerById[0].ID));
+          }
+
         }
         else {
           setDocumentLink(null);
@@ -685,7 +736,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         DepartmentId: selectedList.DepartmentId,
         TemplateTypeId: selectedList.TemplateTypeId,
         AttachmentId: selectedList.AttachmentId,
-        AttachmentJson: selectedList.AttachmentJson
+        AttachmentJson: selectedList.AttachmentJson,
+        PreviousAttachmentID: selectedList.AttachmentId.length > 0 ? selectedList.AttachmentId[0] : "", // Assuming AttachmentId is an array and we want the first element
         // Format as YYYY-MM-DD
       }));
       setSelectedOption(selectedList);
@@ -695,6 +747,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         description: item.ChangeDescription,
         reason: item.ReasonforChange,
       }));
+      setLoading(false);
       // setcancellReason(initialRows);
       // setcancellReasonEdit(initialRows);
       //setcancellReason([{ id: 0, description: "", reason: "" }]);
@@ -722,7 +775,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         //arraynew.push(arrn)
         console.log("arrrrrrn56", arrn);
         //setAttachmentarr(arrn);
-        setDocumentLink(await getDocumentLinkByID(sp, selectedList.AttachmentId[0]))
+        setDocumentLink(await getDocumentLinkByID(sp, selectedList.AttachmentId[0], selectedList.ID))
       }
       else {
         setDocumentLink(null);
@@ -740,6 +793,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     }
   };
   const onSelectReq = (selectedList: any) => {
+    setshowpreviousattachment(false);
     setFormData(prevData => ({
       ...prevData,
       SerialNumber: "",
@@ -1044,22 +1098,74 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   };
 
   //#endregion
+  const cancelModalAction = (refresh?: boolean,) => {
+    debugger
+    setredirecturl(window.location.href);
+    //setShowfileNew(false);
+    setShowModalTemplateDoc(false);
+    Showfile = false;
+  }
+  const renderIframeUrl = (fileUrl: string): string => {
+    const isOfficeFile = /\.(docx?|xlsx?|pptx?)$/i.test(fileUrl);
+
+    if (isOfficeFile) {
+      return `https://edcadae.sharepoint.com/sites/EDeDMS/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(fileUrl)}&action=embedview`;
+    }
+
+    if (/\.pdf$/i.test(fileUrl)) {
+      return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+    }
+
+    // fallback
+    return fileUrl;
+  };
+
   const OpenFile = (obj: any, sts: string) => {
     debugger
-    console.log("ttrtrtrtt", obj)
+
     const fileUrl = `${Tenant_URL}${obj?.FileRef != "" ? obj.FileRef : obj.fileUrl}`;
     if (sts == "Open") {
-      if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
+      Showfile = true;
+    }
+    let redirecturl = obj?.FileRef != "" ? obj.FileRef : obj.fileUrl;
+    //const viewerUrl = `${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=view`
+    //const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(redirecturl)}`
+    //setredirecturl(viewerUrl);
+    //const fileUrl = `${Tenant_URL}${obj.FileRef}`;
 
-        window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=default`, "_blank");
+    console.log("ttrtrtrtt", obj);
+    const tenantUrl = "https://edcadae.sharepoint.com";
+    const docurl = "/sites/EDeDMS/ImportantDocuments/SomeFolder/Example.pdf";
+
+    // Extract parent folder from docurl
+    const parent = docurl.substring(0, docurl.lastIndexOf("/") + 1);
+
+    // Construct the final redirect URL
+    const redirectURLpdf = `${tenantUrl}/sites/EDeDMS/ImportantDocuments/Forms/AllItems.aspx?id=${encodeURIComponent(docurl)}&parent=${encodeURIComponent(parent)}&p=true&ga=1`;
+
+    console.log(redirectURLpdf);
+
+    //const fileUrl = `${Tenant_URL}${obj?.FileRef != "" ? obj.FileRef : obj.fileUrl}`;
+    if (sts == "Open") {
+      if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
+        const viewerUrlppt = `${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=embedview`;
+        //const viewerUrldoc = `${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=view&wdHideGridlines=true&wdHideToolbar=true&embedded=true`;
+        //const viewerUrlxlsx = `${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=embedview&wdAllowInteractivity=false&embedded=true`;
+
+        setredirecturl(viewerUrlppt);
+
+
+        //window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=view`);
+
       } else {
-        window.open(fileUrl, "_blank"); // Open PDF and other files normally
+        setredirecturl(fileUrl);
+        //window.open(fileUrl, "_blank"); // Open PDF and other files normally
       }
 
     } else if (sts == "Download") {
       const link = document.createElement("a");
       link.href = fileUrl;
-      link.setAttribute("download", obj?.FileLeafRef != "" ? obj.FileLeafRef : obj.name); // Suggests a filename for download
+      link.setAttribute("download", obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name)); // Suggests a filename for download
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -1080,6 +1186,59 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     //   window.open(fileUrl, "_blank"); // Open PDF and other files normally
     // }
   }
+  const OpenFileTemplate = (obj: any, sts: string) => {
+    debugger
+    setShowModalTemplateDoc(true);
+    if (sts == "Open") {
+      Showfile = true;
+    }
+    console.log("ttrtrtrtt", obj)
+    const fileUrl = `${Tenant_URL}${obj?.FileRef != "" ? obj.FileRef : obj.fileUrl}`;
+    if (sts == "Open") {
+      if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
+        const viewerUrl = `${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=embedview`;
+
+        //window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=view`);
+        setredirecturl(viewerUrl);
+      } else {
+        setredirecturl(fileUrl);
+        //window.open(fileUrl, "_blank"); // Open PDF and other files normally
+      }
+
+    } else if (sts == "Download") {
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.setAttribute("download", obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name)); // Suggests a filename for download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+    }
+
+  }
+
+  const cleanFileName = (filename: string) => {
+    // Match a 14-digit datetime suffix before the file extension
+    const datetimePattern = /_\d{14}(?=\.[^.]+$)/;
+
+    if (datetimePattern.test(filename)) {
+      return filename.replace(datetimePattern, '');
+    }
+
+    return filename;
+  }
+
+  const cleanFileNameSave = async (filename: string) => {
+    // Match a 14-digit datetime suffix before the file extension
+    const datetimePattern = /_\d{14}(?=\.[^.]+$)/;
+
+    if (datetimePattern.test(filename)) {
+      return filename.replace(datetimePattern, '');
+    }
+
+    return filename;
+  }
+
   const ApprovalTypeOptions = [
     { value: 'One', label: 'Anyone' },
     { value: 'All', label: 'Everyone' }
@@ -1088,6 +1247,19 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const addCancelReason = () => {
     setcancellReason([...cancellReason, { id: 0, description: "", reason: "" }]);
   };
+  const updatedigisignnew = async () => {
+    let items = await updateDigitalsign("ChangeRequestList", sp, DigitalsignID, editItemID);
+    if (items) {
+      sethidedigisign(true);
+      const isRecordExist = await getdigitalsignaturerequestbyIDYes("ChangeRequestList", sp, Number(editItemID));
+      if (isRecordExist == "Yes" || isRecordExist == "NoRecord") {
+        setshowdigisign(false);
+      } else {
+        setshowdigisign(true);
+      }
+
+    }
+  }
 
   const getNewFileName = async (originalFileName: string): Promise<string> => {
     const userId = currentUser.Id; // Or however you get the current user ID
@@ -1247,11 +1419,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         setchangerequesttypeerr(true);
         valid = false;
       }
-      if (Attachmentarr.length == 0 && DocumentLink == null) {
+      // if (Attachmentarr.length == 0 && DocumentLink == null) {
+      //   setattachmenterr(true);
+      //   valid = false;
+      // }
+      if (Attachmentarr.length == 0) {
         setattachmenterr(true);
         valid = false;
       }
-
       // return true;
 
       setValidSubmit(valid);
@@ -1345,6 +1520,21 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     return `${code}-${newIssueNo}-${newRevNo}-${rest}`;
   }
 
+
+  const formatDateTime = async (date: Date) => {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+
+    const dd = pad(date.getDate());
+    const MM = pad(date.getMonth() + 1); // Month is 0-based
+    const yyyy = date.getFullYear();
+    const hh = pad(date.getHours());
+    const mm = pad(date.getMinutes());
+    const ss = pad(date.getSeconds());
+
+    return `${dd}${MM}${yyyy}${hh}${mm}${ss}`;
+  };
+
+
   const handleFormSubmit = async () => {
     debugger
     scrollToTop();
@@ -1364,12 +1554,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       let revisionno = "";
       if (selectedOptionReq.requestcode == "New") {
         if (serialnumber.length > 0) {
-          issueno = serialnumber[0].IssueNo;
-          serialno = (Number(serialnumber[0].SerialNo) + 1).toString();
-          revisionno = serialnumber[0].RevisionNo;
-          setissueNo(serialnumber[0].IssueNo);
-          setserialNo(serialno);
-          setrevisionNo(serialnumber[0].RevisionNo);
+          issueno = formData.Status == "Rework" ? formData.IssueNumber : serialnumber[0].IssueNo;
+          serialno = formData.Status == "Rework" ? formData.SerialNumber : (Number(serialnumber[0].SerialNo) + 1).toString();
+          revisionno = formData.Status == "Rework" ? formData.RevisionNumber : serialnumber[0].RevisionNo;
+          setissueNo(formData.Status == "Rework" ? formData.IssueNumber : serialnumber[0].IssueNo);
+          setserialNo(formData.Status == "Rework" ? formData.SerialNumber : serialno);
+          setrevisionNo(formData.Status == "Rework" ? formData.RevisionNumber : serialnumber[0].RevisionNo);
         } else {
           issueno = issueNo == "" || issueNo == null ? "01" : issueNo;
           serialno = serialNo == "" || issueNo == null ? "01" : serialNo;
@@ -1378,26 +1568,28 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           setserialNo(serialNo == "" || issueNo == null ? "01" : serialNo);
         }
       } else {
-        issueno = (Number(selectedOption?.IssueNumber) + 1).toString();
-        serialno = selectedOption?.SerialNumber;
-        revisionno = (Number(selectedOption?.RevisionNumber) + 1).toString();
+        issueno = formData.Status == "Rework" ? formData.IssueNumber : (Number(selectedOption?.IssueNumber) + 1).toString();
+        serialno = formData.Status == "Rework" ? formData.SerialNumber : selectedOption?.SerialNumber;
+        revisionno = formData.Status == "Rework" ? formData.RevisionNumber : (Number(selectedOption?.RevisionNumber) + 1).toString();
         setissueNo(issueno);
         setserialNo(serialno);
         setrevisionNo(revisionno);
       }
-      let ApprovedChanedoc:any =[];
-      ApprovedChanedoc = selectedOptionReq?.requestcode == "Edit" && await getDocumentCodeselectedApproved(sp,formData.DocumentCode, formData.LocationId, formData.CustodianId, formData.DocumentTypeId);
+      let ApprovedChanedoc: any = [];
+      ApprovedChanedoc = selectedOptionReq?.requestcode == "Edit" && await getDocumentCodeselectedApproved(sp, formData.DocumentCode, formData.LocationId, formData.CustodianId, formData.DocumentTypeId);
       let finalissuedateNew: any;
       if (ApprovedChanedoc.length > 0) {
         finalissuedateNew = new Date(ApprovedChanedoc[0].IssueDate).toISOString();
       } else {
         finalissuedateNew = new Date().toISOString();
       }
-      let doccode = selectedOptionReq?.requestcode == "New" ? await generateDocCode(serialno) : selectedOption?.DocumentCode;
+      let doccode = selectedOptionReq?.requestcode == "New" && formData.Status != "Rework" ? await generateDocCode(serialno) : selectedOption?.DocumentCode;
       let referencecode = await generateReferenceCode(serialno, issueno);
       let finalrevisiondate = changerequestdata[0].RevisionDate == null || changerequestdata[0].RevisionDate == undefined ? undefined : new Date(changerequestdata[0].RevisionDate).toISOString();
       let finalissuedate = changerequestdata[0].IssueDate == null || changerequestdata[0].IssueDate == undefined ? undefined : new Date(changerequestdata[0].IssueDate).toISOString();
       console.log("doccode doccode", doccode, referencecode);
+      const now = new Date();
+      const dateTimeSuffix = await formatDateTime(now);
       if (editForm) {
         Swal.fire({
           title: 'Do you want to submit this request?',
@@ -1415,17 +1607,20 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let DocumentName: string = "";
             let attachmentIds = [];
             debugger
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/ChangeRequestDocs');
             let docCode = selectedOptionReq.requestcode == "New" ? doccode : selectedOption?.DocumentCode;
             let filenamenew: any;
             let newfileName: any;
+            debugger
             if (Attachmentarr.length > 0) {
               if (Attachmentarr[0]?.files?.length > 0) {
                 for (const file of Attachmentarr[0].files) {
                   //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                   //const newFileName = await getNewFileName(file.name);
+                  newfileName = docCode + "-" + issueno + "-" + revisionno + "-" + file.name;
+
                   if (file.name.includes(docCode)) {
-                    newfileName = docCode + "-" + issueno + "-" + revisionno + "-" + file.name;
+
                     const pattern = new RegExp(`^(${docCode})-(\\d+)-(\\d+)-(.*)$`);
                     const match = file.name.match(pattern);
 
@@ -1436,10 +1631,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                     filenamenew = `${code}-${issueno}-${revisionno}-${rest}`;
                   }
 
-                  const newfileNameNew = file.name.includes(docCode) ? filenamenew : newfileName;
-
+                  let newfileNameNew = file.name.includes(docCode) ? filenamenew : newfileName;
+                  newfileNameNew = await cleanFileNameSave(newfileNameNew);
                   DocumentName = newfileNameNew;
-                  const fileAddResult = await folder.files.addChunked(newfileNameNew, file);
+                  const finalFileName = `${newfileNameNew.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNew.substring(newfileNameNew.lastIndexOf('.'))}`;
+                  const fileAddResult = await folder.files.addChunked(finalFileName, file);
                   const fileNew = fileAddResult.file;
                   let filenamenew1: any;
                   //const newFileNameN = await getNewFileName(fileAddResult.data.Name);
@@ -1456,14 +1652,16 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                   }
 
 
-                  const newfileNameNewN = fileAddResult.data.Name.includes(docCode) ? filenamenew1 : newfileNameNewN1;
+                  let newfileNameNewN = fileAddResult.data.Name.includes(docCode) ? filenamenew1 : newfileNameNewN1;
+                  newfileNameNewN = await cleanFileNameSave(newfileNameNewN);
+                  const finalFileNameN = `${newfileNameNewN.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNewN.substring(newfileNameNewN.lastIndexOf('.'))}`;
                   const documentName = newfileNameNewN;
                   bannerImageArray = fileAddResult;
                   // Get the item ID for the uploaded file
                   const currentItemId = await fileNew.getItem<{ Id: number }>();
                   const itemId = currentItemId.Id;
                   await currentItemId.update({
-                    FileName: documentName, // Assuming FileName is the internal name of the column
+                    FileName: finalFileNameN, // Assuming FileName is the internal name of the column
                     DocumentCode: selectedOptionReq?.requestcode == "New" ? doccode : selectedOption?.DocumentCode,
                   });
 
@@ -1488,11 +1686,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 }
 
 
-                const newfileNameNewN = item.File.Name.includes(docCode) ? filenamenew : newfileNameNew1;
+                let newfileNameNewN = item.File.Name.includes(docCode) ? filenamenew : newfileNameNew1;
+                newfileNameNewN = await cleanFileNameSave(newfileNameNewN);
                 const oldFilePath = item?.File?.ServerRelativeUrl;
                 const folderPath = oldFilePath.substring(0, oldFilePath.lastIndexOf('/'));
                 //const oldFilePathN = folderPath +"/"+ encodeURI(item.File.Name);
-                const newFilePath = `${folderPath}/${newfileNameNewN}`;
+
+                const finalFileNameN = `${newfileNameNewN.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNewN.substring(newfileNameNewN.lastIndexOf('.'))}`;
+                const newFilePath = `${folderPath}/${finalFileNameN}`;
 
                 // 2. Use moveByPath to rename the file
                 await sp.web.getFileByServerRelativePath(oldFilePath).moveByPath(newFilePath, true, false);
@@ -1502,7 +1703,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 //   DocumentCode: docCode
                 // });
                 const itemnew = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(Attachmentarr[0].ID).update({
-                  FileName: newfileNameNewN, // Assuming FileName is the internal name of the column
+                  FileName: finalFileNameN, // Assuming FileName is the internal name of the column
                   DocumentCode: docCode
                 })
                 attachmentIds.push(Attachmentarr[0]?.ID);
@@ -1524,10 +1725,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                     filenamenew = `${code}-${issueno}-${revisionno}-${rest}`;
                   }
-                  const newfileNameNew = file.name.includes(docCode) ? filenamenew : newfileName;
-
-                  DocumentName = newfileNameNew;
-                  const fileAddResult = await folder.files.addChunked(newfileNameNew, file);
+                  let newfileNameNew = file.name.includes(docCode) ? filenamenew : newfileName;
+                  newfileNameNew = await cleanFileNameSave(newfileNameNew);
+                  const finalFileNameNew = `${newfileNameNew.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNew.substring(newfileNameNew.lastIndexOf('.'))}`;
+                  DocumentName = finalFileNameNew;
+                  const fileAddResult = await folder.files.addChunked(finalFileNameNew, file);
                   const fileNew = fileAddResult.file;
                   let filenamenew1: any;
                   //const newFileNameN = await getNewFileName(fileAddResult.data.Name);
@@ -1544,8 +1746,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                   const newfileNameNewN1 = docCode + "-" + issueno + "-" + revisionno + "-" + fileAddResult.data.Name;
 
 
-                  const newfileNameNewN = fileAddResult.data.Name.includes(docCode) ? filenamenew1 : newfileNameNewN1;
-                  const documentName = newfileNameNewN;
+                  let newfileNameNewN = fileAddResult.data.Name.includes(docCode) ? filenamenew1 : newfileNameNewN1;
+                  newfileNameNewN = await cleanFileNameSave(newfileNameNewN);
+                  const finalFileNameNewN = `${newfileNameNewN.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNewN.substring(newfileNameNewN.lastIndexOf('.'))}`;
+                  const documentName = finalFileNameNewN;
                   bannerImageArray = fileAddResult;
                   // Get the item ID for the uploaded file
                   const currentItemId = await fileNew.getItem<{ Id: number }>();
@@ -1576,11 +1780,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 }
 
 
-                const newfileNameNewN = item.File.Name.includes(docCode) ? filenamenew : newfileNameNew1;
+                let newfileNameNewN = item.File.Name.includes(docCode) ? filenamenew : newfileNameNew1;
+                newfileNameNewN = await cleanFileNameSave(newfileNameNewN);
                 const oldFilePath = item?.File?.ServerRelativeUrl;
                 const folderPath = oldFilePath.substring(0, oldFilePath.lastIndexOf('/'));
                 //const oldFilePathN = folderPath +"/"+ encodeURI(item.File.Name);
-                const newFilePath = `${folderPath}/${newfileNameNewN}`;
+                const finalFileNameNewN = `${newfileNameNewN.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNewN.substring(newfileNameNewN.lastIndexOf('.'))}`;
+                const newFilePath = `${folderPath}/${finalFileNameNewN}`;
 
                 // 2. Use moveByPath to rename the file
                 await sp.web.getFileByServerRelativePath(oldFilePath).moveByPath(newFilePath, true, false);
@@ -1590,7 +1796,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 //   DocumentCode: docCode
                 // });
                 const itemnew = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(DocumentLink.ID).update({
-                  FileName: newfileNameNewN, // Assuming FileName is the internal name of the column
+                  FileName: finalFileNameNewN, // Assuming FileName is the internal name of the column
                   DocumentCode: docCode
                 })
               }
@@ -1611,13 +1817,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               LocationId: formData.LocationId,
               FileName: formData.filename,
               CustodianId: formData.CustodianId,
-              SerialNumber: Number(serialno),
-              IssueNumber: Number(issueno),
-              RevisionNumber: Number(revisionno),
+              SerialNumber: formData.Status == "Rework" ? formData.SerialNumber : Number(serialno),
+              IssueNumber: formData.Status == "Rework" ? formData.IssueNumber : Number(issueno),
+              RevisionNumber: formData.Status == "Rework" ? formData.RevisionNumber : Number(revisionno),
               //RevisionDate: formData.RevisionDate,
               IssueDate: finalissuedateNew,
-              DocumentCode: docCode,
-              ReferenceNumber: referencecode,
+              DocumentCode: formData.Status == "Rework" ? formData.DocumentCode : docCode,
+              ReferenceNumber: formData.Status == "Rework" ? formData.ReferenceNumber : referencecode,
               RequestTypeId: formData.RequestTypeId,
               AmendmentTypeId: formData.AmendmentTypeId,
               ChangeRequestTypeId: selectedCheckboxIds,
@@ -1633,12 +1839,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               CDocumentCode: selectedTemplate != "Change Request" ? changerequestdata[0].DocumentCode : docCode,
               CIssueNumber: selectedTemplate != "Change Request" ? Number(changerequestdata[0].IssueNo) : Number(issueno),
               CRevisionNumber: selectedTemplate != "Change Request" ? Number(changerequestdata[0].RevisionNo) : Number(revisionno),
-              CIssueDate: selectedTemplate != "Change Request" ? finalissuedate : undefined,
+              CIssueDate: selectedTemplate != "Change Request" ? finalissuedate : finalissuedateNew,
               CRevisionDate: selectedTemplate != "Change Request" ? finalrevisiondate : undefined,
               //AttachmentId: selectedOptionReq.label == "New" ? Attachmentidsss : selectedOption?.AttachmentId,
               //AttachmentJson: selectedOptionReq.label == "New" ? AttachmentJso : selectedOption?.AttachmentJson,
               AttachmentId: Attachmentidsss,
-              AttachmentJson: AttachmentJso
+              AttachmentJson: AttachmentJso,
+              PreviousAttachmentID: ""
             }
             const postResult = await updateItemChangeRequestList(arr, sp, editItemID);
             const postId = postResult?.data?.ID;
@@ -1692,13 +1899,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
             //sessionStorage.removeItem("ChangeRequestId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
             // }, 1000);
             // }
           }
@@ -1723,8 +1930,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let DocumentName: string = "";
             let attachmentIds = [];
             debugger
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/ChangeRequestDocs');
             let docCode = selectedOptionReq?.requestcode == "New" ? doccode : selectedOption?.DocumentCode;
+            debugger
             if (Attachmentarr.length > 0) {
               if (Attachmentarr[0]?.files?.length > 0) {
                 for (const file of Attachmentarr[0].files) {
@@ -1763,8 +1971,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                   }
 
 
-                  const newfileNameNewN = fileAddResult.data.Name.includes(docCode) ? filenamenew1 : newfileNameNewP;
-                  const documentName = newfileNameNewN;
+                  let newfileNameNewN = fileAddResult.data.Name.includes(docCode) ? filenamenew1 : newfileNameNewP;
+                  newfileNameNewN = await cleanFileNameSave(newfileNameNewN);
+                  const finalFileNameNewN = `${newfileNameNewN.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNewN.substring(newfileNameNewN.lastIndexOf('.'))}`;
+                  const documentName = finalFileNameNewN;
                   //const documentName = fileAddResult.data.Name;
                   bannerImageArray = fileAddResult;
                   // Get the item ID for the uploaded file
@@ -1796,11 +2006,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 }
 
 
-                const newfileNameNewN = item.File.Name.includes(docCode) ? filenamenew : newfileNameNew1;
+                let newfileNameNewN = item.File.Name.includes(docCode) ? filenamenew : newfileNameNew1;
+                newfileNameNewN = await cleanFileNameSave(newfileNameNewN);
                 const oldFilePath = item?.File?.ServerRelativeUrl;
                 const folderPath = oldFilePath.substring(0, oldFilePath.lastIndexOf('/'));
                 //const oldFilePathN = folderPath +"/"+ encodeURI(item.File.Name);
-                const newFilePath = `${folderPath}/${newfileNameNewN}`;
+                const finalFileNameNewN = `${newfileNameNewN.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNewN.substring(newfileNameNewN.lastIndexOf('.'))}`;
+                const newFilePath = `${folderPath}/${finalFileNameNewN}`;
 
                 // 2. Use moveByPath to rename the file
                 await sp.web.getFileByServerRelativePath(oldFilePath).moveByPath(newFilePath, true, false);
@@ -1810,28 +2022,33 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 //   DocumentCode: docCode
                 // });
                 const itemnew = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(Attachmentarr[0].ID).update({
-                  FileName: newfileNameNewN, // Assuming FileName is the internal name of the column
+                  FileName: finalFileNameNewN, // Assuming FileName is the internal name of the column
                   DocumentCode: docCode
                 })
                 attachmentIds.push(Attachmentarr[0]?.ID);
               }
             } else {
+
               if (DocumentLink && DocumentLink?.files?.length > 0) {
+                let filenamenew: any;
                 for (const file of DocumentLink.files) {
                   //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                   const newfileNameNewX = docCode + "-" + issueno + "-" + revisionno + "-" + file.name;
-                  const pattern = new RegExp(`^(${docCode})-(\\d+)-(\\d+)-(.*)$`);
-                  const match = file.name.match(pattern);
+                  if (file.name.includes(docCode)) {
+                    const pattern = new RegExp(`^(${docCode})-(\\d+)-(\\d+)-(.*)$`);
+                    const match = file.name.match(pattern);
 
-                  if (!match) return file.name; // If it doesn't match expected structure, return original
+                    if (!match) return file.name; // If it doesn't match expected structure, return original
 
-                  const [, code, , , rest] = match;
+                    const [, code, , , rest] = match;
 
-                  let filenamenew = `${code}-${issueno}-${revisionno}-${rest}`;
-                  const newfileNameNew = file.name.includes(docCode) ? filenamenew : newfileNameNewX;
-
-                  DocumentName = newfileNameNew;
-                  const fileAddResult = await folder.files.addChunked(newfileNameNew, file);
+                    filenamenew = `${code}-${issueno}-${revisionno}-${rest}`;
+                  }
+                  let newfileNameNew = file.name.includes(docCode) ? filenamenew : newfileNameNewX;
+                  newfileNameNew = await cleanFileNameSave(newfileNameNew);
+                  const finalFileNameNewN = `${newfileNameNew.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNew.substring(newfileNameNew.lastIndexOf('.'))}`;
+                  DocumentName = finalFileNameNewN;
+                  const fileAddResult = await folder.files.addChunked(finalFileNameNewN, file);
                   const fileNew = fileAddResult.file;
                   let filenamenew1: any;
                   //const newFileNameN = await getNewFileName(fileAddResult.data.Name);
@@ -1849,8 +2066,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
 
 
-                  const newfileNameNewN = fileAddResult.data.Name.includes(docCode) ? filenamenew1 : newfileNameNewP;
-                  const documentName = newfileNameNewN;
+                  let newfileNameNewN = fileAddResult.data.Name.includes(docCode) ? filenamenew1 : newfileNameNewP;
+                  newfileNameNewN = await cleanFileNameSave(newfileNameNewN);
+                  const finalFileNameNewNO = `${newfileNameNewN.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNewN.substring(newfileNameNewN.lastIndexOf('.'))}`;
+                  const documentName = finalFileNameNewNO;
                   //const documentName = fileAddResult.data.Name;
                   bannerImageArray = fileAddResult;
                   // Get the item ID for the uploaded file
@@ -1882,11 +2101,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 }
 
 
-                const newfileNameNewN = item.File.Name.includes(docCode) ? filenamenew : newfileNameNew1;
+                let newfileNameNewN = item.File.Name.includes(docCode) ? filenamenew : newfileNameNew1;
+                newfileNameNewN = await cleanFileNameSave(newfileNameNewN);
                 const oldFilePath = item?.File?.ServerRelativeUrl;
                 const folderPath = oldFilePath.substring(0, oldFilePath.lastIndexOf('/'));
                 //const oldFilePathN = folderPath +"/"+ encodeURI(item.File.Name);
-                const newFilePath = `${folderPath}/${newfileNameNewN}`;
+                const finalFileNameNewNON = `${newfileNameNewN.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNewN.substring(newfileNameNewN.lastIndexOf('.'))}`;
+                const newFilePath = `${folderPath}/${finalFileNameNewNON}`;
 
                 // 2. Use moveByPath to rename the file
                 await sp.web.getFileByServerRelativePath(oldFilePath).moveByPath(newFilePath, true, false);
@@ -1896,7 +2117,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 //   DocumentCode: docCode
                 // });
                 const itemnew = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(DocumentLink.ID).update({
-                  FileName: newfileNameNewN, // Assuming FileName is the internal name of the column
+                  FileName: finalFileNameNewNON, // Assuming FileName is the internal name of the column
                   DocumentCode: docCode
                 })
                 attachmentIds.push(DocumentLink?.ID);
@@ -1916,12 +2137,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               LocationId: formData.LocationId,
               FileName: formData.filename,
               CustodianId: formData.CustodianId,
-              SerialNumber: Number(serialno),
-              IssueNumber: Number(issueno),
-              RevisionNumber: Number(revisionno),
+              SerialNumber: formData.Status == "Rework" ? formData.SerialNumber : Number(serialno),
+              IssueNumber: formData.Status == "Rework" ? formData.IssueNumber : Number(issueno),
+              RevisionNumber: formData.Status == "Rework" ? formData.RevisionNumber : Number(revisionno),
               //RevisionNumber: selectedOption?.RevisionNumber,
               //RevisionDate: new Date().toISOString(),
-              DocumentCode: selectedOptionReq?.requestcode == "New" ? doccode : selectedOption?.DocumentCode,
+              DocumentCode: formData.Status == "Rework" ? formData.DocumentCode : docCode,
               ReferenceNumber: referencecode,
               AmendmentTypeId: formData.AmendmentTypeId,
               RequestTypeId: formData.RequestTypeId,
@@ -1939,12 +2160,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               CDocumentCode: selectedTemplate != "Change Request" ? changerequestdata[0].DocumentCode : docCode,
               CIssueNumber: selectedTemplate != "Change Request" ? Number(changerequestdata[0].IssueNo) : Number(issueno),
               CRevisionNumber: selectedTemplate != "Change Request" ? Number(changerequestdata[0].RevisionNo) : Number(revisionno),
-              CIssueDate: selectedTemplate != "Change Request" ? finalissuedate : undefined,
+              CIssueDate: selectedTemplate != "Change Request" ? finalissuedate : finalissuedateNew,
               CRevisionDate: selectedTemplate != "Change Request" ? finalrevisiondate : undefined,
               //AttachmentId: selectedOptionReq.label == "New" ? Attachmentidsss : selectedOption?.AttachmentId,
               //AttachmentJson: selectedOptionReq.label == "New" ? AttachmentJso : selectedOption?.AttachmentJson,
               AttachmentId: Attachmentidsss,
-              AttachmentJson: AttachmentJso
+              AttachmentJson: AttachmentJso,
+              PreviousAttachmentID: ""
             };
             console.log("postPayload new", postPayload);
 
@@ -1979,14 +2201,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Submitted successfully.', '', 'success');
             // // sessionStorage.removeItem("bannerId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
             // }, 1000);
             // }
 
@@ -2052,7 +2274,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         }
       }
     }
-
+    const now = new Date();
+    const dateTimeSuffix = await formatDateTime(now);
     console.log("props.currentItem", props.currentItem);
     let test = arrrr && arrrr.join('.');
     if (await validateForm(FormSubmissionMode.DRAFT)) {
@@ -2073,13 +2296,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let DocumentName: string = "";
             let attachmentIds = [];
             debugger
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/ChangeRequestDocs');
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                 //const newFileName = await getNewFileName(file.name);
                 DocumentName = file.name;
-                const fileAddResult = await folder.files.addChunked(file.name, file);
+                let filenamedraft = await cleanFileNameSave(file.name);
+                const finalFileNameNewN = `${filenamedraft.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${filenamedraft.substring(filenamedraft.lastIndexOf('.'))}`;
+                const fileAddResult = await folder.files.addChunked(finalFileNameNewN, file);
                 const fileNew = fileAddResult.file;
                 //const newFileNameN = await getNewFileName(fileAddResult.data.Name);
                 const documentName = fileAddResult.data.Name;
@@ -2088,7 +2313,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 const currentItemId = await fileNew.getItem<{ Id: number }>();
                 const itemId = currentItemId.Id;
                 await currentItemId.update({
-                  FileName: documentName, // Assuming FileName is the internal name of the column
+                  FileName: finalFileNameNewN, // Assuming FileName is the internal name of the column
                 });
 
                 // Save the document ID for the attachment field in ChangeRequestList
@@ -2102,19 +2327,19 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               Title: formData.RequesterName,
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
-              DepartmentId: formData.DepartmentId,
-              TemplateTypeId: formData.TemplateTypeId,
+              DepartmentId: formData.DepartmentId || undefined,
+              TemplateTypeId: formData.TemplateTypeId || undefined,
               RequestDate: new Date(formData.RequestDate).toISOString(),
-              LocationId: formData.LocationId,
-              CustodianId: formData.CustodianId,
+              LocationId: formData.LocationId || undefined,
+              CustodianId: formData.CustodianId || undefined,
               SerialNumber: selectedOptionReq.requestcode == "Edit" && selectedOption ? Number(selectedOption?.SerialNumber) : null,
               IssueNumber: selectedOptionReq.requestcode == "Edit" && selectedOption ? Number(selectedOption?.IssueNumber) : null,
               RevisionNumber: selectedOptionReq.requestcode == "Edit" && selectedOption ? Number(selectedOption?.RevisionNumber) : null,
               DocumentCode: selectedOptionReq.requestcode == "New" ? "" : selectedOption && selectedOption?.DocumentCode,
               ReferenceNumber: selectedOptionReq.requestcode == "Edit" ? test : "",
-              AmendmentTypeId: formData.AmendmentTypeId,
-              RequestTypeId: formData.RequestTypeId,
-              ClassificationId: formData.ClassificationId,
+              AmendmentTypeId: formData.AmendmentTypeId || undefined,
+              RequestTypeId: formData.RequestTypeId || undefined,
+              ClassificationId: formData.ClassificationId || undefined,
               FileName: formData.filename,
               //ChangeRequestTypeId: formData.ChangeRequestTypeId,
               ChangeRequestTypeId: selectedCheckboxIds,
@@ -2123,14 +2348,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               SubmitStatus: "No",
               Status: "Save as draft",
               DocumentName: DocumentName,
-              DocumentTypeId: formData.DocumentTypeId,
+              DocumentTypeId: formData.DocumentTypeId || undefined,
               OESSubmitStatus: "No",
               InitiatorSubmitStatus: "No",
               CurrentUserRole: "OES",
               //AttachmentId: selectedOptionReq.label == "New" ? Attachmentidsss : selectedOption?.AttachmentId,
               //AttachmentJson: selectedOptionReq.label == "New" ? AttachmentJso : selectedOption?.AttachmentJson,
-              AttachmentId: Attachmentidsss,
-              AttachmentJson: AttachmentJso
+              AttachmentId: Attachmentarr.length > 0 ? Attachmentidsss : [],
+              AttachmentJson: Attachmentarr.length > 0 ? AttachmentJso : "",
+               PreviousAttachmentID: selectedOptionReq.requestcode == "New" ? "" : formData.PreviousAttachmentID + ""
 
             }
             let descriptionError = false;
@@ -2230,14 +2456,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Saved successfully.', '', 'success');
             // sessionStorage.removeItem("ChangeRequestId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
             // }, 2000);
             // }
           }
@@ -2260,14 +2486,16 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/ChangeRequestDocs');
             debugger
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                 //const newFileName = await getNewFileName(file.name);
                 DocumentName = file.name;
-                const fileAddResult = await folder.files.addChunked(file.name, file);
+                let filenamedraft = await cleanFileNameSave(file.name);
+                const finalFileNameNewN = `${filenamedraft.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${filenamedraft.substring(filenamedraft.lastIndexOf('.'))}`;
+                const fileAddResult = await folder.files.addChunked(finalFileNameNewN, file);
                 const fileNew = fileAddResult.file;
                 //const newFileNameN = await getNewFileName(fileAddResult.data.Name);
                 const documentName = fileAddResult.data.Name;
@@ -2276,7 +2504,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 const currentItemId = await fileNew.getItem<{ Id: number }>();
                 const itemId = currentItemId.Id;
                 await currentItemId.update({
-                  FileName: documentName, // Assuming FileName is the internal name of the column
+                  FileName: finalFileNameNewN, // Assuming FileName is the internal name of the column
                 });
                 console.log("JSON.stringify(fileAddResult)", JSON.stringify(fileAddResult))
                 // Save the document ID for the attachment field in ChangeRequestList
@@ -2290,21 +2518,21 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               Title: formData.RequesterName,
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
-              DepartmentId: formData.DepartmentId,
-              TemplateTypeId: formData.TemplateTypeId,
+              DepartmentId: formData.DepartmentId || undefined,
+              TemplateTypeId: formData.TemplateTypeId || undefined,
               RequestDate: new Date(formData.RequestDate).toISOString(),
               //IssueDate: new Date().toISOString(),
-              LocationId: formData.LocationId,
+              LocationId: formData.LocationId || undefined,
               FileName: formData.filename,
-              CustodianId: formData.CustodianId,
+              CustodianId: formData.CustodianId || undefined,
               SerialNumber: selectedOptionReq.requestcode == "Edit" && selectedOption ? Number(selectedOption?.SerialNumber) : null,
               IssueNumber: selectedOptionReq.requestcode == "Edit" && selectedOption ? Number(selectedOption?.IssueNumber) : null,
               RevisionNumber: selectedOptionReq.requestcode == "Edit" && selectedOption ? Number(selectedOption?.RevisionNumber) : null,
               DocumentCode: selectedOptionReq.requestcode == "New" ? "" : selectedOption && selectedOption?.DocumentCode,
               ReferenceNumber: selectedOptionReq.requestcode == "Edit" ? test : "",
-              RequestTypeId: formData.RequestTypeId,
-              AmendmentTypeId: formData.AmendmentTypeId,
-              ClassificationId: formData.ClassificationId,
+              RequestTypeId: formData.RequestTypeId || undefined,
+              AmendmentTypeId: formData.AmendmentTypeId || undefined,
+              ClassificationId: formData.ClassificationId || undefined,
               ChangeRequestTypeId: selectedCheckboxIds,
               SubmiitedDate: new Date().toISOString(),
               SubmitStatus: "No",
@@ -2313,8 +2541,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               DocumentTypeId: formData.DocumentTypeId,
               //AttachmentId: selectedOptionReq.label == "New" ? Attachmentidsss : selectedOption?.AttachmentId,
               //AttachmentJson: selectedOptionReq.label == "New" ? AttachmentJso : selectedOption?.AttachmentJson,
-              AttachmentId: Attachmentidsss,
-              AttachmentJson: AttachmentJso
+              AttachmentId: Attachmentarr.length > 0 ? Attachmentidsss : [],
+              AttachmentJson: Attachmentarr.length > 0 ? AttachmentJso : "",
+              PreviousAttachmentID: selectedOptionReq.requestcode == "New" ? "" : formData.PreviousAttachmentID + ""
 
             };
             console.log("postPayloaddraftttt", postPayload);
@@ -2390,14 +2619,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Saved successfully.', '', 'success');
             // // sessionStorage.removeItem("bannerId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
             // }, 1000);
           }
         })
@@ -2458,8 +2687,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
     }
   }
-  const ForwardApproval = (status: string) => {
+  const ForwardApproval = async (status: string) => {
     scrollToTop();
+    const IsactionTaken = await CheckIfAlreadyactionTaken(sp, editID.Id, CONTENTTYPE_ChangeDocument);
+
     let url = window.location.href.split('/sites/')[0];
     console.log("topp draf fprt", editItemID, cancellReason, url);
     let valid = true;
@@ -2525,7 +2756,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         Swal.fire("Please fill all the mandatory fields in every row.");
         return;
       }
-
+      if (!IsactionTaken) {
+        Swal.fire("Action has already been taken on this record.");
+        return;
+      }
       if (valid) {
         Swal.fire({
           title: actionMessage,
@@ -2544,7 +2778,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
             let arr = {
               ActionTakenById: currentUser.Id,
-              ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+              ActionTakenOn: new Date().toISOString(),
               // ActionTakenRoleId: formData.RequesterDesignation,
               Status: "Approved",
               Remark: remark,
@@ -2627,7 +2861,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx`;
               }
             });
 
@@ -2641,7 +2875,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
     }
     else {
-
+      if (!IsactionTaken) {
+        Swal.fire("Action has already been taken on this record.");
+        return;
+      }
       if (valid) {
         Swal.fire({
           title: actionMessage,
@@ -2659,7 +2896,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
             let arr = {
               ActionTakenById: currentUser.Id,
-              ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+              ActionTakenOn: new Date().toISOString(),
               // ActionTakenRoleId: formData.RequesterDesignation,
               Status: status,
               Remark: remark,
@@ -2739,7 +2976,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx`;
               }
             });
             // }
@@ -2762,6 +2999,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     // let valid = true;
     let actionMessage = "";
     let successMessage = "";
+    const now = new Date();
+    const dateTimeSuffix = await formatDateTime(now);
     switch (status) {
       case "Approved":
         actionMessage = "Do you want to submit this request?";
@@ -2776,7 +3015,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       //     successMessage = "Request sent for rework successfully.";
       //     break;
     }
-
+    const docCode1 = formData.DocumentCode;
 
     if (status == "Approved") {
       if (await validateForm(FormSubmissionMode.SUBMIT)) {
@@ -2794,20 +3033,22 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           console.log(result)
           if (result.isConfirmed) {
             setLoading(true);
+            debugger
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/ChangeRequestDocs');
+            // if (Attachmentarr.length > 0) {
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                 //const newFileName = await getNewFileName(file.name);
 
-                const newfileNameNew = docCode + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + file.name;
+                const newfileNameNew = docCode1 + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + file.name;
                 let filenamenew: any;
                 DocumentName = newfileNameNew;
-                if (file.name.includes(docCode)) {
-                  const pattern = new RegExp(`^(${docCode})-(\\d+)-(\\d+)-(.*)$`);
+                if (file.name.includes(docCode1)) {
+                  const pattern = new RegExp(`^(${docCode1})-(\\d+)-(\\d+)-(.*)$`);
                   const match = file.name.match(pattern);
 
                   if (!match) return file.name; // If it doesn't match expected structure, return original
@@ -2816,15 +3057,19 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                   filenamenew = `${code}-${formData.IssueNumber}-${formData.RevisionNumber}-${rest}`;
                 }
-
-                const fileAddResult = await folder.files.addChunked(file.name.includes(docCode) ? filenamenew : newfileNameNew, file);
+                let filenew = file.name.includes(docCode1) ? filenamenew : newfileNameNew;
+                filenew = await cleanFileNameSave(filenew);
+                const finalFileNameNewin = `${filenew.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${filenew.substring(filenew.lastIndexOf('.'))}`;
+                const fileAddResult = await folder.files.addChunked(finalFileNameNewin, file);
                 const fileNew = fileAddResult.file;
                 //const newFileNameN = await getNewFileName(fileAddResult.data.Name);
-                const newfileNameNewN1 = docCode + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + fileAddResult.data.Name;
+                const newfileNameNewN1 = docCode1 + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + file.name;
                 //const newfileNameNew1 = docCode + "-" + issueno + "-" + revisionno + "-" + file.name;
 
-                const newfileNameNewN = file.name.includes(docCode) ? filenamenew : newfileNameNewN1;
-                const documentName = newfileNameNewN;
+                let newfileNameNewN = file.name.includes(docCode1) ? filenamenew : newfileNameNewN1;
+                newfileNameNewN = await cleanFileNameSave(newfileNameNewN);
+                const finalFileNameNewin1 = `${newfileNameNewN.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNewN.substring(newfileNameNewN.lastIndexOf('.'))}`;
+                const documentName = finalFileNameNewin1;
                 bannerImageArray = fileAddResult;
                 // Get the item ID for the uploaded file
                 const currentItemId = await fileNew.getItem<{ Id: number }>();
@@ -2837,48 +3082,141 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 // Save the document ID for the attachment field in ChangeRequestList
                 attachmentIds.push(itemId);
               }
-            } else if (Attachmentarr.length > 0 && Attachmentarr[0].ID > 0) {
+            } else
+              if (Attachmentarr.length > 0 && Attachmentarr[0].ID > 0) {
 
-              const item = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(Attachmentarr[0].ID).select('File/ServerRelativeUrl', 'File/Name').expand('File')();
-              debugger
-              let filenamenew: any;
-              const newfileNameNewo = docCode + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + item.File.Name;
-              if (item.File.Name.includes(docCode)) {
-                const pattern = new RegExp(`^(${docCode})-(\\d+)-(\\d+)-(.*)$`);
-                const match = item.File.Name.match(pattern);
+                const item = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(Attachmentarr[0].ID).select('File/ServerRelativeUrl', 'File/Name').expand('File')();
+                debugger
+                let filenamenew: any;
+                const newfileNameNewo = docCode1 + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + item.File.Name;
+                if (item.File.Name.includes(docCode1)) {
+                  const pattern = new RegExp(`^(${docCode1})-(\\d+)-(\\d+)-(.*)$`);
+                  const match = item.File.Name.match(pattern);
 
-                if (!match) return item.File.Name; // If it doesn't match expected structure, return original
+                  if (!match) return item.File.Name; // If it doesn't match expected structure, return original
 
-                const [, code, , , rest] = match;
+                  const [, code, , , rest] = match;
 
-                filenamenew = `${code}-${formData.IssueNumber}-${formData.RevisionNumber}-${rest}`;
+                  filenamenew = `${code}-${formData.IssueNumber}-${formData.RevisionNumber}-${rest}`;
+                }
+
+                let newfileNameNewN = item.File.Name.includes(docCode1) ? filenamenew : newfileNameNewo;
+                newfileNameNewN = await cleanFileNameSave(newfileNameNewN);
+                const oldFilePath = item?.File?.ServerRelativeUrl;
+                const folderPath = oldFilePath.substring(0, oldFilePath.lastIndexOf('/'));
+                //const oldFilePathN = folderPath +"/"+ encodeURI(item.File.Name);
+                const finalFileNameNewiIN = `${newfileNameNewN.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNewN.substring(newfileNameNewN.lastIndexOf('.'))}`;
+                const newFilePath = `${folderPath}/${finalFileNameNewiIN}`;
+
+                // 2. Use moveByPath to rename the file
+                await sp.web.getFileByServerRelativePath(oldFilePath).moveByPath(newFilePath, true, false);
+                // 2. Move (rename) file
+                // await item.update({
+                //   FileName: newfileNameNewN, // Assuming FileName is the internal name of the column
+                //   DocumentCode: docCode
+                // });
+                const itemnew = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(Attachmentarr[0].ID).update({
+                  FileName: finalFileNameNewiIN, // Assuming FileName is the internal name of the column
+                  DocumentCode: docCode1
+                })
               }
 
-              const newfileNameNewN = item.File.Name.includes(docCode) ? filenamenew : newfileNameNewo;
-              const oldFilePath = item?.File?.ServerRelativeUrl;
-              const folderPath = oldFilePath.substring(0, oldFilePath.lastIndexOf('/'));
-              //const oldFilePathN = folderPath +"/"+ encodeURI(item.File.Name);
-              const newFilePath = `${folderPath}/${newfileNameNewN}`;
+            // else {
+            //   if (DocumentLink && DocumentLink?.files?.length > 0) {
+            //     for (const file of DocumentLink.files) {
+            //       //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+            //       //const newFileName = await getNewFileName(file.name);
+            //       let filenamenew: any;
+            //       const newfileName = docCode1 + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + file.name;
+            //       if (file.name.includes(docCode1)) {
+            //         const pattern = new RegExp(`^(${docCode1})-(\\d+)-(\\d+)-(.*)$`);
+            //         const match = file.name.match(pattern);
 
-              // 2. Use moveByPath to rename the file
-              await sp.web.getFileByServerRelativePath(oldFilePath).moveByPath(newFilePath, true, false);
-              // 2. Move (rename) file
-              // await item.update({
-              //   FileName: newfileNameNewN, // Assuming FileName is the internal name of the column
-              //   DocumentCode: docCode
-              // });
-              const itemnew = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(Attachmentarr[0].ID).update({
-                FileName: newfileNameNewN, // Assuming FileName is the internal name of the column
-                DocumentCode: docCode
-              })
-            }
+            //         if (!match) return file.name; // If it doesn't match expected structure, return original
+
+            //         const [, code, , , rest] = match;
+
+            //         filenamenew = `${code}-${formData.IssueNumber}-${formData.RevisionNumber}-${rest}`;
+            //       }
+            //       const newfileNameNew = file.name.includes(docCode1) ? filenamenew : newfileName;
+
+            //       DocumentName = newfileNameNew;
+            //       const fileAddResult = await folder.files.addChunked(newfileNameNew, file);
+            //       const fileNew = fileAddResult.file;
+            //       let filenamenew1: any;
+            //       //const newFileNameN = await getNewFileName(fileAddResult.data.Name);
+            //       if (fileAddResult.data.Name.includes(docCode1)) {
+            //         const pattern1 = new RegExp(`^(${docCode1})-(\\d+)-(\\d+)-(.*)$`);
+            //         const match1 = fileAddResult.data.Name.match(pattern1);
+
+            //         if (!match1) return fileAddResult.data.Name; // If it doesn't match expected structure, return original
+
+            //         const [, code1, , , rest1] = match1;
+
+            //         filenamenew1 = `${code1}-${formData.IssueNumber}-${formData.RevisionNumber}-${rest1}`;
+            //       }
+            //       const newfileNameNewN1 = docCode1 + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + fileAddResult.data.Name;
+
+
+            //       const newfileNameNewN = fileAddResult.data.Name.includes(docCode1) ? filenamenew1 : newfileNameNewN1;
+            //       const documentName = newfileNameNewN;
+            //       bannerImageArray = fileAddResult;
+            //       // Get the item ID for the uploaded file
+            //       const currentItemId = await fileNew.getItem<{ Id: number }>();
+            //       const itemId = currentItemId.Id;
+            //       await currentItemId.update({
+            //         FileName: documentName, // Assuming FileName is the internal name of the column
+            //         DocumentCode: selectedOptionReq?.requestcode == "New" ? docCode1 : selectedOption?.DocumentCode,
+            //       });
+
+            //       // Save the document ID for the attachment field in ChangeRequestList
+            //       attachmentIds.push(itemId);
+            //     }
+            //   } else if (DocumentLink && DocumentLink.ID > 0) {
+
+            //     const item = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(DocumentLink.ID).select('File/ServerRelativeUrl', 'File/Name').expand('File')();
+            //     debugger
+            //     let filenamenew: any;
+            //     const newfileNameNew1 = docCode1 + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + item.File.Name;
+            //     if (item.File.Name.includes(docCode1)) {
+            //       const pattern = new RegExp(`^(${docCode1})-(\\d+)-(\\d+)-(.*)$`);
+            //       const match = item.File.Name.match(pattern);
+
+            //       if (!match) return item.File.Name; // If it doesn't match expected structure, return original
+
+            //       const [, code, , , rest] = match;
+
+            //       filenamenew = `${code}-${formData.IssueNumber}-${formData.RevisionNumber}-${rest}`;
+            //     }
+
+
+            //     const newfileNameNewN = item.File.Name.includes(docCode1) ? filenamenew : newfileNameNew1;
+            //     const oldFilePath = item?.File?.ServerRelativeUrl;
+            //     const folderPath = oldFilePath.substring(0, oldFilePath.lastIndexOf('/'));
+            //     //const oldFilePathN = folderPath +"/"+ encodeURI(item.File.Name);
+            //     const newFilePath = `${folderPath}/${newfileNameNewN}`;
+
+            //     // 2. Use moveByPath to rename the file
+            //     await sp.web.getFileByServerRelativePath(oldFilePath).moveByPath(newFilePath, true, false);
+            //     // 2. Move (rename) file
+            //     // await item.update({
+            //     //   FileName: newfileNameNewN, // Assuming FileName is the internal name of the column
+            //     //   DocumentCode: docCode
+            //     // });
+            //     const itemnew = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(DocumentLink.ID).update({
+            //       FileName: newfileNameNewN, // Assuming FileName is the internal name of the column
+            //       DocumentCode: docCode1
+            //     })
+            //   }
+            //   attachmentIds.push(DocumentLink?.ID);
+            // }
             let Attachmentidsss = attachmentIds.length != 0 ? attachmentIds : formData.AttachmentId;
             let AttachmentJso = attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson;
             // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
             // //////////////Update Process Approval List when Submitted
             let arr = {
               ActionTakenById: currentUser.Id,
-              ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+              ActionTakenOn: new Date().toISOString(),
               // ActionTakenRoleId: formData.RequesterDesignation,
               Status: "Approved",
               // Remark: remark,
@@ -2920,7 +3258,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               OESSubmitStatus: "No",
               InitiatorSubmitStatus: "Yes",
               CurrentUserRole: "OES",
-              AttachmentId: attachmentIds,
+              AttachmentId: Attachmentidsss,
               AttachmentJson: AttachmentJso
 
 
@@ -2975,7 +3313,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -3003,7 +3341,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           console.log(result)
           if (result.isConfirmed) {
             setLoading(true);
-
+            debugger
             // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
             // let arr = {
             //   ActionTakenById: currentUser.Id,
@@ -3018,17 +3356,18 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/ChangeRequestDocs');
+
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                 //const newFileName = await getNewFileName(file.name);
 
-                const newfileNameNew = docCode + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + file.name;
+                const newfileNameNew = docCode1 + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + file.name;
                 let filenamenew: any;
                 DocumentName = newfileNameNew;
-                if (file.name.includes(docCode)) {
-                  const pattern = new RegExp(`^(${docCode})-(\\d+)-(\\d+)-(.*)$`);
+                if (file.name.includes(docCode1)) {
+                  const pattern = new RegExp(`^(${docCode1})-(\\d+)-(\\d+)-(.*)$`);
                   const match = file.name.match(pattern);
 
                   if (!match) return file.name; // If it doesn't match expected structure, return original
@@ -3038,14 +3377,19 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                   filenamenew = `${code}-${formData.IssueNumber}-${formData.RevisionNumber}-${rest}`;
                 }
 
-                const fileAddResult = await folder.files.addChunked(file.name.includes(docCode) ? filenamenew : newfileNameNew, file);
+                let filenew1 = file.name.includes(docCode1) ? filenamenew : newfileNameNew;
+                filenew1 = await cleanFileNameSave(filenew1);
+                const finalFileNameNewiIN = `${filenew1.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${filenew1.substring(filenew1.lastIndexOf('.'))}`;
+                const fileAddResult = await folder.files.addChunked(finalFileNameNewiIN, file);
                 const fileNew = fileAddResult.file;
                 //const newFileNameN = await getNewFileName(fileAddResult.data.Name);
-                const newfileNameNewN1 = docCode + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + fileAddResult.data.Name;
+                const newfileNameNewN1 = docCode1 + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + file.name;
                 //const newfileNameNew1 = docCode + "-" + issueno + "-" + revisionno + "-" + file.name;
 
-                const newfileNameNewN = file.name.includes(docCode) ? filenamenew : newfileNameNewN1;
-                const documentName = newfileNameNewN;
+                let newfileNameNewN = file.name.includes(docCode1) ? filenamenew : newfileNameNewN1;
+                newfileNameNewN = await cleanFileNameSave(newfileNameNewN);
+                const finalFileNameNewIn1 = `${newfileNameNewN.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNewN.substring(newfileNameNewN.lastIndexOf('.'))}`;
+                const documentName = finalFileNameNewIn1;
                 bannerImageArray = fileAddResult;
                 // Get the item ID for the uploaded file
                 const currentItemId = await fileNew.getItem<{ Id: number }>();
@@ -3063,9 +3407,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               const item = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(Attachmentarr[0].ID).select('File/ServerRelativeUrl', 'File/Name').expand('File')();
               debugger
               let filenamenew: any;
-              const newfileNameNewo = docCode + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + item.File.Name;
-              if (item.File.Name.includes(docCode)) {
-                const pattern = new RegExp(`^(${docCode})-(\\d+)-(\\d+)-(.*)$`);
+              const newfileNameNewo = docCode1 + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + item.File.Name;
+              if (item.File.Name.includes(docCode1)) {
+                const pattern = new RegExp(`^(${docCode1})-(\\d+)-(\\d+)-(.*)$`);
                 const match = item.File.Name.match(pattern);
 
                 if (!match) return item.File.Name; // If it doesn't match expected structure, return original
@@ -3075,11 +3419,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 filenamenew = `${code}-${formData.IssueNumber}-${formData.RevisionNumber}-${rest}`;
               }
 
-              const newfileNameNewN = item.File.Name.includes(docCode) ? filenamenew : newfileNameNewo;
+              let newfileNameNewN = item.File.Name.includes(docCode1) ? filenamenew : newfileNameNewo;
+              newfileNameNewN = await cleanFileNameSave(newfileNameNewN);
               const oldFilePath = item?.File?.ServerRelativeUrl;
               const folderPath = oldFilePath.substring(0, oldFilePath.lastIndexOf('/'));
               //const oldFilePathN = folderPath +"/"+ encodeURI(item.File.Name);
-              const newFilePath = `${folderPath}/${newfileNameNewN}`;
+              const finalFileNameNewINo = `${newfileNameNewN.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNewN.substring(newfileNameNewN.lastIndexOf('.'))}`;
+              const newFilePath = `${folderPath}/${finalFileNameNewINo}`;
 
               // 2. Use moveByPath to rename the file
               await sp.web.getFileByServerRelativePath(oldFilePath).moveByPath(newFilePath, true, false);
@@ -3089,10 +3435,100 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               //   DocumentCode: docCode
               // });
               const itemnew = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(Attachmentarr[0].ID).update({
-                FileName: newfileNameNewN, // Assuming FileName is the internal name of the column
-                DocumentCode: docCode
+                FileName: finalFileNameNewINo, // Assuming FileName is the internal name of the column
+                DocumentCode: docCode1
               })
             }
+
+            // else {
+            //   if (DocumentLink && DocumentLink?.files?.length > 0) {
+            //     for (const file of DocumentLink.files) {
+            //       //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+            //       //const newFileName = await getNewFileName(file.name);
+            //       let filenamenew: any;
+            //       const newfileName = docCode1 + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + file.name;
+            //       if (file.name.includes(docCode1)) {
+            //         const pattern = new RegExp(`^(${docCode1})-(\\d+)-(\\d+)-(.*)$`);
+            //         const match = file.name.match(pattern);
+
+            //         if (!match) return file.name; // If it doesn't match expected structure, return original
+
+            //         const [, code, , , rest] = match;
+
+            //         filenamenew = `${code}-${formData.IssueNumber}-${formData.RevisionNumber}-${rest}`;
+            //       }
+            //       const newfileNameNew = file.name.includes(docCode1) ? filenamenew : newfileName;
+
+            //       DocumentName = newfileNameNew;
+            //       const fileAddResult = await folder.files.addChunked(newfileNameNew, file);
+            //       const fileNew = fileAddResult.file;
+            //       let filenamenew1: any;
+            //       //const newFileNameN = await getNewFileName(fileAddResult.data.Name);
+            //       if (fileAddResult.data.Name.includes(docCode1)) {
+            //         const pattern1 = new RegExp(`^(${docCode1})-(\\d+)-(\\d+)-(.*)$`);
+            //         const match1 = fileAddResult.data.Name.match(pattern1);
+
+            //         if (!match1) return fileAddResult.data.Name; // If it doesn't match expected structure, return original
+
+            //         const [, code1, , , rest1] = match1;
+
+            //         filenamenew1 = `${code1}-${formData.IssueNumber}-${formData.RevisionNumber}-${rest1}`;
+            //       }
+            //       const newfileNameNewN1 = docCode1 + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + fileAddResult.data.Name;
+
+
+            //       const newfileNameNewN = fileAddResult.data.Name.includes(docCode1) ? filenamenew1 : newfileNameNewN1;
+            //       const documentName = newfileNameNewN;
+            //       bannerImageArray = fileAddResult;
+            //       // Get the item ID for the uploaded file
+            //       const currentItemId = await fileNew.getItem<{ Id: number }>();
+            //       const itemId = currentItemId.Id;
+            //       await currentItemId.update({
+            //         FileName: documentName, // Assuming FileName is the internal name of the column
+            //         DocumentCode: selectedOptionReq?.requestcode == "New" ? docCode1 : selectedOption?.DocumentCode,
+            //       });
+
+            //       // Save the document ID for the attachment field in ChangeRequestList
+            //       attachmentIds.push(itemId);
+            //     }
+            //   } else if (DocumentLink && DocumentLink.ID > 0) {
+
+            //     const item = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(DocumentLink.ID).select('File/ServerRelativeUrl', 'File/Name').expand('File')();
+            //     debugger
+            //     let filenamenew: any;
+            //     const newfileNameNew1 = docCode1 + "-" + formData.IssueNumber + "-" + formData.RevisionNumber + "-" + item.File.Name;
+            //     if (item.File.Name.includes(docCode1)) {
+            //       const pattern = new RegExp(`^(${docCode1})-(\\d+)-(\\d+)-(.*)$`);
+            //       const match = item.File.Name.match(pattern);
+
+            //       if (!match) return item.File.Name; // If it doesn't match expected structure, return original
+
+            //       const [, code, , , rest] = match;
+
+            //       filenamenew = `${code}-${formData.IssueNumber}-${formData.RevisionNumber}-${rest}`;
+            //     }
+
+
+            //     const newfileNameNewN = item.File.Name.includes(docCode1) ? filenamenew : newfileNameNew1;
+            //     const oldFilePath = item?.File?.ServerRelativeUrl;
+            //     const folderPath = oldFilePath.substring(0, oldFilePath.lastIndexOf('/'));
+            //     //const oldFilePathN = folderPath +"/"+ encodeURI(item.File.Name);
+            //     const newFilePath = `${folderPath}/${newfileNameNewN}`;
+
+            //     // 2. Use moveByPath to rename the file
+            //     await sp.web.getFileByServerRelativePath(oldFilePath).moveByPath(newFilePath, true, false);
+            //     // 2. Move (rename) file
+            //     // await item.update({
+            //     //   FileName: newfileNameNewN, // Assuming FileName is the internal name of the column
+            //     //   DocumentCode: docCode
+            //     // });
+            //     const itemnew = await sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(DocumentLink.ID).update({
+            //       FileName: newfileNameNewN, // Assuming FileName is the internal name of the column
+            //       DocumentCode: docCode1
+            //     })
+            //   }
+            //   attachmentIds.push(DocumentLink?.ID);
+            // }
             let Attachmentidsss = attachmentIds.length != 0 ? attachmentIds : formData.AttachmentId;
             let AttachmentJso = attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson;
             // //////////////Update Document cancellation List when Submitted
@@ -3128,7 +3564,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               OESSubmitStatus: "No",
               InitiatorSubmitStatus: "No",
               CurrentUserRole: "Initiator",
-              AttachmentId: attachmentIds,
+              AttachmentId: Attachmentidsss,
               AttachmentJson: AttachmentJso
 
 
@@ -3215,7 +3651,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -3356,11 +3792,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     const encodedFilePath = encodeURIComponent(serverRelativeUrl);
 
     // Example: 
-    // serverRelativeUrl = "/sites/edcspfx/test/DocumentLibraryInsideTest/Book.xlsx"
+    // serverRelativeUrl = "/sites/ededms/test/DocumentLibraryInsideTest/Book.xlsx"
     const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
     const siteUrl = window.location.origin;
 
-    // const previewUrl = `${siteUrl}/sites/edcspfx/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    // const previewUrl = `${siteUrl}/sites/ededms/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     const previewUrl = `${siteUrl}${locationPath}/ChangeRequestDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     console.log("Generated Preview URL:", previewUrl);
@@ -3586,18 +4022,45 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                           <div className="card-body">
 
                             <div className="previewIcon">
-                              <h4 style={{ textAlign: 'left' }} className="text-dark font-16 fw-bold mb-3">Requested By</h4>
+                              <h4 style={{ textAlign: 'left' }} className="text-dark font-16 fw-bold mb-3">
+                                Requested By
+                              </h4>
 
-                              {TemplateDoc && TemplateDoc.length > 0 && (
-                                <span
-                                  onClick={() => OpenFile(TemplateDoc[0], "Open")}
-                                  style={{ color: "blue", cursor: "pointer", margin: "10px" }}
-                                >
-                                  <div className="btn btn-primary">
-                                    <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../assets/noun-download-5006210.png")} ></img></div>
-                                </span>
-                              )}
+                              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                {(formData.Status === "Approved" || formData.Status === "Rejected") && !hidedigisign && DigitalsignID != null && (
+                                  <span
+                                    onClick={() => updatedigisignnew()}
+                                    style={{ cursor: "pointer" }}
+                                  >
+                                    <div className="" title='Sync digital signed document from Signing Hub'>
+                                      <img
+                                        style={{ cursor: 'pointer', height: '40px' }}
+                                        className='mt-0'
+                                        src={require("../assets/digisign.png")}
+                                        alt="Signature Icon"
+                                      />
+                                    </div>
+                                  </span>
+                                )}
+
+                                {TemplateDoc && TemplateDoc.length > 0 && (
+                                  <span
+                                    onClick={() => OpenFileTemplate(TemplateDoc[0], "Open")}
+                                    style={{ color: "blue", cursor: "pointer" }}
+                                  >
+                                    <div className="btn btn-primary p-2" title='Preview document'>
+                                      <img
+                                        style={{ cursor: 'pointer', height: '24px' }}
+                                        className='mt-0'
+                                        src={showdigisign ? require("../assets/signicon.png") : require("../assets/noun-download-5006210.png")}
+                                        alt="Download Icon"
+                                      />
+                                    </div>
+                                  </span>
+                                )}
+                              </div>
                             </div>
+
                             {/* <p className="sub-header">
                                                         Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aspernatur, itaque.
                                                     </p> */}
@@ -3932,8 +4395,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     <div className='d-flex justify-content-between'>
                                       <div>
                                         <label htmlFor="bannerImage" className="form-label">
-                                          Attachment<span className="text-danger1">*</span>
+                                          Attachment <a style={{ fontSize: '0.875rem' }} onClick={() => setShowModaltemp(true)}>
+                                            <FontAwesomeIcon title='Download Template' icon={faDownload} />
+                                          </a><span className="text-danger1">*</span>
                                         </label>
+
                                       </div>
                                       <div>
                                         <div>
@@ -3975,9 +4441,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                               {console.log("ghghghghghghgh", showpreviousattachment, "jjjj", (showpreviousattachment && (((modeValue == "view" || modeValue == "approve" ||
                                 (selectedOptionReq?.requestcode != "New" && selectedOption)) ||
                                 (modeValue == "edit" && formData?.Status == "Save as draft")) && DocumentLink && Attachmentarr.length == 0)))}
-                              {(showpreviousattachment && selectedOptionReq?.requestcode != "New" || (((modeValue == "view" || modeValue == "approve" ||
+                              {(showpreviousattachment && selectedOptionReq?.requestcode != "New" && (((modeValue == "view" || modeValue == "approve" ||
                                 (selectedOptionReq?.requestcode != "New" && selectedOption)) ||
-                                (modeValue == "edit" && formData?.Status == "Save as draft")) && DocumentLink && Attachmentarr.length == 0)) &&
+                                (modeValue == "edit" && formData?.Status == "Save as draft")) &&
+                                ((DocumentLink && Attachmentarr.length == 0) || formData?.PreviousAttachmentID != null))) &&
 
                                 <div className="col-lg-4">
                                   <div className="mb-3">
@@ -4370,7 +4837,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                       {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><i className="fe-check-circle me-1"></i> Submit</button>}
 
                       {/* </a> */}
-                        {/* <a href="../sites/edcspfx/SitePages/EDCMAIN.aspx">       */}
+                        {/* <a href="../sites/ededms/SitePages/EDCMAIN.aspx">       */}
                         {/* <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}><i className="fe-x me-1"></i> Cancel</button>
                       {/* </a> */}
                         {/* </div>
@@ -4530,119 +4997,221 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                           </Modal>
                         }
-
-                        <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" className='newmobmodal'>
+                        <Modal show={showModaltemp} onHide={() => setShowModaltemp(false)} size={Showfile ? "xl" : "lg"} className='newmobmodal'>
                           <Modal.Header closeButton>
-                            <Modal.Title> Attachment Details <br></br>
-                              {/* <p className='text-muted font-14 fw-400'>Below are the attachment details for Change Request
-                              </p> */}
+                            <Modal.Title> Download Template <br></br>
+                              <p className='text-muted font-14 fw-400'>Please download the provided template to proceed with creating the document
+                              </p>
 
                             </Modal.Title>
                             {/* {ImagepostArr1.length > 0 && showBannerModal && <Modal.Title>Media Images</Modal.Title>} */}
                           </Modal.Header>
                           <Modal.Body className="" id="style-5">
                             <>
-                              <table className="mtbalenew" >
-                                <thead>
-                                  <tr>
-                                    <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
-                                    <th>File Name</th>
-                                    {DocumentLink?.DocumentCodePrinting == "Yes" && <th > File Link </th>}
-                                    <th className='text-center'>Upload date</th>
-                                    {/* <th > Action </th> */}
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {console.log("Attachmentarrnmnm doc link", DocumentLink?.DocumentCodePrinting, DocumentLink != null)}
-                                  <tr >
-                                    <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
-                                    {/* <td title={DocumentLink != null && (DocumentLink?.FileLeafRef.includes('_') ? DocumentLink?.FileLeafRef.split('_')[2] : DocumentLink?.FileLeafRef)}>
-                                      {DocumentLink != null && (DocumentLink?.FileLeafRef.includes('_') ? DocumentLink?.FileLeafRef.split('_')[2] : DocumentLink?.FileLeafRef)}
-                                      </td> */}
-                                    <td title={DocumentLink != null && `${DocumentLink?.FileLeafRef}`}>{DocumentLink != null && `${DocumentLink?.FileLeafRef}`}</td>
-                                    {DocumentLink?.DocumentCodePrinting == "Yes" &&
-                                      <td style={{ textAlign: 'center' }}>
-                                        {/* <span onClick={() => OpenFile(DocumentLink != null && DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                        <FontAwesomeIcon icon={faEye} /></span> */}
-                                        <span title='Preview file' onClick={() => OpenFile(DocumentLink != null && DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                          <FontAwesomeIcon icon={faEye} /></span>
-                                        <span title='Download file' onClick={() => OpenFile(DocumentLink != null && DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                          <FontAwesomeIcon icon={faDownload} /></span>
-                                      </td>
-                                    }
-                                    <td className='text-center' title={DocumentLink && moment(DocumentLink?.Created).format("DD/MMM/YYYY")}>{DocumentLink && moment(DocumentLink?.Created).format("DD/MMM/YYYY")}</td>
-                                    {/* <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
-                                      <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFileAttachment(0, Attachmentarr)}></img>
-                                    </td> */}
-                                  </tr>
-                                </tbody>
+                              {Showfile ?
 
-                              </table>
+                                <FileViewer showfile={Showfile} docurl={redirecturl} cancelAction={cancelModalAction} />
+                                :
+                                <table className="mtbalenew" >
+                                  <thead style={{ background: '#eef6f7' }}>
+                                    <tr>
+                                      <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                                      <th style={{ minWidth: '140px', maxWidth: '1400px' }}>File Name</th>
+                                      {/* {editForm && <th>File Link</th>} */}
+                                      {/* <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th> */}
+                                      {/* {!InputDisabled && <th className='text-center'>Action</th>} */}
+                                      <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Action</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {console.log("Templatelink doc link", Templatelink)}
+                                    {Templatelink && Templatelink?.length > 0 && (
+                                      Templatelink?.map((row: any, index: number) => {
+                                        return (
+                                          <tr key={index}>
+                                            <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
+
+                                            <td style={{ minWidth: '140px', maxWidth: '140px', textAlign: 'center' }} title={row != null && `${cleanFileName(row?.FileLeafRef)}`}>{row != null && `${cleanFileName(row?.FileLeafRef)}`}</td>
+
+                                            {/* <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center' title={row && moment(row?.Created).format("DD/MMM/YYYY")}>{row && moment(row?.Created).format("DD/MMM/YYYY")}</td> */}
+
+                                            <td style={{ minWidth: '50px', maxWidth: '50px', textAlign: 'center' }}>
+
+                                              <span title='Download template' onClick={() => OpenFile(row != null && row, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                <FontAwesomeIcon icon={faDownload} /></span>
+                                            </td>
+
+                                          </tr>
+                                        )
+                                      }))}
+                                  </tbody>
+
+                                </table>
+                              }
                             </>
                           </Modal.Body>
                         </Modal>
-                        <Modal show={ShowModalAtt} onHide={() => setShowModalAtt(false)} size="lg" className='newmobmodal'>
+                        <Modal show={showModal} onHide={() => setShowModal(false)} size={Showfile ? "xl" : "lg"} className='newmobmodal'>
                           <Modal.Header closeButton>
                             <Modal.Title> Attachment Details <br></br>
-                              {/* <p className='text-muted font-14 fw-400'>Below are the attachment details for Change Request
-                              </p> */}
+                              <p className='text-muted font-14 fw-400 mb-0'>Below are the attachment details for Change Request
+                              </p>
 
                             </Modal.Title>
-                            {/* {ImagepostArr1.length > 0 && showBannerModal && <Modal.Title>Media Images</Modal.Title>} */}
+                            {/* {Previous Document} */}
                           </Modal.Header>
                           <Modal.Body className="" id="style-5">
                             <>
-                              <table className="mtbalenew" >
-                                <thead>
-                                  <tr>
-                                    <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
-                                    <th>Document Name</th>
-                                    {/* {showButton && */}
-                                    {((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
-                                      || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload && (Attachmentarr[0]?.DocumentCodePrinting == "Yes" || (formData?.Status == "Save as draft")) &&
-                                      <th > File Link </th>
-                                    }
-                                    <th className='text-center'>Upload date</th>
-                                    {(modeValue == "edit" || modeValue == null || modeValue == ""
-                                      || (modeValue == "approve" && formData?.Status == "Rework")) &&
-                                      <th style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}> Action </th>
-                                    }
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {console.log("Attachmentarrnmnm attach only", Attachmentarr)}
-                                  {Attachmentarr.length > 0 &&
+                              {Showfile ?
+
+                                <FileViewer showfile={Showfile} docurl={redirecturl} cancelAction={cancelModalAction} />
+                                :
+                                <table className="mtbalenew" >
+                                  <thead style={{ background: '#eef6f7' }}>
+                                    <tr>
+                                      <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                                      <th>File Name</th>
+
+                                      <th className='text-center'>Upload date</th>
+                                      {(DocumentLink?.NDocumentCodePrinting == "Yes" || DocumentLink?.NDocumentCodePrinting == "No" || DocumentLink?.NDocumentCodePrinting == "" || DocumentLink?.NDocumentCodePrinting == undefined) && <th > Action </th>}
+                                      {/* <th > Action </th> */}
+                                    </tr>
+                                  </thead>
+
+                                  <tbody>
+                                    {console.log("Attachmentarrnmnm doc link", DocumentLink, DocumentLink?.NDocumentCodePrinting, DocumentLink != null)}
                                     <tr >
                                       <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
-                                      {/* {Attachmentarr && (Attachmentarr[0]?.FileName.includes('_') ? Attachmentarr[0]?.FileName.split('_')[2] : Attachmentarr[0]?.FileName)} */}
-                                      <td title={Attachmentarr && Attachmentarr[0]?.FileName}>
-                                        {Attachmentarr && Attachmentarr[0]?.FileName}</td>
-                                      {/* {showButton && */}
-                                      {((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
-                                        || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload && (Attachmentarr[0]?.DocumentCodePrinting == "Yes" || (formData?.Status == "Save as draft")) &&
+
+                                      <td title={DocumentLink != null && `${cleanFileName(DocumentLink?.FileLeafRef)}`}>{DocumentLink != null && `${cleanFileName(DocumentLink?.FileLeafRef)}`}</td>
+                                      <td className='text-center' title={DocumentLink && moment(DocumentLink?.Created).format("DD/MMM/YYYY")}>{DocumentLink && moment(DocumentLink?.Created).format("DD/MMM/YYYY")}</td>
+                                      {(DocumentLink?.NDocumentCodePrinting == "Yes" || DocumentLink?.NDocumentCodePrinting == "No" || DocumentLink?.NDocumentCodePrinting == "" || DocumentLink?.NDocumentCodePrinting == undefined) &&
                                         <td style={{ textAlign: 'center' }}>
-                                          {/* <span onClick={() => OpenFile(Attachmentarr && Attachmentarr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                            <FontAwesomeIcon icon={faEye} /></span> */}
-                                          <span title='Preview file' onClick={() => OpenFile(Attachmentarr && Attachmentarr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+
+                                          <span title='Preview file' onClick={() => OpenFile(DocumentLink != null && DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                             <FontAwesomeIcon icon={faEye} /></span>
-                                          <span title='Download file' onClick={() => OpenFile(Attachmentarr && Attachmentarr[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                          <span title='Download file' onClick={() => OpenFile(DocumentLink != null && DocumentLink, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                             <FontAwesomeIcon icon={faDownload} /></span>
                                         </td>
                                       }
-                                      <td className='text-center' title={Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD/MMM/YYYY")}>{Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD/MMM/YYYY")}</td>
-                                      {(modeValue == "edit" || modeValue == null || modeValue == ""
-                                        || (modeValue == "approve" && formData?.Status == "Rework")) &&
-                                        <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
-                                          <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFileAttachment(0, Attachmentarr)}></img>
-                                        </td>
-                                      }
+                                      {/* <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
+                                      <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFileAttachment(0, Attachmentarr)}></img>
+                                    </td> */}
                                     </tr>
-                                  }
-                                </tbody>
-                              </table>
+                                  </tbody>
+
+                                </table>
+                              }
                             </>
                           </Modal.Body>
                         </Modal>
+                        <Modal show={ShowModalAtt} onHide={() => setShowModalAtt(false)} size={Showfile ? "xl" : "lg"} className='newmobmodal'>
+                          <Modal.Header closeButton>
+                            <Modal.Title> Attachment Details <br></br>
+                              <p className='text-muted font-14 fw-400 mb-0'>Below are the attachment details for Change Request
+                              </p>
+
+                            </Modal.Title>
+                            {/* {ImagepostArr1.length > 0 && showBannerModal && <Modal.Title>Media Images</Modal.Title>} */}
+                          </Modal.Header>
+                          <Modal.Body className="" id="style-5">
+                            <>
+                              {Showfile ?
+
+                                <FileViewer showfile={Showfile} docurl={redirecturl} cancelAction={cancelModalAction} />
+                                :
+                                <table className="mtbalenew" >
+
+                                  <thead>
+                                    <tr>
+                                      <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                                      <th style={{ minWidth: '170px', maxWidth: '170px' }}>File Name</th>
+                                      {/* {showButton && */}
+
+                                      <th style={{ minWidth: '60px', maxWidth: '60px' }} className='text-center'>Upload date</th>
+                                      {((((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
+                                        || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload &&
+                                        (Attachmentarr[0]?.NDocumentCodePrinting == "Yes" || Attachmentarr[0]?.NDocumentCodePrinting == "No" || Attachmentarr[0]?.NDocumentCodePrinting == "" || Attachmentarr[0]?.NDocumentCodePrinting == undefined || Attachmentarr[0]?.FileRef.includes("/ChangeRequestAttachDigitalSignedDocs/")))
+                                        || (modeValue == "edit" && formData?.Status == "Save as draft")
+                                        || modeValue == null || modeValue == "") &&
+                                        <th style={{ minWidth: '50px', maxWidth: '50px' }}> Action </th>
+                                      }
+                                      {/* {((modeValue == "edit" && formData?.Status == "Save as draft") || modeValue == null || modeValue == ""
+                                      || (modeValue == "approve" && formData?.Status == "Rework")) &&
+                                      <th style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}> Action </th>
+                                    } */}
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {console.log("Attachmentarrnmnm attach only", Attachmentarr, showviewdownload)}
+                                    {Attachmentarr.length > 0 &&
+
+                                      <tr >
+                                        <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
+                                        {/* {Attachmentarr && (Attachmentarr[0]?.FileName.includes('_') ? Attachmentarr[0]?.FileName.split('_')[2] : Attachmentarr[0]?.FileName)} */}
+                                        <td style={{ minWidth: '170px', maxWidth: '170px' }} className='text-center' title={Attachmentarr && (cleanFileName(Attachmentarr?.[0]?.FileName) || cleanFileName(Attachmentarr?.[0]?.FileLeafRef))}>
+                                          {Attachmentarr && (cleanFileName(Attachmentarr?.[0]?.FileName) || cleanFileName(Attachmentarr?.[0]?.FileLeafRef))}</td>
+                                        {/* {showButton && */}
+
+                                        <td style={{ minWidth: '60px', maxWidth: '60px' }} className='text-center' title={Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD/MMM/YYYY")}>{Attachmentarr && moment(Attachmentarr[0]?.Created).format("DD/MMM/YYYY")}</td>
+                                        {(((((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
+                                          || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload &&
+                                          (Attachmentarr[0]?.NDocumentCodePrinting == "Yes" || Attachmentarr[0]?.NDocumentCodePrinting == "No" || Attachmentarr[0]?.NDocumentCodePrinting == "" || Attachmentarr[0]?.FileRef.includes("/ChangeRequestAttachDigitalSignedDocs/")))
+                                          || (modeValue == "edit" && formData?.Status == "Save as draft")) ||
+                                          ((modeValue == "edit" && formData?.Status == "Save as draft") || modeValue == null || modeValue == ""
+                                            || (modeValue == "approve" && formData?.Status == "Rework"))) &&
+                                          <td style={{ minWidth: '50px', maxWidth: '50px', textAlign: 'center' }}>
+                                            {/* <span onClick={() => OpenFile(Attachmentarr && Attachmentarr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                            <FontAwesomeIcon icon={faEye} /></span> */}
+                                            {((((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
+                                              || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload &&
+                                              (Attachmentarr[0]?.NDocumentCodePrinting == "Yes" || Attachmentarr[0]?.NDocumentCodePrinting == "No" || Attachmentarr[0]?.NDocumentCodePrinting == "" || Attachmentarr[0]?.FileRef.includes("/ChangeRequestAttachDigitalSignedDocs/")))
+                                              || (modeValue == "edit" && formData?.Status == "Save as draft")) && !filechanged &&
+                                              <>
+                                                <span title='Preview file' onClick={() => OpenFile(Attachmentarr && Attachmentarr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                  <FontAwesomeIcon icon={faEye} /></span>
+                                                <span title='Download file' onClick={() => OpenFile(Attachmentarr && Attachmentarr[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                  <FontAwesomeIcon icon={faDownload} /></span>
+                                              </>
+                                            }
+                                            {((modeValue == "edit" && formData?.Status == "Save as draft") || modeValue == null || modeValue == ""
+                                              || (modeValue == "approve" && formData?.Status == "Rework")) &&
+
+                                              <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFileAttachment(0, Attachmentarr)}></img>
+
+                                            }
+                                          </td>
+                                        }
+
+                                      </tr>
+                                    }
+                                  </tbody>
+                                </table>
+                              }
+                            </>
+                          </Modal.Body>
+                        </Modal>
+                        <Modal show={ShowModalTemplateDoc} onHide={() => setShowModalTemplateDoc(false)} size={Showfile ? "xl" : "lg"} className='newmobmodal'>
+                          {/* <Modal.Header closeButton>
+                            <Modal.Title> Template Details <br></br>
+                              <p className='text-muted font-14 fw-400'>Below are the Template details for Change Request
+                              </p>
+
+                            </Modal.Title>
+                            {/* {ImagepostArr1.length > 0 && showBannerModal && <Modal.Title>Media Images</Modal.Title>} */}
+                          {/* </Modal.Header> */}
+                          <Modal.Body className="" id="style-5">
+                            <>
+                              {Showfile &&
+
+                                <FileViewer showfile={Showfile} docurl={redirecturl} cancelAction={cancelModalAction} />
+
+                              }
+                            </>
+                          </Modal.Body>
+                        </Modal>
+
+
                       </div>
                     }
                   </div>

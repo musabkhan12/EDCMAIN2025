@@ -434,30 +434,50 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
   //     }
   //   }
+  // private handleFileChange(e: React.ChangeEvent<HTMLInputElement>, _self: any) {
+  //   this.setState({ copyFil: [], exFiles: [] })
+  //   if (e.target.files) {
+  //     _self.setState({ fileCount: e.target.files.length });
+  //     _self.setState({ files: e.target.files });
+  //     var allfiles: any[] = [];
+  //     [].forEach.call(e.target.files, function (file: File) {
+  //       allfiles.push(file);
+  //     })
+  //     _self.setState({ copyFil: allfiles });
+  //   }
+  // };
   private handleFileChange(e: React.ChangeEvent<HTMLInputElement>, _self: any) {
-    this.setState({ copyFil: [], exFiles: [] })
     if (e.target.files) {
-      _self.setState({ fileCount: e.target.files.length });
-      _self.setState({ files: e.target.files });
-      var allfiles: any[] = [];
-      [].forEach.call(e.target.files, function (file: File) {
-        allfiles.push(file);
-      })
-      _self.setState({ copyFil: allfiles });
+      const fileArray = Array.from(e.target.files);
+      _self.setState({
+        copyFil: fileArray,
+        fileCount: fileArray.length,
+        files: e.target.files // raw FileList
+      });
     }
-  };
+  }
+  // private handleAuditeeFileChange(e: React.ChangeEvent<HTMLInputElement>, _self: any) {
+  //   this.setState({ copyFilauditee: [], exFilesauditee: [] });
+  //   if (e.target.files) {
+  //     _self.setState({ fileCountauditee: e.target.files.length });
+  //     _self.setState({ filesauditee: e.target.files });
+  //     var allfiles: any[] = [];
+  //     [].forEach.call(e.target.files, function (file: File) {
+  //       allfiles.push(file);
+  //     })
+  //     _self.setState({ copyFilauditee: allfiles });
+  //   }
+  // };
   private handleAuditeeFileChange(e: React.ChangeEvent<HTMLInputElement>, _self: any) {
-    this.setState({ copyFilauditee: [], exFilesauditee: [] });
     if (e.target.files) {
-      _self.setState({ fileCountauditee: e.target.files.length });
-      _self.setState({ filesauditee: e.target.files });
-      var allfiles: any[] = [];
-      [].forEach.call(e.target.files, function (file: File) {
-        allfiles.push(file);
-      })
-      _self.setState({ copyFilauditee: allfiles });
+      const filesArray = Array.from(e.target.files);
+      _self.setState({
+        fileCountauditee: filesArray.length,
+        filesauditee: e.target.files,
+        copyFilauditee: filesArray
+      });
     }
-  };
+  }
 
   private Breadcrumb = [
     {
@@ -646,7 +666,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     if (Array.isArray(NCNumberoptionnew) && NCNumberoptionnew.length > 0) {
       // Safely extract existing NCNumbers, even if the array is empty
       const existingNCNumbersSet = new Set(
-        (Array.isArray(existingrecords) ? existingrecords[0] : []).map((rec: any) => rec.NCNumber)
+        (Array.isArray(existingrecords) ? existingrecords : []).map((rec: any) => rec.NCNumber)
       );
 
       // Filter out NCNumbers already in existingrecords
@@ -662,7 +682,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     }
     let optionsNCNumbernew: any[] = [];
     optionsNCNumbernew = optionsNCNumber.length > 0 && await this.getUniqueBy(optionsNCNumber, "ncNo");
-    optionsNCNumbernew && optionsNCNumbernew.sort((a, b) => a?.label.localeCompare(b?.label));
+    optionsNCNumbernew && optionsNCNumbernew.sort((a, b) => a.label.localeCompare(b.label));
     let approvedauditreportselected = this.state.editmemonumberOptions.filter((x: any) => x.value == item?.value);
     const selectedOption = this.state.editDepartmentOption.find(user => user?.value === approvedauditreportselected[0]?.department);
     this.setState({ editNCNumberOptions: optionsNCNumbernew })
@@ -671,6 +691,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       departmentselected: selectedOption, editDepartment: approvedauditreportselected[0]?.department
 
     });
+    this.setState({ editNCNumber: "", editNCNumberID: "", NCNumberselected: [] });
   };
   public async getNCdata(reportcode: string) {
     const sp = spfi().using(SPFx(this.props.context));
@@ -687,8 +708,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       .then((res: any) => {
         console.log(res, 'Memonumbers from audit report');
 
-        arr.push(res)
-        // arr = res;
+        //arr.push(res)
+        arr = res;
       })
       .catch((error: any) => {
         console.log("Error fetching data: ", error);
@@ -740,18 +761,43 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
   private _handleCheckboxChange = (stateKey: keyof IEditState, itemKey: number, itemtext: String) =>
     (_ev: React.FormEvent<HTMLElement>, isChecked?: boolean) => {
-      if (stateKey == "editCategoryValueIsCheck" && itemtext == "Others") {
-        this.setState({ showcategoryothers: true })
-      } else if (stateKey == "editSubCategoryValueIsCheck" && itemtext == "Others") {
-        this.setState({ showsubcategoryothers: true })
-      } else if (stateKey == "editLocationValueIsCheck" && itemtext == "Others") {
-        this.setState({ showlocationothers: true })
+      // if (stateKey == "editCategoryValueIsCheck" && itemtext == "Others") {
+      //   this.setState({ showcategoryothers: true })
+      // } else if (stateKey == "editSubCategoryValueIsCheck" && itemtext == "Others") {
+      //   this.setState({ showsubcategoryothers: true })
+      // } else if (stateKey == "editLocationValueIsCheck" && itemtext == "Others") {
+      //   this.setState({ showlocationothers: true })
+      // } 
+      // this.setState((prevState) => {
+      //   const updatedValues = isChecked
+      //     ? [...(prevState[stateKey] as number[]), itemKey]
+      //     : (prevState[stateKey] as number[]).filter((key) => key !== itemKey);
+      //   return { [stateKey]: updatedValues } as unknown as Pick<IEditState, keyof IEditState>;
+      // });
+      const newState: Partial<IEditState> = {};
+
+      if (stateKey === "editCategoryValueIsCheck" && itemtext === "Others") {
+        newState.showcategoryothers = isChecked || false;
+        if (!isChecked) newState.CategoryOthers = ""; // Clear text
+      }
+
+      if (stateKey === "editSubCategoryValueIsCheck" && itemtext === "Others") {
+        newState.showsubcategoryothers = isChecked || false;
+        if (!isChecked) newState.SubCategoryOthers = ""; // Clear text
+      }
+
+      if (stateKey === "editLocationValueIsCheck" && itemtext === "Others") {
+        newState.showlocationothers = isChecked || false;
+        if (!isChecked) newState.LocationOthers = ""; // Clear text
       }
       this.setState((prevState) => {
         const updatedValues = isChecked
           ? [...(prevState[stateKey] as number[]), itemKey]
           : (prevState[stateKey] as number[]).filter((key) => key !== itemKey);
-        return { [stateKey]: updatedValues } as unknown as Pick<IEditState, keyof IEditState>;
+        return {
+          ...newState,
+          [stateKey]: updatedValues,
+        } as unknown as Pick<IEditState, keyof IEditState>;
       });
     };
   private getnctypeoptions = async () => {
@@ -1033,7 +1079,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         }));
       }
       let optionsNCNumbernew: any[] = [];
-      optionsNCNumbernew = await this.getUniqueBy(optionsNCNumber, "ncNo");
+      optionsNCNumbernew = optionsNCNumber.length > 0 && await this.getUniqueBy(optionsNCNumber, "ncNo");
       let editmemonumberOptionsselect = Items?.NCType == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs
       let approvedauditreportselected = editmemonumberOptionsselect.filter((x: any) => x.value == Items.ApprovedAuditReportId);
       let ncnumberselected = optionsNCNumbernew.filter((x: any) => x.value == Items.NCNumberID);
@@ -1083,13 +1129,15 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           const isAnalyzedRole = currentApprover.CurrentUserRole === "AnalyzedBy";
           const isFirstAssigned = currentApprover.CurrentUserRole === "FirstAssignedTo" || currentApprover.CurrentUserRole === "DelegateTo";
           const isCurrentUser = (currentApprover.CurrentUserRole === "FirstAssignedTo" && currentApprover.AssignedTo?.EMail === CurrentuserEmail) ||
-            (currentApprover.CurrentUserRole === "DelegateTo" && currentApprover.DelegateTo?.EMail === CurrentuserEmail);
+            (currentApprover.CurrentUserRole === "DelegateTo" && currentApprover.DelegateTo?.EMail === CurrentuserEmail) ||
+            (currentApprover.CurrentUserRole === "AnalyzedBy" && currentApprover.AssignedTo?.EMail === CurrentuserEmail);
 
           const currentstatus = currentApprover.Status == "Approved";
           const finalstatus = Items.Status == "Approved";
           currentlevel = currentApprover.Level;
           finallevel = currentApprover.Maxlevel;
           ApproverEmail = currentApprover.AssignedTo?.EMail;
+
 
           if (this.state.editLastInitiatorSubmitStatus == "No" && this.state.editCurrentUserRole == "LastInitiator" && currentApprover.AssignedTo?.EMail === CurrentuserEmail) {
             forwardisdisabled = false
@@ -1376,43 +1424,118 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       if (memoItems.length > 0) {
         const filteredItemsNC = memoItems[0].filter((item: any) => item.FailureofIntentNonconformity === "Yes");
         const filteredItemsObs = memoItems[0].filter((item: any) => item.Observations === "Yes");
-        if (filteredItemsNC.length > 0) {
-          optionsNCNumber = filteredItemsNC.map((item: any) => ({
-            value: item.ID,
-            label: item.ReportCode,
-            itemId: item.ID,
-            reportCode: item.ReportCode,
-            ncNo: item.NCNumber,
-            department: item.DepartmentAuditedId
-          }));
-        }
-        if (filteredItemsObs.length > 0) {
-          optionsObservationNumber = filteredItemsObs.map((item: any) => ({
-            value: item.ID,
-            label: item.ReportCode,
-            itemId: item.ID,
-            reportCode: item.ReportCode,
-            ncNo: item.NCNumber,
-            department: item.DepartmentAuditedId
-          }));
-        }
+        // if (filteredItemsNC.length > 0) {
+        //   optionsNCNumber = filteredItemsNC.map((item: any) => ({
+        //     value: item.ID,
+        //     label: item.ReportCode,
+        //     itemId: item.ID,
+        //     reportCode: item.ReportCode,
+        //     ncNo: item.NCNumber,
+        //     department: item.DepartmentAuditedId
+        //   }));
+        // }
+        // if (filteredItemsObs.length > 0) {
+        //   optionsObservationNumber = filteredItemsObs.map((item: any) => ({
+        //     value: item.ID,
+        //     label: item.ReportCode,
+        //     itemId: item.ID,
+        //     reportCode: item.ReportCode,
+        //     ncNo: item.NCNumber,
+        //     department: item.DepartmentAuditedId
+        //   }));
+        // }
+        const groupItemsByReportCode = (items: any[]) => {
+          const result: { [reportCode: string]: Set<string> } = {};
+          items.forEach((item) => {
+            const reportCode = item.ReportCode?.trim();
+            const number = item.NCNumber?.toString().trim();
+
+            // Only proceed if both reportCode and NCNumber are non-empty
+            if (reportCode && number && number !== "") {
+              if (!result[reportCode]) {
+                result[reportCode] = new Set();
+              }
+              result[reportCode].add(number);
+            }
+          });
+          return result;
+        };
+
+        const reportCodeToExpectedNCs = groupItemsByReportCode(filteredItemsNC);
+        const cleanedFilteredItemsObs = filteredItemsObs.filter((item: any) => {
+          const nc = item.NCNumber?.toString().trim();
+          return nc && nc !== "";
+        });
+        const reportCodeToExpectedObs = groupItemsByReportCode(cleanedFilteredItemsObs);
+        // Process NC report codes
+        await Promise.all(Object.keys(reportCodeToExpectedNCs).map(async (reportCode) => {
+          const ncData = await this.getNCdata(reportCode);
+          const existingNumbers = new Set(ncData.map((item: any) => item.NCNumber));
+          const expectedNumbers = reportCodeToExpectedNCs[reportCode];
+
+          const allCreated = Array.from(expectedNumbers).every((num) => existingNumbers.has(num));
+
+          if (!allCreated) {
+            const exampleItem = filteredItemsNC.find((item: any) => item.ReportCode === reportCode);
+            if (exampleItem) {
+              optionsmemoNumbernewnc.push({
+                value: exampleItem.ID,
+                label: exampleItem.ReportCode,
+                itemId: exampleItem.ID,
+                reportCode: exampleItem.ReportCode,
+                ncNo: exampleItem.NCNumber,
+                department: exampleItem.DepartmentAuditedId
+              });
+            }
+          }
+        }));
+
+        // Process Observation report codes
+        await Promise.all(Object.keys(reportCodeToExpectedObs).map(async (reportCode) => {
+          const obsData = await this.getNCdata(reportCode); // Assuming same list for Observations
+          const existingNumbers = new Set(obsData.map((item: any) => item.NCNumber));
+          const expectedNumbers = reportCodeToExpectedObs[reportCode];
+
+          const allCreated = Array.from(expectedNumbers).every((num) => existingNumbers.has(num));
+
+          if (!allCreated) {
+            const exampleItem = filteredItemsObs.find((item: any) => item.ReportCode === reportCode);
+            if (exampleItem) {
+              optionsmemoNumbernewobs.push({
+                value: exampleItem.ID,
+                label: exampleItem.ReportCode,
+                itemId: exampleItem.ID,
+                reportCode: exampleItem.ReportCode,
+                ncNo: exampleItem.NCNumber,
+                department: exampleItem.DepartmentAuditedId
+              });
+            }
+          }
+        }));
+
+        // Sort options
+        optionsmemoNumbernewobs = await this.getUniqueBy(optionsmemoNumbernewobs, "reportCode");
+        optionsmemoNumbernewnc = await this.getUniqueBy(optionsmemoNumbernewnc, "reportCode");
+        optionsmemoNumbernewnc.sort((a, b) => a.label.localeCompare(b.label));
+        optionsmemoNumbernewobs.sort((a, b) => a.label.localeCompare(b.label));
+        this.setState({
+          editmemonumberOptions: this.state.editncType == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
+          editmemonumberOptionsall: this.state.editncType == "NC" ? optionsNCNumber : optionsObservationNumber
+        });
       }
       //this.state.ncType
       //let optionsmemoNumbernewnc: any[] = [];
-      optionsmemoNumbernewnc = await this.getUniqueBy(optionsNCNumber, "reportCode");
-      optionsmemoNumbernewnc = [...optionsmemoNumbernewnc].sort((a, b) =>
-        a.label.localeCompare(b.label)
-      );
+      // optionsmemoNumbernewnc = await this.getUniqueBy(optionsNCNumber, "reportCode");
+      // optionsmemoNumbernewnc = [...optionsmemoNumbernewnc].sort((a, b) =>
+      //   a.label.localeCompare(b.label)
+      // );
 
-      //let optionsmemoNumbernewobs: any[] = [];
-      optionsmemoNumbernewobs = await this.getUniqueBy(optionsObservationNumber, "reportCode");
-      optionsmemoNumbernewobs = [...optionsmemoNumbernewobs].sort((a, b) =>
-        a.label.localeCompare(b.label)
-      );
-      this.setState({
-        editmemonumberOptions: this.state.editncType == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
-        editmemonumberOptionsall: this.state.editncType == "NC" ? optionsNCNumber : optionsObservationNumber
-      });
+      // //let optionsmemoNumbernewobs: any[] = [];
+      // optionsmemoNumbernewobs = await this.getUniqueBy(optionsObservationNumber, "reportCode");
+      // optionsmemoNumbernewobs = [...optionsmemoNumbernewobs].sort((a, b) =>
+      //   a.label.localeCompare(b.label)
+      // );
+
     } catch (e) {
       console.error(e);
     }
@@ -1936,7 +2059,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       CategoryId: this.state.editCategoryValueIsCheck,
       SubCategoryId: this.state.editSubCategoryValueIsCheck,
       LocationId: this.state.editLocationValueIsCheck,
-      AssignedToId: _editsubmitStatus == "submit" && this.state.editCurrentUserRole == null ? this.props.currentUserID : this.state.editAssignToId || null,
+      // AssignedToId: _editsubmitStatus == "submit" && this.state.editCurrentUserRole == null ? this.props.currentUserID : this.state.editAssignToId || null,
+      AssignedToId: this.state.editAssignToId || null,
       DueDate: this.state.editDueDate,
       ProblemDescription: this.state.editProblemDescription,
       PersonAssignedId: this.state.editPersonAssignedId || null,
@@ -2978,7 +3102,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     if (option) {
       this.setState({
         editncType: option.key as string,
-        editmemonumberOptions: option?.text == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs
+        editmemonumberOptions: option?.text == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
+        editNCNumber: "", editNCNumberID: "", NCNumberselected: [], ApprovedAuditSelected: []
       });
     }
   };
@@ -3158,24 +3283,27 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           {/* <td title={decodeURIComponent(item.Name)}>
             {decodeURIComponent(item.Name)}
           </td> */}
-          <td title={(item.Name.includes('_') ? item.Name.split('_')[2] : item.Name)}>
+          <td style={{ minWidth: '150px', maxWidth: '150px', textAlign: 'center' }} title={(item.Name.includes('_') ? item.Name.split('_')[2] : item.Name)}>
             {(item.Name.includes('_') ? item.Name.split('_')[2] : item.Name)}</td>
-          <td style={{ textAlign: 'center' }}>
-            <span onClick={() => this.OpenFile(item && item, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-              <FontAwesomeIcon icon={faEye} /></span>
-            <span onClick={() => this.OpenFile(item && item, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-              <FontAwesomeIcon icon={faDownload} /></span>
 
-            {/* {<a href={item.Path} target="_blank">Link</a>} */}
-          </td>
-          <td title={moment(new Date(item.Uploaded)).format("DD/MMM/YYYY")} style={{ minWidth: '100px' }} className="text-center">
+          <td style={{ minWidth: '100px', maxWidth: '100px', textAlign: 'center' }} title={moment(new Date(item.Uploaded)).format("DD/MMM/YYYY")} className="text-center">
             {moment(new Date(item.Uploaded)).format("DD/MMM/YYYY")}
           </td>
-          {this.state.ShowDeleteicon &&
+          <td style={{ minWidth: '60px', maxWidth: '60px', textAlign: 'center' }} >
+            <span onClick={() => this.OpenFile(item && item, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+              <FontAwesomeIcon title='Preview file' icon={faEye} /></span>
+            <span onClick={() => this.OpenFile(item && item, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+              <FontAwesomeIcon title='Download file' icon={faDownload} /></span>
+            {this.state.ShowDeleteicon &&
+              <img src={require("../assets/del.png")} className='' onClick={() => this.toBeDeleted(i)}></img>
+            }
+            {/* {<a href={item.Path} target="_blank">Link</a>} */}
+          </td>
+          {/* {this.state.ShowDeleteicon &&
             <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
               <img src={require("../assets/del.png")} className='' onClick={() => this.toBeDeleted(i)}></img>
             </td>
-          }
+          } */}
         </tr>
       )
     });
@@ -3183,12 +3311,12 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     var fileDataAuditee = this.state.copyFilauditee.map((item: any, i: number) => {
       return (
         <tr >
-          <td>{i + 1}</td>
-          <td>
+          <td style={{ minWidth: '60px', maxWidth: '60px' }}>{i + 1}</td>
+          <td style={{ minWidth: '150px', maxWidth: '150px' }}>
             {item.name}
           </td>
           {/* <td>NA</td> */}
-          <td className="text-center">{new Date().toLocaleDateString("en-GB", {
+          <td style={{ minWidth: '100px', maxWidth: '100px' }} className="text-center">{new Date().toLocaleDateString("en-GB", {
             day: "2-digit",
             month: "short",
             year: "numeric"
@@ -3214,22 +3342,25 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           </td> */}
           <td title={(item.Name.includes('_') ? item.Name.split('_')[2] : item.Name)}>
             {(item.Name.includes('_') ? item.Name.split('_')[2] : item.Name)}</td>
-          <td style={{ textAlign: 'center' }}>
-            <span onClick={() => this.OpenFile(item && item, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-              <FontAwesomeIcon icon={faEye} /></span>
-            <span onClick={() => this.OpenFile(item && item, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-              <FontAwesomeIcon icon={faDownload} /></span>
 
-            {/* {<a href={item.Path} target="_blank">Link</a>} */}
-          </td>
           <td title={moment(new Date(item.Uploaded)).format("DD/MMM/YYYY")} style={{ minWidth: '100px' }} className="text-center">
             {moment(new Date(item.Uploaded)).format("DD/MMM/YYYY")}
           </td>
-          {this.state.ShowDeleteicon &&
-            <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
+          <td style={{ textAlign: 'center' }}>
+            <span onClick={() => this.OpenFile(item && item, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+              <FontAwesomeIcon title='Preview file' icon={faEye} /></span>
+            <span onClick={() => this.OpenFile(item && item, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+              <FontAwesomeIcon title='Download file' icon={faDownload} /></span>
+            {this.state.ShowDeleteicon &&
               <img src={require("../assets/del.png")} className='' onClick={() => this.toBeDeletedauditee(i)}></img>
-            </td>
-          }
+            }
+            {/* {<a href={item.Path} target="_blank">Link</a>} */}
+          </td>
+          {/* {this.state.ShowDeleteicon &&
+            // <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
+            <img src={require("../assets/del.png")} className='' onClick={() => this.toBeDeletedauditee(i)}></img>
+            // </td>
+          } */}
         </tr>
       )
     });
@@ -3431,7 +3562,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }} >From Department:<span className="text-danger1">*</span>
                       </label>
                       <TooltipHost
-                        content={this.state.editDepartmentOption.filter((item: any) => item.value == this.state.editfromdepartment)[0]?.label || ""}
+                        content={this.state.editDepartmentOption.filter((item: any) => item.value == this.state.editfromdepartment)[0]?.label || "Select Department"}
                         calloutProps={{ gapSpace: 0 }}
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
                       >
@@ -3572,7 +3703,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                             calloutProps={{ gapSpace: 0 }}
                             styles={{ root: { display: 'inline-block', width: '100%' } }}
                           >
-                            <TextField label="Category Others:" name='CategoryOthers' value={this.state.CategoryOthers} onChange={this.handleChangeCategoryOthers}
+                            <TextField disabled={this.state.isDisabled} label="Category Others:" name='CategoryOthers' value={this.state.CategoryOthers} onChange={this.handleChangeCategoryOthers}
                             //className={this.state.errors?.categoryothers ? 'textfield-error' : ''}
                             /></TooltipHost>
 
@@ -3597,7 +3728,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                             calloutProps={{ gapSpace: 0 }}
                             styles={{ root: { display: 'inline-block', width: '100%' } }}
                           >
-                            <TextField label="SubCategory Others:" name='SubCategoryOthers' value={this.state.SubCategoryOthers} onChange={this.handleChangeSubCategoryOthers}
+                            <TextField disabled={this.state.isDisabled} label="SubCategory Others:" name='SubCategoryOthers' value={this.state.SubCategoryOthers} onChange={this.handleChangeSubCategoryOthers}
                             //className={this.state.errors?.subCategoryothers ? 'textfield-error' : ''} 
                             /></TooltipHost>
 
@@ -3622,7 +3753,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                             calloutProps={{ gapSpace: 0 }}
                             styles={{ root: { display: 'inline-block', width: '100%' } }}
                           >
-                            <TextField label="Location Others:" name='LocationOthers' value={this.state.LocationOthers} onChange={this.handleChangeLocationOthers}
+                            <TextField disabled={this.state.isDisabled} label="Location Others:" name='LocationOthers' value={this.state.LocationOthers} onChange={this.handleChangeLocationOthers}
                             //className={this.state.errors?.locationthers ? 'textfield-error' : ''} 
                             /></TooltipHost>
 
@@ -3693,31 +3824,107 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                           backgroundColor: this.state.editErrors.Attchments ? "#ffe6e6" : "white",
                           borderColor: this.state.editErrors.Attchments ? '1px red' : '1px solid #dee2e6'
                         }} />
-                      {this.state.fileCount > 0 ?
-                        (<span style={{ fontSize: '0.875rem' }} onClick={this._OpenModal} className='newpo'>
-                          <FontAwesomeIcon icon={faPaperclip} /> {this.state.fileCount} {this.state.fileCount > 0 ? "files" : "file"} Attached
-                        </span>) : ""
-                      }
+                      {(this.state.copyFil.length + this.state.exFiles.length) > 0 && (
+                        <span style={{ fontSize: '0.875rem' }} onClick={this._OpenModal} className='newpo'>
+                          <FontAwesomeIcon icon={faPaperclip} />{" "}
+                          {(this.state.copyFil.length + this.state.exFiles.length)}{" "}
+                          {(this.state.copyFil.length + this.state.exFiles.length) === 1 ? "file" : "files"} Attached
+                        </span>
+                      )}
                       {this.state.showDialog && <div id="myModal" className={styles.modal}>
                         <div className={styles.modalcontent}>
                           <span className={styles.close} onClick={() => this._CloseModal()}>&times;</span>
                           <h4 className="font-16 text-dark fw-bold mb-1">Attachment Details</h4>
                           <p className="text-muted font-14 mb-3 fw-400">Below are the attachment details for Non Conformity / Observation</p>
 
-                          <table className='mtbalenew'>
+                         {/*} <table className='mtbalenew'>
                             <thead>
                               <tr>
                                 <th style={{ minWidth: '50px', maxWidth: '50px' }} >S.No.</th>
-                                <th>File Name</th>
-                                {this.state.exFiles.length > 0 && <th className="text-center">File Link</th>}
-                                <th style={{ minWidth: '100px' }} className="text-center">Upload Date</th>
-                                {(this.state.ShowDeleteicon || this.state.copyFil.length > 0) &&
+                                <th style={{ minWidth: '150px', maxWidth: '150px' }}>File Name</th>
+
+                                <th style={{ minWidth: '100px', maxWidth: '100px' }} className="text-center">Upload Date</th>
+                                {/* {this.state.exFiles.length > 0 && <th className="text-center">File Link</th>} */}
+                               {/*} {(this.state.ShowDeleteicon || this.state.copyFil.length > 0 || this.state.exFiles.length > 0) &&
                                   <th className="text-center" style={{ minWidth: "60px", maxWidth: "60px" }}>Action</th>
                                 }
                               </tr>
                             </thead>
                             {upFiles}{fileData}
+                          </table>*/}
+                          <table className="mtbalenew">
+                            <thead>
+                              <tr>
+                                <th style={{ minWidth: '50px' }}>S.No.</th>
+                                <th style={{ minWidth: '150px' }}>File Name</th>
+                                <th style={{ minWidth: '100px' }} className="text-center">Upload Date</th>
+                                {(this.state.ShowDeleteicon || this.state.copyFil.length > 0 || this.state.exFiles.length > 0) && (
+                                  <th className="text-center" style={{ minWidth: "100px" }}>Action</th>
+                                )}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {[...this.state.exFiles, ...this.state.copyFil].map((item: any, index: number) => {
+                                const isExistingFile = index < this.state.exFiles.length;
+                                const serial = index + 1;
+
+                                const fileName = isExistingFile
+                                  ? (item.Name.includes('_') ? item.Name.split('_')[2] : item.Name)
+                                  : decodeURIComponent(item.name);
+
+                                const uploadDate = isExistingFile
+                                  ? moment(new Date(item.Uploaded)).format("DD/MMM/YYYY")
+                                  : new Date().toLocaleDateString("en-GB", {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "numeric"
+                                  }).replace(/ /g, "/");
+
+                                return (
+                                  <tr key={index} style={{ display: 'table', width: '100%' }}>
+                                    <td className="text-center">{serial}</td>
+                                    <td title={fileName}>{fileName}</td>
+                                    <td className="text-center">{uploadDate}</td>
+                                    <td className="text-center">
+                                      {isExistingFile ? (
+                                        <>
+                                          <span
+                                            onClick={() => this.OpenFile(item, "Open")}
+                                            style={{ color: "blue", cursor: "pointer", margin: "0 5px" }}
+                                          >
+                                            <FontAwesomeIcon title="Preview file" icon={faEye} />
+                                          </span>
+                                          <span
+                                            onClick={() => this.OpenFile(item, "Download")}
+                                            style={{ color: "blue", cursor: "pointer", margin: "0 5px" }}
+                                          >
+                                            <FontAwesomeIcon title="Download file" icon={faDownload} />
+                                          </span>
+                                          {this.state.ShowDeleteicon && (
+                                            <img
+                                              src={require("../assets/del.png")}
+                                              onClick={() => this.toBeDeleted(index)}
+                                              title="Delete file"
+                                              style={{ cursor: "pointer", marginLeft: "5px" }}
+                                            />
+                                          )}
+                                        </>
+                                      ) : (
+                                        <img
+                                          src={require("../assets/del.png")}
+                                          onClick={() => this.removeFiles(index - this.state.exFiles.length)}
+                                          title="Remove new file"
+                                          style={{ cursor: "pointer" }}
+                                        />
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
                           </table>
+
+
                         </div>
                       </div>}
                     </div>
@@ -3788,7 +3995,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                         Date <span className={styles.textdanger}>*</span>
                       </Label>
                       <TooltipHost
-                        content={this.state.editDate}
+                        content={this.state?.editDate && !isNaN(Date.parse(this.state?.editDate)) ? new Date(this.state?.editDate).toLocaleString() : null}
                         calloutProps={{ gapSpace: 0 }}
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
                       >
@@ -3807,7 +4014,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                         Deadline for completion <span className={styles.textdanger}>*</span>
                       </Label>
                       <TooltipHost
-                        content={this.state.editDeadlineCompletion}
+                        content={this.state?.editDeadlineCompletion && !isNaN(Date.parse(this.state?.editDeadlineCompletion)) ? moment(new Date(this.state.editDueDate)).format('DD/MMM/YYYY') : null}
                         calloutProps={{ gapSpace: 0 }}
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
                       >
@@ -3966,11 +4173,18 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                         type="file" name="myFile" onChange={(e) => this.handleAuditeeFileChange(e, this)} id="newfile" multiple
                       //className={`form-control ${this.state.errors?.Attachments} ? 'textfield-error' : ''`}
                       />
-                      {this.state.fileCountauditee > 0 ?
+                      {/* {this.state.fileCountauditee > 0 ?
                         (<span style={{ fontSize: '0.875rem' }} onClick={this._OpenModalauditee} className='newpo'>
                           <FontAwesomeIcon icon={faPaperclip} /> {this.state.fileCountauditee} {this.state.fileCountauditee > 0 ? "files" : "file"} Attached
                         </span>) : ""
-                      }
+                      } */}
+                      {(this.state.copyFilauditee.length + this.state.exFilesauditee.length) > 0 && (
+                        <span onClick={this._OpenModalauditee} className='newpo'>
+                          <FontAwesomeIcon icon={faPaperclip} />{" "}
+                          {(this.state.copyFilauditee.length + this.state.exFilesauditee.length)}{" "}
+                          {(this.state.copyFilauditee.length + this.state.exFilesauditee.length) === 1 ? "file" : "files"} Attached
+                        </span>
+                      )}
                       {this.state.showDialogauditee && (
                         <div id="myModal" className={styles.modal}>
                           <div className={styles.modalcontent}>
@@ -3982,21 +4196,95 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                             <p className="text-muted font-14 mb-3 fw-400">Below are the attachment details for Non Conformity / Observation</p>
 
                             {/* Table */}
-                            <table className={styles.mtbalenew}>
+                           {/*} <table className={styles.mtbalenew}>
                               <thead>
                                 <tr>
                                   <th style={{ minWidth: '60px', maxWidth: '60px' }}>S.No.</th>
-                                  <th>File Name</th>
-                                  {this.state.exFilesauditee.length > 0 && <th className="text-center">File Link</th>}
-                                  <th style={{ minWidth: '100px' }} className="text-center">Upload Date</th>
-                                  {(this.state.ShowDeleteicon || this.state.copyFilauditee.length > 0) && <th className="text-center">Action</th>}
+                                  <th style={{ minWidth: '150px', maxWidth: '150px' }}>File Name</th>
+
+                                  <th style={{ minWidth: '100px', maxWidth: '100px' }} className="text-center">Upload Date</th>
+                                  {/* {this.state.exFilesauditee.length > 0 && <th className="text-center">File Link</th>} */}
+                                 {/*} {(this.state.ShowDeleteicon || this.state.copyFilauditee.length > 0 || this.state.exFilesauditee.length > 0) &&
+                                    <th style={{ minWidth: '60px', maxWidth: '60px' }} className="text-center">Action</th>}
                                 </tr>
                               </thead>
                               <tbody >
                                 {upFilesauditee}
                                 {fileDataAuditee}
+                              </tbody>*/}
+                            {/*</table>*/}
+                            <table className={styles.mtbalenew} style={{ width: '100%', borderCollapse: 'collapse' }}>
+                              <thead>
+                                <tr>
+                                  <th style={{ minWidth: '60px', maxWidth: '60px' }}>S.No.</th>
+                                  <th style={{ minWidth: '150px', maxWidth: '150px' }}>File Name</th>
+                                  <th style={{ minWidth: '100px', maxWidth: '100px' }} className="text-center">Upload Date</th>
+                                  {(this.state.ShowDeleteicon || this.state.copyFilauditee.length > 0 || this.state.exFilesauditee.length > 0) && (
+                                    <th style={{ minWidth: '100px', maxWidth: '100px' }} className="text-center">Action</th>
+                                  )}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {[...this.state.exFilesauditee, ...this.state.copyFilauditee].map((item: any, index: number) => {
+                                  const isExisting = index < this.state.exFilesauditee.length;
+                                  const serial = index + 1;
+
+                                  const fileName = isExisting
+                                    ? (item.Name.includes('_') ? item.Name.split('_')[2] : item.Name)
+                                    : decodeURIComponent(item.name);
+
+                                  const uploadDate = isExisting
+                                    ? moment(new Date(item.Uploaded)).format("DD/MMM/YYYY")
+                                    : new Date().toLocaleDateString("en-GB", {
+                                      day: "2-digit",
+                                      month: "short",
+                                      year: "numeric"
+                                    }).replace(/ /g, "/");
+
+                                  return (
+                                    <tr key={index}>
+                                      <td style={{ textAlign: 'center' }}>{serial}</td>
+                                      <td title={fileName}>{fileName}</td>
+                                      <td className="text-center">{uploadDate}</td>
+                                      <td className="text-center">
+                                        {isExisting ? (
+                                          <>
+                                            <span
+                                              onClick={() => this.OpenFile(item, "Open")}
+                                              style={{ color: "blue", cursor: "pointer", margin: "0 5px" }}
+                                            >
+                                              <FontAwesomeIcon title='Preview file' icon={faEye} />
+                                            </span>
+                                            <span
+                                              onClick={() => this.OpenFile(item, "Download")}
+                                              style={{ color: "blue", cursor: "pointer", margin: "0 5px" }}
+                                            >
+                                              <FontAwesomeIcon title='Download file' icon={faDownload} />
+                                            </span>
+                                            {this.state.ShowDeleteicon && (
+                                              <img
+                                                src={require("../assets/del.png")}
+                                                onClick={() => this.toBeDeletedauditee(index)}
+                                                title="Delete existing file"
+                                                style={{ cursor: "pointer", marginLeft: "5px" }}
+                                              />
+                                            )}
+                                          </>
+                                        ) : (
+                                          <img
+                                            src={require("../assets/del.png")}
+                                            onClick={() => this.removeFilesAuditee(index - this.state.exFilesauditee.length)}
+                                            title="Remove new file"
+                                            style={{ cursor: "pointer" }}
+                                          />
+                                        )}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
                               </tbody>
                             </table>
+
                           </div>
                         </div>
                       )}
@@ -4140,8 +4428,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               </fieldset>
             </section> : null}
           {/* Approval Table */}
-          {(this.state.editReviewedBySubmitStatus == "Yes" && this.state.editDelegateToId == null && (!this.state.Loading || !setloading)) ||
-            (this.state.editLastAssignedToSubmitStatus == "Yes" && this.state.editDelegateToId != null && (!this.state.Loading || !setloading)) ?
+          {(((this.state.editReviewedBySubmitStatus == "Yes" && this.state.editDelegateToId == null && (!this.state.Loading || !setloading)) ||
+            (this.state.editLastAssignedToSubmitStatus == "Yes" && this.state.editDelegateToId != null && (!this.state.Loading || !setloading))) && this.state.editncType == "NC") ?
             (<section className="card card-body mb-2">
               <fieldset disabled={this.state.forwarDisable}>
                 <form>
@@ -4210,12 +4498,12 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               (this.state.editLastAssignedToSubmitStatus == "Yes" && this.state.editDelegateToId != null && (!this.state.Loading || !setloading)))) && !this.state.showDraft
             ?
             <section style={{ justifyContent: 'left', textAlign: 'left' }} id="approvalSection" className='card card-body'>
+              {this.state.edType !== "view" &&
+                <TextField label="Remarks" required={(Approveclicked || Rejectclicked || Reworkclicked || this.state.showApprove === true || this.state.showReject === true) ? true : false} name="remarks" value={this.state.remarks} multiline rows={3} onChange={this.handleChange}
 
-              <TextField label="Remarks" required={(Approveclicked || Rejectclicked || Reworkclicked || this.state.showApprove === true || this.state.showReject === true) ? true : false} name="remarks" value={this.state.remarks} multiline rows={3} onChange={this.handleChange}
-
-                className={this.state.editErrors?.remarks ? 'textfield-error' : ''}// styles={{
-              />
-
+                  className={this.state.editErrors?.remarks ? 'textfield-error' : ''}// styles={{
+                />
+              }
               {(showimsupdated && !isdisableims) &&
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', marginTop: '1rem' }}>
 

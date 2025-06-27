@@ -580,7 +580,7 @@ export const getAllDMSApprovals = async (sp, itemStatus,actingfor) => {
       
       let arrnew = [];
       arr = res
-      let siteurl =`https://officeindia.sharepoint.com/sites/edcspfx/SitePages/ChangeRequest.aspx`;
+      let siteurl =`https://edcadae.sharepoint.com/sites/ededms/SitePages/ChangeRequest.aspx`;
       console.log("resresresresr", res,siteurl)
       for (let i = 0; i < res.length; i++) {
         arrnew.push({
@@ -605,3 +605,30 @@ export const getAllDMSApprovals = async (sp, itemStatus,actingfor) => {
 
 
 }
+
+export const CheckIfAlreadyactionTaken = async (_sp, id) => {
+  try {
+    const currentUser = await _sp.web.currentUser();
+
+    const item = await _sp.web.lists
+      .getByTitle("ProcessApprovalList")
+      .items
+      .getById(id)
+      .select("Id", "ActionTakenById", "ActionTakenOn", "AssignedTo/Id", "ProcessName")
+      .expand("AssignedTo")();
+
+    const isUnprocessed = (!item.ActionTakenById || item.ActionTakenById == null) && (!item.ActionTakenOn || item.ActionTakenOn == null);
+
+    // Optional: further check if it's assigned to current user and matches processName
+
+
+    if (isUnprocessed) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error("Error in CheckIfAlreadyactionTaken:", error);
+    return false;
+  }
+};

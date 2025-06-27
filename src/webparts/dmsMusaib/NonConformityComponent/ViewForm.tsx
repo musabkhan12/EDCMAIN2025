@@ -1023,7 +1023,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                 </div>
                 <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                   <div className="form-group col-md-4">
+                    
                     <label>Category</label>
+                   
                     {this.state.viewCategoryCheckOption.map((item: any) => {
                       return (
                         <div style={{ margin: "2px", padding: "3px" }}>
@@ -1032,9 +1034,11 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                       )
                     }
                     )}
+                 
                   </div>
                   <div className="form-group col-md-4">
                     <label>SubCategory</label>
+                    
                     {this.state.viewSubCategoryCheckOption.map((item: any) => {
                       return (
                         <div style={{ margin: "2px", padding: "3px" }}>
@@ -1043,9 +1047,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                       )
                     }
                     )}
-                  </div>
+                  </div> 
                   <div className="form-group col-md-4">
                     <label>Location</label>
+                  
                     {this.state.viewLocationCheckOption.map((item: any) => {
                       return (
                         <div style={{ margin: "2px", padding: "3px" }}>
@@ -1055,7 +1060,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
                       )
                     }
                     )}
-                  </div>
+                  </div> 
                 </div>
                 <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                   <div className="form-group col-md-4">

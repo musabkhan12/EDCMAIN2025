@@ -2,7 +2,7 @@ import { escape } from "@microsoft/sp-lodash-subset";
 
 import React, { useState } from "react";
 // import { updateItemApproval, updateItemApproval2 } from "../../APISearvice/ApprovalService";
-import { updateItemApproval, updateItemApproval2 } from "../../APISearvice/ApprovalService";
+import { CheckIfAlreadyactionTaken, updateItemApproval, updateItemApproval2 } from "../../APISearvice/ApprovalService";
 // import { getSP } from "../../webparts/addDynamicBanner/loc/pnpjsConfig";
 import { getSP } from "../../webparts/dmsMusaib/loc/pnpjsConfig";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
@@ -51,7 +51,14 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
   }
   const handleFromSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, Status: string) => {
 
+   
+
     e.preventDefault();
+    const IsactionTaken = await CheckIfAlreadyactionTaken(sp, props.currentItem.Id);
+    if (!IsactionTaken) {
+      Swal.fire("Action has already been taken for this record.");
+      return;
+    }
     setValidRemark(true);
     let postPayload = {}
     let postPayload2 = {}
@@ -152,14 +159,19 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         }
 
         if (postResult) {
-          Swal.fire(resultmessage, '', 'success');
-          setTimeout(() => {
+          // Swal.fire(resultmessage, '', 'success');
+          // setTimeout(() => {
 
-            // window.location.reload()
+          //   // window.location.reload()
 
-            location.href = `${siteUrl}/SitePages/MyApprovals.aspx`;
+          //   location.href = `${siteUrl}/SitePages/MyApprovals.aspx`;
 
-          }, 1000);
+          // }, 1000);
+          Swal.fire(resultmessage, '', 'success').then(async (result) => {
+            if (result.isConfirmed) {
+              window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx`;
+            }
+          });
 
 
         }

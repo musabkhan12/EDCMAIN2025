@@ -664,14 +664,15 @@ for (let i = visiblePageStart; i <= visiblePageEnd; i++) {
             }
         }
 
-        const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList").items.select('Id,ReferenceNumber,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,Created').expand('Author', 'RequesterName').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
+        const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList").items.select('Id,FileName,ReferenceNumber,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,Created').expand('Author', 'RequesterName').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
+        debugger
         for (const item of ChangeRequestListItems) {
             if (item.Status === "Rework") {
                 const processItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and Status eq 'Pending' and ProcessName eq 'Change Request' and ListItemId eq ${item.Id}`)();
                 if (processItems.length > 0) {
                     for (const itm of processItems) {
                         allItems.push({
-                            RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
+                            RequestId: item.DocumentCode == "" || item.DocumentCode == null ? item.FileName : item.DocumentCode,
                             Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
                             ProcessName: "Change Request",
                             ReqName: item.RequesterName?.Title || '',
@@ -685,7 +686,7 @@ for (let i = visiblePageStart; i <= visiblePageEnd; i++) {
                     }
                 } else {
                     allItems.push({
-                        RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
+                        RequestId: item.DocumentCode == "" || item.DocumentCode == null ? item.FileName : item.DocumentCode,
                         Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
                         ProcessName: "Change Request",
                         ReqName: item.RequesterName?.Title || '',
@@ -698,7 +699,7 @@ for (let i = visiblePageStart; i <= visiblePageEnd; i++) {
                 }
             } else {
                 allItems.push({
-                    RequestId: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
+                    RequestId: item.DocumentCode == "" || item.DocumentCode == null ? item.FileName : item.DocumentCode,
                     Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
                     ProcessName: "Change Request",
                     ReqName: item.RequesterName?.Title || '',
@@ -773,7 +774,7 @@ for (let i = visiblePageStart; i <= visiblePageEnd; i++) {
 
         });
 
-        const nonconfirmity = await spfi(this._sp).web.lists.getByTitle('NonConformityList').items.select('Id,NCNumber, DocumentCode ,Author/Title , Status , Created,ProblemDescription , SubmitStatus , NCRNo').expand('Author').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
+        const nonconfirmity = await spfi(this._sp).web.lists.getByTitle('NonConformityList').items.select('Id,NCNumber,NCType, Department/ID,Department/Department,DocumentCode ,Author/Title , Status , Created,ProblemDescription , SubmitStatus , NCRNo').expand('Author,Department').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
         console.log(nonconfirmity, "nonconfirmity")
         for (const item of nonconfirmity) {
             // alert (item.DocumentCode + "item.DocumentCode" )
@@ -789,7 +790,7 @@ for (let i = visiblePageStart; i <= visiblePageEnd; i++) {
                 //RequestId:  item.NCRNo,
 
                 NCRNo: item.NCRNo,
-                NCNumber: item.NCNumber,
+                NCNumber: item.NCNumber + " / " + item.NCType + " / "+ item.Department.Department,
                 Title: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
                 //Title: item.ProblemDescription,
                 ProblemDescription: item.ProblemDescription,

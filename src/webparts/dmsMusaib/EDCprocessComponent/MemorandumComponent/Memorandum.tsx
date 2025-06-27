@@ -30,7 +30,7 @@ import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
-import { addAllProcessItem, addItem, addItem2, getLatestChangeRequestTemplateType, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getAuditTypes, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles, getRecommendationTypes, getGeneratedTemplateDoc, getAllClassificationMaster, addMemoNumber, updateMemoNumber } from './MemorandumService';
+import { addAllProcessItem, addItem, addItem2, getLatestChangeRequestTemplateType, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getAuditTypes, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles, getRecommendationTypes, getGeneratedTemplateDoc, getAllClassificationMaster, addMemoNumber, updateMemoNumber, getdigitalsignaturerequestbyID, updateDigitalsign } from './MemorandumService';
 import { IDatePickerStyles, TextField } from '@fluentui/react';
 import { Icon } from '@fluentui/react/lib/Icon';
 import { Tooltip } from 'react-tooltip';
@@ -40,6 +40,7 @@ import { DatePicker } from 'office-ui-fabric-react';
 import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import "./Memo.scss";
+import FileViewer from '../../components/fileviewer';
 
 
 const datePickerErrorStyles: Partial<IDatePickerStyles> = {
@@ -116,6 +117,14 @@ const MemoContext = ({ props }: any) => {
   const [tooltipText1, settooltipText1] = React.useState("");
   const [showModal, setShowModal] = React.useState(false);
   const [auditTypeOption, setAuditTypeOption] = React.useState(null);
+
+  const [DigitalsignID, setDigitalsignID] = React.useState(null);
+  const [hidedigisign, sethidedigisign] = React.useState(false);
+
+  const [Showfile, setShowfile] = React.useState(false);
+  const [redirecturl, setredirecturl] = React.useState(null);
+  const [ShowModalTemplateDoc, setShowModalTemplateDoc] = React.useState(false);
+
   const [formData, setFormData] = React.useState({
     // infoCheck: false,
     // signCheck: false,
@@ -165,8 +174,23 @@ const MemoContext = ({ props }: any) => {
 
 
     memoFileName: "",
+    Status: "",
+
+
+    RequesterNameId: null,
+    RequesterDesignation: "",
+    RequesterName: "",
+    RequestDate: null,
 
   });
+
+  const cancelModalAction = (refresh?: boolean,) => {
+    debugger
+    setredirecturl(window.location.href);
+    //setShowfileNew(false);
+    setShowModalTemplateDoc(false);
+    setShowfile(false);
+  }
   const [selectCCUsers, setSelectCCUsers] = React.useState([]);
   const [ListNameId, setListNameId] = React.useState(null);
 
@@ -237,9 +261,6 @@ const MemoContext = ({ props }: any) => {
         MemoListId: memoId,
         memoSerialNo: memo,
         deptId: onloadDeptId,
-        // memoNo: setAllDept1.filter(user => user.label === UserDept)[0]
-        //     ? `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-        //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
         memoNo: AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0]
           ? `${AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
           : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
@@ -538,6 +559,10 @@ const MemoContext = ({ props }: any) => {
       ...prevData,
       from: Currusers?.Id || 0,
       fromEmail: Currusers?.Email,
+      RequesterNameId: Currusers?.Id || "",
+      RequesterDesignation: userProfile?.Title || "",
+      RequesterName: userProfile?.DisplayName || "",
+      RequestDate: new Date().toLocaleDateString("en-CA"),
 
     }));
 
@@ -578,6 +603,12 @@ const MemoContext = ({ props }: any) => {
       const draftedItem = await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_Memo);
       if (draftedItem != null && draftedItem != undefined && draftedItem.length > 0) {
         increaseMemo = false;
+      }
+
+      const newItem1 = await getdigitalsignaturerequestbyID(LIST_TITLE_Memo, sp, Number(formitemid));
+      // console.log("newItem1newItem1", newItem1);
+      if (newItem1.length > 0) {
+        setDigitalsignID(newItem1[0].ID)
       }
 
       if (setBannerById.length > 0) {
@@ -673,6 +704,7 @@ const MemoContext = ({ props }: any) => {
           classificationId: setBannerById[0].ClassificationId,
           classificationValue: ClassificationVal?.[0] || null,
           // attachmentJson: setBannerById[0].AttachmentJson || null
+          Status: setBannerById[0].Status,
         }));
 
 
@@ -880,19 +912,25 @@ const MemoContext = ({ props }: any) => {
   const OpenFile = (obj: any, sts: string) => {
 
     const fileUrl = `${Tenant_URL}${obj.FileRef}`;
+    if (sts == "Open") {
+      setShowfile(true);
+    }
 
     if (sts == "Open") {
       if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
 
-        window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=default`, "_blank");
+        // window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=default`, "_blank");
+        const viewerUrlppt = `${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=embedview`
+        setredirecturl(viewerUrlppt);
       } else {
-        window.open(fileUrl, "_blank"); // Open PDF and other files normally
+        // window.open(fileUrl, "_blank"); // Open PDF and other files normally
+        setredirecturl(fileUrl);
       }
 
     } else if (sts == "Download") {
       const link = document.createElement("a");
       link.href = fileUrl;
-      link.setAttribute("download", obj.FileLeafRef); // Suggests a filename for download
+      link.setAttribute("download", obj.FileLeafRef.replace(/_\d+(\.\w+)$/, '$1')); // Suggests a filename for download
 
       // link.setAttribute("download", obj.FileLeafRef?.split('_')[2]); // Suggests a filename for download
       document.body.appendChild(link);
@@ -1207,7 +1245,7 @@ const MemoContext = ({ props }: any) => {
     // return valid;
   };
 
-  const getNewFileName = async (originalFileName: string): Promise<string> => {
+  const getNewFileName = async (originalFileName: string,MemoNum:string): Promise<string> => {
     const userId = currentUser.Id; // Or however you get the current user ID
     const date = new Date();
     // const fileExtension = originalFileName.split('.').pop();
@@ -1233,7 +1271,7 @@ const MemoContext = ({ props }: any) => {
     ];
     const fileExtension = originalFileName.split('.').pop();
     const fileNameWithoutExtension = originalFileName.split('.').slice(0, -1).join('.');
-    const NewFileName = `${formData.memoFileName}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`;
+    const NewFileName = MemoNum !="" ?`${MemoNum}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`: `${formData.memoFileName}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`;
 
 
     // return `${userId}_${components.join('')}_${originalFileName}`;
@@ -1243,6 +1281,7 @@ const MemoContext = ({ props }: any) => {
   // #region  Submit Form
   const handleFormSubmit = async () => {
     if (await validateForm(FormSubmissionMode.SUBMIT)) {
+
 
       if (editForm) {
         Swal.fire({
@@ -1263,7 +1302,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumDocs');
 
 
 
@@ -1272,7 +1311,7 @@ const MemoContext = ({ props }: any) => {
                 if (!file.ID) {
                   //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                   // DocumentName = file.name;
-                  const newFileName = await getNewFileName(file.name);
+                  const newFileName = await getNewFileName(file.name,"");
                   DocumentName = newFileName;
                   const fileAddResult = await folder.files.addChunked(newFileName, file);
                   const fileNew = fileAddResult.file;
@@ -1413,6 +1452,7 @@ const MemoContext = ({ props }: any) => {
                 });
 
                 let arr2 = {
+
                   Title: currentUser.Title,
                   ContentTitle: formData.subject,
 
@@ -1534,19 +1574,24 @@ const MemoContext = ({ props }: any) => {
 
             // if (boolval == true) {
             setLoading(false);
-            Swal.fire('Submitted successfully.', '', 'success');
-            sessionStorage.removeItem("DocumentCancelId")
-            setTimeout(() => {
+            // Swal.fire('Submitted successfully.', '', 'success');
+            // sessionStorage.removeItem("DocumentCancelId")
+            // setTimeout(() => {
 
-              window.history.back();
-              // window.location.reload();
-              setTimeout(() => {
-                location.reload();
-              }, 100);
-              // let url = window.location.href;
-              // let baseUrl = url.split("#")[0];
-            }, 1000);
+            //   window.history.back();
+            //   // window.location.reload();
+            //   setTimeout(() => {
+            //     location.reload();
+            //   }, 100);
+            //   // let url = window.location.href;
+            //   // let baseUrl = url.split("#")[0];
+            // }, 1000);
             // }
+            Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
+              if (result.isConfirmed) {
+                window.location.href = modeValue == "Approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+              }
+            });
           }
 
         })
@@ -1563,14 +1608,48 @@ const MemoContext = ({ props }: any) => {
         ).then(async (result) => {
           //console.log("Form Submitted:", formValues, bannerImages, galleryImages, documents);
           if (result.isConfirmed) {
+
             setLoading(true);
 
+            // //////*************** */
+            const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${formData.deptId}`).orderBy("SerialNumber", false).top(1)();
+            let memoNum;
 
+            let memo;
+            if (listItems.length > 0) {
+              // if (modeValue == "") {
+              memo = listItems[0].SerialNumber ? listItems[0].SerialNumber + 1 : 1;
+              // memoId = listItems[0].Id;
+              // }
+              // else {
+              //   memo = listItems[0].SerialNumber;
+              //   // memoId = listItems[0].Id;
+
+              // }
+
+            } else {
+              memo = 1;
+              // memoId = 0;
+
+            }
+            const formattedMemoSerialNo = memo < 10
+              ? `00${memo}`
+              : memo < 100
+                ? `0${memo}`
+                : memo;
+
+            memoNum = `${selectUserDept?.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`;
+
+            const memoFileName = memoNum.replace(/\//g, "_");
+
+
+
+            // //////////****************** */
             let galleryArray: any[] = [];
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -1579,7 +1658,7 @@ const MemoContext = ({ props }: any) => {
                 if (!file.ID) {
                   //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                   // DocumentName = file.name;
-                  const newFileName = await getNewFileName(file.name);
+                  const newFileName = await getNewFileName(file.name,memoFileName);
                   DocumentName = newFileName;
                   const fileAddResult = await folder.files.addChunked(newFileName, file);
                   const fileNew = fileAddResult.file;
@@ -1609,9 +1688,16 @@ const MemoContext = ({ props }: any) => {
             }
 
             let arr = {
+
+              RequesterNameId: formData.RequesterNameId,
+              RequesterDesignation: formData.RequesterDesignation,
+              RequestDate: new Date(formData.RequestDate).toISOString(),
+
               Title: formData.subject,
-              MemoNumber: formData.memoNo,
-              MemoSerialNumber: formData.memoSerialNo,
+              // MemoNumber: formData.memoNo,
+              // MemoSerialNumber: formData.memoSerialNo,
+              MemoNumber: memoNum,
+              MemoSerialNumber: memo,
               ClassificationId: formData.classificationId,
 
               // IssueNumber:,
@@ -1767,7 +1853,8 @@ const MemoContext = ({ props }: any) => {
 
             let arry = {
               DepartmentId: formData.deptId,
-              SerialNumber: formData.memoSerialNo,
+              // SerialNumber: formData.memoSerialNo,
+              SerialNumber: memo,
               ProcessName: FormNameId.FormName,
 
             }
@@ -1786,16 +1873,22 @@ const MemoContext = ({ props }: any) => {
 
             // if (boolval == true) {
             setLoading(false);
-            Swal.fire('Submitted successfully.', '', 'success');
-            // sessionStorage.removeItem("bannerId")
-            setTimeout(() => {
+            // Swal.fire('Submitted successfully.', '', 'success');
+            // // sessionStorage.removeItem("bannerId")
+            // setTimeout(() => {
 
-              window.history.back();
-              // window.location.reload();
-              setTimeout(() => {
-                location.reload();
-              }, 100);
-            }, 1000);
+            //   window.history.back();
+            //   // window.location.reload();
+            //   setTimeout(() => {
+            //     location.reload();
+            //   }, 100);
+            // }, 1000);
+
+            Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
+              if (result.isConfirmed) {
+                window.location.href = modeValue == "Approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+              }
+            });
 
           }
         })
@@ -1825,7 +1918,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -1834,7 +1927,7 @@ const MemoContext = ({ props }: any) => {
                 if (!file.ID) {
                   //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                   // DocumentName = file.name;
-                  const newFileName = await getNewFileName(file.name);
+                  const newFileName = await getNewFileName(file.name,"");
                   DocumentName = newFileName;
                   const fileAddResult = await folder.files.addChunked(newFileName, file);
                   const fileNew = fileAddResult.file;
@@ -1869,6 +1962,8 @@ const MemoContext = ({ props }: any) => {
             if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
 
               arr = {
+
+
                 Title: formData.subject,
                 MemoNumber: formData.memoNo,
                 ClassificationId: formData.classificationId,
@@ -2132,17 +2227,23 @@ const MemoContext = ({ props }: any) => {
 
             // if (boolval == true) {
             setLoading(false);
-            Swal.fire('Saved successfully.', '', 'success');
-            sessionStorage.removeItem("DocumentCancelId")
-            setTimeout(() => {
+            // Swal.fire('Saved successfully.', '', 'success');
+            // sessionStorage.removeItem("DocumentCancelId")
+            // setTimeout(() => {
 
-              window.history.back();
-              // window.location.reload();
-              setTimeout(() => {
-                location.reload();
-              }, 100);
-            }, 1000);
+            //   window.history.back();
+            //   // window.location.reload();
+            //   setTimeout(() => {
+            //     location.reload();
+            //   }, 100);
+            // }, 1000);
             // }
+
+            Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
+              if (result.isConfirmed) {
+                window.location.href = modeValue == "Approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+              }
+            });
           }
 
         })
@@ -2168,7 +2269,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2177,7 +2278,7 @@ const MemoContext = ({ props }: any) => {
                 if (!file.ID) {
                   //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                   // DocumentName = file.name;
-                  const newFileName = await getNewFileName(file.name);
+                  const newFileName = await getNewFileName(file.name,"");
                   DocumentName = newFileName;
                   const fileAddResult = await folder.files.addChunked(newFileName, file);
                   const fileNew = fileAddResult.file;
@@ -2207,6 +2308,10 @@ const MemoContext = ({ props }: any) => {
             }
 
             let arr = {
+              RequesterNameId: formData.RequesterNameId,
+              RequesterDesignation: formData.RequesterDesignation,
+              RequestDate: new Date(formData.RequestDate).toISOString(),
+
               Title: formData.subject,
               MemoNumber: formData.memoNo,
               MemoSerialNumber: formData.memoSerialNo,
@@ -2360,16 +2465,21 @@ const MemoContext = ({ props }: any) => {
 
 
             setLoading(false);
-            Swal.fire('Saved successfully.', '', 'success');
-            // sessionStorage.removeItem("bannerId")
-            setTimeout(() => {
+            // Swal.fire('Saved successfully.', '', 'success');
+            // // sessionStorage.removeItem("bannerId")
+            // setTimeout(() => {
 
-              window.history.back();
-              // window.location.reload();
-              setTimeout(() => {
-                location.reload();
-              }, 100);
-            }, 1000);
+            //   window.history.back();
+            //   // window.location.reload();
+            //   setTimeout(() => {
+            //     location.reload();
+            //   }, 100);
+            // }, 1000);
+            Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
+              if (result.isConfirmed) {
+                window.location.href = modeValue == "Approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+              }
+            });
           }
         })
 
@@ -2568,6 +2678,55 @@ const MemoContext = ({ props }: any) => {
     settooltipText1(tooltipTable);
   };
 
+  const updatedigisignnew = async () => {
+    let items = await updateDigitalsign(LIST_TITLE_Memo, sp, DigitalsignID);
+    if (items) {
+      sethidedigisign(true);
+    }
+  }
+
+
+  const OpenFileTemplate = (obj: any, sts: string) => {
+    debugger
+    setShowModalTemplateDoc(true);
+    const fileUrl = `${Tenant_URL}${obj.FileRef}`;
+    if (sts == "Open") {
+      setShowfile(true);
+    }
+    if (sts == "Open") {
+      if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
+        const viewerUrl = `${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=embedview`;
+
+        //window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=view`);
+        setredirecturl(viewerUrl);
+      } else {
+        setredirecturl(fileUrl);
+        //window.open(fileUrl, "_blank"); // Open PDF and other files normally
+      }
+
+    } else if (sts == "Download") {
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.setAttribute("download", obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name)); // Suggests a filename for download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+    }
+
+  }
+  const cleanFileName = (filename: string) => {
+    // Match a 14-digit datetime suffix before the file extension
+    const datetimePattern = /_\d{14}(?=\.[^.]+$)/;
+
+    if (datetimePattern.test(filename)) {
+      return filename.replace(datetimePattern, '');
+    }
+
+    return filename;
+  }
+
+
 
   return (
     <div id="wrapper" ref={elementRef}>
@@ -2626,16 +2785,48 @@ const MemoContext = ({ props }: any) => {
                           <div className="card-body">
 
                             <div className="previewIcon">
-                              <h4 style={{ textAlign: 'left', margin: 'inherit' }} className="text-dark font-16 fw-bold mb-3">Memorandum</h4>
-                              {TemplateDoc && TemplateDoc.length > 0 && <div className='btn btn-primary'
-                                onClick={() => OpenFile(TemplateDoc[0], "Open")}
+                              <h4 style={{ textAlign: 'left' }} className="text-dark font-16 fw-bold mb-3">
+                                Requested By
+                              </h4>
+                              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                {(formData.Status === "Approved" || formData.Status === "Rejected") && !hidedigisign && DigitalsignID != null && (
+                                  <span
+                                    onClick={() => updatedigisignnew()}
+                                    style={{ cursor: "pointer" }}
+                                  >
+                                    <div className="" title='Sync digital signed document from Signing Hub'>
+                                      <img
+                                        style={{ cursor: 'pointer', height: '40px' }}
+                                        className='mt-0'
+                                        src={require("../../assets/digisign.png")}
+                                        alt="Signature Icon"
+                                      />
+                                    </div>
+                                  </span>
+                                )}
+                                {TemplateDoc && TemplateDoc.length > 0 && <div className='btn btn-primary'
+                                  onClick={() => OpenFileTemplate(TemplateDoc[0], "Open")}
 
-                              >
+                                >
+                                  {(() => {
+                                    const parts = TemplateDoc[0]?.FileRef?.split('/');
+                                    const folderName = parts && parts[3] ? parts[3] : null;
+                                    return folderName === "MemorandumDigitalSignedDocs" ? (
+                                      // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} alt="Download Icon" />
+                                      // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/digisigndownload.png")} alt="Digital Sign Download Icon" />
+                                      <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/signicon.png")} alt="Digital Sign Download Icon" />
 
-                                <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} ></img>
-                                {/* <FontAwesomeIcon icon={faEye} /> */}
+
+                                    ) : (
+                                      <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} alt="Download Icon" />
+                                      // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/digisigndownload.png")} alt="Digital Sign Download Icon" />
+                                    );
+                                  })()}
+                                  {/* <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} ></img> */}
+
+                                </div>
+                                }
                               </div>
-                              }
                             </div>
 
 
@@ -2740,7 +2931,7 @@ const MemoContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="memoNo" className="col-form-label">Memo No<span className="text-danger1"> *</span></label>
                                     <div className="">
-                                      <input style={{height:'47px'}}
+                                      <input style={{ height: '47px' }}
                                         disabled
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -2758,7 +2949,7 @@ const MemoContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="memoNo" className="col-form-label">Document Code<span className="text-danger1"> *</span></label>
                                     <div className="">
-                                      <input style={{height:'47px'}}
+                                      <input style={{ height: '47px' }}
                                         disabled
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -2777,7 +2968,7 @@ const MemoContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="memoNo" className="col-form-label">Issue No<span className="text-danger1"> *</span></label>
                                     <div className="">
-                                      <input style={{height:'47px'}}
+                                      <input style={{ height: '47px' }}
                                         disabled
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -2795,7 +2986,7 @@ const MemoContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="memoNo" className="col-form-label">Revision No<span className="text-danger1"> *</span></label>
                                     <div className="">
-                                      <input style={{height:'47px'}}
+                                      <input style={{ height: '47px' }}
                                         disabled
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
@@ -2839,7 +3030,7 @@ const MemoContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="fromEmail" className="col-form-label">From<span className="text-danger1"> *</span></label>
                                     <div >
-                                      <input style={{height:'47px'}}
+                                      <input style={{ height: '47px' }}
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
 
@@ -3017,7 +3208,7 @@ const MemoContext = ({ props }: any) => {
                                   <div className="mb-3">
                                     <label htmlFor="subject" className="col-form-label">Subject<span className="text-danger1"> *</span></label>
                                     <div className="">
-                                      <input style={{height:'47px'}}
+                                      <input style={{ height: '47px' }}
                                         type="text"
                                         className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                         id="subject"
@@ -3132,11 +3323,22 @@ const MemoContext = ({ props }: any) => {
 
                                 <div className="col-lg-4">
                                   <div className="mb-3">
+                                  <div className='d-flex justify-content-between'>
                                     <label htmlFor="attachment" className="col-form-label">Attachment</label>
-                                    <div className="">
+                                    <div >
+                                    <div>
+                                        {FilesArr.length > 0 ?
+                                          (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
+                                            <FontAwesomeIcon icon={faPaperclip} />{" "}{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
+                                          </a>) : ""
 
-                                      <div> 
-                                        <input style={{height:'47px', padding:'10px'}}
+                                        }
+                                      </div>
+                                      </div>
+                                      </div>
+
+                                      <div>
+                                        <input style={{ height: '47px', padding: '10px' }}
                                           type="file"
                                           // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                           className="form-control"
@@ -3150,18 +3352,11 @@ const MemoContext = ({ props }: any) => {
 
                                       </div>
 
-                                      <div>
-                                        {FilesArr.length > 0 ?
-                                          (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
-                                            <FontAwesomeIcon icon={faPaperclip} />{" "}{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
-                                          </a>) : ""
-
-                                        }
-                                      </div>
+                                     
 
 
 
-                                    </div>
+                                   
 
                                   </div>
                                 </div>
@@ -3289,7 +3484,7 @@ const MemoContext = ({ props }: any) => {
                                   <thead>
                                     <tr><th style={{ minWidth: '190px', maxWidth: '190px' }}>Section<span className="text-danger1"> *</span></th>
                                       <th>Date<span className="text-danger1"> *</span></th>
-                                      <th  colSpan={2}>Time<span className="text-danger1"> *</span></th>
+                                      <th colSpan={2}>Time<span className="text-danger1"> *</span></th>
                                       <th>Auditor<span className="text-danger1"> *</span></th>
                                       {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>}
                                     </tr>
@@ -3300,7 +3495,7 @@ const MemoContext = ({ props }: any) => {
                                     {recommendationRows.map((row, index) => (
                                       <tr key={index}>
                                         <td style={{ minWidth: '190px', maxWidth: '190px' }}>
-                                          <input style={{border:'1px solid #ccc'}}
+                                          <input style={{ border: '1px solid #ccc' }}
                                             type="text"
                                             className={`form-control recommendClsErr`}
                                             // className="form-control"
@@ -3758,7 +3953,7 @@ const MemoContext = ({ props }: any) => {
                                 Submit</button>
                             }
 
-                            
+                           
                             {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.ApprovalType !== "Approval")) &&
                               <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                 className='me-1' alt="x" /> Cancel</button>
@@ -3794,9 +3989,9 @@ const MemoContext = ({ props }: any) => {
 
                         {/* /////////// */}
 
-                        <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
+                        <Modal show={showModal} onHide={() => setShowModal(false)} size={Showfile ? "xl" : "lg"} className='filemodal'>
                           <Modal.Header closeButton>
-                            <Modal.Title > <h4 className='font-16 text-dark fw-bold mb-1'>Attachment Details</h4> 
+                            <Modal.Title > <h4 className='font-16 text-dark fw-bold mb-1'>Attachment Details</h4>
                               <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for Memorandum
                               </p>
 
@@ -3806,97 +4001,103 @@ const MemoContext = ({ props }: any) => {
                           </Modal.Header>
                           <Modal.Body className="" id="style-5">
 
-                            {/* {DocumentLink &&
-                                                            (
-                                                                <> */}
-                            <table className="mtbalenew">
-                              <thead style={{ background: '#eef6f7' }}>
-                                <tr>
-                                  <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
-                                  <th>File Name</th>
-                                  {/* {editForm && <th>File Link</th>} */}
-                                  <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th>
-                                  {/* {!InputDisabled && <th className='text-center'>Action</th>} */}
-                                  <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Action</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {FilesArr.length > 0 && (
-                                  FilesArr.map((row: any, index: number) => {
-                                    const date = new Date();
-                                    const components = [
-                                      date.getDate().toString().padStart(2, '0'),
-                                      (date.getMonth() + 1).toString().padStart(2, '0'),
-                                      date.getFullYear().toString(),
-                                      date.getHours().toString().padStart(2, '0'),
-                                      date.getMinutes().toString().padStart(2, '0'),
-                                      date.getSeconds().toString().padStart(2, '0'),
-                                      date.getMilliseconds().toString().padStart(3, '0')
-                                    ];
-                                    const fileExtension = row.name ? row.name.split('.').pop() : "";
-                                    const fileNameWithoutExtension = row.name ? row.name.split('.').slice(0, -1).join('.') : "";
-                                    const NewFileName = `${formData.memoFileName}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`;
-                                    return (
-                                      <tr key={index}>
-                                        <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
-                                        <td title={row.name ? NewFileName : row.FileLeafRef}>
-                                          {row.name ? NewFileName : row.FileLeafRef}
-                                        </td>
-                                        <td style={{ minWidth: '50px', maxWidth: '50px' }} title={row.Created
-                                          ? new Date(row.Created).toLocaleDateString("en-GB", {
-                                            day: "2-digit",
-                                            month: "short",
-                                            year: "numeric",
-                                          }).replace(/ /g, "/")
-                                          : new Date().toLocaleDateString("en-GB", {
-                                            day: "2-digit",
-                                            month: "short",
-                                            year: "numeric",
-                                          }).replace(/ /g, "/")}>
-                                          {row.Created
-                                            ? new Date(row.Created).toLocaleDateString("en-GB", {
-                                              day: "2-digit",
-                                              month: "short",
-                                              year: "numeric",
-                                            }).replace(/ /g, "/")
-                                            : new Date().toLocaleDateString("en-GB", {
-                                              day: "2-digit",
-                                              month: "short",
-                                              year: "numeric",
-                                            }).replace(/ /g, "/")}
-                                        </td>
-                                        <td style={{ minWidth: '50px', maxWidth: '50px' }}>
-                                          {row.Id && (
-                                            <>
-                                            <span title='preview file'
-                                                onClick={() => OpenFile(row, "Open")}
-                                                style={{ color: "blue", cursor: "pointer", margin: "10px" }}
-                                              >
-                                                <FontAwesomeIcon icon={faEye} />
-                                              </span>
-                                              <span title='download file'
-                                                onClick={() => OpenFile(row, "Download")}
-                                                style={{ color: "blue", cursor: "pointer", margin: "10px" }}
-                                              >
-                                                <FontAwesomeIcon icon={faDownload} />
-                                              </span>
-                                              
-                                            </>
-                                          )}
-                                          {!InputDisabled && (
-                                            <img title='delete file'
-                                              src={require("../../assets/del.png")}
-                                              style={{ cursor: "pointer" }}
-                                              onClick={() => handleDelete(index)}
-                                            />
-                                          )}
-                                        </td>
-                                      </tr>
-                                    );
-                                  })
-                                )}
-                              </tbody>
-                            </table>
+                            <>
+
+                              {Showfile ?
+
+                                <FileViewer showfile={Showfile} docurl={redirecturl} cancelAction={cancelModalAction} />
+                                :
+                                <table className="mtbalenew">
+                                  <thead style={{ background: '#eef6f7' }}>
+                                    <tr>
+                                      <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                                      <th>File Name</th>
+                                      {/* {editForm && <th>File Link</th>} */}
+                                      <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th>
+                                      {/* {!InputDisabled && <th className='text-center'>Action</th>} */}
+                                      <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Action</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {FilesArr.length > 0 && (
+                                      FilesArr.map((row: any, index: number) => {
+                                        const date = new Date();
+                                        // const components = [
+                                        //   date.getDate().toString().padStart(2, '0'),
+                                        //   (date.getMonth() + 1).toString().padStart(2, '0'),
+                                        //   date.getFullYear().toString(),
+                                        //   date.getHours().toString().padStart(2, '0'),
+                                        //   date.getMinutes().toString().padStart(2, '0'),
+                                        //   date.getSeconds().toString().padStart(2, '0'),
+                                        //   date.getMilliseconds().toString().padStart(3, '0')
+                                        // ];
+                                        const fileExtension = row.name ? row.name.split('.').pop() : "";
+                                        const fileNameWithoutExtension = row.name ? row.name.split('.').slice(0, -1).join('.') : "";
+                                        // const NewFileName = `${formData.memoFileName}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`;
+                                        const NewFileName = `${formData.memoFileName}_${fileNameWithoutExtension}.${fileExtension}`;
+
+                                        return (
+                                          <tr key={index}>
+                                            <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
+                                            <td title={row.name ? NewFileName : row.FileLeafRef.replace(/_\d+(\.\w+)$/, '$1')}>
+                                              {row.name ? NewFileName : row.FileLeafRef.replace(/_\d+(\.\w+)$/, '$1')}
+                                            </td>
+                                            <td style={{ minWidth: '50px', maxWidth: '50px' }} title={row.Created
+                                              ? new Date(row.Created).toLocaleDateString("en-GB", {
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "numeric",
+                                              }).replace(/ /g, "/")
+                                              : new Date().toLocaleDateString("en-GB", {
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "numeric",
+                                              }).replace(/ /g, "/")}>
+                                              {row.Created
+                                                ? new Date(row.Created).toLocaleDateString("en-GB", {
+                                                  day: "2-digit",
+                                                  month: "short",
+                                                  year: "numeric",
+                                                }).replace(/ /g, "/")
+                                                : new Date().toLocaleDateString("en-GB", {
+                                                  day: "2-digit",
+                                                  month: "short",
+                                                  year: "numeric",
+                                                }).replace(/ /g, "/")}
+                                            </td>
+                                            <td style={{ minWidth: '50px', maxWidth: '50px' }}>
+                                              {row.Id && (
+                                                <>
+                                                  <span title='preview file'
+                                                    onClick={() => OpenFile(row, "Open")}
+                                                    style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                                                  >
+                                                    <FontAwesomeIcon icon={faEye} />
+                                                  </span>
+                                                  <span title='download file'
+                                                    onClick={() => OpenFile(row, "Download")}
+                                                    style={{ color: "blue", cursor: "pointer", margin: "10px" }}
+                                                  >
+                                                    <FontAwesomeIcon icon={faDownload} />
+                                                  </span>
+
+                                                </>
+                                              )}
+                                              {!InputDisabled && (
+                                                <img title='delete file'
+                                                  src={require("../../assets/del.png")}
+                                                  style={{ cursor: "pointer" }}
+                                                  onClick={() => handleDelete(index)}
+                                                />
+                                              )}
+                                            </td>
+                                          </tr>
+                                        );
+                                      })
+                                    )}
+                                  </tbody>
+                                </table>
+                              }</>
                             {/* </>
                                                             )
                                                         } */}
@@ -3904,6 +4105,21 @@ const MemoContext = ({ props }: any) => {
                           </Modal.Body>
 
                         </Modal>
+
+                        <Modal show={ShowModalTemplateDoc} onHide={() => setShowModalTemplateDoc(false)} size={Showfile ? "xl" : "lg"} className='newmobmodal'>
+
+                          <Modal.Body className="" id="style-5">
+                            <>
+                              {Showfile &&
+
+                                <FileViewer showfile={Showfile} docurl={redirecturl} cancelAction={cancelModalAction} />
+
+                              }
+                            </>
+                          </Modal.Body>
+                        </Modal>
+
+
 
                         {/* ///////////////// */}
 

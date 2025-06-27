@@ -26,7 +26,7 @@ import "./documentCancellation.scss";
 // import { allowstringonly, getCurrentUser } from '../../../APISearvice/CustomService';
 import { allowstringonly, getCurrentUser } from '../../../../APISearvice/CustomService';
 // import { addAllProcessItem, addApprovalItem, addItem, addItem2, getAllDocumentCode, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getFormNameID, getItemByID, getItemByID2, getListNameID, getRequesterID, getRequestTypeID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2 } from '../../../APISearvice/DocumentCancellation';
-import { addAllProcessItem, addApprovalItem, addItem, addItem2, getAllDocumentCode, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDoc, getItemByID, getItemByID2, getLatestChangeRequestTemplateType, getListNameID, getRequesterID, getRequestTypeID, getUserDepartment, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2 } from '../../../../APISearvice/DocumentCancellation';
+import { addAllProcessItem, addApprovalItem, addItem, addItem2, CheckIfAlreadyactionTaken, getAllDocumentCode, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getdigitalsignaturerequestbyID, getDocumentLinkByID, getDocumentLinkByIDSigned, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDoc, getItemByID, getItemByID2, getLatestChangeRequestTemplateType, getListNameID, getRequesterID, getRequestTypeID, getUserDepartment, UpdateAllProcessItem, updateApprovalItem, updateDigitalsign, updateItem, updateItem2 } from '../../../../APISearvice/DocumentCancellation';
 import Select from "react-select";
 import Swal from 'sweetalert2';
 // import { FormSubmissionMode } from '../../../Shared/Interfaces';
@@ -47,6 +47,7 @@ import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from '../../ChangerequestComponent/CustomBreadcrumb/CustomBreadcrumb';
+import FileViewer from '../../components/fileviewer';
 let myloader = '../../'
 interface ForwardTo {
     id: number;
@@ -71,7 +72,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     const [FormLoading, setFormLoading] = React.useState(false);
     const [FormItemId, setFormItemId] = React.useState(null);
     const [editID, setEditID] = React.useState(null);
-    const [editItemID, setEditItemID] = React.useState(null);
+    const [DigitalsignID, setDigitalsignID] = React.useState(null);
     const [MainEditItem, setMainEditItem] = React.useState(null);
     const [rows, setRows] = React.useState<any>([]);
     const [UserRoles, setUserRoles] = React.useState<any>([]);
@@ -96,6 +97,16 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     const [cancellReason, setcancellReason] = React.useState([{ id: 0, description: "", reason: "" }]);
     const [cancellReasonEdit, setcancellReasonEdit] = React.useState([]);
     const [showModal, setShowModal] = React.useState(false);
+
+    const [editItemID, setEditItemID] = React.useState(null);
+
+    const [hidedigisign, sethidedigisign] = React.useState(false);
+
+
+    const [Showfile, setShowfile] = React.useState(false);
+    const [redirecturl, setredirecturl] = React.useState(null);
+    const [ShowModalTemplateDoc, setShowModalTemplateDoc] = React.useState(false);
+    
     const [formData, setFormData] = React.useState({
         RequesterNameId: 0,
         RequesterName: "",
@@ -131,6 +142,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         DigitalSignStatus: false,
         ChangeRequestID: 0,
         AttachmentId: [],
+        AttachmentDigitalSignatureId: [],
         AttachmentJson: "",
         TemplateTypeId: 0,
         TemplateTypeValue: "",
@@ -148,6 +160,15 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
     });
+
+
+    const cancelModalAction = (refresh?: boolean,) => {
+        debugger
+        setredirecturl(window.location.href);
+        //setShowfileNew(false);
+        setShowModalTemplateDoc(false);
+        setShowfile(false);
+    }
 
 
     // Handle change event
@@ -271,7 +292,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             DepartmentName: fetchUserDept
 
         }));
-
+        setFormLoading(true);
         var DocCodeArr = await getAllDocumentCode(sp, UserDept);
         // var DocCodeArr = await getAllDocumentCode(sp);
         const options = DocCodeArr.map((item: any) => ({
@@ -296,7 +317,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             DocumentTypeId: item.DocumentTypeId,
             Department: item.DepartmentId || null,
             DepartmentName: item.Department?.Department || "",
-            AttachmentId: item.AttachmentId,
+            AttachmentId: item.AttachmentId ||[],
+            AttachmentDigitalSignatureId :item.AttachmentDigitalSignatureId ||[],
             AttachmentJson: item.AttachmentJson,
 
             Location: item.Location.Location,
@@ -307,7 +329,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             TemplateTypeId: item.TemplateTypeId,
             TemplateTypeValue: item.TemplateType?.TemplateTypeName || "",
 
-            filename:item?.FileName || "",
+            filename: item?.FileName || "",
 
 
         }));
@@ -374,13 +396,22 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
             const setBannerById = await getItemByID(sp, Number(formitemid))
 
+            const newItem1 = await getdigitalsignaturerequestbyID(LIST_TITLE_DocCancel, sp, Number(formitemid));
+            // console.log("newItem1newItem1", newItem1);
+            if (newItem1.length > 0) {
+                setDigitalsignID(newItem1[0].ID)
+            }
+
             if (setBannerById.length > 0) {
                 debugger
                 setEditForm(true);
                 setMainEditItem(setBannerById[0]);
                 // setCategoryData(await getCategory(sp, Number(setBannerById[0]?.TypeMaster))) // Category
-                if (setBannerById[0].AttachmentId) {
+                if (setBannerById[0].AttachmentId.length) {
                     setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId))
+                }
+                if (setBannerById[0].AttachmentDigitalSignatureId.length) {
+                    setDocumentLink(await getDocumentLinkByIDSigned(sp, setBannerById[0].AttachmentDigitalSignatureId))
                 }
                 // if (ProcessItemId && ProcessItemId.Level === 0 && ProcessItemId.CurrentUserRole === "OES" && ProcessItemId.IsInitiator == "No") {
                 const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_DocumentCancel, setBannerById[0].DocumentCode)
@@ -440,13 +471,15 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     SubmitStatus: setBannerById[0].SubmitStatus,
                     value: setBannerById[0].DocumentCode,
                     label: setBannerById[0].DocumentCode,
-                    // Status: "Pending",
+                    //
+                    Status: setBannerById[0].Status,
                     // DocumentName: "",
                     // IsRework: false,
                     // DigitalSignStatus: false,
                     ChangeRequestIDId: setBannerById[0].ChangeRequestID,
                     DocumentTypeId: setBannerById[0].DocumentTypeId,
-                    AttachmentId: setBannerById[0].AttachmentId,
+                    AttachmentId: setBannerById[0].AttachmentId || [],
+                    AttachmentDigitalSignatureId :setBannerById[0].AttachmentDigitalSignatureId ||[],
                     AttachmentJson: setBannerById[0].AttachmentJson,
 
                     Location: setBannerById[0].Location.Location,
@@ -493,6 +526,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     DepartmentName: setBannerById[0].Department?.Department || "",
                     Department: setBannerById[0].DepartmentId || null,
                     AttachmentId: setBannerById[0].AttachmentId,
+                    AttachmentDigitalSignatureId :setBannerById[0].AttachmentDigitalSignatureId ||[],
                     AttachmentJson: setBannerById[0].AttachmentJson,
 
                     Location: setBannerById[0].Location.Location,
@@ -504,6 +538,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     TemplateTypeValue: setBannerById[0].TemplateType?.TemplateTypeName || "",
 
                     filename: setBannerById[0]?.FileName || "",
+                    Status: setBannerById[0].Status,
+
 
                     // Format as YYYY-MM-DD
                 }));
@@ -562,7 +598,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
     const onSelect = async (selectedList: any) => {
         console.log(selectedList, "selectedList");
-       
+
         if (selectedList) {
             setFormData(prevData => ({
                 ...prevData,
@@ -585,7 +621,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 DocumentTypeId: selectedList.DocumentTypeId,
                 Department: selectedList.Department,
                 DepartmentName: selectedList.DepartmentName || "",
-                AttachmentId: selectedList.AttachmentId,
+                AttachmentId: selectedList.AttachmentId || [],
+                AttachmentDigitalSignatureId: selectedList.AttachmentDigitalSignatureId || [],
                 AttachmentJson: selectedList.AttachmentJson,
                 Location: selectedList.Location,
                 Custodian: selectedList.Custodian,
@@ -620,6 +657,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 Department: null,
                 DepartmentName: "",
                 AttachmentId: [],
+                AttachmentDigitalSignatureId:[],
                 AttachmentJson: "",
                 Location: "",
                 Custodian: "",
@@ -632,8 +670,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             }));
         }
         setSelectedOption(selectedList);
-        if (selectedList?.AttachmentId) {
+        if (selectedList?.AttachmentId.length) {
             setDocumentLink(await getDocumentLinkByID(sp, selectedList.AttachmentId))
+        }
+        else if (selectedList?.AttachmentDigitalSignatureId.length) {
+            setDocumentLink(await getDocumentLinkByIDSigned(sp, selectedList.AttachmentDigitalSignatureId))
         }
         else {
             setDocumentLink(null);
@@ -729,19 +770,25 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     const OpenFile = (obj: any, sts: string) => {
 
         const fileUrl = `${Tenant_URL}${obj.FileRef}`;
+        if (sts == "Open") {
+            setShowfile(true);
+        }
 
         if (sts == "Open") {
             if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
 
-                window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=default`, "_blank");
+                // window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=default`, "_blank");
+                const viewerUrlppt = `${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=embedview`
+                setredirecturl(viewerUrlppt);
             } else {
-                window.open(fileUrl, "_blank"); // Open PDF and other files normally
+                // window.open(fileUrl, "_blank"); // Open PDF and other files normally
+                setredirecturl(fileUrl);
             }
 
         } else if (sts == "Download") {
             const link = document.createElement("a");
             link.href = fileUrl;
-            link.setAttribute("download", obj.FileLeafRef); // Suggests a filename for download
+            link.setAttribute("download", obj.FileLeafRef.replace(/_\d+(\.\w+)$/, '$1')); // Suggests a filename for download
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -923,6 +970,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             InitiatorSubmitStatus: "Yes",
                             CurrentUserRole: "OES",
                             AttachmentId: selectedOption.AttachmentId,
+                            AttachmentDigitalSignatureId :selectedOption.AttachmentDigitalSignatureId,
                             AttachmentJson: selectedOption.AttachmentJson,
                             TemplateTypeId: selectedOption.TemplateTypeId,
 
@@ -1000,19 +1048,24 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                         // if (boolval == true) {
                         setLoading(false);
-                        Swal.fire('Submitted successfully.', '', 'success');
-                        sessionStorage.removeItem("DocumentCancelId")
-                        setTimeout(() => {
+                        // Swal.fire('Submitted successfully.', '', 'success');
+                        // sessionStorage.removeItem("DocumentCancelId")
+                        // setTimeout(() => {
 
-                            window.history.back();
-                            // window.location.reload();
-                            setTimeout(() => {
-                                location.reload();
-                            }, 100);
-                            // let url = window.location.href;
-                            // let baseUrl = url.split("#")[0];
-                        }, 500);
-                        // }
+                        //     window.history.back();
+                        //     // window.location.reload();
+                        //     setTimeout(() => {
+                        //         location.reload();
+                        //     }, 100);
+                        //     // let url = window.location.href;
+                        //     // let baseUrl = url.split("#")[0];
+                        // }, 500);
+                        // // }
+                        Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = modeValue == "Approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                            }
+                        });
                     }
 
                 })
@@ -1064,6 +1117,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             CurrentUserRole: "OES",
                             TemplateTypeId: selectedOption.TemplateTypeId,
                             AttachmentId: selectedOption.AttachmentId,
+                            AttachmentDigitalSignatureId :selectedOption.AttachmentDigitalSignatureId,
                             AttachmentJson: selectedOption.AttachmentJson ? selectedOption.AttachmentJson : "",
 
 
@@ -1114,13 +1168,18 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                         // if (boolval == true) {
                         setLoading(false);
-                        Swal.fire('Submitted successfully.', '', 'success');
-                        // sessionStorage.removeItem("bannerId")
-                        setTimeout(() => {
-                            window.location.reload();
-                            // window.history.back();
-                        }, 500);
-                        // }
+                        // Swal.fire('Submitted successfully.', '', 'success');
+                        // // sessionStorage.removeItem("bannerId")
+                        // setTimeout(() => {
+                        //     window.location.reload();
+                        //     // window.history.back();
+                        // }, 500);
+                        // // }
+                        Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = modeValue == "Approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                            }
+                        });
 
                     }
                 })
@@ -1181,6 +1240,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                 InitiatorSubmitStatus: "No",
                                 CurrentUserRole: "OES",
                                 AttachmentId: selectedOption.AttachmentId,
+                                AttachmentDigitalSignatureId :selectedOption.AttachmentDigitalSignatureId,
                                 AttachmentJson: selectedOption.AttachmentJson,
                                 TemplateTypeId: selectedOption.TemplateTypeId,
 
@@ -1220,6 +1280,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                 InitiatorSubmitStatus: "No",
                                 CurrentUserRole: "OES",
                                 AttachmentId: selectedOption.AttachmentId,
+                                AttachmentDigitalSignatureId :selectedOption.AttachmentDigitalSignatureId,
                                 AttachmentJson: selectedOption.AttachmentJson,
                                 TemplateTypeId: selectedOption.TemplateTypeId,
 
@@ -1297,17 +1358,22 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                         // if (boolval == true) {
                         setLoading(false);
-                        Swal.fire('Saved successfully.', '', 'success');
-                        sessionStorage.removeItem("DocumentCancelId")
-                        setTimeout(() => {
+                        // Swal.fire('Saved successfully.', '', 'success');
+                        // sessionStorage.removeItem("DocumentCancelId")
+                        // setTimeout(() => {
 
-                            window.history.back();
-                            // window.location.reload();
-                            setTimeout(() => {
-                                location.reload();
-                            }, 100);
-                        }, 1000);
-                        // }
+                        //     window.history.back();
+                        //     // window.location.reload();
+                        //     setTimeout(() => {
+                        //         location.reload();
+                        //     }, 100);
+                        // }, 1000);
+                        // // }
+                        Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = modeValue == "Approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                            }
+                        });
                     }
 
                 })
@@ -1358,6 +1424,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             InitiatorSubmitStatus: "No",
                             CurrentUserRole: "OES",
                             AttachmentId: selectedOption.AttachmentId,
+                            AttachmentDigitalSignatureId :selectedOption.AttachmentDigitalSignatureId,
                             AttachmentJson: selectedOption.AttachmentJson,
                             TemplateTypeId: selectedOption.TemplateTypeId,
 
@@ -1407,12 +1474,17 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
                         setLoading(false);
-                        Swal.fire('Saved successfully.', '', 'success');
-                        // sessionStorage.removeItem("bannerId")
-                        setTimeout(() => {
-                            window.location.reload();
-                            // window.history.back();
-                        }, 1000);
+                        // Swal.fire('Saved successfully.', '', 'success');
+                        // // sessionStorage.removeItem("bannerId")
+                        // setTimeout(() => {
+                        //     window.location.reload();
+                        //     // window.history.back();
+                        // }, 1000);
+                        Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = modeValue == "Approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                            }
+                        });
                     }
                 })
 
@@ -1451,6 +1523,12 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 actionMessage = "Do you want to rework this request?";
                 successMessage = 'Sent for rework.'
                 break;
+        }
+
+        const IsactionTaken = await CheckIfAlreadyactionTaken(sp, editID.Id);
+        if (!IsactionTaken) {
+            Swal.fire("Action has already been taken on this record.");
+            return;
         }
 
 
@@ -1860,6 +1938,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             InitiatorSubmitStatus: "Yes",
                             CurrentUserRole: "OES",
                             AttachmentId: selectedOption.AttachmentId,
+                            AttachmentDigitalSignatureId :selectedOption.AttachmentDigitalSignatureId,
                             AttachmentJson: selectedOption.AttachmentJson
 
 
@@ -1991,6 +2070,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             InitiatorSubmitStatus: "No",
                             CurrentUserRole: "OES",
                             AttachmentId: selectedOption.AttachmentId,
+                            AttachmentDigitalSignatureId :selectedOption.AttachmentDigitalSignatureId,
                             AttachmentJson: selectedOption.AttachmentJson
 
 
@@ -2067,6 +2147,53 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
     }
 
+    const updatedigisignnew = async () => {
+        let items = await updateDigitalsign(LIST_TITLE_DocCancel, sp, DigitalsignID);
+        if (items) {
+            sethidedigisign(true);
+        }
+    }
+
+    const OpenFileTemplate = (obj: any, sts: string) => {
+        debugger
+        setShowModalTemplateDoc(true);
+        const fileUrl = `${Tenant_URL}${obj.FileRef}`;
+        if (sts == "Open") {
+            setShowfile(true);
+        }
+        if (sts == "Open") {
+          if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
+            const viewerUrl = `${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=embedview`;
+    
+            //window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=view`);
+            setredirecturl(viewerUrl);
+          } else {
+            setredirecturl(fileUrl);
+            //window.open(fileUrl, "_blank"); // Open PDF and other files normally
+          }
+    
+        } else if (sts == "Download") {
+          const link = document.createElement("a");
+          link.href = fileUrl;
+          link.setAttribute("download", obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name)); // Suggests a filename for download
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+    
+        }
+    
+      }
+      const cleanFileName = (filename: string) => {
+        // Match a 14-digit datetime suffix before the file extension
+        const datetimePattern = /_\d{14}(?=\.[^.]+$)/;
+    
+        if (datetimePattern.test(filename)) {
+          return filename.replace(datetimePattern, '');
+        }
+    
+        return filename;
+      }
+
 
     return (
         <div id="wrapper" ref={elementRef}>
@@ -2124,18 +2251,52 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                         {/* <h3 className="text-dark font-16 fw-bold mb-3">Requested By</h3> */}
                                                         <div className="previewIcon">
                                                             <h4 style={{ textAlign: 'left', margin: 'inherit' }} className="text-dark font-16 fw-bold mb-3">Requested By</h4>
+                                                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+
+                                                            {(formData.Status === "Approved" || formData.Status === "Rejected") && !hidedigisign && DigitalsignID != null && (
+                                                                <span
+                                                                    onClick={() => updatedigisignnew()}
+                                                                    style={{ cursor: "pointer" }}
+                                                                >
+                                                                    <div className="" title='Sync digital signed document from Signing Hub'>
+                                                                        <img
+                                                                            style={{ cursor: 'pointer', height: '40px' }}
+                                                                            className='mt-0'
+                                                                            src={require("../../assets/digisign.png")}
+                                                                            alt="Signature Icon"
+                                                                        />
+                                                                    </div>
+                                                                </span>
+                                                            )}
                                                             {TemplateDoc && TemplateDoc.length > 0 && <div className='btn btn-primary'
-                                                                onClick={() => OpenFile(TemplateDoc[0], "Open")}
+                                                                // onClick={() => OpenFile(TemplateDoc[0], "Open")}
+                                                                onClick={() => OpenFileTemplate(TemplateDoc[0], "Open")}
 
                                                             >
+                                                                {(() => {
+                                                                    const parts = TemplateDoc[0]?.FileRef?.split('/');
+                                                                    const folderName = parts && parts[3] ? parts[3] : null;
+                                                                    return folderName === "DocumentCancellationDigitalSignedDocs" ? (
+                                                                        // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} alt="Download Icon" />
+                                                                        // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/digisigndownload.png")} alt="Digital Sign Download Icon" />
+                                                                        <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/signicon.png")} alt="Digital Sign Download Icon" />
 
-                                                                <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} ></img>
+
+                                                                    ) : (
+                                                                        <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} alt="Download Icon" />
+                                                                        // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/digisigndownload.png")} alt="Digital Sign Download Icon" />
+                                                                    );
+                                                                })()}
+
+
+                                                                {/* <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} ></img> */}
                                                                 {/* <FontAwesomeIcon icon={faEye} /> */}
                                                             </div>
                                                             }
+                                                             </div>
                                                         </div>
 
-                                                        {FormLoading ?
+                                                        {FormLoading &&
 
                                                             <div className="loadernewadd mt-10">
                                                                 <div>
@@ -2154,14 +2315,15 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                     />
                                                                 </span>
                                                             </div>
-                                                            :
+                                                            // :
+                                                        }
                                                             <div className="row">
                                                                 <div className="col-lg-4">
 
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="RequesterName" className="form-label">Name</label>
-                                                                        <input style={{height:'47px'}} type="text" id="Name" name="RequesterName" className="form-control" title={formData.RequesterName} value={formData.RequesterName} disabled={true} />
+                                                                        <input style={{ height: '47px' }} type="text" id="Name" name="RequesterName" className="form-control" title={formData.RequesterName} value={formData.RequesterName} disabled={true} />
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
@@ -2169,7 +2331,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="Department" className="form-label">Department</label>
-                                                                        <input style={{height:'47px'}} type="text" id="Department" name="DepartmentName" className="form-control" title={formData.DepartmentName} value={formData.DepartmentName} disabled={true} />
+                                                                        <input style={{ height: '47px' }} type="text" id="Department" name="DepartmentName" className="form-control" title={formData.DepartmentName} value={formData.DepartmentName} disabled={true} />
                                                                     </div>
                                                                 </div>
 
@@ -2178,14 +2340,14 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="RequesterDesignation" className="form-label">Designation</label>
-                                                                        <input style={{height:'47px'}} type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" title={formData.RequesterDesignation} value={formData.RequesterDesignation} disabled={true} />
+                                                                        <input style={{ height: '47px' }} type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" title={formData.RequesterDesignation} value={formData.RequesterDesignation} disabled={true} />
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="RequestDate" className="form-label">Request Date</label>
-                                                                        <input style={{height:'47px'}} type="text" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDateNew} title={formData.RequestDateNew} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={true} />
+                                                                        <input style={{ height: '47px' }} type="text" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDateNew} title={formData.RequestDateNew} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={true} />
 
                                                                         {/* <input type="date" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDate} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} /> */}
                                                                     </div>
@@ -2214,7 +2376,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Issue No</label>
-                                                                        <input style={{height:'47px'}} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.IssueNumber} value={formData.IssueNumber} />
+                                                                        <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.IssueNumber} value={formData.IssueNumber} />
                                                                     </div>
                                                                 </div>
 
@@ -2222,28 +2384,28 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Revision No</label>
-                                                                        <input style={{height:'47px'}} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.RevisionNumber} value={formData.RevisionNumber} />
+                                                                        <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.RevisionNumber} value={formData.RevisionNumber} />
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Reference No</label>
-                                                                        <input style={{height:'47px'}} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.ReferenceNumber} value={formData.ReferenceNumber} />
+                                                                        <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.ReferenceNumber} value={formData.ReferenceNumber} />
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Document Type</label>
-                                                                        <input style={{height:'47px'}} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.DocumentType} value={formData.DocumentType} />
+                                                                        <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.DocumentType} value={formData.DocumentType} />
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Location</label>
-                                                                        <input style={{height:'47px'}} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Location} value={formData.Location} />
+                                                                        <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Location} value={formData.Location} />
                                                                     </div>
                                                                 </div>
 
@@ -2251,7 +2413,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Custodian</label>
-                                                                        <input style={{height:'47px'}} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Custodian} value={formData.Custodian} />
+                                                                        <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Custodian} value={formData.Custodian} />
                                                                     </div>
                                                                 </div>
 
@@ -2259,7 +2421,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Amendment Type</label>
-                                                                        <input style={{height:'47px'}} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.AmendmentType} value={formData.AmendmentType} />
+                                                                        <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.AmendmentType} value={formData.AmendmentType} />
                                                                     </div>
                                                                 </div>
 
@@ -2267,7 +2429,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Classification</label>
-                                                                        <input style={{height:'47px'}} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Classification} value={formData.Classification} />
+                                                                        <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Classification} value={formData.Classification} />
                                                                     </div>
                                                                 </div>
 
@@ -2275,7 +2437,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                     <div className="mb-3">
                                                                         <label htmlFor="example-email" className="form-label">Template Type</label>
-                                                                        <input style={{height:'47px'}} disabled type="text" id="templateid" name="example-email" className="form-control" placeholder="" title={formData.TemplateTypeValue} value={formData.TemplateTypeValue} />
+                                                                        <input style={{ height: '47px' }} disabled type="text" id="templateid" name="example-email" className="form-control" placeholder="" title={formData.TemplateTypeValue} value={formData.TemplateTypeValue} />
                                                                     </div>
                                                                 </div>
 
@@ -2291,9 +2453,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                 </div>
                                                             </div> */}
 
-                                                            {/* changes  */}
+                                                                {/* changes  */}
 
-                                                            <div className="col-lg-4">
+                                                                <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="RequesterName" className="form-label">Document Name</label>
                                                                         {/* <input type="text" id="Name" name="department" className="form-control" value={formData.Department} disabled={true} />
@@ -2302,16 +2464,16 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                             title={formData.filename || ""}
                                                                             style={{ width: "100%" }}
                                                                         >
-                                                                            <input style={{height:'47px'}} type="text"
+                                                                            <input style={{ height: '47px' }} type="text"
                                                                                 id="example-email"
                                                                                 name="example-email"
                                                                                 // className={`form-control ${(!ValidDraft && filenameerr) ? "border-on-error" : ""} ${(!ValidSubmit && filenameerr) ? "border-on-error" : ""}`}
                                                                                 className={`form-control`}
                                                                                 // onChange={(e) => onChangefilename("filename", e.target.value)}
-                                                                                placeholder="Document name"
-                                                                                value={formData.filename} disabled={true}/>
+                                                                                // placeholder="Document name"
+                                                                                value={formData.filename} disabled={true} />
 
-                                                                            
+
                                                                         </div>
 
                                                                     </div>
@@ -2356,7 +2518,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                 </div>
 
 
-                                                                
+
 
 
 
@@ -2364,7 +2526,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
                                                             </div>
-                                                        }
+                                                        {/* // } */}
                                                     </div>
 
 
@@ -2400,77 +2562,77 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                     </p> */}
 
                                                         <div className="row">
-                                                        <div style={{ overflow: 'inherit' }} className="table-responsive mt-0 pt-0">
-                                                            <table className="mtbalenewscrollnew4 table-centered table-nowrap table-borderless mb-0" id="tbl">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th style={{ minWidth: "30px", maxWidth: "30px" }}>S.No</th>
-                                                                        <th>Description<span className="text-danger1"> *</span></th>
-                                                                        <th>Reason for Cancellation<span className="text-danger1"> *</span></th>
-                                                                        {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: "40px", maxWidth: "40px" }}>Action</th>}
-                                                                    </tr>
-
-                                                                </thead>
-
-                                                                <tbody >
-                                                                    {cancellReason.map((row, index) => (
-                                                                        <tr key={index}>
-                                                                            <td style={{ minWidth: "30px", maxWidth: "30px" }}>
-                                                                                <div
-                                                                                    style={{ marginLeft: "5px" }}
-                                                                                    className="indexdesign"
-                                                                                >
-                                                                                    {index + 1}</div></td>
-                                                                            <td>
-                                                                                <textarea id="simpleinput" disabled={InputDisabled}
-                                                                                    // className="form-control"                                                                      
-                                                                                    className={`newse mb-0 recommendClsErr ${(!ValidCancelReason) ? "border-on-error" : ""}`}
-                                                                                    title={row.description}
-                                                                                    value={row.description}
-                                                                                    onChange={(e) => {
-                                                                                        const newRowscancellReason = [...cancellReason];
-                                                                                        newRowscancellReason[index].description = e.target.value;
-                                                                                        setcancellReason(newRowscancellReason);
-                                                                                    }}>
-
-                                                                                </textarea>
-                                                                                {/* <input type="text"
-                                                                        /> */}
-
-                                                                            </td>
-                                                                            <td>
-                                                                                <textarea id="simpleinput" disabled={InputDisabled}
-                                                                                    //  className="form-control"
-                                                                                    className={`newse mb-0 recommendClsErr ${(!ValidCancelReason) ? "border-on-error" : ""}`}
-                                                                                    title={row.reason}
-                                                                                    value={row.reason}
-                                                                                    onChange={(e) => {
-                                                                                        const newRowscancellReason = [...cancellReason];
-                                                                                        newRowscancellReason[index].reason = e.target.value;
-                                                                                        setcancellReason(newRowscancellReason);
-                                                                                    }}>
-
-                                                                                </textarea>
-
-                                                                                {/* <input type="text"
-                                                                        /> */}
-                                                                            </td>
-                                                                            {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "40px", maxWidth: "40px", textAlign: 'center' }}>
-                                                                                {/* <img src={require("../../../CustomAsset/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img> */}
-                                                                                <img src={require("../../assets/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img>
-
-                                                                                {/* <img src={require("../../../CustomAsset/del.png")} className='sidebariconsmall' style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img> */}
-                                                                            </td>
-                                                                            }
+                                                            <div style={{ overflow: 'inherit' }} className="table-responsive mt-0 pt-0">
+                                                                <table className="mtbalenewscrollnew4 table-centered table-nowrap table-borderless mb-0" id="tbl">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style={{ minWidth: "30px", maxWidth: "30px" }}>S.No</th>
+                                                                            <th>Description<span className="text-danger1"> *</span></th>
+                                                                            <th>Reason for Cancellation<span className="text-danger1"> *</span></th>
+                                                                            {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <th style={{ minWidth: "40px", maxWidth: "40px" }}>Action</th>}
                                                                         </tr>
-                                                                    ))}
-                                                                </tbody>
+
+                                                                    </thead>
+
+                                                                    <tbody >
+                                                                        {cancellReason.map((row, index) => (
+                                                                            <tr key={index}>
+                                                                                <td style={{ minWidth: "30px", maxWidth: "30px" }}>
+                                                                                    <div
+                                                                                        style={{ marginLeft: "5px" }}
+                                                                                        className="indexdesign"
+                                                                                    >
+                                                                                        {index + 1}</div></td>
+                                                                                <td>
+                                                                                    <textarea id="simpleinput" disabled={InputDisabled}
+                                                                                        // className="form-control"                                                                      
+                                                                                        className={`newse mb-0 recommendClsErr ${(!ValidCancelReason) ? "border-on-error" : ""}`}
+                                                                                        title={row.description}
+                                                                                        value={row.description}
+                                                                                        onChange={(e) => {
+                                                                                            const newRowscancellReason = [...cancellReason];
+                                                                                            newRowscancellReason[index].description = e.target.value;
+                                                                                            setcancellReason(newRowscancellReason);
+                                                                                        }}>
+
+                                                                                    </textarea>
+                                                                                    {/* <input type="text"
+                                                                        /> */}
+
+                                                                                </td>
+                                                                                <td>
+                                                                                    <textarea id="simpleinput" disabled={InputDisabled}
+                                                                                        //  className="form-control"
+                                                                                        className={`newse mb-0 recommendClsErr ${(!ValidCancelReason) ? "border-on-error" : ""}`}
+                                                                                        title={row.reason}
+                                                                                        value={row.reason}
+                                                                                        onChange={(e) => {
+                                                                                            const newRowscancellReason = [...cancellReason];
+                                                                                            newRowscancellReason[index].reason = e.target.value;
+                                                                                            setcancellReason(newRowscancellReason);
+                                                                                        }}>
+
+                                                                                    </textarea>
+
+                                                                                    {/* <input type="text"
+                                                                        /> */}
+                                                                                </td>
+                                                                                {(modeValue === "" || modeValue === "edit" || InputDisabled != true) && <td style={{ minWidth: "40px", maxWidth: "40px", textAlign: 'center' }}>
+                                                                                    {/* <img src={require("../../../CustomAsset/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img> */}
+                                                                                    <img src={require("../../assets/del.png")} style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img>
+
+                                                                                    {/* <img src={require("../../../CustomAsset/del.png")} className='sidebariconsmall' style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }} onClick={() => deleteLocalFile(index, cancellReason)}></img> */}
+                                                                                </td>
+                                                                                }
+                                                                            </tr>
+                                                                        ))}
+                                                                    </tbody>
 
 
-                                                            </table>
+                                                                </table>
 
 
-                                                        </div>
+                                                            </div>
                                                         </div>
 
 
@@ -2846,9 +3008,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                 {/* /////////// */}
 
-                                                <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
+                                                <Modal show={showModal} onHide={() => setShowModal(false)} size={Showfile ? "xl" : "lg"} className='filemodal'>
                                                     <Modal.Header closeButton>
-                                                        <Modal.Title> <h4 className='font-16 fw-bold text-dark'></h4> Attachment Details <br/>
+                                                        <Modal.Title> <h4 className='font-16 fw-bold text-dark'></h4> Attachment Details <br />
                                                             <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for Document Cancellation
                                                             </p>
 
@@ -2861,44 +3023,64 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                         {DocumentLink &&
                                                             (
                                                                 <>
-                                                                    <table className="mtbalenew">
-                                                                        <thead style={{ background: '#eef6f7' }}>
-                                                                            <tr>
-                                                                                <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
-                                                                                <th>File Name</th>
-                                                                                <th style={{ minWidth: '50px', maxWidth: '50px' }}>File Link</th>
-                                                                                <th style={{ minWidth: '70px', maxWidth: '70px' }} className='text-center'>Upload date</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            {DocumentLink != null && (
+
+                                                                    {Showfile ?
+
+                                                                        <FileViewer showfile={Showfile} docurl={redirecturl} cancelAction={cancelModalAction} />
+                                                                        :
+                                                                        <table className="mtbalenew">
+                                                                            <thead style={{ background: '#eef6f7' }}>
                                                                                 <tr>
-                                                                                    <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
-                                                                                    <td title={DocumentLink?.FileLeafRef}>{DocumentLink?.FileLeafRef}</td>
-                                                                                    <td style={{ textAlign: 'center', minWidth: '50px', maxWidth: '50px' }} >
-                                                                                        <span onClick={() => OpenFile(DocumentLink, "Open")} title='preview file' style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span>
-
-                                                                                        <span onClick={() => OpenFile(DocumentLink, "Download")} title='download file' style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                            <FontAwesomeIcon icon={faDownload} /></span>
-                                                                                    </td>
-                                                                                    <td style={{ minWidth: '70px', maxWidth: '70px' }}>{DocumentLink.Created
-                                                                                        ? new Intl.DateTimeFormat('en-GB', {
-                                                                                            day: '2-digit',
-                                                                                            month: 'short',
-                                                                                            year: 'numeric'
-                                                                                        }).format(new Date(DocumentLink.Created)).replace(/ /g, "/")
-                                                                                        : ""}</td>
-
-
+                                                                                    <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                                                                                    <th>File Name</th>
+                                                                                    <th style={{ minWidth: '50px', maxWidth: '50px' }}>File Link</th>
+                                                                                    <th style={{ minWidth: '70px', maxWidth: '70px' }} className='text-center'>Upload date</th>
                                                                                 </tr>
-                                                                            )}
-                                                                        </tbody>
-                                                                    </table></>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {DocumentLink != null && (
+                                                                                    <tr>
+                                                                                        <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
+                                                                                        <td title={DocumentLink?.FileLeafRef.replace(/_\d+(\.\w+)$/, '$1')}>{DocumentLink?.FileLeafRef.replace(/_\d+(\.\w+)$/, '$1')}</td>
+                                                                                        <td style={{ textAlign: 'center', minWidth: '50px', maxWidth: '50px' }} >
+                                                                                            <span onClick={() => OpenFile(DocumentLink, "Open")} title='preview file' style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span>
+
+                                                                                            <span onClick={() => OpenFile(DocumentLink, "Download")} title='download file' style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                                <FontAwesomeIcon icon={faDownload} /></span>
+                                                                                        </td>
+                                                                                        <td style={{ minWidth: '70px', maxWidth: '70px' }}>{DocumentLink.Created
+                                                                                            ? new Intl.DateTimeFormat('en-GB', {
+                                                                                                day: '2-digit',
+                                                                                                month: 'short',
+                                                                                                year: 'numeric'
+                                                                                            }).format(new Date(DocumentLink.Created)).replace(/ /g, "/")
+                                                                                            : ""}</td>
+
+
+                                                                                    </tr>
+                                                                                )}
+                                                                            </tbody>
+                                                                        </table>
+                                                                    }</>
                                                             )
                                                         }
 
                                                     </Modal.Body>
 
+                                                </Modal>
+
+
+                                                <Modal show={ShowModalTemplateDoc} onHide={() => setShowModalTemplateDoc(false)} size={Showfile ? "xl" : "lg"} className='newmobmodal'>
+
+                                                    <Modal.Body className="" id="style-5">
+                                                        <>
+                                                            {Showfile &&
+
+                                                                <FileViewer showfile={Showfile} docurl={redirecturl} cancelAction={cancelModalAction} />
+
+                                                            }
+                                                        </>
+                                                    </Modal.Body>
                                                 </Modal>
 
                                                 {/* ///////////////// */}

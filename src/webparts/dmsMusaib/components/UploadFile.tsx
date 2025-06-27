@@ -698,7 +698,7 @@ const UploadFile: React.FC<UploadFileProps> = ({ currentfolderpath, onReturnToMa
   //         const siteUrl = window.location.origin;
   //         const encodedFilePath = encodeURIComponent(uploadResult.data.ServerRelativeUrl);
   //         console.log(encodedFilePath , "encodedFilePath")
-  //           // const previewUrl = `${siteUrl}/sites/edcspfx/${currentfolderpath.Entity}/${currentfolderpath.DocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+  //           // const previewUrl = `${siteUrl}/sites/ededms/${currentfolderpath.Entity}/${currentfolderpath.DocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
    //            const previewUrl = `${siteUrl}${locationPath}/${currentfolderpath.Entity}/${currentfolderpath.DocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
 
   //         console.log("Generated Preview URL:", previewUrl);

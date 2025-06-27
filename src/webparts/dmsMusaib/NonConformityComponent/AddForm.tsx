@@ -259,13 +259,16 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     if (option) {
       this.setState({
         ncType: option.key as string,
-        memonumberOptions: option?.text == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs
+        memonumberOptions: option?.text == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
+         NCNumber: "", NCNumberID: "", NCNumberselected: [], ApprovedAuditSelected: []
       });
+      
     }
 
   };
 
   public changeMemoNumber = async (item: any): Promise<void> => {
+    debugger
     const sp = spfi().using(SPFx(this.props.context));
     const nctypenew: string = this.state.ncType === "NC" ? "NC Number" : "Observation Number";
     let optionsNCNumber: any = [];
@@ -274,7 +277,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     if (Array.isArray(NCNumberoptionnew) && NCNumberoptionnew.length > 0) {
       // Safely extract existing NCNumbers, even if the array is empty
       const existingNCNumbersSet = new Set(
-        (Array.isArray(existingrecords) ? existingrecords[0] : []).map((rec: any) => rec.NCNumber)
+        (Array.isArray(existingrecords) ? existingrecords : []).map((rec: any) => rec.NCNumber)
       );
 
       // Filter out NCNumbers already in existingrecords
@@ -302,6 +305,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       ApprovedAuditSelected: approvedauditreportselected,
       departmentselected: selectedOption
     });
+    this.setState({ NCNumber: "", NCNumberID: "", NCNumberselected: [] });
     console.log("ApprovedAuditSelected", approvedauditreportselected);
   };
 
@@ -389,20 +393,47 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
   };
 
   private _handleCheckboxChange = (stateKey: keyof IState, itemKey: number, itemtext: string) =>
+
     (_ev: React.FormEvent<HTMLElement>, isChecked?: boolean) => {
-      if (stateKey == "categoryValueIsCheck" && itemtext == "Others") {
-        this.setState({ showcategoryothers: true })
-      } else if (stateKey == "subCategoryIsCheck" && itemtext == "Others") {
-        this.setState({ showsubcategoryothers: true })
-      } else if (stateKey == "locationValueIsCheck" && itemtext == "Others") {
-        this.setState({ showlocationothers: true })
+      debugger
+      // if (stateKey == "categoryValueIsCheck" && itemtext == "Others") {
+      //   this.setState({ showcategoryothers: true })
+      // } else if (stateKey == "subCategoryIsCheck" && itemtext == "Others") {
+      //   this.setState({ showsubcategoryothers: true })
+      // } else if (stateKey == "locationValueIsCheck" && itemtext == "Others") {
+      //   this.setState({ showlocationothers: true })
+      // }
+      const newState: Partial<IState> = {};
+
+      if (stateKey === "categoryValueIsCheck" && itemtext === "Others") {
+        newState.showcategoryothers = isChecked || false;
+        if (!isChecked) newState.CategoryOthers = ""; // Clear text
+      }
+
+      if (stateKey === "subCategoryIsCheck" && itemtext === "Others") {
+        newState.showsubcategoryothers = isChecked || false;
+        if (!isChecked) newState.SubCategoryOthers = ""; // Clear text
+      }
+
+      if (stateKey === "locationValueIsCheck" && itemtext === "Others") {
+        newState.showlocationothers = isChecked || false;
+        if (!isChecked) newState.LocationOthers = ""; // Clear text
       }
       this.setState((prevState) => {
         const updatedValues = isChecked
           ? [...(prevState[stateKey] as number[]), itemKey]
           : (prevState[stateKey] as number[]).filter((key) => key !== itemKey);
-        return { [stateKey]: updatedValues } as unknown as Pick<IState, keyof IState>;
+        return {
+          ...newState,
+          [stateKey]: updatedValues,
+        } as unknown as Pick<IState, keyof IState>;
       });
+      // this.setState((prevState) => {
+      //   const updatedValues = isChecked
+      //     ? [...(prevState[stateKey] as number[]), itemKey]
+      //     : (prevState[stateKey] as number[]).filter((key) => key !== itemKey);
+      //   return { [stateKey]: updatedValues } as unknown as Pick<IState, keyof IState>;
+      // });
     };
 
   public async componentDidMount() {
@@ -429,8 +460,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       .then((res: any) => {
         console.log(res, 'Memonumbers from audit report');
 
-        arr.push(res)
-        // arr = res;
+        //arr.push(res)
+         arr = res;
       })
       .catch((error: any) => {
         console.log("Error fetching data: ", error);
@@ -508,44 +539,142 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     const sp = spfi().using(SPFx(this.props.context));
     debugger
     try {
+      // const memoItems = await getMemoNumberAuditReport(sp);
+      // let optionsNCNumber: any = [];
+      // let optionsObservationNumber: any = [];
+      // if (memoItems.length > 0) {
+      //   const filteredItemsNC = memoItems[0].filter((item: any) => item.FailureofIntentNonconformity === "Yes");
+      //   const filteredItemsObs = memoItems[0].filter((item: any) => item.Observations === "Yes");
+      //   if (filteredItemsNC.length > 0) {
+      //     optionsNCNumber = filteredItemsNC.map((item: any) => ({
+      //       value: item.ID,
+      //       label: item.ReportCode,
+      //       itemId: item.ID,
+      //       reportCode: item.ReportCode,
+      //       ncNo: item.NCNumber,
+      //       department: item.DepartmentAuditedId
+      //     }));
+      //   }
+      //   if (filteredItemsObs.length > 0) {
+      //     optionsObservationNumber = filteredItemsObs.map((item: any) => ({
+      //       value: item.ID,
+      //       label: item.ReportCode,
+      //       itemId: item.ID,
+      //       reportCode: item.ReportCode,
+      //       ncNo: item.NCNumber,
+      //       department: item.DepartmentAuditedId
+      //     }));
+      //   }
+      // }
+      // //this.state.ncType
+      // //let optionsmemoNumbernewnc: any[] = [];
+      // optionsmemoNumbernewnc = await this.getUniqueBy(optionsNCNumber, "reportCode");
+      // optionsmemoNumbernewnc.sort((a, b) => a.label.localeCompare(b.label));
+      // //let optionsmemoNumbernewobs: any[] = [];
+      // optionsmemoNumbernewobs = await this.getUniqueBy(optionsObservationNumber, "reportCode");
+      // optionsmemoNumbernewobs.sort((a, b) => a.label.localeCompare(b.label));
+      // this.setState({
+      //  // memonumberOptions: this.state.ncType == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
+      //   memonumberOptionsall: memoItems.length > 0 ? memoItems : []
+      // });
+      // Assuming inside an async function or useEffect/componentDidMount
       const memoItems = await getMemoNumberAuditReport(sp);
-      let optionsNCNumber: any = [];
-      let optionsObservationNumber: any = [];
+
+      // let optionsmemoNumbernewnc: any[] = [];
+      // let optionsmemoNumbernewobs: any[] = [];
+
       if (memoItems.length > 0) {
         const filteredItemsNC = memoItems[0].filter((item: any) => item.FailureofIntentNonconformity === "Yes");
         const filteredItemsObs = memoItems[0].filter((item: any) => item.Observations === "Yes");
-        if (filteredItemsNC.length > 0) {
-          optionsNCNumber = filteredItemsNC.map((item: any) => ({
-            value: item.ID,
-            label: item.ReportCode,
-            itemId: item.ID,
-            reportCode: item.ReportCode,
-            ncNo: item.NCNumber,
-            department: item.DepartmentAuditedId
-          }));
-        }
-        if (filteredItemsObs.length > 0) {
-          optionsObservationNumber = filteredItemsObs.map((item: any) => ({
-            value: item.ID,
-            label: item.ReportCode,
-            itemId: item.ID,
-            reportCode: item.ReportCode,
-            ncNo: item.NCNumber,
-            department: item.DepartmentAuditedId
-          }));
-        }
+
+        // Helper: Group ReportCodes to expected NC Numbers or Observation Numbers
+        const groupItemsByReportCode = (items: any[]) => {
+          const result: { [reportCode: string]: Set<string> } = {};
+          items.forEach((item) => {
+            const reportCode = item.ReportCode?.trim();
+            const number = item.NCNumber?.toString().trim();
+
+            // Only proceed if both reportCode and NCNumber are non-empty
+            if (reportCode && number && number !== "") {
+              if (!result[reportCode]) {
+                result[reportCode] = new Set();
+              }
+              result[reportCode].add(number);
+            }
+          });
+          return result;
+        };
+
+
+        const reportCodeToExpectedNCs = groupItemsByReportCode(filteredItemsNC);
+        const cleanedFilteredItemsObs = filteredItemsObs.filter((item:any) => {
+          const nc = item.NCNumber?.toString().trim();
+          return nc && nc !== "";
+        });
+        //const reportCodeToExpectedObs = groupItemsByReportCode(cleanedFilteredItemsObs);
+
+        const reportCodeToExpectedObs = groupItemsByReportCode(cleanedFilteredItemsObs);
+
+        // Process NC report codes
+        await Promise.all(Object.keys(reportCodeToExpectedNCs).map(async (reportCode) => {
+          const ncData = await this.getNCdata(reportCode);
+          const existingNumbers = new Set(ncData.map((item: any) => item.NCNumber));
+          const expectedNumbers = reportCodeToExpectedNCs[reportCode];
+
+          const allCreated = Array.from(expectedNumbers).every((num) => existingNumbers.has(num));
+
+          if (!allCreated) {
+            const exampleItem = filteredItemsNC.find((item: any) => item.ReportCode === reportCode);
+            if (exampleItem) {
+              optionsmemoNumbernewnc.push({
+                value: exampleItem.ID,
+                label: exampleItem.ReportCode,
+                itemId: exampleItem.ID,
+                reportCode: exampleItem.ReportCode,
+                ncNo: exampleItem.NCNumber,
+                department: exampleItem.DepartmentAuditedId
+              });
+            }
+          }
+        }));
+
+        // Process Observation report codes
+        await Promise.all(Object.keys(reportCodeToExpectedObs).map(async (reportCode) => {
+          const obsData = await this.getNCdata(reportCode); // Assuming same list for Observations
+          const existingNumbers = new Set(obsData.map((item: any) => item.NCNumber));
+          const expectedNumbers = reportCodeToExpectedObs[reportCode];
+
+          const allCreated = Array.from(expectedNumbers).every((num) => existingNumbers.has(num));
+
+          if (!allCreated) {
+            const exampleItem = filteredItemsObs.find((item: any) => item.ReportCode === reportCode);
+            if (exampleItem) {
+              optionsmemoNumbernewobs.push({
+                value: exampleItem.ID,
+                label: exampleItem.ReportCode,
+                itemId: exampleItem.ID,
+                reportCode: exampleItem.ReportCode,
+                ncNo: exampleItem.NCNumber,
+                department: exampleItem.DepartmentAuditedId
+              });
+            }
+          }
+        }));
+        
+        console.log("Expected Observation NCs:", reportCodeToExpectedObs);
+        // Sort options
+        optionsmemoNumbernewobs = await this.getUniqueBy(optionsmemoNumbernewobs, "reportCode");
+        optionsmemoNumbernewnc = await this.getUniqueBy(optionsmemoNumbernewnc, "reportCode");
+        optionsmemoNumbernewnc.sort((a, b) => a.label.localeCompare(b.label));
+        optionsmemoNumbernewobs.sort((a, b) => a.label.localeCompare(b.label));
+
+        // Set dropdown options based on selected type (NC or Observation)
+        this.setState({
+         // memonumberOptions: this.state.ncType === "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
+          memonumberOptionsall: memoItems.length > 0 ? memoItems : []
+        });
       }
-      //this.state.ncType
-      //let optionsmemoNumbernewnc: any[] = [];
-      optionsmemoNumbernewnc = await this.getUniqueBy(optionsNCNumber, "reportCode");
-      optionsmemoNumbernewnc.sort((a, b) => a.label.localeCompare(b.label));
-      //let optionsmemoNumbernewobs: any[] = [];
-      optionsmemoNumbernewobs = await this.getUniqueBy(optionsObservationNumber, "reportCode");
-      optionsmemoNumbernewobs.sort((a, b) => a.label.localeCompare(b.label));
-      this.setState({
-        memonumberOptions: this.state.ncType == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
-        memonumberOptionsall: memoItems.length > 0 ? memoItems : []
-      });
+
     } catch (e) {
       console.error(e);
     }
@@ -1114,6 +1243,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
               const fileExtension = file.name.split('.').pop();
 
               const components = [
+                (date != null || date != undefined) &&
                 date.getFullYear(),
                 (date.getMonth() + 1).toString().padStart(2, '0'),
                 date.getDate().toString().padStart(2, '0'),
@@ -1160,6 +1290,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     const fileExtension = originalFileName.split('.').pop();
 
     const components = [
+      (date != null || date != undefined) &&
       date.getFullYear(),
       (date.getMonth() + 1).toString().padStart(2, '0'),
       date.getDate().toString().padStart(2, '0'),
@@ -1364,7 +1495,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                   <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }} >From Department:<span className="text-danger1">*</span>
                   </label>
                   <TooltipHost
-                    content={this.state.departmentOption.filter((x: any) => x.value == this.state.fromdepartment)[0]?.label || ""}
+                    content={this.state.departmentOption.filter((x: any) => x.value == this.state.fromdepartment)[0]?.label || "Select Department"}
                     calloutProps={{ gapSpace: 0 }}
                     styles={{ root: { display: 'inline-block', width: '100%' } }}
                   >
@@ -1514,7 +1645,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                         calloutProps={{ gapSpace: 0 }}
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
                       >
-                        <TextField label="Category Others:" name='CategoryOthers' value={this.state.CategoryOthers} onChange={this.handleChangeCategoryOthers}
+                        <TextField label="Please Specify:" name='CategoryOthers' value={this.state.CategoryOthers} onChange={this.handleChangeCategoryOthers}
                         // className={this.state.errors?.categoryothers ? 'textfield-error' : ''}
                         /></TooltipHost>
 
@@ -1539,7 +1670,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                         calloutProps={{ gapSpace: 0 }}
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
                       >
-                        <TextField label="SubCategory Others:" name='SubCategoryOthers' value={this.state.SubCategoryOthers} onChange={this.handleChangeSubCategoryOthers}
+                        <TextField label="Please Specify:" name='SubCategoryOthers' value={this.state.SubCategoryOthers} onChange={this.handleChangeSubCategoryOthers}
                         //className={this.state.errors?.subCategoryothers ? 'textfield-error' : ''}
                         /></TooltipHost>
 
@@ -1566,7 +1697,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                         calloutProps={{ gapSpace: 0 }}
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
                       >
-                        <TextField label="Location Others:" name='LocationOthers' value={this.state.LocationOthers} onChange={this.handleChangeLocationOthers}
+                        <TextField label="Please Specify:" name='LocationOthers' value={this.state.LocationOthers} onChange={this.handleChangeLocationOthers}
                         //className={this.state.errors?.locationthers ? 'textfield-error' : ''} 
                         /></TooltipHost>
 

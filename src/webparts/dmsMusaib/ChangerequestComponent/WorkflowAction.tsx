@@ -5,7 +5,7 @@ import { updateItemApproval, updateItemApproval2 } from "./ApprovalService";
 import { getSP } from "../loc/pnpjsConfig";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import Swal from "sweetalert2";
-import { getallProcessApprovalitems, getDocumentCodeselectedApproved, getItemByIDCR, getItemByIDCRlatest, updateItem, updateItemChangeRequestList } from "./DocumentCancellation";
+import { CheckIfAlreadyactionTaken, getallProcessApprovalitems, getDocumentCodeselectedApproved, getItemByIDCR, getItemByIDCRlatest, updateItem, updateItemChangeRequestList } from "./DocumentCancellation";
 
 export interface IWorkflowActionProps {
   currentItem: any;
@@ -52,7 +52,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
       }
     };
   const handleFromSubmit = async (e: any, Status: string) => {
-
+    const IsactionTaken = await CheckIfAlreadyactionTaken(sp, props.currentItem.Id);
     let url = window.location.href.split('/sites/')[0];
     debugger
     let currentchangerequest = await getItemByIDCR(sp, Number(props.currentItem.ListItemId));
@@ -78,7 +78,10 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         currentReferenceNo = test
       }
     }
-
+    if (!IsactionTaken) {
+      Swal.fire("Action has already been taken for this record.");
+      return;
+    }
     e.preventDefault();
     setValidRemark(true);
     let postPayload = {}
@@ -213,7 +216,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         //if (postResult) {
         Swal.fire(resultmessage, '', 'success').then(async (result) => {
           if (result.isConfirmed) {
-            window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+            window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx`;
           }
         });
         // Swal.fire(resultmessage, '', 'success');
@@ -221,7 +224,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
         //   // window.location.reload()
 
-        //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+        //   window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx`;
 
         // }, 1000);
 
@@ -238,11 +241,13 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
     <div className="card">
 
-      <div className="card-body" onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault(); // Prevent page reload from any source
-        }
-      }}>
+      <div 
+      // className="card-body" onKeyDown={(e) => {
+      //   if (e.key === 'Enter') {
+      //     e.preventDefault(); // Prevent page reload from any source
+      //   }
+      // }}
+      >
 
         <div className="row">
           {

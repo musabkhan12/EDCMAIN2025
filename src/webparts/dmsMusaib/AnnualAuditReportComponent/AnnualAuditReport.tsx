@@ -42,6 +42,7 @@ import moment from 'moment';
 import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { getAuditProgShift } from '../EDCprocessComponent/FormComponent/FormService';
+import FileViewer from '../ChangerequestComponent/fileviewer';
 //SYnc time picker
 // import { TimePickerComponent } from '@syncfusion/ej2-react-calendars';
 
@@ -60,6 +61,10 @@ let ncrow: any = [];
 let EnableNC: boolean = false;
 let maxncseq: number = 0;
 let maxobsseq: number = 0;
+let ncseq: number = 0;
+let obsseq: number = 0;
+let departmentChanged: boolean = false;
+let Showfile: boolean = false;
 interface ForwardTo {
     id: number;
     role: number;
@@ -89,7 +94,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const selectedTextDiv = document.getElementById('selectedText');
 
     selectedTextDiv.style.display = 'none';
-
+    const [ShowModalTemplateDoc, setShowModalTemplateDoc] = React.useState(false);
     const [AuditProgShift, setAuditProgShift] = React.useState([]);
     const [FilesArr, setFilesArr] = React.useState<any>([]);
     const [FilesArr1, setFilesArr1] = React.useState<any>([]);
@@ -113,6 +118,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [ValidAudit, setValidAudit] = React.useState(true);
     const [ValidSubmit, setValidSubmit] = React.useState(true);
     const [ValidCancelReason, setValidCancelReason] = React.useState(true);
+    const [forwardToValidationErrors, setForwardToValidationErrors] = React.useState<{ [level: number]: { role: boolean; approvers: boolean; approvalType: boolean } }>({});
     const [ValidForwardTo, setValidForwardTo] = React.useState(true);
     const [RequesterRoleId, setRequesterRoleId] = React.useState(null);
     const [RequestTypeId, setRequestTypeId] = React.useState(null);
@@ -124,9 +130,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [currentUserDept, setcurrentUserDept] = React.useState(null);
     const [selectUserDept, setselectUserDept] = React.useState(null);
     const [selectshift, setselectshift] = React.useState(null);
-
+    const [isDepartmentReady, setIsDepartmentReady] = React.useState(false);
     const [reportCode, setreportCode] = React.useState("");
-
+    const [sequencesLoaded, setSequencesLoaded] = React.useState(false);
     const [selectAuditplan, setselectAuditplan] = React.useState(null);
     const [doccode, setdoccode] = React.useState("");
     const [auditplandate, setauditplandate] = React.useState("");
@@ -139,9 +145,19 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [showModal, setShowModal] = React.useState(false);
     const [ShowModalpre, setShowModalpre] = React.useState(false);
     //error
+    const [recommendationRows, setRecommendationRows] = React.useState([
+        { id: 0, isoreference: "", imsprocedure: "", inquiries: "", auditorcomments: "", time: "", sharewith: null, sharewithIds: null }
+    ]);
+    const skipNCUpdateRef = React.useRef(false);
+    const [redirecturl, setredirecturl] = React.useState(null);
+    const [NCNumberrows, setNCNumberrows] = React.useState<ncNumber[]>([]);
+    // { id: 1, ncnumberNC: "", observationnumberObs: "", reportcode: "", ncsequenceNC: 0, observationsequenceObs: 0, nctype: "", descriptionNC: "" }
+    const [NCNumberrowsEdit, setNCNumberrowsEdit] = React.useState<ncNumber[]>([]);
+    const [recommendationRowsEdit, setRecommendationRowsEdit] = React.useState([]);
     const [dateerr, setdateerr] = React.useState(false);
     const [isoreferenceerr, setisoreferenceerr] = React.useState(false);
     const [departmenterr, setdepartmenterr] = React.useState(false);
+    const [fromdepartmenterr, setfromdepartmenterr] = React.useState(false);
     const [imsprocedureerr, setimsprocedureerr] = React.useState(false);
     const [inquirieserr, setinquirieserr] = React.useState(false);
     const [timeerr, settimeerr] = React.useState(false);
@@ -169,6 +185,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
         OpportunitiesforImprovementN: 0,
         FailureofEffectivenessN: 0,
     });
+    const maxNCSeqRef = React.useRef(0);
+    const maxObsSeqRef = React.useRef(0);
     //error end
     const [formData, setFormData] = React.useState({
         ObservationSequence: 0,
@@ -205,11 +223,33 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
     const handleDepartmentChange = async (selectedOption: any) => {
         debugger
+        setSequencesLoaded(false);
+        setIsDepartmentReady(false); // Prevent effects during update
+        skipNCUpdateRef.current = true;
+        departmentChanged = true;
         EnableNC = true;
         setEnableNCObs(true);
-        setNCNumberrows([]);
+
         const setAuditreportNC = await getItemsAuditReportNC(sp, selectedOption?.value);
         const setAuditreportObs = await getItemsAuditReportObs(sp, selectedOption?.value);
+        if (setAuditreportNC.length > 0) {
+            maxncseq = setAuditreportNC[0].NCSequence;
+            setFormData(prevData => ({
+                ...prevData,
+                NCSequence: setAuditreportNC[0].NCSequence
+            }));
+        }
+        if (setAuditreportObs.length > 0) {
+            maxobsseq = setAuditreportObs[0].ObservationSequence;
+            setFormData(prevData => ({
+                ...prevData,
+                ObservationSequence: setAuditreportObs[0].ObservationSequence,
+            }));
+        };
+        maxNCSeqRef.current = maxncseq;
+        maxObsSeqRef.current = maxobsseq;
+        setNCNumberrows([]);
+        setSequencesLoaded(true);
         setCheckboxValues(prev => ({
             ...prev,
             FailureofIntentNonconformity: false,
@@ -237,20 +277,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
             ...prev,
             ...updatedValues
         }));
-        if (setAuditreportNC.length > 0) {
-            maxncseq = setAuditreportNC[0].NCSequence;
-            setFormData(prevData => ({
-                ...prevData,
-                NCSequence: setAuditreportNC[0].NCSequence
-            }));
-        }
-        if (setAuditreportObs.length > 0) {
-            maxobsseq = setAuditreportObs[0].ObservationSequence;
-            setFormData(prevData => ({
-                ...prevData,
-                ObservationSequence: setAuditreportObs[0].ObservationSequence,
-            }));
-        };
+
         setselectUserDept(selectedOption);
         debugger
         let reportcode: string = "";
@@ -259,6 +286,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
         }
         setreportCode(reportcode);
         setFormData({ ...formData, deptId: selectedOption?.value, reportCode: reportcode });
+        setTimeout(() => {
+            setIsDepartmentReady(true);
+        }, 1000); // Let React batch state updates first
     };
     const handleShiftChange = async (selectedOption: any) => {
         setselectshift(selectedOption);
@@ -286,16 +316,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         setFormData({ ...formData, fromdeptId: selectedOption?.value });
     };
     // ////// Recommendation
-    const [recommendationRows, setRecommendationRows] = React.useState([
-        { id: 0, isoreference: "", imsprocedure: "", inquiries: "", auditorcomments: "", time: "", sharewith: null, sharewithIds: null }
-    ]);
-    const [NCNumberrows, setNCNumberrows] = React.useState<ncNumber[]>([]);
-    // { id: 1, ncnumberNC: "", observationnumberObs: "", reportcode: "", ncsequenceNC: 0, observationsequenceObs: 0, nctype: "", descriptionNC: "" }
 
-
-
-    const [NCNumberrowsEdit, setNCNumberrowsEdit] = React.useState<ncNumber[]>([]);
-    const [recommendationRowsEdit, setRecommendationRowsEdit] = React.useState([]);
 
     const handleAddRecommendationRow = () => {
         setRecommendationRows([...recommendationRows, { id: 0, isoreference: "", imsprocedure: "", inquiries: "", auditorcomments: "", time: "", sharewith: null, sharewithIds: null }]);
@@ -369,7 +390,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const handleaddncrows = (ncobstype: string) => {
         debugger
         ncrow = NCNumberrows;
-        console.log("ncncncnnc", NCNumberrows);
+        console.log("ncncncnnc", NCNumberrows, formData, maxncseq, maxobsseq);
         const type = ncobstype;
         //let NCNumberrows1: any;
         let maxid: number = 0;
@@ -396,18 +417,18 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 }
             } else {
                 if (type === "NC Number") {
-                    maxSequence = Math.max(maxncseq, ...existingRows.map((r: any) => r.ncsequenceNC || 0));
+                    maxSequence = Math.max(maxNCSeqRef.current, ...existingRows.map((r: any) => r.ncsequenceNC || 0));
 
                 } else if (type === "Observation Number") {
-                    maxSequence = Math.max(maxobsseq, ...existingRows.map((r: any) => r.observationsequenceObs || 0));
+                    maxSequence = Math.max(maxObsSeqRef.current, ...existingRows.map((r: any) => r.observationsequenceObs || 0));
                 }
             }
         } else {
             if (type === "NC Number") {
-                maxSequence = Math.max(maxncseq, ...existingRows.map((r: any) => r.ncsequenceNC || 0));
+                maxSequence = Math.max(maxNCSeqRef.current, ...existingRows.map((r: any) => r.ncsequenceNC || 0));
 
             } else if (type === "Observation Number") {
-                maxSequence = Math.max(maxobsseq, ...existingRows.map((r: any) => r.observationsequenceObs || 0));
+                maxSequence = Math.max(maxObsSeqRef.current, ...existingRows.map((r: any) => r.observationsequenceObs || 0));
             }
         }
 
@@ -440,13 +461,19 @@ const AnnualAuditReportContext = ({ props }: any) => {
     //     }
     // }, [checkboxValues["FailureofIntentNonconformity"]]);
     React.useEffect(() => {
+        //if (departmentChanged && !selectUserDept ) return;
+        // if (skipNCUpdateRef.current) {
+        //     skipNCUpdateRef.current = false; // Reset after skip
+        //     return;
+        // }
+        //if (!isDepartmentReady) return; // Don't run during/after department switch
         if (
             checkboxValues["FailureofIntentNonconformity"] ||
             checkboxValues["FailureofImplementation"] ||
             checkboxValues["FailureofEffectiveness"]
         ) {
             const hasNCRow = NCNumberrows.some(row => row.nctype === "NC Number");
-            if (!hasNCRow) {
+            if (!hasNCRow && sequencesLoaded) {
                 handleaddncrows("NC Number");
             }
         }
@@ -454,14 +481,20 @@ const AnnualAuditReportContext = ({ props }: any) => {
         checkboxValues["FailureofIntentNonconformity"],
         checkboxValues["FailureofImplementation"],
         checkboxValues["FailureofEffectiveness"],
-        NCNumberrows,
-        handleaddncrows
+        // NCNumberrows,
+        // handleaddncrows
     ]);
 
     React.useEffect(() => {
+        // if (skipNCUpdateRef.current) {
+        //     skipNCUpdateRef.current = false; // Reset after skip
+        //     return;
+        // }
+        //if (!isDepartmentReady) return; // Don't run during/after department switch
+        //if (departmentChanged && !selectUserDept ) return;
         if (checkboxValues["Observations"]) {
             const hasObsRow = NCNumberrows.some(row => row.nctype === "Observation Number");
-            if (!hasObsRow) {
+            if (!hasObsRow && sequencesLoaded) {
                 handleaddncrows("Observation Number");
             }
         }
@@ -490,7 +523,13 @@ const AnnualAuditReportContext = ({ props }: any) => {
         setRecommendationRows(updatedRows);
     };
 
-
+    const cancelModalAction = (refresh?: boolean,) => {
+        debugger
+        setredirecturl(window.location.href);
+        //setShowfileNew(false);
+        setShowModalTemplateDoc(false);
+        Showfile = false;
+    }
     const handleNCDescriptionChange = (lvl: number, field: string, value: any) => {
         debugger
         console.log("NCNumberrows", NCNumberrows);
@@ -546,6 +585,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const onPeoplePickerChange = (items: any[]) => {
         setSelectedUsers(items);
     };
+
     const getNewFileName = async (originalFileName: string): Promise<string> => {
         const userId = currentUser.Id; // Or however you get the current user ID
         const date = new Date();
@@ -1049,34 +1089,110 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
     }
 
-
-
     const OpenFile = (obj: any, sts: string) => {
         debugger
-        console.log("obbbj", obj)
-        const fileUrl = `${Tenant_URL}${obj.FileRef}`;
-
+        const fileUrl = `${Tenant_URL}${obj?.FileRef != "" ? obj.FileRef : obj.fileUrl}`;
+        if (sts == "Open") {
+            Showfile = true;
+        }
         if (sts == "Open") {
             if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
-
-                window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=default`, "_blank");
+                const viewerUrlppt = `${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=embedview`;
+                setredirecturl(viewerUrlppt);
             } else {
-                window.open(fileUrl, "_blank"); // Open PDF and other files normally
+                setredirecturl(fileUrl);
             }
 
         } else if (sts == "Download") {
             const link = document.createElement("a");
             link.href = fileUrl;
-            link.setAttribute("download", obj.FileLeafRef); // Suggests a filename for download
+            link.setAttribute("download", obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name)); // Suggests a filename for download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+        }
+    }
+    const OpenFileTemplate = (obj: any, sts: string) => {
+        debugger
+        setShowModalTemplateDoc(true);
+        if (sts == "Open") {
+            Showfile = true;
+        }
+        console.log("ttrtrtrtt", obj)
+        const fileUrl = `${Tenant_URL}${obj?.FileRef != "" ? obj.FileRef : obj.fileUrl}`;
+        if (sts == "Open") {
+            if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
+                const viewerUrl = `${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=embedview`;
+
+                //window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=view`);
+                setredirecturl(viewerUrl);
+            } else {
+                setredirecturl(fileUrl);
+                //window.open(fileUrl, "_blank"); // Open PDF and other files normally
+            }
+
+        } else if (sts == "Download") {
+            const link = document.createElement("a");
+            link.href = fileUrl;
+            link.setAttribute("download", obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name)); // Suggests a filename for download
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
         }
 
-
-
     }
+    // const OpenFile = (obj: any, sts: string) => {
+    //     debugger
+    //     console.log("obbbj", obj)
+    //     const fileUrl = `${Tenant_URL}${obj.FileRef}`;
+    //     if (sts == "Open") {
+    //         Showfile = true;
+    //     }
+    //     if (sts == "Open") {
+    //         if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
+    //             window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=default`, "_blank");
+    //         } else {
+    //             window.open(fileUrl, "_blank"); // Open PDF and other files normally
+    //         }
+
+    //     } else if (sts == "Download") {
+    //         const link = document.createElement("a");
+    //         link.href = fileUrl;
+    //         link.setAttribute("download", obj.FileLeafRef); // Suggests a filename for download
+    //         document.body.appendChild(link);
+    //         link.click();
+    //         document.body.removeChild(link);
+
+    //     }
+
+
+
+    // }
+
+    const cleanFileName = (filename: string) => {
+        // Match a 14-digit datetime suffix before the file extension
+        const datetimePattern = /_\d{14}(?=\.[^.]+$)/;
+
+        if (datetimePattern.test(filename)) {
+            return filename.replace(datetimePattern, '');
+        }
+
+        return filename;
+    }
+
+    const cleanFileNameSave = async (filename: string) => {
+        // Match a 14-digit datetime suffix before the file extension
+        const datetimePattern = /_\d{14}(?=\.[^.]+$)/;
+
+        if (datetimePattern.test(filename)) {
+            return filename.replace(datetimePattern, '');
+        }
+
+        return filename;
+    }
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLSelectElement>) => {
         if (e.key === 'Enter') {
             e.preventDefault(); // 🛑 Prevents page reload
@@ -1095,7 +1211,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
     // };
     const onSelectDocCode = async (selectedList: any) => {
         debugger
-        setTemplateDocAudit(await getGeneratedTemplateDocAuditplan(sp, Number(selectedList?.value)));
+        if (selectedList != null) {
+            setTemplateDocAudit(await getGeneratedTemplateDocAuditplan(sp, Number(selectedList?.value)));
+        }
+
         console.log(selectedList, "selectedList");
         if (selectedList != null) {
             setLoading(true);
@@ -1142,17 +1261,17 @@ const AnnualAuditReportContext = ({ props }: any) => {
             // }
 
 
-            const selecteddepart = AllDept.filter((cust: { value: any; }) => cust.value === selectedList.DepartmentId)[0] || null;
+            const selecteddepart = AllDept.filter((cust: { value: any; }) => cust.value === selectedList?.DepartmentId)[0] || null;
             //let reportcodeaudit = selecteddepart.departmentcode + "/" + moment(new Date()).format("DD/MM/YYYY");
             //setreportCode(reportcodeaudit);
-            setFormData({ ...formData, deptId: selectedList.DepartmentId });
+            setFormData({ ...formData, deptId: selectedList?.DepartmentId });
             //setselectUserDept(selecteddepart);
             console.log("alllldept", AllDept, selecteddepart);
-            const selectedauditplan = rows.filter((cust: { value: any; }) => cust.value === selectedList.ID)[0] || null;
+            const selectedauditplan = rows.filter((cust: { value: any; }) => cust.value === selectedList?.ID)[0] || null;
             setselectAuditplan(selectedauditplan);
-            console.log("selectedList.AttachmentId[0]", selecteddepart, selectedList.AttachmentId, selectedauditplan)
+            console.log("selectedList.AttachmentId[0]", selecteddepart, selectedList?.AttachmentId, selectedauditplan)
             if (selectedList.AttachmentId.length > 0) {
-                let arrn = await getDocumentLinkByIDPlan(sp, selectedList.AttachmentId);
+                let arrn = await getDocumentLinkByIDPlan(sp, selectedList?.AttachmentId);
                 //let arraynew: any[];
                 //arraynew.push(arrn)
                 console.log("arrrrrrn56", arrn);
@@ -1165,13 +1284,32 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 setDocumentLink(null);
             }  // Set the selected users
             setLoading(false);
-        };
+        } else {
+            // 🔄 User cleared the select dropdown — reset fields
+            setSelectedOption(null);
+            setFormData(prev => ({
+                ...prev,
+                deptId: null,
+                AuditplanDocId: null,
+                attachmentIds: null,
+                attachmentJson: null,
+                ApprovedAuditPlanId: null,
+                Auditplandate: ""
+            }));
+            setdoccode("");
+            setauditplandate("");
+            setFilesArrDoclink([]);
+            setDocumentLink(null);
+            setselectAuditplan(null);
+            setTemplateDocAudit(null); // Optional, if needed
+        }
     };
 
     const validateForm = async (fmode: FormSubmissionMode) => {
         const {
             approvedauditplanId,
             deptId,
+            fromdeptId,
             date,
             documentCode,
             issueNo,
@@ -1181,6 +1319,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
             attachment,
             attachmentIds,
             attachmentJson } = formData;
+        const validationErrors: { [level: number]: { role: boolean; approvers: boolean; approvalType: boolean } } = {};
         // const { description } = richTextValues;
         console.log("formdataaaaa", formData);
         let valid = true;
@@ -1193,6 +1332,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         // let validateTitle = false;
         // setValidDraft(true);
         setdepartmenterr(false);
+        setfromdepartmenterr(false);
         setdateerr(false);
         setattachmenterr(false);
         setisoreferenceerr(false);
@@ -1216,6 +1356,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
             }
             if (!deptId && !selectUserDept) {
                 setdepartmenterr(true);
+                //Swal.fire('Error', 'Title is required!', 'error');
+                valid = false;
+            }
+            if ((fromdeptId == 0 || fromdeptId == undefined) && (!currentUserDept || currentUserDept.length == 0)) {
+                setfromdepartmenterr(true);
                 //Swal.fire('Error', 'Title is required!', 'error');
                 valid = false;
             }
@@ -1351,7 +1496,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     console.log("Validation failed. Highlight errors accordingly.");
                 }
             }
-
+            let isValidfor = true;
             if (!forwardToArr) {
                 valid1 = false;
             }
@@ -1359,7 +1504,20 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 // const isValid = cancellReason.every((row:any) => row.description.trim() !== "" && row.reason.trim() !== "");
                 valid1 = false;
             }
+            forwardToArr.forEach(row => {
+                const errors = {
+                    role: row.role === null || row.role === 0,
+                    approvers: !row.approvers || row.approvers.length === 0,
+                    approvalType: row.approvalType.trim() === ""
+                };
 
+                if (errors.role || errors.approvers || errors.approvalType) {
+                    validationErrors[row.level] = errors;
+                    isValidfor = false;
+                }
+            });
+
+            setForwardToValidationErrors(validationErrors);
             setValidSubmit(valid);
             setValidDRecomm(validRec);
             setValidAudit(validAudit);
@@ -1384,6 +1542,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
             if (!deptId && !selectUserDept) {
                 setdepartmenterr(true);
                 //Swal.fire('Error', 'Type is required!', 'error');
+                validraft = false;
+            }
+            if ((fromdeptId == 0 || fromdeptId == undefined) && (!currentUserDept || currentUserDept.length == 0)) {
+                setfromdepartmenterr(true);
+                //Swal.fire('Error', 'Title is required!', 'error');
                 validraft = false;
             }
             // else if (selectedOption == null || !selectedOption.value) {
@@ -1473,6 +1636,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         //     NCNo: maxNCNo,
         //     ObservationNo: maxObsNo,
         // }));
+
         if (await validateForm(FormSubmissionMode.SUBMIT)) {
             if (editForm) {
                 Swal.fire({
@@ -1522,7 +1686,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
                         // const finalDataForSharePoint = {
                         //     ...convertCheckboxValuesForSharePoint(checkboxValues),
                         //     ...checkboxNumberValues
@@ -1534,7 +1698,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             for (const file of FilesArr) {
                                 if (!file.ID) {
                                     //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
-                                    const newFileName = await getNewFileName(file.name);
+                                    let filenamedraft = await cleanFileNameSave(file.name);
+                                    const newFileName = await getNewFileName(filenamedraft);
                                     DocumentName = newFileName;
                                     const fileAddResult = await folder.files.addChunked(newFileName, file);
                                     const fileNew = fileAddResult.file;
@@ -1805,7 +1970,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                             let arr2 = {
                                 ActionTakenById: currentUser.Id,
-                                ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                                ActionTakenOn: new Date().toISOString(),
                                 // ActionTakenRoleId: formData.RequesterDesignation,
                                 Status: "Approved",
                                 // Remark: remark,
@@ -1825,7 +1990,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId");
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // setTimeout(() => {
@@ -1862,7 +2027,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -2109,7 +2274,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         //Swal.fire('Submitted successfully.', '', 'success');
@@ -2184,7 +2349,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -2197,7 +2362,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             for (const file of FilesArr) {
                                 if (!file.ID) {
                                     //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
-                                    const newFileName = await getNewFileName(file.name);
+                                    let filenamedraft = await cleanFileNameSave(file.name);
+                                    const newFileName = await getNewFileName(filenamedraft);
                                     DocumentName = newFileName;
                                     const fileAddResult = await folder.files.addChunked(newFileName, file);
                                     const fileNew = fileAddResult.file;
@@ -2460,9 +2626,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                             let arr2 = {
                                 ActionTakenById: currentUser.Id,
-                                ActionTakenOn: new Date().toLocaleDateString("en-CA"),
+                                ActionTakenOn: new Date().toISOString(),
                                 // ActionTakenRoleId: formData.RequesterDesignation,
-                                Status: "Save as draft",
+                                //Status: "Save as draft",
                                 // Remark: remark,
 
                             }
@@ -2479,7 +2645,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId")
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -2517,7 +2683,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -2743,7 +2909,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // sessionStorage.removeItem("bannerId")
@@ -2856,7 +3022,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     const fieldKey = CheckboxFieldMap[checkbox.value];
                     const fieldKeyN = CheckboxFieldMapN[checkbox.value];
                     const shouldDisableCheckbox =
-                        (InputDisabled && formData?.Status !== "Rework") || !EnableNCObs;
+                        (InputDisabled && formData?.Status !== "Rework") || !EnableNCObs || !isDepartmentReady;
                     return (
                         <div className="col-lg-6 mb-3" key={checkbox.value}>
                             <div className="d-flex justify-content-between align-items-center">
@@ -3176,7 +3342,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                             <tr key={index}>
                                                 <td style={{ minWidth: '60px', maxWidth: '60px' }} title={row.observationnumberObs}>
                                                     <input
-                                                       // onKeyDown={handleKeyDowntext}
+                                                        // onKeyDown={handleKeyDowntext}
                                                         type="number"
                                                         className={`form-control ${(RowErrors[index]?.observationnumberObs) ? "border-on-error" : ""}`}
                                                         value={row.observationnumberObs}
@@ -3362,7 +3528,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
     // };
     const handleCheckboxChange = (label: CheckboxLabel) => {
         const columnKey = CheckboxFieldMap[label];
-
+        console.log("ghgh", formData, maxncseq, maxobsseq);
+        debugger
         setCheckboxValues((prevValues) => {
             const isChecked = !prevValues[columnKey];
 
@@ -3458,7 +3625,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                             {TemplateDoc && TemplateDoc.length > 0 && (
                                                                 <span
-                                                                    onClick={() => OpenFile(TemplateDoc[0], "Open")}
+                                                                    onClick={() => OpenFileTemplate(TemplateDoc[0], "Open")}
                                                                     style={{ color: "blue", cursor: "pointer", margin: "10px" }}
                                                                 >
                                                                     <div className="btn btn-primary">
@@ -3471,16 +3638,17 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                         <form className="form-horizontal">
                                                             <div className="row">
+                                                                {console.log("sudit memo no", selectedOption, formData.approvedauditplanId, rows.filter((x: any) => x.value == formData.approvedauditplanId))}
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="DocumentCode" className="col-form-label">Approved Memo No./Audit Plan:<span className="text-danger1">*</span>
                                                                         </label>
                                                                         <div
-                                                                            title={selectedOption?.label || "Select a audit plan"}
+                                                                            title={selectedOption && selectedOption[0]?.label || selectedOption && selectedOption?.label}
                                                                             style={{ width: "100%" }}
                                                                         >
                                                                             <Select
-                                                                                onKeyDown={handleKeyDown}
+                                                                                //onKeyDown={handleKeyDown}
                                                                                 isClearable={true}
                                                                                 options={rows}
                                                                                 value={selectedOption}
@@ -3496,22 +3664,24 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                                     </div>
                                                                 </div>
+                                                                {console.log("from deptitplandate", currentUserDept, formData.fromdeptId, AllDept.filter((x: any) => x.value == formData.fromdeptId))}
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="Department" className="col-form-label">From Department<span className="text-danger1"> *</span></label>
                                                                         <div >
                                                                             <div
-                                                                                title={currentUserDept?.label || "Select a department"}
+                                                                                title={currentUserDept && currentUserDept[0]?.label || currentUserDept && currentUserDept?.label}
                                                                                 style={{ width: "100%" }}
                                                                             >
                                                                                 <Select
-                                                                                    onKeyDown={handleKeyDown}
+                                                                                    //onKeyDown={handleKeyDown}
                                                                                     isClearable={true}
                                                                                     options={AllDept}
                                                                                     isDisabled={InputDisabled}
                                                                                     value={currentUserDept}
                                                                                     name="deptId"
-                                                                                    className={`newse`}
+                                                                                    //className={`newse`}
+                                                                                    className={`newse  ${(!ValidSubmit && fromdepartmenterr) ? "border-on-error" : ""} ${(!ValidDraft && fromdepartmenterr) ? "border-on-error" : ""}`}
                                                                                     // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
                                                                                     // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
                                                                                     // onChange={handleDepartmentChange}
@@ -3672,7 +3842,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         }
                                                                     </div>
                                                                 </div>
-                                                                {console.log("auditplandate", auditplandate)}
+                                                                {console.log("auditplandate", formData)}
                                                                 <div className="col-lg-4">
                                                                     <div className="row mb-3">
                                                                         <label htmlFor="date" className="col-form-label">Audit Plan Date<span className="text-danger1"> *</span></label>
@@ -3706,16 +3876,17 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         </div>
                                                                     </div>
                                                                 </div>
+                                                                {console.log("deoartment auditeddd", selectUserDept, formData.deptId, AllDept.filter((x: any) => x.value == formData.deptId))}
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="Department" className="col-form-label">Department Audited<span className="text-danger1"> *</span></label>
                                                                         <div >
                                                                             <div
-                                                                                title={selectUserDept?.label || "Select a department"}
+                                                                                title={selectUserDept && selectUserDept[0]?.label || selectUserDept && selectUserDept?.label}
                                                                                 style={{ width: "100%" }}
                                                                             >
                                                                                 <Select
-                                                                                    onKeyDown={handleKeyDown}
+                                                                                    //onKeyDown={handleKeyDown}
                                                                                     isClearable={true}
                                                                                     options={AllDept}
                                                                                     isDisabled={InputDisabled}
@@ -3736,7 +3907,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 <div className="col-lg-4">
                                                                     <div className="row mb-3">
                                                                         <label htmlFor="date" className="col-form-label">Actual Audit Date<span className="text-danger1"> *</span></label>
-                                                                        <div title={formData.date}>
+                                                                        <div title={moment(formData?.date).format('DD/MMM/YYYY')}>
                                                                             {/* <input
                                                                                 type="date"
                                                                                 className={`form-control ${(!ValidSubmit && dateerr) ? "border-on-error" : ""}${(!ValidDraft && dateerr) ? "border-on-error" : ""}`}
@@ -3769,43 +3940,40 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 </div>
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
-                                                                        <label htmlFor="attachment" className="col-form-label">Audit Report Attachment<span className="text-danger1"> *</span></label>
-                                                                        <div>
+                                                                        <div className="d-flex justify-content-between align-items-center">
+                                                                            <label htmlFor="attachment" className="col-form-label">
+                                                                                Audit Report Attachment<span className="text-danger1"> *</span>
+                                                                            </label>
 
-                                                                            <div>
-                                                                                <input
-                                                                                    //onKeyDown={handleKeyDowntext}
-                                                                                    type="file"
-                                                                                    className={`form-control ${(!ValidSubmit && attachmenterr) ? "border-on-error" : ""}`}
-                                                                                    // className="form-control"
-                                                                                    id="attachment"
-                                                                                    accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                                                                                    onChange={(e) => onFileChange(e, "Gallery", "AnnualAuditReportDocs")}
-                                                                                    // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
-                                                                                    disabled={InputDisabled}
-                                                                                    multiple
-                                                                                />
-
-                                                                            </div>
-
-                                                                            <div>
-                                                                                {FilesArr.length > 0 ?
-                                                                                    (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
-                                                                                        <FontAwesomeIcon icon={faPaperclip} />{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
-                                                                                    </a>) : ""
-
-                                                                                }
-                                                                            </div>
+                                                                            {/* File count on right */}
+                                                                            {FilesArr.length > 0 && (
+                                                                                <a
+                                                                                    style={{ fontSize: '0.875rem', cursor: 'pointer' }}
+                                                                                    onClick={() => setShowModal(true)}
+                                                                                >
+                                                                                    <FontAwesomeIcon icon={faPaperclip} /> {FilesArr.length} {FilesArr.length > 1 ? "files" : "file"} attached
+                                                                                </a>
+                                                                            )}
                                                                         </div>
 
+                                                                        <input
+                                                                            type="file"
+                                                                            className={`form-control ${(!ValidSubmit && attachmenterr) ? "border-on-error" : ""}`}
+                                                                            id="attachment"
+                                                                            accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                                                            onChange={(e) => onFileChange(e, "Gallery", "AnnualAuditReportDocs")}
+                                                                            disabled={InputDisabled}
+                                                                            multiple
+                                                                        />
                                                                     </div>
+
                                                                 </div>
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="revisionNo" className="col-form-label">Share With<span className="text-danger1"> *</span></label>
                                                                         <div title={sharewithusers.map(user => user.label).join(', ')}>
                                                                             <Select
-                                                                                onKeyDown={handleKeyDown}
+                                                                                //onKeyDown={handleKeyDown}
                                                                                 isClearable={true}
                                                                                 options={rows1}
                                                                                 isMulti
@@ -3820,16 +3988,17 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         </div>
                                                                     </div>
                                                                 </div>
+                                                                {console.log("shifttttt ", selectshift, formData.shiftId, AuditProgShift.filter((x: any) => x.value == formData.shiftId))}
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <label htmlFor="Department" className="col-form-label">Shift</label>
                                                                         <div >
                                                                             <div
-                                                                                title={selectshift?.label || "Select a shift"}
+                                                                                title={AuditProgShift && AuditProgShift[0]?.label || "Select a shift"}
                                                                                 style={{ width: "100%" }}
                                                                             >
                                                                                 <Select
-                                                                                    onKeyDown={handleKeyDown}
+                                                                                    //onKeyDown={handleKeyDown}
                                                                                     isClearable={true}
                                                                                     options={AuditProgShift}
                                                                                     isDisabled={InputDisabled}
@@ -3949,7 +4118,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                             </td>
                                                                             <td title={row?.auditorcomments ? row?.auditorcomments : row?.auditorcomments} style={{ minWidth: '300px', maxWidth: '300px' }}>
                                                                                 <textarea
-                                                                                   // onKeyDown={handleKeyDowntextarea}
+                                                                                    // onKeyDown={handleKeyDowntextarea}
                                                                                     id="simpleinput"
                                                                                     className={`form-control ${(RowErrors[index]?.auditorcomments) ? "border-on-error" : ""}`}
                                                                                     // className="form-control"
@@ -3958,7 +4127,14 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     disabled={InputDisabled}
                                                                                 />
                                                                             </td>
-                                                                            <td style={{ minWidth: '160px', maxWidth: '160px' }} title={row?.time ? row?.time : row?.time}>
+                                                                            <td style={{ minWidth: '160px', maxWidth: '160px' }} id="timepicker"
+                                                                                title={row?.time ? new Date(`1970-01-01T${row.time}`)
+                                                                                    .toLocaleTimeString([], {
+                                                                                        hour: '2-digit',
+                                                                                        minute: '2-digit',
+                                                                                        hour12: true
+                                                                                    })
+                                                                                    .replace(/am|pm/i, match => match.toUpperCase()) : "Select Time"}>
                                                                                 {/* <input
                                                                                     type="time"
                                                                                     className={`form-control ${(RowErrors[index]?.time) ? "border-on-error" : ""}`}
@@ -3979,6 +4155,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                                                                                     <TimePicker
                                                                                         label="Select Time"
+                                                                                        className={`form-control recommendClsErr `}
                                                                                         value={row.time ? new Date(`1970-01-01T${row.time}`) : null}
                                                                                         onChange={(newValue) => {
                                                                                             const formattedTime = newValue
@@ -3990,9 +4167,18 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                         slotProps={{
                                                                                             textField: {
                                                                                                 fullWidth: true,
-                                                                                                className: `form-control ${RowErrors[index]?.time ? 'border-on-error' : ''}`
+                                                                                                className: `form-control ${RowErrors[index]?.time ? 'ErrBorder-ErrColor' : ''}`,
+                                                                                                sx: {
+                                                                                                    '& .MuiInputBase-input.Mui-disabled': {
+                                                                                                        color: 'black',
+                                                                                                    },
+                                                                                                    '& .Mui-disabled': {
+                                                                                                        WebkitTextFillColor: 'black', // Safari
+                                                                                                    }
+                                                                                                }
                                                                                             }
                                                                                         }}
+
                                                                                     />
                                                                                 </LocalizationProvider>
                                                                                 {/* <TimePickerComponent
@@ -4086,11 +4272,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                             >
                                                                                 {index + 1}</div>
                                                                             </td>
-                                                                            <td title={UserRoles.find((opt: any) => opt.value === row.role)?.label} style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding">
+                                                                            <td title={UserRoles.find((opt: any) => opt.value === row.role)?.label || "Select role"} style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding">
                                                                                 <select
                                                                                     // className="form-select"
-                                                                                    className={`form-select newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
-
+                                                                                    //className={`form-select newse ${(!ValidForwardTo) ? "border-on-error" : ""} `}
+                                                                                    className={`form-select newse ${forwardToValidationErrors[row.level]?.role ? "border-on-error" : ""}`}
                                                                                     onChange={(e) => onSelectRole(e, row.level)} value={row.role} disabled={InputDisabled}>
 
                                                                                     <option value="" selected>Select Role</option>
@@ -4109,25 +4295,31 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                                             </td>
                                                                             <td style={{ minWidth: '40px', maxWidth: '40px', overflow: 'inherit' }}>Level {index + 1}</td>
-                                                                            <td title={row.approvers.map(user => user.label).join(', ')} style={{ overflow: 'inherit' }}>
+                                                                            <td title={row.approvers.map(user => user.label).join(', ') || "Select Approvers"} style={{ overflow: 'inherit' }}>
 
                                                                                 <Select
-                                                                                    onKeyDown={handleKeyDown}
+                                                                                    //onKeyDown={handleKeyDown}
                                                                                     isClearable={true}
                                                                                     options={rows1}
                                                                                     isMulti
                                                                                     value={row.approvers}
                                                                                     name="Approvers"
-                                                                                    className={`newse ${(!ValidForwardTo) ? "border-on-error" : ""}`}
+                                                                                    //className={`newse ${(!ValidForwardTo) ? "border-on-error" : ""}`}
+                                                                                    className={`newse ${forwardToValidationErrors[row.level]?.approvers ? "border-on-error" : ""}`}
                                                                                     // onChange={(selectedOption: any) => onSelect(selectedOption)}
                                                                                     onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
                                                                                     placeholder="Enter Approver Name"
                                                                                     isDisabled={InputDisabled}
                                                                                 />
                                                                             </td>
-                                                                            <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
+                                                                            <td title={row.approvalType === "All" ? "Everyone" : row.approvalType === "One" ? "Anyone" : "Select"} style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
                                                                                 {/* <label htmlFor="approvalType">Approval Type: </label> */}
-                                                                                <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={InputDisabled} >
+                                                                                <select id="approvalType"
+                                                                                    value={row.approvalType}
+                                                                                    onChange={(e) => handleChange(e, row.level)}
+                                                                                    //className={`newse form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`}
+                                                                                    className={`form-select newse ${forwardToValidationErrors[row.level]?.approvalType ? "border-on-error" : ""}`}
+                                                                                    disabled={InputDisabled} >
                                                                                     <option value="">Select </option>
                                                                                     <option value="One">Anyone</option>
                                                                                     <option value="All">Everyone</option>
@@ -4205,16 +4397,18 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                     <div className="col-12 text-center">
 
 
-                                                        {((InputDisabled != true && editItemID == null && MainEditItem == null) || (modeValue === "" || modeValue === "edit") || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "Initiator" && editID.IsInitiator == "Yes" && (editID?.Status === "Pending" || editID?.Status === "Save as draft"))) &&
-                                                            <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
+                                                        {((InputDisabled != true && editItemID == null && MainEditItem == null) || (modeValue === "" || modeValue === "edit") ||
+                                                            (editID != null && editID.Level === 0 && editID.CurrentUserRole == "Initiator" && editID.IsInitiator == "Yes" && (editID?.Status === "Pending" || editID?.Status === "Save as draft"))) &&
+                                                            <div className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
                                                                 <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
-                                                                Save As Draft</button>
+                                                                Save As Draft</div>
                                                         }
 
-                                                        {((InputDisabled != true && editItemID == null && MainEditItem == null) || (modeValue === "" || modeValue === "edit") || (editID != null && editID.Level === 0 && editID.CurrentUserRole == "Initiator" && editID.IsInitiator == "Yes" && (editID?.Status === "Pending" || editID?.Status === "Save as draft"))) &&
-                                                            <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
+                                                        {((InputDisabled != true && editItemID == null && MainEditItem == null) || (modeValue === "" || modeValue === "edit") ||
+                                                            (editID != null && editID.Level === 0 && editID.CurrentUserRole == "Initiator" && editID.IsInitiator == "Yes" && (editID?.Status === "Pending" || editID?.Status === "Save as draft"))) &&
+                                                            <div className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
                                                                 <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
-                                                                Submit</button>
+                                                                Submit</div>
                                                         }
 
                                                         {/* {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Save as draft")}>  <img src={require('../../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Save As Draft</button>}
@@ -4225,8 +4419,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                         {console.log("eddddd", editID)}
                                                         {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID?.ApprovalType !== "Approval") || (modeValue === "approve" && editID?.Status == "Approved")) &&
-                                                            <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
-                                                                className='me-1' alt="x" /> Cancel</button>
+                                                            <div className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
+                                                                className='me-1' alt="x" /> Cancel</div>
                                                         }
 
                                                     </div>
@@ -4243,7 +4437,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                 <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
                                                     <Modal.Header closeButton>
                                                         <Modal.Title > <h4 className='font-16 text-dark fw-bold mb-0'>Attachment Details</h4>
-                                                            <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for Annual Audit Report
+                                                            <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for IMS Audit Report and Checklist
                                                             </p>
 
                                                         </Modal.Title>
@@ -4255,59 +4449,112 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                         {/* {DocumentLink &&
                                                             (
                                                                 <> */}
-                                                        <table className="mtbalenew">
-                                                            <thead style={{ background: '#eef6f7' }}>
-                                                                <tr>
-                                                                    <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
-                                                                    <th>File Name</th>
-                                                                    {((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
-                                                                        || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload &&
-                                                                        <th > File Link </th>
-                                                                    }
-                                                                    {/* <th>File Link</th> */}
-                                                                    <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th>
-                                                                    {(modeValue == "edit" || modeValue == null || modeValue == ""
+                                                        {Showfile ?
+
+                                                            <FileViewer showfile={Showfile} docurl={redirecturl} cancelAction={cancelModalAction} />
+                                                            :
+                                                            <table className="mtbalenew">
+                                                                <thead style={{ background: '#eef6f7' }}>
+                                                                    <tr>
+                                                                        <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                                                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>File Name</th>
+
+                                                                        {/* <th>File Link</th> */}
+                                                                        <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th>
+                                                                        {
+                                                                            ((
+                                                                                (
+                                                                                    (
+                                                                                        modeValue !== null &&
+                                                                                        modeValue !== "" &&
+                                                                                        (modeValue === "edit" || modeValue === "view" || modeValue === "approve")
+                                                                                    ) ||
+                                                                                    (modeValue === "approve" && formData?.Status === "Rework")
+                                                                                ) && showviewdownload
+                                                                            ) ||
+                                                                                (
+                                                                                    (
+                                                                                        modeValue === "edit" ||
+                                                                                        modeValue === null ||
+                                                                                        modeValue === "" ||
+                                                                                        (modeValue === "approve" && formData?.Status === "Rework")
+                                                                                    )
+                                                                                )) &&
+                                                                            <th style={{ minWidth: '50px', maxWidth: '50px' }}>Action</th>
+
+                                                                        }
+
+                                                                        {/* {(modeValue == "edit" || modeValue == null || modeValue == ""
                                                                         || (modeValue == "approve" && formData?.Status == "Rework")) &&
                                                                         <th style={{ textAlign: 'center' }}> Action </th>
-                                                                    }
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {FilesArr.length > 0 && (
-                                                                    FilesArr.map((row: any, index: number) => (
-                                                                        <tr>
-                                                                            <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
-                                                                            {/* <td title={row.name || row.FileLeafRef}>{row.name || row.FileLeafRef}</td> */}
-                                                                            <td title={row.name || row.FileLeafRef}>
-                                                                                {row.name || row.FileLeafRef}</td>
-                                                                            {((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
-                                                                                || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload &&
-                                                                                <td style={{ textAlign: 'center' }}>
-                                                                                    <span onClick={() => OpenFile(FilesArr && FilesArr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                        <FontAwesomeIcon icon={faEye} /></span>
-                                                                                    <span onClick={() => OpenFile(FilesArr && FilesArr[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                        <FontAwesomeIcon icon={faDownload} /></span>
-                                                                                </td>
-                                                                            }
-                                                                            <td style={{ minWidth: '50px', maxWidth: '50px' }}>{row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
-                                                                                day: "2-digit",
-                                                                                month: "short",
-                                                                                year: "numeric"
-                                                                            }).replace(/ /g, "/") : new Date().toLocaleDateString("en-GB", {
-                                                                                day: "2-digit",
-                                                                                month: "short",
-                                                                                year: "numeric"
-                                                                            }).replace(/ /g, "/")}</td>
+                                                                    } */}
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {FilesArr.length > 0 && (
+                                                                        FilesArr.map((row: any, index: number) => (
+                                                                            <tr>
+                                                                                <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
+                                                                                {/* <td title={row.name || row.FileLeafRef}>{row.name || row.FileLeafRef}</td> */}
+                                                                                <td style={{ minWidth: '200px', maxWidth: '200px' }} title={row.name || row.FileLeafRef}>
+                                                                                    {row.name || row.FileLeafRef}</td>
+                                                                                <td style={{ minWidth: '50px', maxWidth: '50px' }} title={row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
+                                                                                    day: "2-digit",
+                                                                                    month: "short",
+                                                                                    year: "numeric"
+                                                                                }).replace(/ /g, "/") : new Date().toLocaleDateString("en-GB", {
+                                                                                    day: "2-digit",
+                                                                                    month: "short",
+                                                                                    year: "numeric"
+                                                                                }).replace(/ /g, "/")}>
 
-                                                                            {(modeValue == "edit" || modeValue == null || modeValue == ""
-                                                                                || (modeValue == "approve" && formData?.Status == "Rework")) && <td style={{ textAlign: 'center' }}> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>}
+                                                                                    {row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
+                                                                                        day: "2-digit",
+                                                                                        month: "short",
+                                                                                        year: "numeric"
+                                                                                    }).replace(/ /g, "/") : new Date().toLocaleDateString("en-GB", {
+                                                                                        day: "2-digit",
+                                                                                        month: "short",
+                                                                                        year: "numeric"
+                                                                                    }).replace(/ /g, "/")}</td>
 
-
-                                                                        </tr>
-                                                                    ))
-                                                                )}
-                                                            </tbody>
-                                                        </table>
+                                                                                {((
+                                                                                    (
+                                                                                        (
+                                                                                            modeValue !== null &&
+                                                                                            modeValue !== "" &&
+                                                                                            (modeValue === "edit" || modeValue === "view" || modeValue === "approve")
+                                                                                        ) ||
+                                                                                        (modeValue === "approve" && formData?.Status === "Rework")
+                                                                                    ) && showviewdownload
+                                                                                ) ||
+                                                                                    (
+                                                                                        (
+                                                                                            modeValue === "edit" ||
+                                                                                            modeValue === null ||
+                                                                                            modeValue === "" ||
+                                                                                            (modeValue === "approve" && formData?.Status === "Rework")
+                                                                                        )
+                                                                                    )) &&
+                                                                                    <td style={{ minWidth: '50px', maxWidth: '50px', textAlign: 'center' }}>
+                                                                                        {((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
+                                                                                            || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload &&
+                                                                                            <><span onClick={() => OpenFile(FilesArr && FilesArr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                                <FontAwesomeIcon title='Preview file' icon={faEye} /></span><span onClick={() => OpenFile(FilesArr && FilesArr[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                                    <FontAwesomeIcon title='Download file' icon={faDownload} /></span></>
+                                                                                        }
+                                                                                        {(modeValue == "edit" || modeValue == null || modeValue == ""
+                                                                                            || (modeValue == "approve" && formData?.Status == "Rework")) &&
+                                                                                            <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} />
+                                                                                        }
+                                                                                    </td>
+                                                                                }
+                                                                            </tr>
+                                                                        ))
+                                                                    )}
+                                                                </tbody>
+                                                            </table>
+                                                        }
                                                         {/* </>
                                                             )
                                                         } */}
@@ -4318,7 +4565,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                 <Modal show={ShowModalpre} onHide={() => setShowModalpre(false)} size='lg' className='filemodal'>
                                                     <Modal.Header closeButton>
                                                         <Modal.Title > <h4 className='font-16 text-dark fw-bold mb-0'>Attachment Details</h4>
-                                                            <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for Annual Audit Report
+                                                            <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for IMS Audit Report and Checklist
                                                             </p>
 
                                                         </Modal.Title>
@@ -4330,29 +4577,34 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                         {/* {DocumentLink &&
                                                             (
                                                                 <> */}
-                                                        <table className="mtbalenew">
-                                                            <thead style={{ background: '#eef6f7' }}>
-                                                                <tr>
-                                                                    <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
-                                                                    <th>File Name</th>
-                                                                    <th>File Link</th>
-                                                                    <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th>
-                                                                    {/* {(InputDisabled || !InputDisabled) && <th className='text-center'>Action</th>} */}
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {TemplateDocAudit.length > 0 && (
-                                                                    TemplateDocAudit.map((row: any, index: number) => (
-                                                                        <tr>
-                                                                            <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
-                                                                            {/* <td title={row.name || row.FileLeafRef}>{row.name || row.FileLeafRef}</td> */}
-                                                                            <td title={row.name || row.FileLeafRef}>
-                                                                                {row.name || row.FileLeafRef}</td>
-                                                                            {/* <td style={{ textAlign: 'center' }} >
+                                                        {Showfile ?
+
+                                                            <FileViewer showfile={Showfile} docurl={redirecturl} cancelAction={cancelModalAction} />
+                                                            :
+                                                            <table className="mtbalenew">
+                                                                <thead style={{ background: '#eef6f7' }}>
+                                                                    <tr>
+                                                                        <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                                                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>File Name</th>
+
+                                                                        <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th>
+                                                                        <th style={{ minWidth: '50px', maxWidth: '50px' }}>Action</th>
+                                                                        {/* {(InputDisabled || !InputDisabled) && <th className='text-center'>Action</th>} */}
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {TemplateDocAudit && TemplateDocAudit.length > 0 && (
+                                                                        TemplateDocAudit.map((row: any, index: number) => (
+                                                                            <tr>
+                                                                                <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
+                                                                                {/* <td title={row.name || row.FileLeafRef}>{row.name || row.FileLeafRef}</td> */}
+                                                                                <td style={{ minWidth: '200px', maxWidth: '200px' }} title={row.name || row.FileLeafRef}>
+                                                                                    {row.name || row.FileLeafRef}</td>
+                                                                                {/* <td style={{ textAlign: 'center' }} >
                                                                                        
                                                                                         <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span>
                                                                                          </td> */}
-                                                                            {/* <td>{DocumentLink.Created
+                                                                                {/* <td>{DocumentLink.Created
                                                                                         ? new Intl.DateTimeFormat('en-GB', {
                                                                                             day: '2-digit',
                                                                                             month: 'short',
@@ -4360,38 +4612,62 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                         }).format(new Date(DocumentLink.Created)).replace(/ /g, "/")
                                                                                         : ""}</td> */}
 
-                                                                            <td style={{ textAlign: 'center' }}>
-                                                                                <span onClick={() => OpenFile(TemplateDocAudit && TemplateDocAudit[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                    <FontAwesomeIcon icon={faEye} /></span>
-                                                                                {/* <span onClick={() => OpenFile(FilesArrDoclink && FilesArrDoclink[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+
+
+                                                                                <td style={{ minWidth: '50px', maxWidth: '50px' }} title={row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
+                                                                                    day: "2-digit",
+                                                                                    month: "short",
+                                                                                    year: "numeric"
+                                                                                }).replace(/ /g, "/") : new Date().toLocaleDateString("en-GB", {
+                                                                                    day: "2-digit",
+                                                                                    month: "short",
+                                                                                    year: "numeric"
+                                                                                }).replace(/ /g, "/")}>
+
+                                                                                    {row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
+                                                                                        day: "2-digit",
+                                                                                        month: "short",
+                                                                                        year: "numeric"
+                                                                                    }).replace(/ /g, "/") : new Date().toLocaleDateString("en-GB", {
+                                                                                        day: "2-digit",
+                                                                                        month: "short",
+                                                                                        year: "numeric"
+                                                                                    }).replace(/ /g, "/")}</td>
+                                                                                <td style={{ minWidth: '50px', maxWidth: '50px', textAlign: 'center' }} title={"Preview Document"}>
+                                                                                    <span onClick={() => OpenFile(TemplateDocAudit && TemplateDocAudit[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                        <FontAwesomeIcon title='Preview file' icon={faEye} /></span>
+                                                                                    {/* <span onClick={() => OpenFile(FilesArrDoclink && FilesArrDoclink[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                                                                     <FontAwesomeIcon icon={faDownload} /></span> */}
-                                                                            </td>
-
-                                                                            <td style={{ minWidth: '50px', maxWidth: '50px' }}>{row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
-                                                                                day: "2-digit",
-                                                                                month: "short",
-                                                                                year: "numeric"
-                                                                            }).replace(/ /g, "/") : new Date().toLocaleDateString("en-GB", {
-                                                                                day: "2-digit",
-                                                                                month: "short",
-                                                                                year: "numeric"
-                                                                            }).replace(/ /g, "/")}</td>
-
-                                                                            {/* {!InputDisabled && <td style={{ textAlign: 'center' }}> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>} */}
+                                                                                </td>
+                                                                                {/* {!InputDisabled && <td style={{ textAlign: 'center' }}> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>} */}
 
 
 
-                                                                        </tr>
-                                                                    ))
-                                                                )}
-                                                            </tbody>
-                                                        </table>
+                                                                            </tr>
+                                                                        ))
+                                                                    )}
+                                                                </tbody>
+                                                            </table>
+                                                        }
                                                         {/* </>
                                                             )
                                                         } */}
 
                                                     </Modal.Body>
 
+                                                </Modal>
+                                                <Modal show={ShowModalTemplateDoc} onHide={() => setShowModalTemplateDoc(false)} size={Showfile ? "xl" : "lg"} className='newmobmodal'>
+
+                                                    {/* </Modal.Header> */}
+                                                    <Modal.Body className="" id="style-5">
+                                                        <>
+                                                            {Showfile &&
+
+                                                                <FileViewer showfile={Showfile} docurl={redirecturl} cancelAction={cancelModalAction} />
+
+                                                            }
+                                                        </>
+                                                    </Modal.Body>
                                                 </Modal>
                                                 {/* ///////////////// */}
 

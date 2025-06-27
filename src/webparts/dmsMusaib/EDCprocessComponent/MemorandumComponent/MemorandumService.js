@@ -434,7 +434,7 @@ export const uploadAllFiles = async (files, sp, docLib) => {
 export const uploadFileToLibrary = async (file, sp, docLib) => {
   let arrFIleData = [];
   let fileSize = 0;
-  const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
+  const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumDocs');
   try {
     // await sp.web.lists.getByTitle(docLib).rootFolder
     const result = folder.files.addChunked(file.name, file, (progress, data) => {
@@ -478,22 +478,100 @@ export const getDocumentLinkByID = async (_sp, AttachmentIds) => {
   return results;
 }
 
+// export const getGeneratedTemplateDoc = async (_sp, itemId) => {
+//   let results = [];
+//   // for (let itemId of AttachmentIds) {
+//     await _sp.web.lists.getByTitle("MemorandumGeneratedTemplateDoc").items
+//       .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
+//       .then((res) => {
+//         console.log(res, ' let arrs=[]');
+//         results = res;
+//       })
+//       .catch((error) => {
+//         console.log("Error fetching data: ", error);
+//       });
+//   // }
+//   console.log(results, 'results');
+//   return results;
+// }
+
 export const getGeneratedTemplateDoc = async (_sp, itemId) => {
   let results = [];
-  // for (let itemId of AttachmentIds) {
-    await _sp.web.lists.getByTitle("MemorandumGeneratedTemplateDoc").items
-      .select("*,FileRef, FileLeafRef").filter(`ListItemID/ID eq ${itemId}`)()
-      .then((res) => {
-        console.log(res, ' let arrs=[]');
-        results = res;
-      })
-      .catch((error) => {
-        console.log("Error fetching data: ", error);
-      });
-  // }
+  try {
+    const res = await _sp.web.lists.getByTitle("MemorandumDigitalSignedDocs").items
+      .select("*,FileRef, FileLeafRef")
+      .filter(`ListItemID/ID eq ${itemId}`)
+      .orderBy("ID", false)
+      .top(1)();
+
+    if (res && res.length > 0) {
+      results = res;
+    } else {
+      const res2 = await _sp.web.lists.getByTitle("MemorandumGeneratedTemplateDoc").items
+        .select("*,FileRef, FileLeafRef")
+        .filter(`ListItemID/ID eq ${itemId}`)
+        .orderBy("ID", false)
+        .top(1)();
+
+      results = res2 && res2.length > 0 ? res2 : [];
+    }
+  } catch (error) {
+    console.log("Error fetching data: ", error);
+  }
   console.log(results, 'results');
   return results;
-}
+};
+
+
+export const updateDigitalsign = async (listname, _sp, id) => {
+  let resultArr = []
+  try {
+    console.log("iddddd", id);
+    // const newItem = await _sp.web.lists.getByTitle('DigitalSignatureRequestList').items
+    //   .filter(`ListName eq '${listname}' and ListItemID eq ${id}`)
+    //   .top(1)
+    //   ().then(async (res) => {
+    const postPayload2 = {
+      DocSignedStatus: "Yes"
+    }
+ 
+    const newItem = await _sp.web.lists.getByTitle('DigitalSignatureRequestList').items.getById(id).update(postPayload2);
+    console.log('Item added successfully:', newItem);
+ 
+ 
+ 
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+  }
+  return resultArr;
+};
+ 
+export const getdigitalsignaturerequestbyID = async (listname, _sp, id) => {
+  let arr = []
+  try {
+    console.log("iddddd", id);
+    const newItem = await _sp.web.lists.getByTitle('DigitalSignatureRequestList').items
+      .filter(`ListName eq '${listname}' and ListItemID eq ${id} and DocSignedStatus eq 'No'`)
+      .top(1)
+      ()
+      .then((res) => {
+        console.log(res, ' let arrs=[]');
+ 
+        arr = res
+        // arr = res;
+      })
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    arr = null
+  }
+  return arr;
+};
 
 
 export const getRecommendationTypes= async (_sp) =>{
