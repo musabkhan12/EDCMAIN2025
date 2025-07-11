@@ -2080,7 +2080,7 @@ const UploadFile: React.FC<UploadFileProps> = ({ currentfolderpath, onReturnToMa
                 <div id="spinner" style={{ display: "block", textAlign: "center" }}>
                   <div>
                     <img
-                      src={require("../../../CustomAsset/argloader.gif")}
+                      src={require("../assets/EDCLoader.gif")}
                       className="alignrightl"
                       alt="Loading..."
                     />
@@ -2094,7 +2094,7 @@ const UploadFile: React.FC<UploadFileProps> = ({ currentfolderpath, onReturnToMa
                 <div id="spinner" style={{ display: "block", textAlign: "center" }}>
                   <div>
                     <img
-                      src={require("../../../CustomAsset/argloader.gif")}
+                      src={require("../assets/EDCLoader.gif")}
                       className="alignrightl"
                       alt="Loading..."
                     />
@@ -2106,7 +2106,7 @@ const UploadFile: React.FC<UploadFileProps> = ({ currentfolderpath, onReturnToMa
             <div id="spinner" style={{ display: "none", textAlign: "center" }}>
               <div>
                 <img
-                  src={require("../../../CustomAsset/argloader.gif")}
+                  src={require("../assets/EDCLoader.gif")}
                   className="alignrightl"
                   alt="Loading..."
                 />

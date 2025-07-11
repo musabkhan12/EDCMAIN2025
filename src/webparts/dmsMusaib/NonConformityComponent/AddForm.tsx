@@ -106,6 +106,7 @@ export class IState {
   fileDeleteId: any[];
   files: FileList;
   siteurl: any;
+  requesterDesignation:string;
 }
 let optionsmemoNumbernewnc: any[] = [];
 let optionsmemoNumbernewobs: any[] = [];
@@ -171,6 +172,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       exFiles: [],
       fileDeleteId: [],
       files: {} as FileList,
+      requesterDesignation:"",
       siteurl: this.props.context.pageContext.web.absoluteUrl,
     };
     this.handleFileChange = this.handleFileChange.bind(this);
@@ -180,17 +182,31 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     this.toBeDeleted = this.toBeDeleted.bind(this);
 
   }
+  // private handleFileChange(e: React.ChangeEvent<HTMLInputElement>, _self: any) {
+  //   if (e.target.files) {
+  //     _self.setState({ fileCount: e.target.files.length });
+  //     _self.setState({ files: e.target.files });
+  //     var allfiles: any[] = [];
+  //     [].forEach.call(e.target.files, function (file: File) {
+  //       allfiles.push(file);
+  //     })
+  //     _self.setState({ copyFil: allfiles });
+  //   }
+  // };
   private handleFileChange(e: React.ChangeEvent<HTMLInputElement>, _self: any) {
     if (e.target.files) {
-      _self.setState({ fileCount: e.target.files.length });
-      _self.setState({ files: e.target.files });
-      var allfiles: any[] = [];
-      [].forEach.call(e.target.files, function (file: File) {
-        allfiles.push(file);
-      })
-      _self.setState({ copyFil: allfiles });
+      const newFilesArray = Array.from(e.target.files); // Convert FileList to Array
+      const existingFiles = _self.state.copyFil || []; // previously uploaded
+  
+      const allFiles = [...existingFiles, ...newFilesArray];
+  
+      _self.setState({
+        fileCount: allFiles.length,
+        files: e.target.files, // optional: might not represent all files now
+        copyFil: allFiles
+      });
     }
-  };
+  }
   private _OpenModal() {
     this.setState({
       showDialog: true
@@ -792,6 +808,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
         //department: selectedOption?.value, 
         departmentCode: selectedOption?.data.departmentCode,
         //departmentselected: selectedOption, 
+        requesterDesignation: userProfile?.Title || "",
         fromdepartmentselected: selectedOption
       });
       //this.setState({ department: selectedOption?.key });
@@ -1191,6 +1208,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
 
         this.setState({ Loading: true });
         await sp.web.lists.getByTitle("NonConformityList").items.add({
+          RequesterNameId: this.props.currentUserID,
+          RequesterDesignation: this.state.requesterDesignation || "",
+          RequestDate: new Date().toISOString(),
           NCNumber: this.state.NCNumber,
           NCType: this.state.ncType,
           NCNumberID: Number(this.state.NCNumberID),
@@ -1314,13 +1334,13 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     var fileData = this.state.copyFil.map((item: any, i: number) => {
       return (
         <tr>
-          <td>{i + 1}</td>
+          <td style={{ minWidth: '50px', maxWidth: '50px' }}>{i + 1}</td>
           <td>
             {item.name}
           </td>
           {/* <td></td> */}
-          <td title={moment(item.Uploaded).format("DD/MMM/YYYY")}>{moment(item.Uploaded).format("DD/MMM/YYYY")}</td>
-          <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
+          <td style={{ minWidth: '50px', maxWidth: '50px' }} title={moment(item.Uploaded).format("DD/MMM/YYYY")}>{moment(item.Uploaded).format("DD/MMM/YYYY")}</td>
+          <td style={{ minWidth: "50px", maxWidth: "50px", textAlign: 'center' }}>
             <img src={require("../assets/del.png")} className='' onClick={() => this.removeFiles(i)}></img>
           </td>
           {/* <td>
@@ -1333,16 +1353,16 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     var upFiles = this.state.exFiles.map((item: any, i: number) => {
       return (
         <tr style={{ display: 'table', width: '100%' }}>
-          <td>
+          <td style={{ minWidth: '50px', maxWidth: '50px' }}>
             {item.Name}
           </td>
           <td>
             {<a href={item.Path} target="_blank">Link</a>}
           </td>
-          <td>
+          <td style={{ minWidth: '50px', maxWidth: '50px' }}>
             {item.Uploaded}
           </td>
-          <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
+          <td style={{ minWidth: "50px", maxWidth: "50px", textAlign: 'center' }}>
             <img src={require("../assets/del.png")} className='' onClick={() => this.toBeDeleted(i)}></img>
           </td>
 
@@ -1418,11 +1438,12 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                     /> */}
                   </TooltipHost>
                 </div>
+                {console.log("tyty",this.state.memonumberOptions,this.state.ApprovedAuditSelected)}
                 <div className="form-group col-md-4 mb-3">
                   <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }} >Approved Report Code:<span className="text-danger1">*</span>
                   </label>
                   <TooltipHost
-                    content={this.state.memonumberOptions.filter((item: any) => item.key == this.state.ApprovedAuditReport)[0]?.text || ""}
+                    content={this.state.memonumberOptions.filter((item: any) => item.value == this.state.ApprovedAuditReport)[0]?.label || ""}
                     calloutProps={{ gapSpace: 0 }}
                     styles={{ root: { display: 'inline-block', width: '100%' } }}
                   >
@@ -1491,6 +1512,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                 // }}
                 />
               </div> */}
+              {console.log("from departmennnn",this.state.departmentOption,this.state.fromdepartmentselected,
+                this.state.departmentOption.filter((x: any) => x.value == this.state.fromdepartment))}
                 <div className="form-group col-md-4 mb-3">
                   <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }} >From Department:<span className="text-danger1">*</span>
                   </label>
@@ -1803,8 +1826,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                               <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
                               <th>File Name</th>
                               {/* <th>File Link</th> */}
-                              <th style={{ minWidth: '100px' }} className="text-center">Upload Date</th>
-                              <th className="text-center">Action</th>
+                              <th style={{ minWidth: '50px', maxWidth: '50px' }} className="text-center">Upload Date</th>
+                              <th style={{ minWidth: '50px', maxWidth: '50px' }} className="text-center">Action</th>
                             </tr>
                           </thead>
                           <tbody >

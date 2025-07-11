@@ -201,7 +201,7 @@ const HorizontalNavbar = ({ _context, siteUrl,context }: any) => {
   // this code is added to minimize the effect when user enter in search input and press enter key then it was editing webpart page
   document.getElementById("searchInput")?.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
-      // alert("Enter key pressed in search input");
+
       event.preventDefault();
       return false;
     }
@@ -292,6 +292,33 @@ const HorizontalNavbar = ({ _context, siteUrl,context }: any) => {
     //setSearchRefiners(hitcont.aggregations);
     return removeDuplicates(resultsdoc,'Path')
 }
+    // this was original previous working code but the issue was it open advanc search file from top 10 to new tab with direct url which was security concern
+  // const searchKeyPress = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   e.preventDefault();
+  //  let arr:any[] =[];
+  //   const queryText = e.target.value;
+  //   setQuery(queryText);
+  //   if (queryText.length < 2){
+  //     setSearchResults(arr);
+  //   }
+  //   if (queryText && queryText.length > 2) {
+  //     showdropdown = true;
+  //     setLoading(true);
+  //     //const searchResults = await searchAllLists(queryText);
+  //     const searchResultstemp = await runSearch(queryText, "IsDocument:True", "site:"+(context as BaseWebPartContext).pageContext.site.absoluteUrl, [], []);
+  //     console.log("searchResultstemp 34456", searchResultstemp);
+  //     // const searchResults=searchResultstemp.map((res)=>({ListTitle:"ARGMediaGallery", Title:res.Title,Overview:res.Summary,Id:"22",pageName:"Mediadetails"}));
+  //     const searchResults=searchResultstemp.map((res)=>({ListTitle:"ARGMediaGallery", Title:res.Title,Overview:res.Summary,Id:"22",pageName:"Mediadetails",Path:res.Path}));
+  //     console.log("searchResults 34456", searchResults);
+  //     let grped = groupByFn(searchResults, (res: any) => res.ListTitle)
+  //     console.log("grped results", grped);
+  //     setSearchResults(searchResults);
+  //     setGroupedSearchResults(grped);
+  //     console.log("grouped resuls after fncall", groupedSearchResults);
+  //   }
+  //   setLoading(false);
+  // };
+
 
   const searchKeyPress = async (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -307,16 +334,48 @@ const HorizontalNavbar = ({ _context, siteUrl,context }: any) => {
       //const searchResults = await searchAllLists(queryText);
       const searchResultstemp = await runSearch(queryText, "IsDocument:True", "site:"+(context as BaseWebPartContext).pageContext.site.absoluteUrl, [], []);
       console.log("searchResultstemp 34456", searchResultstemp);
+  const searchResultsWithPreview = searchResultstemp.map(item => {
+    const siteUrl = new URL((context as BaseWebPartContext).pageContext.site.absoluteUrl);
+    const fileUrl = new URL(item.Path);
+    
+    // Get server-relative path
+    const serverRelativePath = fileUrl.pathname;
+    
+    // Get parent folder path (document library)
+    const parentFolderPath = serverRelativePath.substring(0, serverRelativePath.lastIndexOf('/'));
+    
+    // Construct preview URL with proper encoding and parent parameter
+    const previewUrl = `${fileUrl.origin}${parentFolderPath}/Forms/AllItems.aspx?id=${serverRelativePath
+    }&parent=${parentFolderPath
+    }`;
+      //  console.log("previewUrl in advance", previewUrl);
+    return {
+        ...item,
+        PreviewUrl: previewUrl
+    };
+});
       // const searchResults=searchResultstemp.map((res)=>({ListTitle:"ARGMediaGallery", Title:res.Title,Overview:res.Summary,Id:"22",pageName:"Mediadetails"}));
-      const searchResults=searchResultstemp.map((res)=>({ListTitle:"ARGMediaGallery", Title:res.Title,Overview:res.Summary,Id:"22",pageName:"Mediadetails",Path:res.Path}));
-      console.log("searchResults 34456", searchResults);
+      // const searchResults=searchResultstemp.map((res)=>({ListTitle:"ARGMediaGallery", Title:res.Title,Overview:res.Summary,Id:"22",pageName:"Mediadetails",Path:res.Path}));
+      
+// Final result: use searchResultsWithPreview
+const searchResults = searchResultsWithPreview.map(res => ({
+  ListTitle: "ARGMediaGallery",
+  Title: res.Title,
+  Overview: res.Summary,
+  Id: "22",
+  pageName: "Mediadetails",
+  Path: res.Path,
+  PreviewUrl: res.PreviewUrl // 👈 added here
+}));
+      
+      // console.log("searchResults 34456", searchResults);
       let grped = groupByFn(searchResults, (res: any) => res.ListTitle)
-      console.log("grped results", grped);
+      // console.log("grped results", grped);
       setSearchResults(searchResults);
       setGroupedSearchResults(grped);
-      console.log("grouped resuls after fncall", groupedSearchResults);
+      // console.log("grouped resuls after fncall", groupedSearchResults);
     }
-    setLoading(false);
+     setLoading(false);
   };
   const handleSearchClick = async (result: any) => {
 
@@ -453,19 +512,19 @@ const HorizontalNavbar = ({ _context, siteUrl,context }: any) => {
                 {/* searchResults.length > 0 ? 'search-results' : '' */}
                 <div className={loading ? 'scrollbar' : ''} id={loading ? 'style-6' : ''}>
                 {loading && (
-                  <div className="loadernewadd">
-                    <div>
+                  <div className="loadernewadd2 newcssload">
+                    {/* <div>
                       <img style={{ width: '60px' }}
-                        src={require("../../../CustomAsset/birdloader.gif")}
+                        src={require("../assets/EDCLoader.gif")}
                         className="alignrightl"
                         alt="Loading..."
                       />
-                    </div>
+                    </div> */}
                     <div className="loadnewarg">
                       <span>Loading </span>{" "}
                       <span>
                         <img style={{ width: '35px' }}
-                          src={require("../../../CustomAsset/argloader.gif")}
+                          src={require("../assets/EDCLoader.gif")}
                           className="alignrightl"
                           alt="Loading..."
                         />
@@ -508,12 +567,25 @@ const HorizontalNavbar = ({ _context, siteUrl,context }: any) => {
 
                       searchResults.map((result: any, index: any) => (
                         <div key={index} className="search-result-item">
-                          <a style={{ padding: '0.85rem' }} href={result.Path} target='_blank' >
+                          {/* <a style={{ padding: '0.85rem' }} href={result.Path} target='_blank' >
                             <h4 className='eclipcsss text-dark' style={{ fontSize: '16px' }}>{result.Title}</h4>
                             {
                               result.Overview && <p className='eclipcsss text-muted' style={{ fontSize: '14px' }}><span dangerouslySetInnerHTML={{ __html:`${result.Overview.replace(/<c0>/g, "<strong>").replace(/<\/c0>/g, "</strong>")}` }} /></p>
                             }                            
-                          </a>
+                          </a> */}
+                          <a
+  style={{ padding: '0.85rem', cursor: 'pointer' }}
+  onClick={() => window.open(`https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx?Sharewithme/${result.PreviewUrl}`, '_blank')}
+>
+  <h4 className='eclipcsss text-dark' style={{ fontSize: '16px' }}>{result.Title}</h4>
+  {
+    result.Overview && (
+      <p className='eclipcsss text-muted' style={{ fontSize: '14px' }}>
+        <span dangerouslySetInnerHTML={{ __html: `${result.Overview.replace(/<c0>/g, "<strong>").replace(/<\/c0>/g, "</strong>")}` }} />
+      </p>
+    )
+  }
+</a>
                         </div>
                       ))
                       

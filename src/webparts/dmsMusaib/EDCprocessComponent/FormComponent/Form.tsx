@@ -184,6 +184,13 @@ const FormContext = ({ props }: any) => {
     memoFileName: "",
     Status: "",
 
+
+
+    RequesterNameId: null,
+    RequesterDesignation: "",
+    RequesterName: "",
+    RequestDate: null,
+
   });
   const [selectCCUsers, setSelectCCUsers] = React.useState([]);
   const [ListNameId, setListNameId] = React.useState(null);
@@ -316,7 +323,7 @@ const FormContext = ({ props }: any) => {
 
   const handleDepartmentChangeCC = (selectedOption: any) => {
     setselectUserDeptCC(selectedOption);
-    event.preventDefault();
+    // event.preventDefault();
     const valuesOnly = selectedOption.map((option: any) => option.value);
     const consolidatedCCUsers = Array.from(new Set(selectedOption
       .flatMap((option: any) => option.CCUsers || []))); // Flatten and handle undefined CCUsers
@@ -573,6 +580,11 @@ const FormContext = ({ props }: any) => {
       ...prevData,
       from: Currusers?.Id || 0,
       fromEmail: Currusers?.Email,
+
+      RequesterNameId: Currusers?.Id || "",
+      RequesterDesignation: userProfile?.Title || "",
+      RequesterName: userProfile?.DisplayName || "",
+      RequestDate: new Date().toLocaleDateString("en-CA"),
 
     }));
 
@@ -1472,6 +1484,9 @@ const FormContext = ({ props }: any) => {
 
             // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
             let arr = {
+
+
+
               Title: formData.subject,
               MemoNumber: formData.memoNo,
               MemoSerialNumber: formData.memoSerialNo,
@@ -1815,7 +1830,7 @@ const FormContext = ({ props }: any) => {
             // }
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "Approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -1916,6 +1931,11 @@ const FormContext = ({ props }: any) => {
             }
 
             let arr = {
+              RequesterNameId: formData.RequesterNameId,
+              RequesterDesignation: formData.RequesterDesignation,
+              RequestDate: new Date(formData.RequestDate).toISOString(),
+
+
               Title: formData.subject,
               MemoNumber: memoNum,
               MemoSerialNumber: memo,
@@ -2049,8 +2069,8 @@ const FormContext = ({ props }: any) => {
 
                   // MainListID: String(editItemID),
                   MainListID: String(postId),
-                  RequestId: formData.memoNo,
-                  // RequestId: String(formData.memoNo.label),
+                  // RequestId: formData.memoNo,
+                  RequestId:memoNum,
 
                   RequesterNameId: currentUser.Id,
                   RequestedDate: new Date().toLocaleDateString("en-CA"),
@@ -2183,7 +2203,7 @@ const FormContext = ({ props }: any) => {
             // }
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "Approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -2256,6 +2276,8 @@ const FormContext = ({ props }: any) => {
             // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
             if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
               arr = {
+                
+
                 Title: formData.subject,
                 MemoNumber: formData.memoNo,
                 MemoSerialNumber: formData.memoSerialNo,
@@ -2314,6 +2336,11 @@ const FormContext = ({ props }: any) => {
             }
             else {
               arr = {
+                RequesterNameId: formData.RequesterNameId,
+                RequesterDesignation: formData.RequesterDesignation,
+                RequestDate: new Date(formData.RequestDate).toISOString(),
+
+
                 Title: formData.subject,
                 MemoNumber: formData.memoNo,
                 MemoSerialNumber: formData.memoSerialNo,
@@ -2632,7 +2659,7 @@ const FormContext = ({ props }: any) => {
             // }
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "Approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -2699,6 +2726,11 @@ const FormContext = ({ props }: any) => {
             }
 
             let arr = {
+              RequesterNameId: formData.RequesterNameId,
+              RequesterDesignation: formData.RequesterDesignation,
+              RequestDate: new Date(formData.RequestDate).toISOString(),
+
+
               Title: formData.subject,
               MemoNumber: formData.memoNo,
               MemoSerialNumber: formData.memoSerialNo,
@@ -2929,7 +2961,7 @@ const FormContext = ({ props }: any) => {
             // }, 1000);
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "Approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -4884,7 +4916,7 @@ const FormContext = ({ props }: any) => {
 
                         <Modal show={showModal} onHide={() => setShowModal(false)} size={Showfile ? "xl" : "lg"} className='filemodal'>
                           <Modal.Header closeButton>
-                            <Modal.Title > <h4 className='font-16 text-dark fw-bold'>Attachment Details</h4>  <br></br>
+                            <Modal.Title > <h4 className='font-16 text-dark fw-bold'>Attachment Details</h4>
                               <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for IMS Annual Audit Program
                               </p>
 

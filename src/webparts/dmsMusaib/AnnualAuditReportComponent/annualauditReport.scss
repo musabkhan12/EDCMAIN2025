@@ -835,5 +835,17 @@ text-align: center;
   border-bottom: 1px solid #e1e1e1;
   border-right: 1px solid #e1e1e1;
 }
-
+/* Override the clock icon color in MUI TimePicker when disabled */
+.css-1hgcujo-MuiPickersInputBase-root-MuiPickersOutlinedInput-root.Mui-disabled
+  .MuiSvgIcon-root {
+  color: black !important;
+  opacity: 1 !important;
+}
+.timePickerWrapper {
+  .Mui-disabled .MuiSvgIcon-root {
+    color: black !important;
+    opacity: 1 !important;
+  }
+}
 #date-label{height:45px !important}
+.newcssload{margin-top: 0px !important; margin-left: 0px !important; }

@@ -31,6 +31,9 @@ import { faDownload, faEye, faPaperclip } from '@fortawesome/free-solid-svg-icon
 import { Item } from '@pnp/sp/items';
 import { redirect } from 'react-router-dom';
 import { getMemoNumberAuditReport, getNCNumbers } from '../AnnualAuditReportComponent/AuditReportService';
+import { Modal } from 'react-bootstrap';
+import FileViewer from '../ChangerequestComponent/fileviewer';
+import { CONTENTTYPE_NonComformity } from '../ChangerequestComponent/Constants';
 let Approvallistitemid = 0;
 let ApproverEmail = "";
 let IsAnalyzedBy: boolean = false;
@@ -51,6 +54,7 @@ let Approveclicked: boolean = false;
 let Rejectclicked: boolean = false;
 let Reworkclicked: boolean = false;
 let editforwardrecord: boolean = false;
+let Showfile: boolean = false;
 const datePickerErrorStyles: Partial<IDatePickerStyles> = {
   root: {
     border: "1px solid #ffcccb", // Apply red border
@@ -201,6 +205,9 @@ export interface IEditState {
   showForward: boolean;
   showReject: boolean;
   showDelegate: boolean;
+  redirecturl: string;
+  ShowModalTemplateDoc: boolean;
+  ShowModalAtt: boolean;
 }
 const optionsApp: IDropdownOption[] = [
 
@@ -353,6 +360,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       showForward: false,
       showReject: false,
       showDelegate: false,
+      redirecturl: "",
+      ShowModalTemplateDoc: false,
+      ShowModalAtt: false
     };
     this.addApprover = this.addApprover.bind(this);
     this.deleteItemApp = this.deleteItemApp.bind(this);
@@ -446,13 +456,27 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   //     _self.setState({ copyFil: allfiles });
   //   }
   // };
+  // private handleFileChange(e: React.ChangeEvent<HTMLInputElement>, _self: any) {
+  //   if (e.target.files) {
+  //     const fileArray = Array.from(e.target.files);
+  //     _self.setState({
+  //       copyFil: fileArray,
+  //       fileCount: fileArray.length,
+  //       files: e.target.files // raw FileList
+  //     });
+  //   }
+  // }
   private handleFileChange(e: React.ChangeEvent<HTMLInputElement>, _self: any) {
     if (e.target.files) {
-      const fileArray = Array.from(e.target.files);
+      const newFilesArray = Array.from(e.target.files); // Convert FileList to Array
+      const existingFiles = _self.state.copyFil || []; // previously uploaded
+  
+      const allFiles = [...existingFiles, ...newFilesArray];
+  
       _self.setState({
-        copyFil: fileArray,
-        fileCount: fileArray.length,
-        files: e.target.files // raw FileList
+        fileCount: allFiles.length,
+        files: e.target.files, // optional: might not represent all files now
+        copyFil: allFiles
       });
     }
   }
@@ -468,17 +492,30 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   //     _self.setState({ copyFilauditee: allfiles });
   //   }
   // };
+  // private handleAuditeeFileChange(e: React.ChangeEvent<HTMLInputElement>, _self: any) {
+  //   if (e.target.files) {
+  //     const filesArray = Array.from(e.target.files);
+  //     _self.setState({
+  //       fileCountauditee: filesArray.length,
+  //       filesauditee: e.target.files,
+  //       copyFilauditee: filesArray
+  //     });
+  //   }
+  // }
   private handleAuditeeFileChange(e: React.ChangeEvent<HTMLInputElement>, _self: any) {
     if (e.target.files) {
-      const filesArray = Array.from(e.target.files);
+      const newFilesArray = Array.from(e.target.files); // Convert FileList to Array
+      const existingFiles = _self.state.copyFilauditee || []; // previously uploaded
+  
+      const allFiles = [...existingFiles, ...newFilesArray];
+  
       _self.setState({
-        fileCountauditee: filesArray.length,
-        filesauditee: e.target.files,
-        copyFilauditee: filesArray
+        fileCountauditee: allFiles.length,
+        filesauditee: e.target.files, // optional: might not represent all files now
+        copyFilauditee: allFiles
       });
     }
   }
-
   private Breadcrumb = [
     {
       MainComponent: "My Request",
@@ -835,6 +872,11 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     // alert("Program Name:"+ programName)
     // alert("Edit Type:"+ editType)
     // alert("ID:"+ id)
+    this.setState({ Loading: true });
+
+    setTimeout(() => {
+      this.setState({ Loading: false });
+    }, 5000); // 5000ms = 5 seconds
     debugger
     if (id) {
       this.setState({ mainItemId: id }, async () => {
@@ -949,6 +991,34 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     console.log(results, 'results');
     return results;
   }
+  public async CheckIfAlreadyactionTaken(id: number, processName: string) {
+    debugger
+    const _sp = spfi().using(SPFx(this.props.context));
+    try {
+      const currentUser = await _sp.web.currentUser();
+
+      const item = await _sp.web.lists
+        .getByTitle("ProcessApprovalList")
+        .items
+        .getById(id)
+        .select("Id", "ActionTakenById", "ActionTakenOn", "AssignedTo/Id", "ProcessName")
+        .expand("AssignedTo")();
+
+      const isUnprocessed = (!item.ActionTakenById || item.ActionTakenById == null) && (!item.ActionTakenOn || item.ActionTakenOn == null);
+
+      // Optional: further check if it's assigned to current user and matches processName
+
+
+      if (isUnprocessed) {
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error("Error in CheckIfAlreadyactionTaken:", error);
+      return false;
+    }
+  };
   public async getapprovalbyID(id: number, processName: string) {
     debugger
     const _sp = spfi().using(SPFx(this.props.context));
@@ -1044,7 +1114,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         notUpdateDepartmentCode: Items.NCRNo,
         notUpdateSerialNo: Items.SerialNumber,
         Requester: Items.Author,
-        remarks: Items.FinalRemarks,
+        //remarks: Items.FinalRemarks,
         reworkremarks: Items.ReworkRemarks
       });
       const showCategoryOthers = Items.Category?.some((cat: any) => cat.Title === "Others") || false;
@@ -1243,9 +1313,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       if (upFiles.length > 0) {
         var obJFiles: any[] = [];
         let fCount: number = 0;
-        upFiles.forEach(function (item: any) {
+        upFiles.forEach(async function (item: any) {
           obJFiles.push({
-            "Name": item.File.Name,
+            "Name": item?.File.Name,
             "type": "old",
             "Id": item.Id,
             "FileRef": item.FileRef,
@@ -1262,9 +1332,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       if (upFilesauditee.length > 0) {
         var obJFiles: any[] = [];
         let fCount: number = 0;
-        upFilesauditee.forEach(function (item: any) {
+        upFilesauditee.forEach(async function (item: any) {
           obJFiles.push({
-            "Name": item.File.Name,
+            "Name": item?.File.Name,
             "type": "old",
             "Id": item.Id,
             "FileRef": item.FileRef,
@@ -1276,7 +1346,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         fCount = upFilesauditee.length;
         this.setState({ exFilesauditee: obJFiles, fileCountauditee: fCount });
       }
-      if (Items.substatus == "No") {
+      if (Items.substatus == "No" || (Items.Status =="Rework" && Items.CurrentUserRole == "FirstAssignedTo")) {
         this.setState({ ShowDeleteicon: true })
       }
       //AllProcessApproval Table data
@@ -1941,6 +2011,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     document.querySelectorAll("#analyzedBypeoplepicker .ms-BasePicker-text").forEach((el) => {
       el.classList.remove(styles.errCh);
     });
+
     if (this.validateFormRemark()) {
       this.reworkRequest(formsubmode);
       console.log("Form Data:", this.state);
@@ -2135,7 +2206,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     let serialNumber: number;
     let ncrnumber = "";
     let documentCode = "";
-
+    const IsactionTaken = Number(Approvallistitemid) > 0 ?
+      await this.CheckIfAlreadyactionTaken(Number(Approvallistitemid), CONTENTTYPE_NonComformity) : true;
     if (_editsubmitStatus == "draft" && this.state.editCurrentUserRole == null) {
       firstInitiatorSubmitStatus = "No"
       firstAssignedToSubmitStatus = "No";
@@ -2244,7 +2316,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     const { editProblemDescription } = this.state;
     const { currentUserID, approvalItemId, context } = this.props;
     const { updateData } = this;
-
+    if (!IsactionTaken) {
+      Swal.fire("Action has already been taken on this record.");
+      return;
+    }
     Swal.fire({
       title: "Do you want to " + mText + " this request?",
       showCancelButton: true,
@@ -2289,7 +2364,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                   date.getMilliseconds().toString().padStart(3, '0')
                 ];
                 //var fileNamePath = encodeURI(file.name);
-                var fileNamePath = `${userId}_${components.join('')}_${file.name}`;
+                let newfileNameNew: any = await this.cleanFileNameSave(file.name);
+                var fileNamePath = `${userId}_${components.join('')}_${newfileNameNew}`;
                 //return `${userId}_${components.join('')}_${file.name}`;
                 //const fileNamePath = encodeURI(file.name);
                 //const fileNamePath = await this.getNewFileName(file.name);
@@ -2373,7 +2449,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                   date.getMilliseconds().toString().padStart(3, '0')
                 ];
                 //var fileNamePath = encodeURI(file.name);
-                var fileNamePath = `${userId}_${components.join('')}_${file.name}`;
+                let newfileNameNew: any = await this.cleanFileNameSave(file.name);
+                var fileNamePath = `${userId}_${components.join('')}_${newfileNameNew}`;
                 //return `${userId}_${components.join('')}_${file.name}`;
                 //var fileNamePath = encodeURI(file.name);
                 // var fileNamePath = await this.getNewFileName(file.name);
@@ -2414,7 +2491,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 date.getMilliseconds().toString().padStart(3, '0')
               ];
               //var fileNamePath = encodeURI(file.name);
-              var fileNamePath = `${userId}_${components.join('')}_${file.name}`;
+              let newfileNameNew: any = await this.cleanFileNameSave(file.name);
+              var fileNamePath = `${userId}_${components.join('')}_${newfileNameNew}`;
               //return `${userId}_${components.join('')}_${file.name}`;
               sp.web.getFolderByServerRelativePath("NonConformityDocs").files.addUsingPath(fileNamePath, file, { Overwrite: true }).then(function (response) {
                 response.file.getItem().then(function (fileItem) {
@@ -2448,6 +2526,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   //Forward Call
   public forwardRequest = async (_editsubmitStatus: string) => {
     debugger
+    const IsactionTaken = Number(Approvallistitemid) > 0 ?
+      await this.CheckIfAlreadyactionTaken(Number(Approvallistitemid), CONTENTTYPE_NonComformity) : true;
+
     var _self = this;
     //Start Flow condition
     let currentUserRole = "";
@@ -2497,6 +2578,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       }
     }
     //<-------- End Case2 --------->
+    if (!IsactionTaken) {
+      Swal.fire("Action has already been taken on this record.");
+      return;
+    }
     const { updateData } = this;
     const { remarks, approvers, apprDelId } = this.state;
     const { currentUserID, approvalItemId, context } = this.props;
@@ -2609,6 +2694,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     let serialNumber: number;
     let ncrnumber = "";
     let documentCode = "";
+    const IsactionTaken = Number(Approvallistitemid) > 0 ?
+      await this.CheckIfAlreadyactionTaken(Number(Approvallistitemid), CONTENTTYPE_NonComformity) : true;
 
     //<-------- Start Case1 --------->
     if (this.state.editDelegateToId == null) {
@@ -2683,6 +2770,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       }
     }
     //<-------- End Case2 --------->
+    if (!IsactionTaken) {
+      Swal.fire("Action has already been taken on this record.");
+      return;
+    }
     const { updateData } = this;
     const { remarks, editLastInitiatorSubmitStatus } = this.state;
     const { currentUserID, approvalItemId, context } = this.props;
@@ -2772,6 +2863,12 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     const { remarks } = this.state
     const { currentUserID, approvalItemId, context } = this.props
     const sp = spfi().using(SPFx(this.props.context));
+    const IsactionTaken = Number(Approvallistitemid) > 0 ?
+      await this.CheckIfAlreadyactionTaken(Number(Approvallistitemid), CONTENTTYPE_NonComformity) : true;
+    if (!IsactionTaken) {
+      Swal.fire("Action has already been taken on this record.");
+      return;
+    }
     Swal.fire({
       title: 'Do you want to reject this request?',
       showCancelButton: true,
@@ -2825,8 +2922,49 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       });
 
   }
+  private cancelModalAction = (refresh?: boolean,) => {
+    debugger
+    this.setState({ redirecturl: window.location.href });
+    //setShowfileNew(false);
+    this.setState({ ShowModalTemplateDoc: false, redirecturl: "" });
+    Showfile = false;
+  }
+  private OpenFileTemplate = (obj: any, sts: string) => {
+    debugger
+    this.setState({ ShowModalTemplateDoc: true });
+    if (sts == "Open") {
+      Showfile = true;
+    }
+    let url = this.props.context.pageContext.web.absoluteUrl;
+    let tenanturl = url.match(/^https:\/\/[^\/]+/)[0];
+    console.log("ttrtrtrtt", obj)
+    const fileUrl = `${tenanturl}${obj.FileRef}`;
+    if (sts == "Open") {
+      if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
+        const viewerUrl = `${this.props.context.pageContext.web.absoluteUrl}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=embedview`;
+        this.setState({ redirecturl: viewerUrl })
+      } else {
+        this.setState({ redirecturl: fileUrl })
+
+      }
+
+    } else if (sts == "Download") {
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.setAttribute("download", obj?.FileLeafRef != "" ? this.cleanFileName(obj.FileLeafRef) : this.cleanFileName(obj.name)); // Suggests a filename for download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+    }
+
+  }
   private OpenFile = (obj: any, sts: string) => {
     debugger
+    this.setState({ ShowModalAtt: true });
+    if (sts == "Open") {
+      Showfile = true;
+    }
     let url = this.props.context.pageContext.web.absoluteUrl;
     let tenanturl = url.match(/^https:\/\/[^\/]+/)[0];
     console.log("obbbj", obj)
@@ -2834,29 +2972,48 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
     if (sts == "Open") {
       if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
-
-        window.open(`${this.props.context.pageContext.web.absoluteUrl}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=default`, "_blank");
+        const viewerUrlppt = `${this.props.context.pageContext.web.absoluteUrl}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=embedview`;
+        this.setState({ redirecturl: viewerUrlppt })
       } else {
-        window.open(fileUrl, "_blank"); // Open PDF and other files normally
-      }
+        this.setState({ redirecturl: fileUrl })
 
+      }
     } else if (sts == "Download") {
       const link = document.createElement("a");
       link.href = fileUrl;
-      link.setAttribute("download", obj.FileLeafRef); // Suggests a filename for download
+      link.setAttribute("download", obj?.FileLeafRef != "" ? this.cleanFileName(obj.FileLeafRef) : this.cleanFileName(obj.name)); // Suggests a filename for download
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    }
+  }
+  private cleanFileName = (filename: string) => {
+    // Match a 14-digit datetime suffix before the file extension
+    const datetimePattern = /_\d{14}(?=\.[^.]+$)/;
 
+    if (datetimePattern.test(filename)) {
+      return filename.replace(datetimePattern, '');
     }
 
+    return filename;
+  }
 
+  private cleanFileNameSave = async (filename: string) => {
+    // Match a 14-digit datetime suffix before the file extension
+    const datetimePattern = /_\d{14}(?=\.[^.]+$)/;
 
+    if (datetimePattern.test(filename)) {
+      return filename.replace(datetimePattern, '');
+    }
+
+    return filename;
   }
   //Rework Call
   private reworkRequest = async (_editsubmitStatus: string) => {
     //Start Flow condition
     debugger
+    const IsactionTaken = Number(Approvallistitemid) > 0 ?
+      await this.CheckIfAlreadyactionTaken(Number(Approvallistitemid), CONTENTTYPE_NonComformity) : true;
     let currentUserRole = "";
     let firstInitiatorSubmitStatus = "";
     let firstAssignedToSubmitStatus = "";
@@ -3033,7 +3190,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     }
     //<-------- End Case2 --------->
 
-
+    if (!IsactionTaken) {
+      Swal.fire("Action has already been taken on this record.");
+      return;
+    }
     const { remarks, reworkremarks } = this.state;
 
     const sp = spfi().using(SPFx(this.props.context));
@@ -3443,7 +3603,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                     <h4 style={{ textAlign: 'left' }} className="text-dark font-16 fw-bold mb-3">Non Conformity / Observation Details</h4>
                     {this.state.TemplateDoc && this.state.TemplateDoc.length > 0 && (
                       <span
-                        onClick={() => this.OpenFile(this.state.TemplateDoc[0], "Open")}
+                        onClick={() => this.OpenFileTemplate(this.state.TemplateDoc[0], "Open")}
                         style={{ color: "blue", cursor: "pointer", margin: "10px" }}
                       >
                         <div className="btn btn-primary">
@@ -3832,12 +3992,12 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                         </span>
                       )}
                       {this.state.showDialog && <div id="myModal" className={styles.modal}>
-                        <div className={styles.modalcontent}>
+                      <div className={`${styles.modalcontent} ${Showfile ? styles.wideModal : ''}`}>
                           <span className={styles.close} onClick={() => this._CloseModal()}>&times;</span>
                           <h4 className="font-16 text-dark fw-bold mb-1">Attachment Details</h4>
                           <p className="text-muted font-14 mb-3 fw-400">Below are the attachment details for Non Conformity / Observation</p>
 
-                         {/*} <table className='mtbalenew'>
+                          {/*} <table className='mtbalenew'>
                             <thead>
                               <tr>
                                 <th style={{ minWidth: '50px', maxWidth: '50px' }} >S.No.</th>
@@ -3845,85 +4005,90 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
                                 <th style={{ minWidth: '100px', maxWidth: '100px' }} className="text-center">Upload Date</th>
                                 {/* {this.state.exFiles.length > 0 && <th className="text-center">File Link</th>} */}
-                               {/*} {(this.state.ShowDeleteicon || this.state.copyFil.length > 0 || this.state.exFiles.length > 0) &&
+                          {/*} {(this.state.ShowDeleteicon || this.state.copyFil.length > 0 || this.state.exFiles.length > 0) &&
                                   <th className="text-center" style={{ minWidth: "60px", maxWidth: "60px" }}>Action</th>
                                 }
                               </tr>
                             </thead>
                             {upFiles}{fileData}
                           </table>*/}
-                          <table className="mtbalenew">
-                            <thead>
-                              <tr>
-                                <th style={{ minWidth: '50px' }}>S.No.</th>
-                                <th style={{ minWidth: '150px' }}>File Name</th>
-                                <th style={{ minWidth: '100px' }} className="text-center">Upload Date</th>
-                                {(this.state.ShowDeleteicon || this.state.copyFil.length > 0 || this.state.exFiles.length > 0) && (
-                                  <th className="text-center" style={{ minWidth: "100px" }}>Action</th>
-                                )}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {[...this.state.exFiles, ...this.state.copyFil].map((item: any, index: number) => {
-                                const isExistingFile = index < this.state.exFiles.length;
-                                const serial = index + 1;
+                          {Showfile ?
 
-                                const fileName = isExistingFile
-                                  ? (item.Name.includes('_') ? item.Name.split('_')[2] : item.Name)
-                                  : decodeURIComponent(item.name);
+                            <FileViewer showfile={Showfile} docurl={this.state.redirecturl} cancelAction={this.cancelModalAction} />
 
-                                const uploadDate = isExistingFile
-                                  ? moment(new Date(item.Uploaded)).format("DD/MMM/YYYY")
-                                  : new Date().toLocaleDateString("en-GB", {
-                                    day: "2-digit",
-                                    month: "short",
-                                    year: "numeric"
-                                  }).replace(/ /g, "/");
+                            :
+                            <table className="mtbalenew">
+                              <thead>
+                                <tr>
+                                  <th style={{ minWidth: '50px', maxWidth: '50px' }} className="text-center">S.No.</th>
+                                  <th style={{ minWidth: '150px', maxWidth: '150px' }}>File Name</th>
+                                  <th style={{ minWidth: '50px', maxWidth: '50px' }} className="text-center">Upload Date</th>
+                                  {(this.state.ShowDeleteicon || this.state.copyFil.length > 0 || this.state.exFiles.length > 0) && (
+                                    <th className="text-center" style={{ minWidth: '60px', maxWidth: '60px' }}>Action</th>
+                                  )}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {[...this.state.exFiles, ...this.state.copyFil].map((item: any, index: number) => {
+                                  const isExistingFile = index < this.state.exFiles.length;
+                                  const serial = index + 1;
 
-                                return (
-                                  <tr key={index} style={{ display: 'table', width: '100%' }}>
-                                    <td className="text-center">{serial}</td>
-                                    <td title={fileName}>{fileName}</td>
-                                    <td className="text-center">{uploadDate}</td>
-                                    <td className="text-center">
-                                      {isExistingFile ? (
-                                        <>
-                                          <span
-                                            onClick={() => this.OpenFile(item, "Open")}
-                                            style={{ color: "blue", cursor: "pointer", margin: "0 5px" }}
-                                          >
-                                            <FontAwesomeIcon title="Preview file" icon={faEye} />
-                                          </span>
-                                          <span
-                                            onClick={() => this.OpenFile(item, "Download")}
-                                            style={{ color: "blue", cursor: "pointer", margin: "0 5px" }}
-                                          >
-                                            <FontAwesomeIcon title="Download file" icon={faDownload} />
-                                          </span>
-                                          {this.state.ShowDeleteicon && (
-                                            <img
-                                              src={require("../assets/del.png")}
-                                              onClick={() => this.toBeDeleted(index)}
-                                              title="Delete file"
-                                              style={{ cursor: "pointer", marginLeft: "5px" }}
-                                            />
-                                          )}
-                                        </>
-                                      ) : (
-                                        <img
-                                          src={require("../assets/del.png")}
-                                          onClick={() => this.removeFiles(index - this.state.exFiles.length)}
-                                          title="Remove new file"
-                                          style={{ cursor: "pointer" }}
-                                        />
-                                      )}
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
+                                  const fileName = isExistingFile
+                                    ? (item.Name.includes('_') ? item.Name.split('_')[2] : item.Name)
+                                    : decodeURIComponent(item.name);
 
+                                  const uploadDate = isExistingFile
+                                    ? moment(new Date(item.Uploaded)).format("DD/MMM/YYYY")
+                                    : new Date().toLocaleDateString("en-GB", {
+                                      day: "2-digit",
+                                      month: "short",
+                                      year: "numeric"
+                                    }).replace(/ /g, "/");
+
+                                  return (
+                                    <tr key={index} style={{ display: 'table', width: '100%' }}>
+                                      <td style={{ minWidth: '50px', maxWidth: '50px' }} className="text-center">{serial}</td>
+                                      <td title={fileName}>{fileName}</td>
+                                      <td style={{ minWidth: '50px', maxWidth: '50px' }} className="text-center">{uploadDate}</td>
+                                      <td style={{ minWidth: '60px', maxWidth: '60px' }} className="text-center">
+                                        {isExistingFile ? (
+                                          <>
+                                            <span
+                                              onClick={() => this.OpenFile(item, "Open")}
+                                              style={{ color: "blue", cursor: "pointer", margin: "0 5px" }}
+                                            >
+                                              <FontAwesomeIcon title="Preview file" icon={faEye} />
+                                            </span>
+                                            <span
+                                              onClick={() => this.OpenFile(item, "Download")}
+                                              style={{ color: "blue", cursor: "pointer", margin: "0 5px" }}
+                                            >
+                                              <FontAwesomeIcon title="Download file" icon={faDownload} />
+                                            </span>
+                                            {this.state.ShowDeleteicon && (
+                                              <img
+                                                src={require("../assets/del.png")}
+                                                onClick={() => this.toBeDeleted(index)}
+                                                title="Delete file"
+                                                style={{ cursor: "pointer", marginLeft: "5px" }}
+                                              />
+                                            )}
+                                          </>
+                                        ) : (
+                                          <img
+                                            src={require("../assets/del.png")}
+                                            onClick={() => this.removeFiles(index - this.state.exFiles.length)}
+                                            title="Remove new file"
+                                            style={{ cursor: "pointer" }}
+                                          />
+                                        )}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          }
 
                         </div>
                       </div>}
@@ -4187,7 +4352,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       )}
                       {this.state.showDialogauditee && (
                         <div id="myModal" className={styles.modal}>
-                          <div className={styles.modalcontent}>
+                           <div className={`${styles.modalcontent} ${Showfile ? styles.wideModal : ''}`}>
                             {/* Close button */}
                             <span className={styles.close} onClick={() => this._CloseModalauditee()}>&times;</span>
 
@@ -4196,7 +4361,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                             <p className="text-muted font-14 mb-3 fw-400">Below are the attachment details for Non Conformity / Observation</p>
 
                             {/* Table */}
-                           {/*} <table className={styles.mtbalenew}>
+                            {/*} <table className={styles.mtbalenew}>
                               <thead>
                                 <tr>
                                   <th style={{ minWidth: '60px', maxWidth: '60px' }}>S.No.</th>
@@ -4204,7 +4369,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
                                   <th style={{ minWidth: '100px', maxWidth: '100px' }} className="text-center">Upload Date</th>
                                   {/* {this.state.exFilesauditee.length > 0 && <th className="text-center">File Link</th>} */}
-                                 {/*} {(this.state.ShowDeleteicon || this.state.copyFilauditee.length > 0 || this.state.exFilesauditee.length > 0) &&
+                            {/*} {(this.state.ShowDeleteicon || this.state.copyFilauditee.length > 0 || this.state.exFilesauditee.length > 0) &&
                                     <th style={{ minWidth: '60px', maxWidth: '60px' }} className="text-center">Action</th>}
                                 </tr>
                               </thead>
@@ -4213,78 +4378,81 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                                 {fileDataAuditee}
                               </tbody>*/}
                             {/*</table>*/}
-                            <table className={styles.mtbalenew} style={{ width: '100%', borderCollapse: 'collapse' }}>
-                              <thead>
-                                <tr>
-                                  <th style={{ minWidth: '60px', maxWidth: '60px' }}>S.No.</th>
-                                  <th style={{ minWidth: '150px', maxWidth: '150px' }}>File Name</th>
-                                  <th style={{ minWidth: '100px', maxWidth: '100px' }} className="text-center">Upload Date</th>
-                                  {(this.state.ShowDeleteicon || this.state.copyFilauditee.length > 0 || this.state.exFilesauditee.length > 0) && (
-                                    <th style={{ minWidth: '100px', maxWidth: '100px' }} className="text-center">Action</th>
-                                  )}
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {[...this.state.exFilesauditee, ...this.state.copyFilauditee].map((item: any, index: number) => {
-                                  const isExisting = index < this.state.exFilesauditee.length;
-                                  const serial = index + 1;
+                            {Showfile ?
+                              <FileViewer showfile={Showfile} docurl={this.state.redirecturl} cancelAction={this.cancelModalAction} />
+                              :
+                              <table className={styles.mtbalenew} style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                  <tr>
+                                    <th style={{ minWidth: '60px', maxWidth: '60px' }}>S.No.</th>
+                                    <th style={{ minWidth: '150px', maxWidth: '150px' }}>File Name</th>
+                                    <th style={{ minWidth: '100px', maxWidth: '100px' }} className="text-center">Upload Date</th>
+                                    {(this.state.ShowDeleteicon || this.state.copyFilauditee.length > 0 || this.state.exFilesauditee.length > 0) && (
+                                      <th style={{ minWidth: '100px', maxWidth: '100px' }} className="text-center">Action</th>
+                                    )}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {[...this.state.exFilesauditee, ...this.state.copyFilauditee].map((item: any, index: number) => {
+                                    const isExisting = index < this.state.exFilesauditee.length;
+                                    const serial = index + 1;
 
-                                  const fileName = isExisting
-                                    ? (item.Name.includes('_') ? item.Name.split('_')[2] : item.Name)
-                                    : decodeURIComponent(item.name);
+                                    const fileName = isExisting
+                                      ? (item.Name.includes('_') ? item.Name.split('_')[2] : item.Name)
+                                      : decodeURIComponent(item.name);
 
-                                  const uploadDate = isExisting
-                                    ? moment(new Date(item.Uploaded)).format("DD/MMM/YYYY")
-                                    : new Date().toLocaleDateString("en-GB", {
-                                      day: "2-digit",
-                                      month: "short",
-                                      year: "numeric"
-                                    }).replace(/ /g, "/");
+                                    const uploadDate = isExisting
+                                      ? moment(new Date(item.Uploaded)).format("DD/MMM/YYYY")
+                                      : new Date().toLocaleDateString("en-GB", {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "numeric"
+                                      }).replace(/ /g, "/");
 
-                                  return (
-                                    <tr key={index}>
-                                      <td style={{ textAlign: 'center' }}>{serial}</td>
-                                      <td title={fileName}>{fileName}</td>
-                                      <td className="text-center">{uploadDate}</td>
-                                      <td className="text-center">
-                                        {isExisting ? (
-                                          <>
-                                            <span
-                                              onClick={() => this.OpenFile(item, "Open")}
-                                              style={{ color: "blue", cursor: "pointer", margin: "0 5px" }}
-                                            >
-                                              <FontAwesomeIcon title='Preview file' icon={faEye} />
-                                            </span>
-                                            <span
-                                              onClick={() => this.OpenFile(item, "Download")}
-                                              style={{ color: "blue", cursor: "pointer", margin: "0 5px" }}
-                                            >
-                                              <FontAwesomeIcon title='Download file' icon={faDownload} />
-                                            </span>
-                                            {this.state.ShowDeleteicon && (
-                                              <img
-                                                src={require("../assets/del.png")}
-                                                onClick={() => this.toBeDeletedauditee(index)}
-                                                title="Delete existing file"
-                                                style={{ cursor: "pointer", marginLeft: "5px" }}
-                                              />
-                                            )}
-                                          </>
-                                        ) : (
-                                          <img
-                                            src={require("../assets/del.png")}
-                                            onClick={() => this.removeFilesAuditee(index - this.state.exFilesauditee.length)}
-                                            title="Remove new file"
-                                            style={{ cursor: "pointer" }}
-                                          />
-                                        )}
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-
+                                    return (
+                                      <tr key={index}>
+                                        <td style={{ textAlign: 'center' }}>{serial}</td>
+                                        <td title={fileName}>{fileName}</td>
+                                        <td className="text-center">{uploadDate}</td>
+                                        <td className="text-center">
+                                          {isExisting ? (
+                                            <>
+                                              <span
+                                                onClick={() => this.OpenFile(item, "Open")}
+                                                style={{ color: "blue", cursor: "pointer", margin: "0 5px" }}
+                                              >
+                                                <FontAwesomeIcon title='Preview file' icon={faEye} />
+                                              </span>
+                                              <span
+                                                onClick={() => this.OpenFile(item, "Download")}
+                                                style={{ color: "blue", cursor: "pointer", margin: "0 5px" }}
+                                              >
+                                                <FontAwesomeIcon title='Download file' icon={faDownload} />
+                                              </span>
+                                              {this.state.ShowDeleteicon && (
+                                                <img
+                                                  src={require("../assets/del.png")}
+                                                  onClick={() => this.toBeDeletedauditee(index)}
+                                                  title="Delete existing file"
+                                                  style={{ cursor: "pointer", marginLeft: "5px" }}
+                                                />
+                                              )}
+                                            </>
+                                          ) : (
+                                            <img
+                                              src={require("../assets/del.png")}
+                                              onClick={() => this.removeFilesAuditee(index - this.state.exFilesauditee.length)}
+                                              title="Remove new file"
+                                              style={{ cursor: "pointer" }}
+                                            />
+                                          )}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            }
                           </div>
                         </div>
                       )}
@@ -4499,10 +4667,19 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             ?
             <section style={{ justifyContent: 'left', textAlign: 'left' }} id="approvalSection" className='card card-body'>
               {this.state.edType !== "view" &&
-                <TextField label="Remarks" required={(Approveclicked || Rejectclicked || Reworkclicked || this.state.showApprove === true || this.state.showReject === true) ? true : false} name="remarks" value={this.state.remarks} multiline rows={3} onChange={this.handleChange}
+                <TooltipHost
+                  content={this.state.remarks}
+                  calloutProps={{ gapSpace: 0 }}
+                  styles={{ root: { display: 'inline-block', width: '100%' } }}
+                >
+                  <TextField label="Remarks" required={(Approveclicked || Rejectclicked || Reworkclicked || this.state.showApprove === true || this.state.showReject === true) ? true : false}
+                    name="remarks"
+                    value={this.state.remarks}
+                    multiline rows={3}
+                    onChange={this.handleChange}
 
-                  className={this.state.editErrors?.remarks ? 'textfield-error' : ''}// styles={{
-                />
+                    className={this.state.editErrors?.remarks ? 'textfield-error' : ''}// styles={{
+                  /></TooltipHost>
               }
               {(showimsupdated && !isdisableims) &&
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', marginTop: '1rem' }}>
@@ -4753,6 +4930,41 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 </div>
               </form>
             </section> : null}
+          {
+            <Modal show={this.state.ShowModalTemplateDoc} onHide={() => this.setState({ ShowModalTemplateDoc: false })} size={Showfile ? "xl" : "lg"} className='newmobmodal'>
+
+              <Modal.Body className="" id="style-5">
+                <>
+                  {Showfile &&
+
+                    <FileViewer showfile={Showfile} docurl={this.state.redirecturl} cancelAction={this.cancelModalAction} />
+
+                  }
+                </>
+              </Modal.Body>
+            </Modal>
+          }
+          {/* {
+            <Modal show={this.state.ShowModalAtt} onHide={() => this.setState({ ShowModalAtt: false })} size={Showfile ? "xl" : "lg"} className='newmobmodal'>
+              <Modal.Header closeButton>
+                <Modal.Title> Attachment Details <br></br>
+                  <p className='text-muted font-14 fw-400 mb-0'>Below are the attachment details for Change Request
+                  </p>
+
+                </Modal.Title>
+                {/* {ImagepostArr1.length > 0 && showBannerModal && <Modal.Title>Media Images</Modal.Title>} */}
+          {/* </Modal.Header>
+              <Modal.Body className="" id="style-5">
+                <>
+                  {Showfile &&
+
+                    <FileViewer showfile={Showfile} docurl={this.state.redirecturl} cancelAction={this.cancelModalAction} />
+
+                  }
+                </>
+              </Modal.Body>
+            </Modal>
+          } */}
         </div>
       </section >
     )

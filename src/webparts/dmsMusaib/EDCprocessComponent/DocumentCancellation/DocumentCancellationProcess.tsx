@@ -156,6 +156,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
         filename: "",
+        Remark:""
 
 
 
@@ -1063,7 +1064,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "Approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -1177,7 +1178,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "Approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -1371,7 +1372,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "Approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -1482,7 +1483,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // }, 1000);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "Approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -1510,6 +1511,14 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         Array.from(document.getElementsByClassName("border-on-error")).forEach((element: Element) => {
             element.classList.remove("border-on-error");
         });
+
+        if ((status === 'Rework' || status === 'Rejected') && formData.Remark === "") {
+            //   setValidRemark(false);
+            document.getElementById("Remark-textarea")?.classList.add("border-on-error");
+              Swal.fire('Please fill the mandatory fields', '', 'warning');
+              return;
+            }
+
         switch (status) {
             case "Forward":
                 actionMessage = "Do you want to forward this request?";
@@ -1585,6 +1594,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
 
                         let arr = {
+                            Remark: formData.Remark,
                             ActionTakenById: currentUser.Id,
                             // ActionTakenOn: new Date().toLocaleDateString("en-CA"),
                             ActionTakenOn: new Date().toISOString(),
@@ -1683,13 +1693,18 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
                         setLoading(false);
-                        Swal.fire(successMessage, '', 'success');
-                        sessionStorage.removeItem("DocumentCancelId")
-                        setTimeout(() => {
-                            // window.location.href = `${siteUrl}/SitePages/MyTasks.aspx`;
-                            window.history.back();
-                        }, 1000);
-                        // }
+                        // Swal.fire(successMessage, '', 'success');
+                        // sessionStorage.removeItem("DocumentCancelId")
+                        // setTimeout(() => {
+                        //     // window.location.href = `${siteUrl}/SitePages/MyTasks.aspx`;
+                        //     window.history.back();
+                        // }, 1000);
+                        // // }
+                        Swal.fire(successMessage, '', 'success').then(async (result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                            }
+                        });
                     }
                 })
             }
@@ -1737,6 +1752,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                         // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
                         let arr = {
+                            Remark: formData.Remark,
                             ActionTakenById: currentUser.Id,
                             // ActionTakenOn: new Date().toLocaleDateString("en-CA"),
                             ActionTakenOn: new Date().toISOString(),
@@ -1835,16 +1851,21 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         }
 
                         setLoading(false);
-                        Swal.fire(successMessage, '', 'success');
-                        sessionStorage.removeItem("DocumentCancelId")
-                        setTimeout(() => {
-                            // window.location.href = `${siteUrl}/SitePages/MyTasks.aspx`;
-                            window.history.back();
-                            setTimeout(() => {
-                                location.reload();
-                            }, 100);
-                        }, 1000);
-                        // }
+                        // Swal.fire(successMessage, '', 'success');
+                        // sessionStorage.removeItem("DocumentCancelId")
+                        // setTimeout(() => {
+                        //     // window.location.href = `${siteUrl}/SitePages/MyTasks.aspx`;
+                        //     window.history.back();
+                        //     setTimeout(() => {
+                        //         location.reload();
+                        //     }, 100);
+                        // }, 1000);
+                        // // }
+                         Swal.fire(successMessage, '', 'success').then(async (result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                            }
+                        });
                     }
 
                 })
@@ -1990,16 +2011,21 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         }
 
                         setLoading(false);
-                        Swal.fire(successMessage, '', 'success');
-                        sessionStorage.removeItem("DocumentCancelId")
-                        setTimeout(() => {
-                            // window.location.href = `${siteUrl}/SitePages/MyTasks.aspx`;
-                            window.history.back();
+                        // Swal.fire(successMessage, '', 'success');
+                        // sessionStorage.removeItem("DocumentCancelId")
+                        // setTimeout(() => {
+                        //     // window.location.href = `${siteUrl}/SitePages/MyTasks.aspx`;
+                        //     window.history.back();
 
-                            setTimeout(() => {
-                                location.reload();
-                            }, 100);
-                        }, 1000);
+                        //     setTimeout(() => {
+                        //         location.reload();
+                        //     }, 100);
+                        // }, 1000);
+                        Swal.fire(successMessage, '', 'success').then(async (result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                            }
+                        });
 
                     }
 
@@ -2127,16 +2153,21 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
                         setLoading(false);
-                        Swal.fire(successMessage, '', 'success');
-                        sessionStorage.removeItem("DocumentCancelId")
-                        setTimeout(() => {
-                            // window.location.href = `${siteUrl}/SitePages/MyTasks.aspx`;
-                            window.history.back();
-                            setTimeout(() => {
-                                location.reload();
-                            }, 100);
-                        }, 1000);
-                        // }
+                        // Swal.fire(successMessage, '', 'success');
+                        // sessionStorage.removeItem("DocumentCancelId")
+                        // setTimeout(() => {
+                        //     // window.location.href = `${siteUrl}/SitePages/MyTasks.aspx`;
+                        //     window.history.back();
+                        //     setTimeout(() => {
+                        //         location.reload();
+                        //     }, 100);
+                        // }, 1000);
+                        // // }
+                        Swal.fire(successMessage, '', 'success').then(async (result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                            }
+                        });
                     }
 
                 })
@@ -2359,8 +2390,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                     <div className="mb-3">
                                                                         <label htmlFor="DocumentCode" className="form-label">Document Code <span className="text-danger1"> *</span></label>
                                                                         {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                                                        <Select
-                                                                            title={selectedOption?.value}
+                                                                       <div  title={formData?.DocumentCode || ""}> <Select
+                                                                            // title={selectedOption?.value}
+                                                                            title={formData?.DocumentCode || ""}
 
                                                                             isClearable
                                                                             options={rows}
@@ -2369,7 +2401,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                             className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
                                                                             onChange={(selectedOption: any) => onSelect(selectedOption)}
                                                                             placeholder="Search Document Code" isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false)}
-                                                                        />
+                                                                        /></div>
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
@@ -2751,6 +2783,33 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                             {editID.CurrentUserRole === "OES" && editID.Status === "Pending" && <div className="row mt-3">
                                                                 <div className="col-12 text-center">
+
+
+
+                                                                    <div className="row">
+                                                                        <div className="col-lg-12">
+
+                                                                            <div className="mb-0" >
+
+                                                                                <label htmlFor="example-textarea" className="form-label text-dark font-14" style={{textAlign: 'left'}}>Remarks <span className="text-danger1"> *</span></label>
+
+                                                                                <textarea
+                                                                                    style={{ height: '80px' }}
+                                                                                    className={`form-control `}
+                                                                                    id="Remark-textarea"
+                                                                                    rows={5}
+                                                                                    name="Remark"
+                                                                                    value={formData.Remark}
+                                                                                    onChange={(e) => setFormData({ ...formData, Remark: e.target.value })}
+                                                                                ></textarea>
+
+                                                                            </div>
+
+                                                                        </div>
+
+
+
+                                                                    </div>
 
                                                                     {/* <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardApproval("Forward")} >
                                                                         <i className="fe-check-circle me-1"></i> Forward

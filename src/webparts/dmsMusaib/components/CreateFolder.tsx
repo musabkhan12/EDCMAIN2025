@@ -821,7 +821,7 @@ const validateFields = () => {
         if(OthProps.DocumentLibrary === ""){
           (payloadForFolderMaster as any).DocumentLibraryName=folderName.trim();
           //  (payloadForFolderMaster as any).FolderPath=`/sites/IntranetUAT/${OthProps.Entity}/${folderName}`;
-          //  (payloadForFolderMaster as any).FolderPath=`/sites/AlRostmanispfx2/${OthProps.Entity}/${folderName}`;
+          //  (payloadForFolderMaster as any).FolderPath=`/sites/ededms/${OthProps.Entity}/${folderName}`;
            (payloadForFolderMaster as any).FolderPath=`${locationPath}/${OthProps.Entity}/${folderName.trim()}`;
           //  (payloadForFolderMaster as any).FolderPath=`/sites/AlRostmani/${OthProps.Entity}/${folderName}`;
           (payloadForFolderMaster as any).IsLibrary=true;
@@ -1201,7 +1201,7 @@ const validateFields = () => {
           if(OthProps.DocumentLibrary === ""){
             (payloadForFolderDelegation as any).DocumentLibraryName=folderName.trim();
             //  (payloadForFolderDelegation as any).FolderPath=`/sites/IntranetUAT/${OthProps.Entity}/${folderName}`;
-            //  (payloadForFolderDelegation as any).FolderPath=`/sites/AlRostmanispfx2/${OthProps.Entity}/${folderName}`;
+            //  (payloadForFolderDelegation as any).FolderPath=`/sites/ededms/${OthProps.Entity}/${folderName}`;
             //  (payloadForFolderDelegation as any).FolderPath=`/sites/AlRostmani/${OthProps.Entity}/${folderName}`;
              (payloadForFolderDelegation as any).FolderPath=`${locationPath}/${OthProps.Entity}/${folderName.trim()}`;
             (payloadForFolderDelegation as any).IsLibrary=true;
@@ -1350,7 +1350,7 @@ const validateFields = () => {
       {isLoading && (
       <div className='loaderOverlay'>
         <div className='loader'>
-        <img style={{width :'116px'  ,margin: '31px'}} src={require("../../../CustomAsset/argloader.gif")} alt="Loading..." />
+        <img style={{width :'116px'  ,margin: '31px'}} src={require("../assets/EDCLoader.gif")} alt="Loading..." />
         </div>
       </div>
     )}

@@ -204,6 +204,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [showpreviousattachment, setshowpreviousattachment] = React.useState(false);
   const [disabledforwardarr, setdisabledforwardarr] = React.useState(false);
   const [modeValue, setmode] = React.useState("");
+  const [ValidRemark, setValidRemark] = React.useState(true);
+  const [MandatRemark, setMandatRemark] = React.useState(false);
+
   const [referencedocCode, setreferencedocCode] = React.useState("");
   const [docCode, setdocCode] = React.useState("");
   const [serialNo, setserialNo] = React.useState("");
@@ -214,6 +217,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [cancellReason, setcancellReason] = React.useState([{ id: 0, description: "", reason: "" }]);
   const [cancellReasonEdit, setcancellReasonEdit] = React.useState([]);
   const [formData, setFormData] = React.useState({
+    Remark: "",
     RequesterNameId: 0,
     RequesterName: "",
     RequesterDesignation: "",
@@ -635,6 +639,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           AttachmentJson: setBannerById[0].AttachmentJson,
           Status: setBannerById[0].Status,
           RequesterName: setBannerById[0].Title,
+          Remark: setBannerById[0].Remarks,
           //RequesterNameId: setBannerById[0].RequesterNameId,
           RequesterDesignation: setBannerById[0].RequesterDesignation,
           // Format as YYYY-MM-DD
@@ -1109,7 +1114,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     const isOfficeFile = /\.(docx?|xlsx?|pptx?)$/i.test(fileUrl);
 
     if (isOfficeFile) {
-      return `https://edcadae.sharepoint.com/sites/EDeDMS/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(fileUrl)}&action=embedview`;
+      return `https://edcadae.sharepoint.com/sites/ededms/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(fileUrl)}&action=embedview`;
     }
 
     if (/\.pdf$/i.test(fileUrl)) {
@@ -1135,13 +1140,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
     console.log("ttrtrtrtt", obj);
     const tenantUrl = "https://edcadae.sharepoint.com";
-    const docurl = "/sites/EDeDMS/ImportantDocuments/SomeFolder/Example.pdf";
+    const docurl = "/sites/ededms/ImportantDocuments/SomeFolder/Example.pdf";
 
     // Extract parent folder from docurl
     const parent = docurl.substring(0, docurl.lastIndexOf("/") + 1);
 
     // Construct the final redirect URL
-    const redirectURLpdf = `${tenantUrl}/sites/EDeDMS/ImportantDocuments/Forms/AllItems.aspx?id=${encodeURIComponent(docurl)}&parent=${encodeURIComponent(parent)}&p=true&ga=1`;
+    const redirectURLpdf = `${tenantUrl}/sites/ededms/ImportantDocuments/Forms/AllItems.aspx?id=${encodeURIComponent(docurl)}&parent=${encodeURIComponent(parent)}&p=true&ga=1`;
 
     console.log(redirectURLpdf);
 
@@ -1810,9 +1815,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               Title: formData.RequesterName,
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
+              RequestDate: new Date(formData.RequestDate).toISOString(),
               DepartmentId: formData.DepartmentId,
               TemplateTypeId: formData.TemplateTypeId,
-              RequestDate: new Date(formData.RequestDate).toISOString(),
+
               //IssueDate: new Date(formData.IssueDate).toISOString(),
               LocationId: formData.LocationId,
               FileName: formData.filename,
@@ -1950,10 +1956,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                     filenamenew = `${code}-${issueno}-${revisionno}-${rest}`;
                   }
 
-                  const newfileNameNew = file.name.includes(docCode) ? filenamenew : newfileNameNewX;
-
-                  DocumentName = newfileNameNew;
-                  const fileAddResult = await folder.files.addChunked(newfileNameNew, file);
+                  let newfileNameNew = file.name.includes(docCode) ? filenamenew : newfileNameNewX;
+                  
+                  newfileNameNew = await cleanFileNameSave(newfileNameNew);
+                  const finalFileNameNew = `${newfileNameNew.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNew.substring(newfileNameNew.lastIndexOf('.'))}`;
+                  DocumentName = finalFileNameNew;
+                  const fileAddResult = await folder.files.addChunked(finalFileNameNew, file);
+                  //DocumentName = newfileNameNew;
+                  //const fileAddResult = await folder.files.addChunked(newfileNameNew, file);
                   const fileNew = fileAddResult.file;
                   let filenamenew1: any
                   //const newFileNameN = await getNewFileName(fileAddResult.data.Name);
@@ -2129,9 +2139,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               Title: formData.RequesterName,
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
+              RequestDate: formData.RequestDate != "" ? new Date(formData.RequestDate).toISOString() : new Date().toISOString(),
               DepartmentId: formData.DepartmentId,
               TemplateTypeId: formData.TemplateTypeId,
-              RequestDate: formData.RequestDate != "" ? new Date(formData.RequestDate).toISOString() : new Date().toISOString(),
+
               //IssueDate: formData.IssueDate,
               IssueDate: finalissuedateNew,
               LocationId: formData.LocationId,
@@ -2260,6 +2271,20 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     }
 
   }
+
+  const onChange = (name: string, value: string) => {
+
+    debugger
+
+    setFormData((prevData) => ({
+
+      ...prevData,
+
+      Remark: value,
+
+    }));
+
+  };
   const handleSaveAsDraft = async () => {
     debugger
     scrollToTop();
@@ -2356,7 +2381,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               //AttachmentJson: selectedOptionReq.label == "New" ? AttachmentJso : selectedOption?.AttachmentJson,
               AttachmentId: Attachmentarr.length > 0 ? Attachmentidsss : [],
               AttachmentJson: Attachmentarr.length > 0 ? AttachmentJso : "",
-               PreviousAttachmentID: selectedOptionReq.requestcode == "New" ? "" : formData.PreviousAttachmentID + ""
+              PreviousAttachmentID: selectedOptionReq.requestcode == "New" ? "" : formData.PreviousAttachmentID + ""
 
             }
             let descriptionError = false;
@@ -2688,14 +2713,25 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     }
   }
   const ForwardApproval = async (status: string) => {
+    debugger
     scrollToTop();
     const IsactionTaken = await CheckIfAlreadyactionTaken(sp, editID.Id, CONTENTTYPE_ChangeDocument);
-
+    setValidRemark(true);
     let url = window.location.href.split('/sites/')[0];
     console.log("topp draf fprt", editItemID, cancellReason, url);
     let valid = true;
     let actionMessage = "";
     let successMessage = "";
+    if (status === 'Rework' || status === 'Rejected') {
+      setMandatRemark(true)
+    }else{
+      setMandatRemark(false)
+    }
+    if ((status === 'Rework' || status === 'Rejected') && (formData.Remark === "" || formData.Remark == null)) {
+      setValidRemark(false);
+      Swal.fire('Please fill the mandatory fields', '', 'warning');
+      return;
+    }
     switch (status) {
       case "Forward":
         actionMessage = "Do you want to forward this request?";
@@ -2781,7 +2817,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               ActionTakenOn: new Date().toISOString(),
               // ActionTakenRoleId: formData.RequesterDesignation,
               Status: "Approved",
-              Remark: remark,
+              Remark: formData.Remark,
 
 
             }
@@ -2899,7 +2935,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               ActionTakenOn: new Date().toISOString(),
               // ActionTakenRoleId: formData.RequesterDesignation,
               Status: status,
-              Remark: remark,
+              Remark: formData.Remark,
 
 
             }
@@ -2956,6 +2992,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               OESSubmitStatus: "No",
               InitiatorSubmitStatus: "No",
               SubmitStatus: "No",
+              //Remarks:formData.Remark
             }
             const postResult2 = await updateItemChangeRequestList(arr2, sp, editItemID);
             const postId2 = postResult2?.data?.ID;
@@ -4086,7 +4123,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     style={{ width: "100%" }}
                                   >
                                     <Select
-                                      onKeyDown={handleKeyDown}
+                                      //onKeyDown={handleKeyDown}
                                       isClearable={true}
                                       options={Departopt}
                                       value={SelectedOptionDepart}
@@ -4147,7 +4184,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     style={{ width: "100%" }}
                                   >
                                     <Select
-                                      onKeyDown={handleKeyDown}
+                                      //onKeyDown={handleKeyDown}
                                       isClearable={true}
                                       options={ReqType}
                                       value={selectedOptionReq}
@@ -4176,7 +4213,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       style={{ width: "100%" }}
                                     >
                                       <Select
-                                        onKeyDown={handleKeyDown}
+                                        //onKeyDown={handleKeyDown}
 
                                         options={rows}
                                         value={selectedOption}
@@ -4231,7 +4268,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     style={{ width: "100%" }}
                                   >
                                     <Select
-                                      onKeyDown={handleKeyDown}
+                                      //onKeyDown={handleKeyDown}
                                       isClearable={true}
                                       options={DocumentTypeOpt}
                                       value={selectedOptionDoctype}
@@ -4255,7 +4292,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     style={{ width: "100%" }}
                                   >
                                     <Select
-                                      onKeyDown={handleKeyDown}
+                                      //onKeyDown={handleKeyDown}
                                       isClearable={true}
                                       options={LocationOpt}
                                       value={selectedOptionLoc}
@@ -4279,7 +4316,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     style={{ width: "100%" }}
                                   >
                                     <Select
-                                      onKeyDown={handleKeyDown}
+                                      //onKeyDown={handleKeyDown}
                                       isClearable={true}
                                       options={Custodianopt}
                                       value={selectedOptionCusto}
@@ -4303,7 +4340,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     style={{ width: "100%" }}
                                   >
                                     <Select
-                                      onKeyDown={handleKeyDown}
+                                      //onKeyDown={handleKeyDown}
                                       isClearable={true}
                                       options={Amendtype}
                                       value={selectedOptionAmend}
@@ -4326,7 +4363,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     style={{ width: "100%" }}
                                   >
                                     <Select
-                                      onKeyDown={handleKeyDown}
+                                      //onKeyDown={handleKeyDown}
                                       isClearable={true}
                                       options={Classificationopt}
                                       value={selectedOptionClass}
@@ -4349,7 +4386,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     style={{ width: "100%" }}
                                   >
                                     <Select
-                                      onKeyDown={handleKeyDown}
+                                      //onKeyDown={handleKeyDown}
                                       isClearable={true}
                                       options={TemplateTypeopt}
                                       value={SelectedOptionTemplate}
@@ -4643,7 +4680,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           style={{ overflow: 'inherit' }}
                                           className="ng-binding">
                                           <select
-                                            onKeyDown={handleKeyDown}
+                                            //onKeyDown={handleKeyDown}
 
                                             onChange={(e) => onSelectRole(e, row.level)}
                                             value={row.role}
@@ -4669,7 +4706,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         <td style={{ overflow: 'inherit' }} title={row.approvers && row.approvers.map(x => x.label).join(',')}>
 
                                           <Select
-                                            onKeyDown={handleKeyDown}
+                                            //onKeyDown={handleKeyDown}
                                             isClearable={true}
                                             options={rows1}
                                             isMulti
@@ -4691,7 +4728,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           //title={ApprovalTypeOptions.filter(x => x.value = row.leveltype)[0].label}
                                           style={{ overflow: 'inherit' }} className="ng-binding">
                                           {/* <select
-                                            onKeyDown={handleKeyDown}
+                                            //onKeyDown={handleKeyDown}
                                             //className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}
                                             className={`form-select ${row.typeError ? "border-on-error" : ""}`}
                                             onChange={(e) => onSelectApprovalType(e, row.level)}
@@ -4728,6 +4765,27 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   </tbody>
                                 </table>
                               </div>
+                              {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" &&
+                                <div className="col-lg-12">
+
+                                  <div className="mb-0" >
+
+                                    <label htmlFor="example-textarea" className="form-label text-dark font-14">Remarks: <span className="text-danger1"> *</span></label>
+
+                                    <textarea style={{ height: '80px' }} className={`form-control ${(!ValidRemark) ? "border-on-error" : ""}`}
+                                      id="example-textarea"
+                                      rows={5}
+                                      name="Remark"
+                                      value={formData.Remark}
+
+                                      onChange={(e) => setFormData({ ...formData, Remark: e.target.value })}>
+
+                                    </textarea>
+
+                                  </div>
+
+                                </div>
+                              }
                               {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" &&
                                 <div className="row mt-3">
                                   <div className="col-12 text-center">
@@ -5192,14 +5250,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                           </Modal.Body>
                         </Modal>
                         <Modal show={ShowModalTemplateDoc} onHide={() => setShowModalTemplateDoc(false)} size={Showfile ? "xl" : "lg"} className='newmobmodal'>
-                          {/* <Modal.Header closeButton>
-                            <Modal.Title> Template Details <br></br>
-                              <p className='text-muted font-14 fw-400'>Below are the Template details for Change Request
-                              </p>
 
-                            </Modal.Title>
-                            {/* {ImagepostArr1.length > 0 && showBannerModal && <Modal.Title>Media Images</Modal.Title>} */}
-                          {/* </Modal.Header> */}
                           <Modal.Body className="" id="style-5">
                             <>
                               {Showfile &&

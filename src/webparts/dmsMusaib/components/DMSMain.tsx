@@ -140,6 +140,7 @@ interface NavItem {
   ID: number;
   Process: string;
 }
+let isprocessfolder :any;
 let Undo = require('../assets/Undo.svg');
 let sharewithmeicon = require('../assets/nodes.png')
 let recyclebin = require('../assets/recycle-bin.png')
@@ -212,7 +213,8 @@ const folderDetailsMap: Record<string, any> = {};
 // let searchArray:any=[];
 let routeToDiffSideBar = "";
 // end
-
+let mailsharefilewithpreview :any
+let routefrommail = false;
 
 
 let returnFromMyRequest = false;
@@ -222,6 +224,7 @@ const ArgPoc = ({ props }: any) => {
 
   let locationPath = window.location.pathname.match(/\/sites\/[^\/]+/)[0];
   const [showDeletepopup, setShowDeletepopup] = useState(false);
+  const [routeFromMail2, setRouteFromMail2] = useState(false);
   const [activeButton] = React.useState<string>("");
   const { useHide }: any = React.useContext(UserContext);
   const elementRef = React.useRef<HTMLDivElement>(null);
@@ -458,6 +461,102 @@ const ArgPoc = ({ props }: any) => {
     let folderName = "";
     let devision = "";
     let department = "";
+    const fullUrl2 =window.location.href;
+
+    const shareWithMeIndex = fullUrl2.indexOf("Sharewithme/");
+    
+    if (shareWithMeIndex !== -1) {
+      routefrommail = true;
+      setRouteFromMail2(true);
+        const myurlis = fullUrl2.substring(shareWithMeIndex + "Sharewithme/".length);
+        console.log("Full URL:", myurlis);
+    
+        mailsharefilewithpreview = myurlis
+          PreviewFileFromMail(null,null,null,null,mailsharefilewithpreview)
+          const get = document.getElementById('files-container')
+          if( get){
+           PreviewFileFromMail(null,null,null,null,mailsharefilewithpreview)
+          }
+       setTimeout(() => {
+      const get = document.getElementById('files-container');
+      if (get) {
+        PreviewFileFromMail(null, null, null, null, mailsharefilewithpreview);
+      } else {
+        console.error("#files-container not found!");
+      }
+    }, 1000);
+     
+        navigator.clipboard.writeText(myurlis).then(() => {
+            console.log("Copied to clipboard:", myurlis);
+        });
+          
+          const createpreviewdiv = document.createElement('div')
+          if( createpreviewdiv){
+    
+             createpreviewdiv.style.display = 'block';
+             const previewfileframe = document.createElement('iframe')
+             if( previewfileframe){
+    
+               previewfileframe.id = 'filePreview2'
+      previewfileframe.style.width = '930px'
+      previewfileframe.style.height = '500px'
+           const previewUrl = mailsharefilewithpreview
+             if(previewUrl){
+              previewfileframe.src = mailsharefilewithpreview;
+              previewfileframe.onload = () => {
+                 const checkAndHideButton = () => {
+    
+              try {
+    
+                const iframeDocument = previewfileframe.contentDocument || previewfileframe.contentWindow?.document;
+                if (iframeDocument) {
+                  console.log("iframeDocument 4", iframeDocument);
+                  const button = iframeDocument.getElementById("OneUpCommandBar") as HTMLElement;
+                  const excelToolbar = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
+                  // const openInAppButton=iframeDocument.getElementById('openCommandGroup') as HTMLButtonElement;
+                  // console.log("openInAppButton",openInAppButton);
+                  if(excelToolbar){
+          
+                    excelToolbar.style.display= "none"
+                  }
+                  if (button) {
+    
+                    console.log("Hiding the OneUpCommandBar element");
+                    button.style.display = "none";
+       
+       
+                    // spinner.style.display = "none";
+                    previewfileframe.style.display = "block";
+       
+       
+                  } else {
+                    console.log("OneUpCommandBar not found, rechecking...");
+                  }
+                 
+                  const helpbutton = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
+                  if(helpbutton){
+                    helpbutton.style.display = "none"
+                  }
+                }
+              } catch (error) {
+                console.error("Error accessing iframe content:", error);
+              }
+       
+       
+              setTimeout(checkAndHideButton, 100);
+            };
+             
+            checkAndHideButton();
+              }
+               createpreviewdiv.appendChild(previewfileframe);
+             }
+        
+             }
+          }
+    
+    
+    } 
+     else
     if (parameters.length > 1) {
       parameters.forEach((items, index) => {
         console.log(`items[${index}]`, items)
@@ -576,6 +675,7 @@ const ArgPoc = ({ props }: any) => {
   // end
   /////////////////// DMS Code start / ////////////////////////////////////
   const buttonDivRef = useRef<HTMLDivElement>(null);
+  
   const [showMyrequButtons, setShowMyrequButtons] = useState(true); // Initially hidden
   const [showMyfavButtons, setShowMyfavButtons] = useState(false); // Initially hidden
   const [displayuploadfileandcreatefolder, setdisplayuploadfileandcreatefolder] = useState(false); // Initially hidden
@@ -595,6 +695,7 @@ const ArgPoc = ({ props }: any) => {
     getdata()
 
   }, []);
+
   const getdata = async () => {
 
     const ids = window.location.search;
@@ -2289,6 +2390,147 @@ const ArgPoc = ({ props }: any) => {
     fetchNavItems();
     fetchAndBuildTree2();
   }, [])
+
+  function PreviewFileFromMail (path :any , SiteID:any , docLibName:any,status:string , filepreviewurl:any){
+    // Get current URL
+   const currentUrl = window.location.href;
+   
+   // Extract the base URL (before any parameters)
+   const baseUrl = currentUrl.split('?')[0];
+   
+   // Update URL in address bar without reloading
+   window.history.pushState({}, document.title, baseUrl);
+   
+     // alert("Preview File From Mail is not supported in this version. Please use the latest version of the application to access this feature.");
+     event.preventDefault()
+     event.stopPropagation()
+     const createpreviewdiv = document.createElement('div')
+     createpreviewdiv.style.display = 'grid'
+     const previewfileframe = document.createElement('iframe')
+     previewfileframe.id = 'filePreview'
+     previewfileframe.style.width = '96%'
+     previewfileframe.style.marginLeft = "4%"
+     previewfileframe.style.height = '500px'
+     const librarydiv= document.getElementById('files-container2')
+     const createbutton = document.createElement('button')
+     createbutton.textContent = 'Back To DMS';
+     console.log("enter here in preview : ",path)
+     const encodedFilePath = encodeURIComponent(path);
+     console.log(encodedFilePath, "encodedFilePath");
+   
+     // Get the base site URL
+     const siteUrl = window.location.origin;
+     console.log(siteUrl, "siteUrl");
+      
+     console.log(path , ".....path")
+     // if( ismyrequordoclibforfilepreview === "myRequest" || ismyrequordoclibforfilepreview === "myFavourite" || ismyrequordoclibforfilepreview  === "sharewithme" || ismyrequordoclibforfilepreview  === "sharewithothers"){
+       const previewUrl = filepreviewurl
+      
+       console.log(previewUrl, "Generated preview URL");
+      
+       console.log("Generated Preview URL:", previewUrl);
+       if(previewUrl){
+         librarydiv.innerHTML = "";
+         previewfileframe.src = previewUrl;
+         previewfileframe.onload = () => {
+           console.log("Iframe has loaded");
+      
+           const checkAndHideButton = () => {
+             try {
+               const iframeDocument = previewfileframe.contentDocument || previewfileframe.contentWindow?.document;
+               if (iframeDocument) {
+                 const button = iframeDocument.getElementById("OneUpCommandBar") as HTMLElement;
+                 const excelToolbar = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
+                 // const openInAppButton=iframeDocument.getElementById('openCommandGroup') as HTMLButtonElement;
+                 // console.log("openInAppButton",openInAppButton);
+                 if(excelToolbar){
+                   excelToolbar.style.display= "none"
+                 }
+                 if (button) {
+                   // List of all command button IDs to hide
+       const commandsToHide = [
+         "shareCommandGroup",
+         "openCommandGroup",
+         "presenceCommand",
+         "favoriteCommand",
+         "deleteCommand",
+         "mainDividerCommand",
+         "infoPaneCommandGroup",
+         "oneupCommandBarOverflow",
+         "commentCommand",
+         "closeCommand"
+       ];
+   
+       // Hide all specified commands at once
+       commandsToHide.forEach(id => {
+         const element = iframeDocument.getElementById(id);
+         if (element) {
+           element.style.display = "none";
+         }
+       });
+                   console.log("Hiding the OneUpCommandBar element");
+                   // button.style.display = "none";
+      
+      
+                   // spinner.style.display = "none";
+                   previewfileframe.style.display = "block";
+      
+      
+                 } else {
+                   console.log("OneUpCommandBar not found, rechecking...");
+                 }
+                
+                 const helpbutton = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
+                 if(helpbutton){
+                   helpbutton.style.display = "none"
+                 }
+               }
+             } catch (error) {
+               console.error("Error accessing iframe content:", error);
+             }
+      
+      
+             setTimeout(checkAndHideButton, 100);
+           };
+      
+      
+           checkAndHideButton();
+         };
+         createpreviewdiv.appendChild(createbutton)
+         createpreviewdiv.appendChild(previewfileframe);
+         librarydiv.appendChild(createpreviewdiv)
+         createbutton.addEventListener('click', (event:any) => {
+           event.preventDefault()
+           event.stopPropagation()
+            setfilepreviewcontainerblank();
+             // just uncomment it
+             setRouteFromMail2(false);
+     
+           // fetchAndBuildTree2()
+           //  setDynamicContent('Mentioned below are the documents submitted by logged in user.');
+           //  setSelectedText('My Uploaded Files');
+           //  handleShowContent(event);
+       });
+       }
+     
+    
+      
+     }
+     const setfilepreviewcontainerblank = () => {
+     // alert("back to dms")
+     routefrommail = false
+      setRouteFromMail2(false);
+     const filePreviewContainer = document.getElementById('files-container2');
+     if (filePreviewContainer) {
+       filePreviewContainer.innerHTML = ''; // Clear the container
+       filePreviewContainer.style.display = 'none'; // Hide the container
+     } 
+     // just uncomment it
+     // setSelectedText('My Uploaded Files');
+     //     setDynamicContent('Mentioned below are the documents submitted by logged in user.');
+     myRequest()
+     // alert("routefrommail" + routeFromMail2)
+   }
   // const fetchAndBuildTree2 = async () => {
   //   event.preventDefault()
   //   event.stopImmediatePropagation()
@@ -6785,23 +7027,240 @@ const ArgPoc = ({ props }: any) => {
 
 
   //   };
-  window.PreviewFile = function (path: any, SiteID: any, docLibName: any, status: string, filepreviewurl) {
+
+  // preview working code but when iun file name if use & the file previerw was not working
+  // window.PreviewFile = function (path: any, SiteID: any, docLibName: any, status: string, filepreviewurl) {
+  //   // console.log(docLibName , "docLibName")
+  //   console.log("Status", status);
+  //   console.log(filepreviewurl, "filepreviewurl")
+  //   console.log("path", path);
+  //   const segments = path.split('/');
+  //   // extarct the current entity start
+  //   const currentSubsite = segments[3];
+  //   // end
+  //   // Find the index of 'sites'
+  //   const sitesIndex = segments.indexOf('sites');
+
+  //   // If 'sites' is found and there are enough segments after it
+  //   let myactualdoclib
+  //   if (sitesIndex !== -1 && segments.length > sitesIndex + 3) {
+  //     myactualdoclib = segments[sitesIndex + 3];
+  //     console.log(myactualdoclib, "myactualdoclib")
+  //     // return segments[sitesIndex + 3];  // The document library is the 4th segment after 'sites'
+  //   } else {
+  //     // return null;  // Return null if not enough segments are available
+  //   }
+  //   event.preventDefault()
+  //   event.stopPropagation()
+  //   const createpreviewdiv = document.createElement('div')
+  //   createpreviewdiv.style.display = 'grid'
+  //   const previewfileframe = document.createElement('iframe')
+  //   previewfileframe.id = 'filePreview'
+  //   previewfileframe.style.width = '930px'
+  //   previewfileframe.style.height = '500px'
+  //   const librarydiv = document.getElementById('files-container')
+  //   const createbutton = document.createElement('button')
+  //   createbutton.textContent = 'Close File preivew';
+  //   console.log("enter here in preview : ", path)
+  //   const encodedFilePath = encodeURIComponent(path);
+  //   console.log(encodedFilePath, "encodedFilePath");
+
+  //   // Extract the parent folder correctly
+  //   const parentFolder = path.substring(0, path.lastIndexOf('/'));
+  //   console.log(parentFolder, "parentFolder");
+
+  //   // Correctly encode the parent folder
+  //   const encodedParentFolder = encodeURIComponent(parentFolder);
+
+  //   // Get the base site URL
+  //   const siteUrl = window.location.origin;
+  //   console.log(siteUrl, "siteUrl");
+
+  //   console.log(path, ".....path")
+  //   if (ismyrequordoclibforfilepreview === "myRequest" || ismyrequordoclibforfilepreview === "sharewithme" || ismyrequordoclibforfilepreview === "sharewithothers") {
+  //     const previewUrl = filepreviewurl
+
+  //     console.log(previewUrl, "Generated preview URL");
+
+  //     console.log("Generated Preview URL:", previewUrl);
+  //     if (previewUrl) {
+  //       librarydiv.innerHTML = "";
+  //       previewfileframe.src = previewUrl;
+  //       previewfileframe.onload = () => {
+  //         console.log("Iframe has loaded");
+
+  //         const checkAndHideButton = () => {
+  //           try {
+  //             const iframeDocument = previewfileframe.contentDocument || previewfileframe.contentWindow?.document;
+  //             if (iframeDocument) {
+  //               const button = iframeDocument.getElementById("OneUpCommandBar") as HTMLElement;
+  //               const excelToolbar = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
+  //               // const openInAppButton=iframeDocument.getElementById('openCommandGroup') as HTMLButtonElement;
+  //               // console.log("openInAppButton",openInAppButton);
+  //               if (excelToolbar) {
+  //                 excelToolbar.style.display = "none"
+  //               }
+  //               if (button) {
+  //                 console.log("Hiding the OneUpCommandBar element");
+  //                 button.style.display = "none";
+
+
+  //                 // spinner.style.display = "none";
+  //                 previewfileframe.style.display = "block";
+
+
+  //               } else {
+  //                 console.log("OneUpCommandBar not found, rechecking...");
+  //               }
+
+  //               const helpbutton = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
+  //               if (helpbutton) {
+  //                 helpbutton.style.display = "none"
+  //               }
+  //             }
+  //           } catch (error) {
+  //             console.error("Error accessing iframe content:", error);
+  //           }
+
+
+  //           setTimeout(checkAndHideButton, 100);
+  //         };
+
+
+  //         checkAndHideButton();
+  //       };
+  //       createpreviewdiv.appendChild(createbutton)
+  //       createpreviewdiv.appendChild(previewfileframe);
+  //       librarydiv.appendChild(createpreviewdiv)
+  //       createbutton.addEventListener('click', function () {
+  //         event.preventDefault()
+  //         event.stopPropagation()
+
+  //         if (ismyrequordoclibforfilepreview === "myRequest") {
+  //           myRequest();
+  //         }
+  //         if (ismyrequordoclibforfilepreview === "sharewithme") {
+  //           ShareWithMe();
+  //         }
+  //         if (ismyrequordoclibforfilepreview === "sharewithothers") {
+  //           ShareWithOther();
+  //         }
+  //         // if(flag === "shareWithMe"){
+  //         //     ShareWithMe(null,null);
+  //         // }
+  //         // if(flag === "documentLibrary"){
+  //         //   getdoclibdata(currentfolderpath , currentsiteID , currentDocumentLibrary)
+  //         // }
+
+  //       });
+  //     }
+  //   }
+  //   if (ismyrequordoclibforfilepreview === "getdoclibdata") {
+  //     // Generate the correct preview URL
+  //     const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${path}&parent=${encodedParentFolder}`;
+
+  //     // const previewUrl = `${siteUrl}/sites/SPFXDemo/${currentEntity}/${myactualdoclib}/Forms/AllItems.aspx?id=${path}&parent=${encodedParentFolder}`;
+
+  //     console.log(previewUrl, "Generated preview URL");
+
+  //     console.log("Generated Preview URL:", previewUrl);
+  //     if (previewUrl) {
+  //       librarydiv.innerHTML = "";
+  //       previewfileframe.src = previewUrl;
+  //       previewfileframe.onload = () => {
+  //         console.log("Iframe has loaded");
+
+  //         const checkAndHideButton = () => {
+  //           try {
+  //             const iframeDocument = previewfileframe.contentDocument || previewfileframe.contentWindow?.document;
+  //             if (iframeDocument) {
+  //               const button = iframeDocument.getElementById("OneUpCommandBar") as HTMLElement;
+  //               const excelToolbar = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
+  //               if (excelToolbar) {
+  //                 excelToolbar.style.display = "none"
+  //               }
+  //               if (button) {
+  //                 console.log("Hiding the OneUpCommandBar element");
+  //                 button.style.display = "block";
+  //                 const commandBar1 = button.querySelectorAll("button");
+  //                 commandBar1.forEach(button => {
+  //                   button.style.display = "none";
+  //                 });
+  //                 // Show only the "Open" button
+  //                 const openButton = iframeDocument.getElementById("openCommandGroup");
+  //                 const userProfile = iframeDocument.getElementById("presenceCommand");
+  //                 if (userProfile) {
+  //                   userProfile.style.display = 'none'
+  //                 }
+  //                 if (openButton) {
+  //                   // console.log("openButton",openButton);
+  //                   if (status === 'Auto Approved') {
+  //                     openButton.style.display = "block";
+  //                   }
+
+  //                 }
+  //                 previewfileframe.style.display = "block";
+
+
+  //               } else {
+  //                 console.log("OneUpCommandBar not found, rechecking...");
+  //               }
+  //               // if(openInAppButton){
+  //               //   openInAppButton.style.display='block'
+  //               // }
+  //               const helpbutton = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
+  //               if (helpbutton) {
+  //                 helpbutton.style.display = "none"
+  //               }
+  //             }
+  //           } catch (error) {
+  //             console.error("Error accessing iframe content:", error);
+  //           }
+
+
+  //           setTimeout(checkAndHideButton, 100);
+  //         };
+
+
+  //         checkAndHideButton();
+  //       };
+  //       createpreviewdiv.appendChild(createbutton)
+  //       createpreviewdiv.appendChild(previewfileframe);
+  //       librarydiv.appendChild(createpreviewdiv)
+  //       createbutton.addEventListener('click', function () {
+  //         event.preventDefault()
+  //         event.stopPropagation()
+
+  //         // if(flag === "shareWithMe"){
+  //         //     ShareWithMe(null,null);
+  //         // }
+  //         // if(flag === "documentLibrary"){
+  //         //   getdoclibdata(currentfolderpath , currentsiteID , currentDocumentLibrary)
+  //         // }
+  //         getdoclibdata(currentfolderpath, currentsiteID, currentDocumentLibrary)
+  //       });
+  //     }
+  //   }
+
+  // }
+
+  window.PreviewFile = function(path :any , SiteID:any , docLibName:any,status:string , filepreviewurl){
     // console.log(docLibName , "docLibName")
-    console.log("Status", status);
-    console.log(filepreviewurl, "filepreviewurl")
-    console.log("path", path);
+    console.log("Status",status);
+    console.log(filepreviewurl , "filepreviewurl")
+    console.log("path",path);
     const segments = path.split('/');
     // extarct the current entity start
-    const currentSubsite = segments[3];
+      const currentSubsite = segments[3];
     // end
     // Find the index of 'sites'
     const sitesIndex = segments.indexOf('sites');
-
+     
     // If 'sites' is found and there are enough segments after it
     let myactualdoclib
     if (sitesIndex !== -1 && segments.length > sitesIndex + 3) {
       myactualdoclib = segments[sitesIndex + 3];
-      console.log(myactualdoclib, "myactualdoclib")
+      console.log(myactualdoclib , "myactualdoclib")
       // return segments[sitesIndex + 3];  // The document library is the 4th segment after 'sites'
     } else {
       // return null;  // Return null if not enough segments are available
@@ -6814,37 +7273,37 @@ const ArgPoc = ({ props }: any) => {
     previewfileframe.id = 'filePreview'
     previewfileframe.style.width = '930px'
     previewfileframe.style.height = '500px'
-    const librarydiv = document.getElementById('files-container')
+    const librarydiv= document.getElementById('files-container')
     const createbutton = document.createElement('button')
     createbutton.textContent = 'Close File preivew';
-    console.log("enter here in preview : ", path)
+    console.log("enter here in preview : ",path)
     const encodedFilePath = encodeURIComponent(path);
     console.log(encodedFilePath, "encodedFilePath");
-
+     
     // Extract the parent folder correctly
     const parentFolder = path.substring(0, path.lastIndexOf('/'));
     console.log(parentFolder, "parentFolder");
-
+     
     // Correctly encode the parent folder
     const encodedParentFolder = encodeURIComponent(parentFolder);
-
+     
     // Get the base site URL
     const siteUrl = window.location.origin;
     console.log(siteUrl, "siteUrl");
-
-    console.log(path, ".....path")
-    if (ismyrequordoclibforfilepreview === "myRequest" || ismyrequordoclibforfilepreview === "sharewithme" || ismyrequordoclibforfilepreview === "sharewithothers") {
+     
+    console.log(path , ".....path")
+    if( ismyrequordoclibforfilepreview === "myRequest2" || ismyrequordoclibforfilepreview === "myFavourite" || ismyrequordoclibforfilepreview  === "sharewithme" || ismyrequordoclibforfilepreview  === "sharewithothers"){
       const previewUrl = filepreviewurl
-
+     
       console.log(previewUrl, "Generated preview URL");
-
+     
       console.log("Generated Preview URL:", previewUrl);
-      if (previewUrl) {
+      if(previewUrl){
         librarydiv.innerHTML = "";
         previewfileframe.src = previewUrl;
         previewfileframe.onload = () => {
           console.log("Iframe has loaded");
-
+     
           const checkAndHideButton = () => {
             try {
               const iframeDocument = previewfileframe.contentDocument || previewfileframe.contentWindow?.document;
@@ -6853,52 +7312,55 @@ const ArgPoc = ({ props }: any) => {
                 const excelToolbar = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
                 // const openInAppButton=iframeDocument.getElementById('openCommandGroup') as HTMLButtonElement;
                 // console.log("openInAppButton",openInAppButton);
-                if (excelToolbar) {
-                  excelToolbar.style.display = "none"
+                if(excelToolbar){
+                  excelToolbar.style.display= "none"
                 }
                 if (button) {
                   console.log("Hiding the OneUpCommandBar element");
                   button.style.display = "none";
-
-
+     
+     
                   // spinner.style.display = "none";
                   previewfileframe.style.display = "block";
-
-
+     
+     
                 } else {
                   console.log("OneUpCommandBar not found, rechecking...");
                 }
-
+               
                 const helpbutton = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
-                if (helpbutton) {
+                if(helpbutton){
                   helpbutton.style.display = "none"
                 }
               }
             } catch (error) {
               console.error("Error accessing iframe content:", error);
             }
-
-
+     
+     
             setTimeout(checkAndHideButton, 100);
           };
-
-
+     
+     
           checkAndHideButton();
         };
         createpreviewdiv.appendChild(createbutton)
         createpreviewdiv.appendChild(previewfileframe);
         librarydiv.appendChild(createpreviewdiv)
-        createbutton.addEventListener('click', function () {
+        createbutton.addEventListener('click', function() {
           event.preventDefault()
           event.stopPropagation()
-
-          if (ismyrequordoclibforfilepreview === "myRequest") {
-            myRequest();
+     
+          if(ismyrequordoclibforfilepreview === "myRequest2"){
+            myRequest2();
           }
-          if (ismyrequordoclibforfilepreview === "sharewithme") {
+          if(ismyrequordoclibforfilepreview === "myFavourite"){
+            myFavorite();
+          }
+          if(ismyrequordoclibforfilepreview === "sharewithme"){
             ShareWithMe();
           }
-          if (ismyrequordoclibforfilepreview === "sharewithothers") {
+          if(ismyrequordoclibforfilepreview === "sharewithothers"){
             ShareWithOther();
           }
           // if(flag === "shareWithMe"){
@@ -6907,33 +7369,51 @@ const ArgPoc = ({ props }: any) => {
           // if(flag === "documentLibrary"){
           //   getdoclibdata(currentfolderpath , currentsiteID , currentDocumentLibrary)
           // }
-
-        });
+         
+      });
       }
     }
-    if (ismyrequordoclibforfilepreview === "getdoclibdata") {
-      // Generate the correct preview URL
-      const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${path}&parent=${encodedParentFolder}`;
-
-      // const previewUrl = `${siteUrl}/sites/SPFXDemo/${currentEntity}/${myactualdoclib}/Forms/AllItems.aspx?id=${path}&parent=${encodedParentFolder}`;
-
-      console.log(previewUrl, "Generated preview URL");
-
+    if(ismyrequordoclibforfilepreview === "getdoclibdata"){
+    
+      // i have added this when there was issue in file preview at path there was & in the path
+      // so i encode the path and then append in preview url 
+      let encodepath:any
+  
+  
+      const hasAmpersand = path.includes('&');
+      if (hasAmpersand) {
+        console.log("Path contains '&'");  
+         encodepath = encodeURIComponent(path); // Properly declare the variable
+        // alert("getdoclibdata encodepath: " + encodepath);
+      } else {
+        console.log("Path does not contain '&'");
+        encodepath = path;
+      }
+    
+    // Generate the correct preview URL
+  
+      const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${encodepath}&parent=${encodedParentFolder}`;
+      // const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${path}&parent=${encodedParentFolder}`;
+     
+  
+     
+    console.log(previewUrl, "Generated preview URL");
+     
       console.log("Generated Preview URL:", previewUrl);
-      if (previewUrl) {
+      if(previewUrl){
         librarydiv.innerHTML = "";
         previewfileframe.src = previewUrl;
         previewfileframe.onload = () => {
           console.log("Iframe has loaded");
-
+     
           const checkAndHideButton = () => {
             try {
               const iframeDocument = previewfileframe.contentDocument || previewfileframe.contentWindow?.document;
               if (iframeDocument) {
                 const button = iframeDocument.getElementById("OneUpCommandBar") as HTMLElement;
                 const excelToolbar = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
-                if (excelToolbar) {
-                  excelToolbar.style.display = "none"
+                if(excelToolbar){
+                  excelToolbar.style.display= "none"
                 }
                 if (button) {
                   console.log("Hiding the OneUpCommandBar element");
@@ -6942,22 +7422,22 @@ const ArgPoc = ({ props }: any) => {
                   commandBar1.forEach(button => {
                     button.style.display = "none";
                   });
-                  // Show only the "Open" button
+                   // Show only the "Open" button
                   const openButton = iframeDocument.getElementById("openCommandGroup");
                   const userProfile = iframeDocument.getElementById("presenceCommand");
-                  if (userProfile) {
-                    userProfile.style.display = 'none'
+                  if(userProfile){
+                    userProfile.style.display='none'
                   }
                   if (openButton) {
                     // console.log("openButton",openButton);
-                    if (status === 'Auto Approved') {
+                    if(status === 'Auto Approved'){
                       openButton.style.display = "block";
                     }
-
+                   
                   }
                   previewfileframe.style.display = "block";
-
-
+     
+     
                 } else {
                   console.log("OneUpCommandBar not found, rechecking...");
                 }
@@ -6965,40 +7445,47 @@ const ArgPoc = ({ props }: any) => {
                 //   openInAppButton.style.display='block'
                 // }
                 const helpbutton = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
-                if (helpbutton) {
+                if(helpbutton){
                   helpbutton.style.display = "none"
                 }
               }
             } catch (error) {
               console.error("Error accessing iframe content:", error);
             }
-
-
+     
+     
             setTimeout(checkAndHideButton, 100);
           };
-
-
+     
+     
           checkAndHideButton();
         };
         createpreviewdiv.appendChild(createbutton)
         createpreviewdiv.appendChild(previewfileframe);
         librarydiv.appendChild(createpreviewdiv)
-        createbutton.addEventListener('click', function () {
+        createbutton.addEventListener('click', function() {
           event.preventDefault()
           event.stopPropagation()
-
+     
           // if(flag === "shareWithMe"){
           //     ShareWithMe(null,null);
           // }
           // if(flag === "documentLibrary"){
           //   getdoclibdata(currentfolderpath , currentsiteID , currentDocumentLibrary)
           // }
-          getdoclibdata(currentfolderpath, currentsiteID, currentDocumentLibrary)
-        });
+          if(isprocessfolder === true){
+              //  alert(currentfolderpath  + "currentfolderpath in process true")
+               getdoclibdata(currentfolderpath , currentsiteID , currentDocumentLibrary )
+          }else{
+              // alert(currentfolderpath  + "currentfolderpath in process false")
+           getdoclibdata(currentfolderpath , currentsiteID , currentDocumentLibrary )
+          }
+        
+      });
       }
     }
-
-  }
+     
+    }
   const RemoveSSearchFile = async (event: React.FormEvent) => {
     event.preventDefault();
     event.stopPropagation();
@@ -12390,6 +12877,293 @@ const ArgPoc = ({ props }: any) => {
     }
 
   };
+
+  const myRequest2 = async (event: React.MouseEvent<HTMLButtonElement> = null, siteIdToUpdate: string = null, searchText: any = null) => {
+    // Pagination variables
+    const itemsPerPage = 12;
+    let currentPage = 1;
+    let allFilesData: any[] = [];
+  
+    // Loader setup
+    const loader = document.getElementById('loader2');
+    if (loader) loader.style.display = 'block';
+  
+    // Existing setup code...
+    entityclicktext = '';
+    setdisplayuploadfileandcreatefolder(false);
+    ismyrequordoclibforfilepreview = "myRequest2";
+    
+    // Clean URL and hide buttons
+    if (!cleanUrlInMyRequest) {
+      const newUrl = `${window.location.origin}${window.location.pathname}`;
+      window.history.pushState(null, '', newUrl);
+    }
+    cleanUrlInMyRequest = false;
+  
+    const CreateFolder = document.getElementById("CreateFolder");
+    const createFileButton = document.getElementById("createFileButton");
+    const CreateRoot = document.getElementById("CreateFolder1");
+    
+    if (CreateFolder) CreateFolder.style.display = 'none';
+    if (createFileButton) createFileButton.style.display = 'none';
+    if (CreateRoot) CreateRoot.style.display = 'none';
+  
+    setTimeout(() => {
+      setlistorgriddata('');
+    }, 100);
+  
+    const wait = document.getElementById('files-container');
+    wait.classList.remove('hidemydatacards');
+    setShowMyrequButtons(true);
+    setShowMyfavButtons(false);
+    setMyreqormyfav('Myrequest');
+  
+    // UI setup...
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  
+    const container = document.getElementById("files-container");
+    if (siteIdToUpdate === null) {
+      container.innerHTML = "";
+    }
+  
+    try {
+      const FilesItems = await sp.web.lists
+        .getByTitle("MasterSiteURL")
+        .items.select("Title", "SiteID", "FileMasterList", "Active")
+        .filter(`Active eq 'Yes'`)();
+  
+      // Clear existing data
+      allFilesData = [];
+  
+      for (const fileItem of FilesItems) {
+        if (fileItem.FileMasterList !== null) {
+          if (siteIdToUpdate && fileItem.SiteID !== siteIdToUpdate) {
+            continue;
+          }
+  
+          const filesData = await sp.web.lists
+            .getByTitle(`${fileItem.FileMasterList}`)
+            .items.select("ID", "FileName", "FileUID", "FileSize", "FileVersion", "Status", "SiteID", "CurrentFolderPath", "DocumentLibraryName", "SiteName", "FilePreviewURL", "IsDeleted", "MyRequest", "Modified")
+            .filter(`CurrentUser eq '${currentUserEmailRef.current}' and MyRequest eq 1`)
+            .orderBy("Modified", false)();
+  
+          allFilesData = [...allFilesData, ...filesData];
+        }
+      }
+  
+      // Apply search filter if searchText exists
+      let filteredData = allFilesData;
+      if (searchText?.value) {
+        filteredData = allFilesData.filter(file => 
+          file?.FileName?.toLowerCase().includes(searchText.value.toLowerCase())
+        );
+        
+        if (filteredData.length === 0) {
+          fileNotFound(`No files match ${searchText.value}`);
+        }
+      }
+  
+      displayPaginatedResults(filteredData, currentPage);
+  
+    } catch (error) {
+      console.error("Error loading files:", error);
+    } finally {
+      if (loader) loader.style.display = 'none';
+    }
+  
+    function displayPaginatedResults(data: any[], page: number) {
+      const container = document.getElementById("files-container");
+      if (!container) return;
+      
+      container.innerHTML = "";
+      
+      const startIndex = (page - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const paginatedItems = data.slice(startIndex, endIndex);
+  
+      if (paginatedItems.length === 0) {
+        const noFileMessage = document.createElement("p");
+        noFileMessage.textContent = "No files found.";
+        noFileMessage.style.color = "black";
+        noFileMessage.style.fontSize = "16px";
+        noFileMessage.style.textAlign = "center";
+        container.appendChild(noFileMessage);
+        return;
+      }
+  
+      // Create cards for each item in the current page
+      paginatedItems.forEach(file => {
+        if (file.IsDeleted === null) {
+          const card = document.createElement("div");
+          const extensionHtml = createFileExtensionHtml(file.FileName);
+          
+          card.className = "card";
+          card.innerHTML = ` 
+            <div class="row"> 
+              <div class="col-md-2 pe-0"> 
+                <div class="IMGContainer">        
+                  ${extensionHtml}
+                </div>
+              </div>
+              <div class="col-md-10"> 
+                <div class="CardTextContainer">
+                  <p class="p1st" style="cursor: pointer;" title="${file.FileName}" onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">${file.FileName}</p>
+                  <p class="p2nd" title="${file.CurrentFolderPath ? file.CurrentFolderPath.split('/').slice(3).join('/') : ''}">${file.DocumentLibraryName}</p>
+                  <p class="p3rd ">${((file.FileSize as unknown as number) / (1024 * 1024)).toFixed(2)}MB</p>
+                  <p class="filestatus myrequestp3rd"> ${file.Status ? file.Status : ''}  </p>
+                </div>
+  
+                <div class="three-dots" onclick="toggleMenu2('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}')">
+                  <span>...</span>
+                </div>
+              </div> 
+            </div>
+          `;
+  
+          const menu = document.createElement("div");
+          menu.id = `menu-${file.FileUID}`;
+          menu.className = "popup-menu";
+          menu.innerHTML = `
+            <ul>
+              <li onclick="auditHistory('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}')">
+                <img src=${editIcon} alt="Edit"/>
+                Audit History
+              </li>
+              <li onclick="shareFile('${file.FileUID}', '${file.SiteID}','${file.CurrentFolderPath}','${file.FileName}','MyRequest','${file.FileVersion}','${file.FileSize}','${file.Status}','${file.FilePreviewURL}','${file.DocumentLibraryName}')">
+                <img src=${ShareFile} alt="Share"/> Share
+              </li>
+              <li onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
+                <img src=${FilePreview} alt="Preview File"/> Preview File
+              </li>
+              <li onclick="Download('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
+                <img src=${downloadicon} alt="Download File"/> Download File
+              </li>
+              <li onclick="versionHistory('${file.FileName}', '${file.CurrentFolderPath}', '${file.SiteID}' ,'MyRequest','${file.FileUID}')">
+                <img src=${editIcon} alt="Version History"/> Version History
+              </li>
+              ${file.Status === "Rework" ? `
+              <li onclick="rework('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}','${file.CurrentFolderPath}/${file.FileName}')">
+                <img src=${editIcon} alt="Edit File"/> Edit File
+              </li>` : ''}
+            </ul>
+          `;
+  
+          card.appendChild(menu);
+          
+          // Status styling
+          const fileStatusElement = card.querySelector(".filestatus") as HTMLElement;
+          switch (file.Status) {
+            case "Approved":
+            case "Auto Approved":
+              fileStatusElement.style.backgroundColor = "#b5e7d3";
+              fileStatusElement.style.color = "#008751";
+              if (file.Status === "Auto Approved") {
+                fileStatusElement.style.width = "96px";
+              }
+              break;
+            case "Rejected":
+              fileStatusElement.style.backgroundColor = "rgba(241, 85, 108, 0.1)";
+              fileStatusElement.style.color = "#f1556c";
+              break;
+            case "Rework":
+              fileStatusElement.style.backgroundColor = "#ffecc4";
+              fileStatusElement.style.color = "rgba(247, 184, 75)";
+              break;
+            case "Pending":
+              fileStatusElement.style.backgroundColor = "rgb(91 156 187 / 25%)";
+              fileStatusElement.style.color = "#000b56";
+              break;
+            default:
+              fileStatusElement.style.backgroundColor = "none";
+              fileStatusElement.style.color = "none";
+              break;
+          }
+          
+          container.appendChild(card);
+        }
+      });
+  
+      // Add pagination controls
+      addPaginationControls(data.length, currentPage);
+    }
+  
+    function addPaginationControls(totalItems: number, currentPage: number) {
+      const totalPages = Math.ceil(totalItems / itemsPerPage);
+      if (totalPages <= 1) return;
+      
+      const container = document.getElementById("files-container");
+      const paginationDiv = document.createElement("div");
+      paginationDiv.className = "pagination-container";
+      
+      // Previous Button
+      const prevButton = document.createElement("button");
+      prevButton.textContent = "Previous";
+      prevButton.className = "pagination-container-buttons1";
+      prevButton.disabled = currentPage === 1;
+  
+      if (currentPage === 1) {
+        prevButton.style.opacity = "0.6";
+        prevButton.style.cursor = "not-allowed";
+        prevButton.onclick = null;
+      } else {
+        prevButton.onclick = () => {
+          currentPage--;
+          displayPaginatedResults(
+            searchText?.value 
+              ? allFilesData.filter(file => 
+                  file?.FileName?.toLowerCase().includes(searchText.value.toLowerCase())
+                )
+              : allFilesData,
+            currentPage
+          );
+        };
+      }
+      
+      // Next Button
+      const nextButton = document.createElement("button");
+      nextButton.textContent = "Next";
+      nextButton.className = "pagination-container-buttons2";
+      nextButton.disabled = currentPage === totalPages;
+  
+      if (currentPage === totalPages) {
+        nextButton.style.opacity = "0.6";
+        nextButton.style.cursor = "not-allowed";
+        nextButton.onclick = null;
+      } else {
+        nextButton.onclick = () => {
+          currentPage++;
+          displayPaginatedResults(
+            searchText?.value 
+              ? allFilesData.filter(file => 
+                  file?.FileName?.toLowerCase().includes(searchText.value.toLowerCase())
+                )
+              : allFilesData,
+            currentPage
+          );
+        };
+      }
+      
+      // Page Info
+      const pageInfo = document.createElement("span");
+      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+      pageInfo.style.margin = "0px 30px 0px 0px";
+      pageInfo.style.lineHeight = "30px";
+      
+      // Create container for buttons
+      const buttonsDiv = document.createElement("div");
+      buttonsDiv.className = "pagination-container-buttons";
+      buttonsDiv.appendChild(prevButton);
+      buttonsDiv.appendChild(nextButton);
+      
+      paginationDiv.appendChild(buttonsDiv);
+      paginationDiv.appendChild(pageInfo);
+      container.appendChild(paginationDiv);
+    }
+  };
+
   // Show Error Message on file not Found start
   const fileNotFound = (fileName: any) => {
     Swal.fire(`No results found`, `${fileName}`, "warning");
@@ -12763,6 +13537,9 @@ const ArgPoc = ({ props }: any) => {
       // Update dynamic content based on the button clicked
       switch (text) {
         case 'My Request':
+          setDynamicContent('Mentioned below are the documents submitted by logged in user.');
+          break;
+        case 'My Uploaded File':
           setDynamicContent('Mentioned below are the documents submitted by logged in user.');
           break;
         case 'My Favourite':
@@ -15711,7 +16488,21 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
         <VerticalSideBar _context={sp} />
       </div>
       <div className="content-page">
+        
         <HorizontalNavbar _context={sp} siteUrl={props.siteUrl} context={props.context} />
+
+        <div id="files-container2" className="container-fluid">
+
+</div>
+  {routeFromMail2 ? (
+<div className="first-div">
+{/* Content for when routefrommail is true */}
+{/* <button onClick={ (e)=>setfilepreviewcontainerblank() }>Back</button>
+<p id="containershow">Shared File In Preview</p>
+
+<iframe src={mailsharefilewithpreview} id="routefrommailfilePreview" style={{ width: '100%', height: '100%' }}></iframe> */}
+</div>
+) : (
         <div className="content" style={{ marginLeft: `${!useHide ? '240px' : '80px'}`, marginTop: '2.8rem' }}>
 
           <div className="container-fluid  paddb">
@@ -15958,6 +16749,26 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
                     </button>
 
                     <button
+                      id="Myrequestbutton"
+                      className={`sidebardmsButton ${activeButton === "MyRequest" ? "active" : ""
+                        }`}
+                      // onClick={() => handleClick('MyRequest')}
+                      onClick={
+                        (event) => {
+
+                          myRequest2(event);
+                          handleShowContent(event)
+                        }
+                      }
+                    >
+                      <span className="sidebarIcon">
+                        {/* <FontAwesomeIcon icon={faList} /> */}
+                        <img className="sidebariconssmall" src={listicon}></img>
+                      </span>
+                      <span className="sidebarText">My Uploaded File</span>
+                    </button>
+
+                    <button
                       className={`sidebardmsButton ${activeButton === "MyFavourite" ? "active" : ""
                         }`}
                       onClick={(event) => {
@@ -15972,7 +16783,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
                       <span className="sidebarText">My Favourite</span>
                     </button>
 
-                    {/* <button
+                    <button
                           className={`sidebardmsButton ${
                             activeButton === "MyFolder" ? "active" : ""
                           }`}
@@ -15985,7 +16796,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
                           <img className="sidebariconssmall" src={foldericon}></img>
                                                      </span>
                           <span className="sidebarText">My Folder</span>
-                        </button> */}
+                        </button>
 
                     <button
                       className={`sidebardmsButton ${activeButton === "ShareWithOther" ? "active" : ""
@@ -16239,6 +17050,8 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
             )}
           </div>
         </div>
+)}
+
       </div>
     </div>
 

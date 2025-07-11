@@ -1078,3 +1078,51 @@ textarea .ms-TextField-field{
     appearance: auto;
   }
 }
+#files-container2 div{
+  display: block !important;
+  
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+    padding: 38px 30px;
+}
+#files-container2 button{
+  display: inline-block;
+    width: 124px;
+    float: right;
+    height: 38px;
+    margin-bottom: 15px;margin-right: -18px;
+}
+#files-container2 iframe{
+  width: 84% !important;
+  /* margin-left: 120px; */
+  height: 500px;
+  display: block;
+  margin: auto;
+  margin-left: 222px !important;
+}
+@media(max-width:1920px){
+  #files-container2 iframe{
+    width: 88.2% !important;
+  }
+}
+@media(max-width:1800px){
+  #files-container2 iframe{
+    width: 87.5% !important;
+  }
+}
+@media(max-width:1600px){
+  #files-container2 iframe{
+    width: 85.7% !important;
+  }
+}
+@media(max-width:1400px){
+  #files-container2 iframe{
+    width: 84% !important;
+  }
+}
+@media(max-width:1280px){
+  #files-container2 iframe{
+    width: 82.5% !important;
+  }
+}

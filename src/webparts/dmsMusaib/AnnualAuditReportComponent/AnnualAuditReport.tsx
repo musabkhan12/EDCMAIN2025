@@ -187,8 +187,13 @@ const AnnualAuditReportContext = ({ props }: any) => {
     });
     const maxNCSeqRef = React.useRef(0);
     const maxObsSeqRef = React.useRef(0);
+    const hiddenDivRef = React.useRef(null);
     //error end
     const [formData, setFormData] = React.useState({
+        RequesterNameId: 0,
+        RequesterName: "",
+        RequesterDesignation: "",
+        RequestDate: "",
         ObservationSequence: 0,
         NCSequence: 0,
         NCNo: "",
@@ -220,7 +225,50 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [ListNameId, setListNameId] = React.useState(null);
 
     const [selectToUsers, setSelectToUsers] = React.useState([]);
+    // React.useEffect(() => {
+    //     if (!selectedOption?.value) return;
 
+    //     const fetchSequences = async () => {
+    //         setIsDepartmentReady(false);
+
+    //       try {
+    //         const auditNCItems = await getItemsAuditReportNC(sp, selectedOption.value);
+    //         const auditObsItems = await getItemsAuditReportObs(sp, selectedOption.value);
+
+    //         let maxncseq = null;
+    //         let maxobsseq = null;
+
+    //         const updatedFormData = { ...formData };
+
+    //         if (auditNCItems.length > 0) {
+    //           maxncseq = auditNCItems[0].NCSequence;
+    //           updatedFormData.NCSequence = maxncseq;
+    //         }
+
+    //         if (auditObsItems.length > 0) {
+    //           maxobsseq = auditObsItems[0].ObservationSequence;
+    //           updatedFormData.ObservationSequence = maxobsseq;
+    //         }
+
+    //         maxNCSeqRef.current = maxncseq;
+    //         maxObsSeqRef.current = maxobsseq;
+
+    //         setFormData(updatedFormData);
+
+    //         setNCNumberrows([]); // clear rows on dept change
+    //       } catch (error) {
+    //         console.error("Error fetching audit sequences", error);
+    //       } finally {
+    //         setIsDepartmentReady(true);
+    //       }
+    //     };
+
+    //     fetchSequences();
+    //   }, [selectedOption]);
+    const handleHiddenDivClick = () => {
+        console.log('Hidden div clicked due to dropdown change:', selectUserDept, maxncseq, maxobsseq, maxNCSeqRef.current, maxObsSeqRef.current);
+        // Do your action here
+    };
     const handleDepartmentChange = async (selectedOption: any) => {
         debugger
         setSequencesLoaded(false);
@@ -232,20 +280,22 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
         const setAuditreportNC = await getItemsAuditReportNC(sp, selectedOption?.value);
         const setAuditreportObs = await getItemsAuditReportObs(sp, selectedOption?.value);
-        if (setAuditreportNC.length > 0) {
-            maxncseq = setAuditreportNC[0].NCSequence;
+        if (setAuditreportNC.length > 0 || setAuditreportObs.length > 0) {
+            maxncseq = setAuditreportNC?.length > 0 && setAuditreportNC[0].NCSequence;
+            maxobsseq = setAuditreportObs?.length > 0 && setAuditreportObs[0].ObservationSequence;
             setFormData(prevData => ({
                 ...prevData,
-                NCSequence: setAuditreportNC[0].NCSequence
+                NCSequence: setAuditreportNC?.length > 0 ? setAuditreportNC[0].NCSequence : 0,
+                ObservationSequence: setAuditreportObs?.length > 0 ? setAuditreportObs[0].ObservationSequence : 0,
             }));
         }
-        if (setAuditreportObs.length > 0) {
-            maxobsseq = setAuditreportObs[0].ObservationSequence;
-            setFormData(prevData => ({
-                ...prevData,
-                ObservationSequence: setAuditreportObs[0].ObservationSequence,
-            }));
-        };
+        // if (setAuditreportObs.length > 0) {
+        //     maxobsseq = setAuditreportObs[0].ObservationSequence;
+        //     setFormData(prevData => ({
+        //         ...prevData,
+        //         ObservationSequence: setAuditreportObs[0].ObservationSequence,
+        //     }));
+        // };
         maxNCSeqRef.current = maxncseq;
         maxObsSeqRef.current = maxobsseq;
         setNCNumberrows([]);
@@ -287,8 +337,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
         setreportCode(reportcode);
         setFormData({ ...formData, deptId: selectedOption?.value, reportCode: reportcode });
         setTimeout(() => {
+            if (hiddenDivRef.current) {
+                hiddenDivRef.current.click();
+            }
             setIsDepartmentReady(true);
-        }, 1000); // Let React batch state updates first
+        }, 2000); // Let React batch state updates first
     };
     const handleShiftChange = async (selectedOption: any) => {
         setselectshift(selectedOption);
@@ -608,6 +661,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
     };
     const ApiCallFunc = async () => {
+        setLoading(true);
+        setFormLoading(true);
+        setTimeout(() => {
+            setLoading(false);
+            setFormLoading(false);
+        }, 5000); // 5000ms = 5 seconds
         setAuditPlanType(await getAllAuditType(sp));
         var DepartmentArr = await getAllDepartment(sp);
         DepartmentArr.sort((a, b) => a.Department.localeCompare(b.Department));
@@ -692,7 +751,17 @@ const AnnualAuditReportContext = ({ props }: any) => {
         //setselectUserDept(setAllDept1.filter(user => user.label === UserDept));
         let currentuserdepartment = UserDept == "IT" ? "Information Technology" : UserDept;
         setcurrentUserDept(setAllDept1.filter(user => user.label === currentuserdepartment))
+        setFormData(prevData => ({
+            ...prevData,
+            RequesterNameId: Currusers?.Id || "",
+            RequesterDesignation: userProfile?.Title || "",
+            RequesterName: userProfile?.DisplayName || "",
+            RequestDate: new Date().toLocaleDateString("en-CA"),
+            // Department: UserDept
+            //DepartmentId: optionsfilterdepart && optionsfilterdepart[0]?.value
+            //RequestedDate: new Date().toISOString().split("T")[0] // Format as YYYY-MM-DD
 
+        }));
         console.log("userrrrdeptt", UserDept);
         setFormData({ ...formData, fromdeptId: setAllDept1.filter(user => user.label === currentuserdepartment)[0]?.value });
         const AllUserRoles = await getDataRoles(sp);
@@ -893,6 +962,38 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 setdoccode(setBannerById[0].Title);
                 debugger
                 setselectUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentAuditedId));
+                if (setBannerById[0].DepartmentAuditedId > 0) {
+                    let departmentselected = setAllDept1.filter(user => user.value === setBannerById[0].DepartmentAuditedId)
+                    // handleDepartmentChange(departmentselected);
+                    setSequencesLoaded(false);
+                    setIsDepartmentReady(false); // Prevent effects during update
+                    skipNCUpdateRef.current = true;
+                    departmentChanged = true;
+                    EnableNC = true;
+                    setEnableNCObs(true);
+
+                    const setAuditreportNC = await getItemsAuditReportNC(sp, setBannerById[0].DepartmentAuditedId);
+                    const setAuditreportObs = await getItemsAuditReportObs(sp, setBannerById[0].DepartmentAuditedId);
+                    if (setAuditreportNC.length > 0 || setAuditreportObs.length > 0) {
+                        maxncseq = setAuditreportNC?.length > 0 && setAuditreportNC[0].NCSequence;
+                        maxobsseq = setAuditreportObs?.length > 0 && setAuditreportObs[0].ObservationSequence;
+                        setFormData(prevData => ({
+                            ...prevData,
+                            NCSequence: setAuditreportNC?.length > 0 ? setAuditreportNC[0].NCSequence : 0,
+                            ObservationSequence: setAuditreportObs?.length > 0 ? setAuditreportObs[0].ObservationSequence : 0,
+                        }));
+                    };
+                    maxNCSeqRef.current = maxncseq;
+                    maxObsSeqRef.current = maxobsseq;
+                    setNCNumberrows([]);
+                    setSequencesLoaded(true);
+                    setTimeout(() => {
+                        if (hiddenDivRef.current) {
+                            hiddenDivRef.current.click();
+                        }
+                        setIsDepartmentReady(true);
+                    }, 2000);
+                }
                 setcurrentUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentId));
                 const selectedauditplan = options.filter((cust: { value: any; }) => cust.value === setBannerById[0].ApprovedAuditPlanId) || null;
                 setselectAuditplan(selectedauditplan);
@@ -1390,51 +1491,6 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 validRec = false;
             }
 
-            // if (recommendationRows.length > 0) {
-            //     debugger
-            //     //let validRec = true; // Assume valid initially
-            //     let rowErrors: any[] = []; // Store errors for each row
-
-            //     recommendationRows.forEach((row: any, index: number) => {
-            //         let rowError: any = {}; // Store errors for this row
-
-            //         if (!row.isoreference || row.isoreference.trim() === "") {
-            //             rowError.isoreference = true;
-            //         }
-            //         if (!row.imsprocedure || row.imsprocedure.trim() === "") {
-            //             rowError.imsprocedure = true;
-            //         }
-            //         if (!row.inquiries || row.inquiries.trim() === "") {
-            //             rowError.inquiries = true;
-            //         }
-            //         if (!row.time || row.time.trim() === "") {
-            //             rowError.time = true;
-            //         }
-            //         if (!row.auditorcomments || row.auditorcomments.trim() === "") {
-            //             rowError.auditorcomments = true;
-            //         }
-            //         // if (!row.sharewith || row.sharewith.length === 0) {
-            //         //     rowError.sharewith = true;
-            //         // }
-
-            //         // If there are errors in this row, store them
-            //         if (Object.keys(rowError).length > 0) {
-            //             rowErrors[index] = rowError; // Assign the errors for this row
-            //             validRec = false; // Mark as invalid
-            //         }
-            //     });
-
-            //     // Update the state or UI with the errors
-            //     setRowErrors(rowErrors);
-
-            //     // Set validation flag
-            //     if (!validRec) {
-            //         console.log("Validation failed. Highlight errors accordingly.");
-            //     }
-            //     if (rowErrors.length > 0) {
-            //         validRec = false;
-            //     }
-            // }
             if (recommendationRows.length > 0) {
                 let rowErrors: any[] = [];
                 //let validRec = true;
@@ -1525,6 +1581,19 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
         }
         else {
+            setdepartmenterr(false);
+            setfromdepartmenterr(false);
+            setdateerr(false);
+            setattachmenterr(false);
+            setisoreferenceerr(false);
+            setimsprocedureerr(false);
+            setinquirieserr(false);
+            settimeerr(false);
+            setauditorcommentserr(false);
+            setsharewitherr(false);
+            setapprovedauditplanerr(false);
+            setRowErrors([]);
+            setForwardToValidationErrors([]);
             if (!date) {
                 setdateerr(true);
                 //Swal.fire('Error', 'Title is required!', 'error');
@@ -1742,6 +1811,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             // MemoSerialNumber:,
                             // IssueNumber:,
                             // RevisionNumber:,
+                            RequesterNameId: formData.RequesterNameId,
+                            RequesterDesignation: formData.RequesterDesignation,
+                            RequestDate: formData.RequestDate != "" ? new Date(formData.RequestDate).toISOString() : new Date().toISOString(),
                             ReportCode: formData.reportCode,
                             NCNumber: checkboxValues["FailureofIntentNonconformity"] ||
                                 checkboxValues["FailureofImplementation"] ||
@@ -2109,6 +2181,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             NCSequence: maxNCSequence,
                             MemoNumber: doccode,
                             Title: doccode,
+                            RequesterNameId: formData.RequesterNameId,
+                            RequesterDesignation: formData.RequesterDesignation,
+                            RequestDate: formData.RequestDate != "" ? new Date(formData.RequestDate).toISOString() : new Date().toISOString(),
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
                             ShiftId: formData.shiftId,
@@ -2408,6 +2483,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             ObservationNumber: checkboxValues["Observations"] ? maxObsNo : "",
                             ObservationSequence: maxObsSequence,
                             NCSequence: maxNCSequence,
+                            RequesterNameId: formData.RequesterNameId,
+                            RequesterDesignation: formData.RequesterDesignation,
+                            RequestDate: formData.RequestDate != "" && formData.RequestDate != null ? new Date(formData.RequestDate).toISOString() : new Date().toISOString(),
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
                             ShiftId: formData.shiftId,
@@ -2741,6 +2819,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 checkboxValues["FailureofImplementation"] ||
                                 checkboxValues["FailureofEffectiveness"] ? maxNCNo : "",
                             ObservationNumber: checkboxValues["Observations"] ? maxObsNo : "",
+                            RequesterNameId: formData.RequesterNameId,
+                            RequesterDesignation: formData.RequesterDesignation,
+                            RequestDate: new Date().toISOString(),
                             ObservationSequence: maxObsSequence,
                             NCSequence: maxNCSequence,
                             ReportCode: formData.reportCode,
@@ -3994,7 +4075,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         <label htmlFor="Department" className="col-form-label">Shift</label>
                                                                         <div >
                                                                             <div
-                                                                                title={AuditProgShift && AuditProgShift[0]?.label || "Select a shift"}
+                                                                                title={selectshift && selectshift?.label || selectshift && selectshift[0]?.label}
                                                                                 style={{ width: "100%" }}
                                                                             >
                                                                                 <Select
@@ -4174,9 +4255,19 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                                     },
                                                                                                     '& .Mui-disabled': {
                                                                                                         WebkitTextFillColor: 'black', // Safari
-                                                                                                    }
+                                                                                                    },
+                                                                                                    '& .MuiSvgIcon-root': {
+                                                                                                        color: 'black !important', // Force icon color to black
+                                                                                                    },
+
                                                                                                 }
-                                                                                            }
+                                                                                            },
+                                                                                            openPickerIcon: {
+                                                                                                sx: {
+                                                                                                    color: 'black !important',
+                                                                                                    opacity: 1,
+                                                                                                },
+                                                                                            },
                                                                                         }}
 
                                                                                     />
@@ -4434,9 +4525,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                 {/* /////////// */}
 
-                                                <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' className='filemodal'>
+                                                <Modal show={showModal} onHide={() => setShowModal(false)} size={Showfile ? "xl" : "lg"} className='filemodal'>
                                                     <Modal.Header closeButton>
-                                                        <Modal.Title > <h4 className='font-16 text-dark fw-bold mb-0'>Attachment Details</h4>
+                                                        <Modal.Title > <h4 className='font-16 text-dark fw-bold mb-0'>Attachment Details Audit report attachment</h4>
                                                             <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for IMS Audit Report and Checklist
                                                             </p>
 
@@ -4460,7 +4551,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         <th style={{ minWidth: '200px', maxWidth: '200px' }}>File Name</th>
 
                                                                         {/* <th>File Link</th> */}
-                                                                        <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th>
+                                                                        <th style={{ minWidth: '60px', maxWidth: '60px' }} className='text-center'>Upload date</th>
                                                                         {
                                                                             ((
                                                                                 (
@@ -4477,7 +4568,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                         modeValue === "edit" ||
                                                                                         modeValue === null ||
                                                                                         modeValue === "" ||
-                                                                                        (modeValue === "approve" && formData?.Status === "Rework")
+                                                                                        (modeValue === "approve" && formData?.Status === "Rework") ||
+                                                                                        (modeValue == "approve" && editID?.IsRework == "Yes")
                                                                                     )
                                                                                 )) &&
                                                                             <th style={{ minWidth: '50px', maxWidth: '50px' }}>Action</th>
@@ -4491,13 +4583,14 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
+                                                                    {console.log("filearrrr", FilesArr)}
                                                                     {FilesArr.length > 0 && (
                                                                         FilesArr.map((row: any, index: number) => (
                                                                             <tr>
                                                                                 <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
                                                                                 {/* <td title={row.name || row.FileLeafRef}>{row.name || row.FileLeafRef}</td> */}
-                                                                                <td style={{ minWidth: '200px', maxWidth: '200px' }} title={row.name || row.FileLeafRef}>
-                                                                                    {row.name || row.FileLeafRef}</td>
+                                                                                <td style={{ minWidth: '200px', maxWidth: '200px' }} title={cleanFileName(row.name) || cleanFileName(row.FileLeafRef)}>
+                                                                                    {cleanFileName(row.name) || cleanFileName(row.FileLeafRef)}</td>
                                                                                 <td style={{ minWidth: '50px', maxWidth: '50px' }} title={row.Created ? new Date(row.Created).toLocaleDateString("en-GB", {
                                                                                     day: "2-digit",
                                                                                     month: "short",
@@ -4533,18 +4626,23 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                             modeValue === "edit" ||
                                                                                             modeValue === null ||
                                                                                             modeValue === "" ||
-                                                                                            (modeValue === "approve" && formData?.Status === "Rework")
+                                                                                            (modeValue === "approve" && formData?.Status === "Rework") ||
+                                                                                            (modeValue == "approve" && editID?.IsRework == "Yes")
                                                                                         )
                                                                                     )) &&
-                                                                                    <td style={{ minWidth: '50px', maxWidth: '50px', textAlign: 'center' }}>
+                                                                                    <td style={{ minWidth: '60px', maxWidth: '60px', textAlign: 'center' }}>
                                                                                         {((modeValue != null && modeValue != "" && modeValue == "edit" || modeValue == "view" || modeValue == "approve")
-                                                                                            || (modeValue == "approve" && formData?.Status == "Rework")) && showviewdownload &&
-                                                                                            <><span onClick={() => OpenFile(FilesArr && FilesArr[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                                <FontAwesomeIcon title='Preview file' icon={faEye} /></span><span onClick={() => OpenFile(FilesArr && FilesArr[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                                    <FontAwesomeIcon title='Download file' icon={faDownload} /></span></>
+                                                                                            || (modeValue == "approve" && formData?.Status == "Rework")) && row.Id &&
+                                                                                            <>
+                                                                                                <span onClick={() => OpenFile(row && row, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                                    <FontAwesomeIcon title='Preview file' icon={faEye} /></span>
+                                                                                                <span onClick={() => OpenFile(row && row, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                                    <FontAwesomeIcon title='Download file' icon={faDownload} /></span>
+                                                                                            </>
                                                                                         }
-                                                                                        {(modeValue == "edit" || modeValue == null || modeValue == ""
-                                                                                            || (modeValue == "approve" && formData?.Status == "Rework")) &&
+                                                                                        {(((modeValue == "edit" || modeValue == null || modeValue == ""
+                                                                                            || (modeValue == "approve" && formData?.Status == "Rework")) && !showviewdownload) ||
+                                                                                            (modeValue == "approve" && editID?.IsRework == "Yes") || modeValue == "edit") &&
                                                                                             <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} />
                                                                                         }
                                                                                     </td>
@@ -4562,7 +4660,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                     </Modal.Body>
 
                                                 </Modal>
-                                                <Modal show={ShowModalpre} onHide={() => setShowModalpre(false)} size='lg' className='filemodal'>
+                                                <Modal show={ShowModalpre} onHide={() => setShowModalpre(false)} size={Showfile ? "xl" : "lg"} className='filemodal'>
                                                     <Modal.Header closeButton>
                                                         <Modal.Title > <h4 className='font-16 text-dark fw-bold mb-0'>Attachment Details</h4>
                                                             <p className='text-muted font-14 mb-0 fw-400'>Below are the attachment details for IMS Audit Report and Checklist
@@ -4598,8 +4696,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                             <tr>
                                                                                 <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
                                                                                 {/* <td title={row.name || row.FileLeafRef}>{row.name || row.FileLeafRef}</td> */}
-                                                                                <td style={{ minWidth: '200px', maxWidth: '200px' }} title={row.name || row.FileLeafRef}>
-                                                                                    {row.name || row.FileLeafRef}</td>
+                                                                                <td style={{ minWidth: '200px', maxWidth: '200px' }} title={cleanFileName(row.name) || cleanFileName(row.FileLeafRef)}>
+                                                                                    {cleanFileName(row.name) || cleanFileName(row.FileLeafRef)}</td>
                                                                                 {/* <td style={{ textAlign: 'center' }} >
                                                                                        
                                                                                         <span onClick={() => OpenFile(DocumentLink, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span>
@@ -4636,8 +4734,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 <td style={{ minWidth: '50px', maxWidth: '50px', textAlign: 'center' }} title={"Preview Document"}>
                                                                                     <span onClick={() => OpenFile(TemplateDocAudit && TemplateDocAudit[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                                                                         <FontAwesomeIcon title='Preview file' icon={faEye} /></span>
-                                                                                    {/* <span onClick={() => OpenFile(FilesArrDoclink && FilesArrDoclink[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                    <FontAwesomeIcon icon={faDownload} /></span> */}
+                                                                                     <span onClick={() => OpenFile(TemplateDocAudit && TemplateDocAudit[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                    <FontAwesomeIcon icon={faDownload} /></span> 
                                                                                 </td>
                                                                                 {/* {!InputDisabled && <td style={{ textAlign: 'center' }}> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>} */}
 
@@ -4677,7 +4775,13 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                         }
 
+                                        <div
+                                            ref={hiddenDivRef}
+                                            onClick={handleHiddenDivClick}
+                                            style={{ display: 'none' }}
+                                        >
 
+                                        </div>
                                     </div>
                                 </div>
 
