@@ -214,11 +214,38 @@ export const addItem2 = async (itemData, _sp) => {
   }
   return resultArr;
 };
-
+export const updateItemAuditreport = async (itemData, _sp, id) => {
+  let resultArr = []
+  try {
+    const newItem = await _sp.web.lists.getByTitle('AnnualAuditReportList').items.getById(id).update(itemData);
+    console.log('Item added successfully:', newItem);
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+  }
+  return resultArr;
+};
 export const updateItem = async (itemData, _sp, id) => {
   let resultArr = []
   try {
     const newItem = await _sp.web.lists.getByTitle('ChangeRequestDocumentCancellationList').items.getById(id).update(itemData);
+    console.log('Item added successfully:', newItem);
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+  }
+  return resultArr;
+};
+export const updateItemMainList = async (itemData, _sp, id,listName) => {
+  let resultArr = []
+  try {
+    const newItem = await _sp.web.lists.getByTitle(listName).items.getById(id).update(itemData);
     console.log('Item added successfully:', newItem);
     resultArr = newItem
     // Perform any necessary actions after successful addition

@@ -8,7 +8,8 @@ import { getSP } from "../../webparts/dmsMusaib/loc/pnpjsConfig";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import Swal from "sweetalert2";
 // import { updateItem, updateItemChangeRequestList } from "../../APISearvice/DocumentCancellation";
-import { updateItem, updateItemChangeRequestList } from "../../APISearvice/DocumentCancellation";
+import { updateItem, updateItemAuditreport, updateItemChangeRequestList, updateItemMainList } from "../../APISearvice/DocumentCancellation";
+import { LIST_TITLE_AuditPlan, LIST_TITLE_AuditProgram, LIST_TITLE_Memo } from "../../Shared/Constants";
 
 export interface IWorkflowActionProps {
   currentItem: any;
@@ -60,8 +61,10 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
       return;
     }
     setValidRemark(true);
-    let postPayload = {}
-    let postPayload2 = {}
+    let postPayload = {};
+    let postPayload2 = {};
+    let postPayloadMemo = {};
+    let postPayload2AuditReport: {};
     if ((Status === 'Rework' || Status === 'Rejected') && formData.Remark === "") {
       setValidRemark(false);
       Swal.fire('Please fill the mandatory fields', '', 'warning');
@@ -90,6 +93,27 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         InitiatorSubmitStatus: "No",
         CurrentUserRole: "Initiator",
         SubmitStatus: "No",
+        IsRework: Status == "Rework" ? "Yes" : "No"
+
+      };
+      postPayloadMemo = {
+
+        Status: Status,
+        // OESSubmitStatus: "No",
+        // InitiatorSubmitStatus: "No",
+        // CurrentUserRole: "Initiator",
+        SubmitStatus: "No",
+        IsRework: Status == "Rework" ? "Yes" : "No"
+
+      };
+      postPayload2AuditReport = {
+
+        Status: Status,
+        // OESSubmitStatus: "No",
+        // InitiatorSubmitStatus: "No",
+        // CurrentUserRole: "Initiator",
+        SubmitStatus: "No",
+        IsRework: Status == "Rework" ? "Yes" : ""
 
       };
 
@@ -148,10 +172,36 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         else if (props.ContentType == "Annual Audit Plan"|| props.ContentType == "Annual Audit Program" || props.ContentType == "IMS Audit Plan"|| props.ContentType == "IMS Annual Audit Program"|| props.ContentType == "Memorandum") {
           postResult = await updateItemApproval2(postPayload, sp, props.currentItem.Id);
 
+          if (Status == 'Rework') {
+            var listName = "";
+            switch (props.ContentType) {
+              case "Annual Audit Plan":
+                listName = LIST_TITLE_AuditPlan;
+                break;
+              case "IMS Audit Plan":
+                listName = LIST_TITLE_AuditPlan;
+                break;
+              case "Annual Audit Program":
+                listName = LIST_TITLE_AuditProgram;
+                break;
+              case "IMS Annual Audit Program":
+                listName = LIST_TITLE_AuditProgram;
+                break;
+              case "Memorandum":
+                listName = LIST_TITLE_Memo;
+                break;
+            }
+            const postResult2 = await updateItemMainList(postPayloadMemo, sp, Number(props.currentItem.ListItemId),listName);
+              
+
+          }
+
         }
         else if (props.ContentType == "Annual Audit Report" || props.ContentType == "IMS Audit Report and Checklist") {
           postResult = await updateItemApproval2(postPayload, sp, props.currentItem.Id);
-
+          if (Status == 'Rework') {
+            const postResultaudit = await updateItemAuditreport(postPayload2AuditReport, sp, Number(props.currentItem.ListItemId));
+          }
         }
         else {
           postResult = await updateItemApproval(postPayload, sp, props.currentItem.Id);

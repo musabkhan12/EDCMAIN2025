@@ -598,6 +598,7 @@ export const updateItemChangeRequestReasonList = async (itemData, _sp, id) => {
   return resultArr;
 };
 export const getallProcessApprovalitems = async (_sp, id) => {
+  debugger
   let resultArr = [];
   let newItem = [];
   try {
@@ -627,7 +628,32 @@ export const getallProcessApprovalitems = async (_sp, id) => {
   }
   return resultArr;
 };
+export const getallProcessApprovalitemsLevel = async (_sp, id) => {
+  debugger
+  let resultArr = "";
+  let newItem = "";
+  try {
+    const newitemnew = await _sp.web.lists.getByTitle('AllProcessApprovalLevelList').items
+      .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,Approvers/Id,Approvers/Title")
+      .expand("Author,RequesterName,Approvers")
+      .filter(`MainListID eq ${id}`).orderBy("Level", false)
+      ().then(async (res) => {
+        if (res.length > 0) {
+          newItem = res[0].Level
+        }
 
+      })
+    console.log("newitemnewnewitemnew", newitemnew);
+
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+  }
+  return resultArr;
+};
 export const updateApprovalItem = async (itemData, _sp, id) => {
   let resultArr = []
   try {

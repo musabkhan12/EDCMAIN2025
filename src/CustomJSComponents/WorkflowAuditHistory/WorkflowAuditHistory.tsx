@@ -98,7 +98,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
         default:
       }
       setLoading(true);
-      if (props.ContentType != "Document Cancellation" && props.ContentType != "Change Request" && props.ContentType != "Annual Audit Plan" && props.ContentType != "IMS Audit Plan"  && props.ContentType != "Annual Audit Report" && props.ContentType != "IMS Audit Report and Checklist" && props.ContentType != "Annual Audit Program" && props.ContentType != "IMS Annual Audit Program"&& props.ContentType != "Memorandum") {
+      if (props.ContentType != "Document Cancellation" && props.ContentType != "Change Request" && props.ContentType != "Annual Audit Plan" && props.ContentType != "IMS Audit Plan" && props.ContentType != "Annual Audit Report" && props.ContentType != "IMS Audit Report and Checklist" && props.ContentType != "Annual Audit Program" && props.ContentType != "IMS Annual Audit Program" && props.ContentType != "Memorandum") {
         sp.web.lists.getByTitle("ARGMyRequest").items
           .select("*,Requester/Id,Requester/Title,Approver/Id,Approver/Title")
           .expand("Approver,Requester")
@@ -228,13 +228,13 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                   </th>
 
-                  {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request"|| props.ContentType == "Annual Audit Program" || props.ContentType == "IMS Annual Audit Program" || props.ContentType == "Annual Audit Plan" || props.ContentType == "IMS Audit Plan"|| props.ContentType == "Annual Audit Report" || props.ContentType == "IMS Audit Report and Checklist"|| props.ContentType == "Memorandum") &&<th style={{ minWidth: '100px', maxWidth: '100px' }}>
+                  {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request" || props.ContentType == "Annual Audit Program" || props.ContentType == "IMS Annual Audit Program" || props.ContentType == "Annual Audit Plan" || props.ContentType == "IMS Audit Plan" || props.ContentType == "Annual Audit Report" || props.ContentType == "IMS Audit Report and Checklist" || props.ContentType == "Memorandum") && <th style={{ minWidth: '100px', maxWidth: '100px' }}>
 
 
-                   Assigned To Role
+                    Assigned To Role
 
                   </th>
-        }
+                  }
 
                   <th style={{ minWidth: '90px', maxWidth: '90px' }}>
 
@@ -315,21 +315,21 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                         <td style={{ minWidth: '50px', maxWidth: '50px' }}> {index + 1}</td>
 
 
-                        <td title= {
-                            row.LevelId !== undefined && row.LevelId !== null
-                              ? row.LevelId === 0
-                                ? "Initiator"
-                                : `Level ${row.LevelId}`
-                              : row.Level !== undefined && row.Level !== null
-                                ? row.Level === 0
-                                  ? row.CurrentUserRole === "OES"
-                                    ? "Organisation Escation Strategy"
-                                    : row.CurrentUserRole == null || row.CurrentUserRole == "Initiator"
-                                      ? "Initiator"
-                                      : `Level ${row.Level}`
-                                  : `Level ${row.Level}`
-                                : ""
-                          } style={{ minWidth: '60px', maxWidth: '60px' }}>
+                        <td title={
+                          row.LevelId !== undefined && row.LevelId !== null
+                            ? row.LevelId === 0
+                              ? "Initiator"
+                              : `Level ${row.LevelId}`
+                            : row.Level !== undefined && row.Level !== null
+                              ? row.Level === 0
+                                ? row.CurrentUserRole === "OES"
+                                  ? "Organisation Escation Strategy"
+                                  : row.CurrentUserRole == null || row.CurrentUserRole == "Initiator"
+                                    ? "Initiator"
+                                    : `Level ${row.Level}`
+                                : `Level ${row.Level}`
+                              : ""
+                        } style={{ minWidth: '60px', maxWidth: '60px' }}>
                           {
                             row.LevelId !== undefined && row.LevelId !== null
                               ? row.LevelId === 0
@@ -352,24 +352,35 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                         <td title={row.Approver ? row.Approver.Title : row.AssignedTo.Title} style={{ minWidth: '80px', maxWidth: '80px' }}> {row.Approver ? row.Approver.Title : row.AssignedTo.Title}</td>
 
-                        {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request" || props.ContentType == "Annual Audit Program" || props.ContentType == "IMS Annual Audit Program" || props.ContentType == "Annual Audit Plan" || props.ContentType == "IMS Audit Plan"|| props.ContentType == "Annual Audit Report" || props.ContentType == "IMS Audit Report and Checklist"|| props.ContentType == "Memorandum") &&
-                          <td title={row.CurrentUserRole || row.ActionTakenRole.Role || ""} style={{ minWidth: '100px', maxWidth: '100px' }}>{row.CurrentUserRole ||row.ActionTakenRole.Role ||""}</td>
+                        {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request" || props.ContentType == "Annual Audit Program" || props.ContentType == "IMS Annual Audit Program" || props.ContentType == "Annual Audit Plan" || props.ContentType == "IMS Audit Plan" || props.ContentType == "Annual Audit Report" || props.ContentType == "IMS Audit Report and Checklist" || props.ContentType == "Memorandum") &&
+                          <td title={row.CurrentUserRole || row.ActionTakenRole.Role || ""} style={{ minWidth: '100px', maxWidth: '100px' }}>{row.CurrentUserRole || row.ActionTakenRole.Role || ""}</td>
                         }
 
                         <td title={row.Requester ? row.Requester.Title : row.RequesterName.Title} style={{ minWidth: '90px', maxWidth: '90px' }}> {row.Requester ? row.Requester.Title : row.RequesterName.Title}</td>
                         {/* <td style={{ minWidth: '70px', maxWidth: '70px' }}> {row.ActionTakenRole ? row.ActionTakenRole.Role : row.ActionTakenRole.Role}</td> */}
                         {/* <td  style={{ minWidth: '70px', maxWidth: '70px' }}> {(new Date(row.Created)).toLocaleString()}</td> */}
-                        <td style={{ minWidth: '90px', maxWidth: '90px' }} title={`${new Intl.DateTimeFormat('en-GB', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric'
-                        }).format(new Date(row.Created)).replace(/ /g, "/")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: false
-                        })}`}>
+                        <td style={{ minWidth: '90px', maxWidth: '90px' }} title={
+                          //   `${new Intl.DateTimeFormat('en-GB', {
+                          //   day: '2-digit',
+                          //   month: 'short',
+                          //   year: 'numeric'
+                          // }).format(new Date(row.Created)).replace(/ /g, "/")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
+                          //   hour: '2-digit',
+                          //   minute: '2-digit',
+                          //   hour12: false
+                          // })}`
+                          `${new Intl.DateTimeFormat('en-GB', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                          }).format(new Date(new Date(row?.Created).getTime() - (1 * 60 + 30) * 60 * 1000)).replace(/ /g, "/")} ${new Date(new Date(row?.Created).getTime() - (1 * 60 + 30) * 60 * 1000).toLocaleTimeString('en-GB', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                          })}`
+                        }>
                           {/* {new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.Created))} */}
-                          {new Intl.DateTimeFormat('en-GB', {
+                          {/* {new Intl.DateTimeFormat('en-GB', {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric'
@@ -377,13 +388,40 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: false
-                          })}
+                          })} */}
+                          {/* `${new Intl.DateTimeFormat('en-GB', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                          }).format(new Date(new Date(row?.Created).getTime() - (1 * 60 + 30) * 60 * 1000)).replace(/ /g, "/")} ${new Date(new Date(row?.Created).getTime() - (1 * 60 + 30) * 60 * 1000).toLocaleTimeString('en-GB', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                          })}` */}
+                          {
+                            (() => {
+                              const adjustedTime = new Date(new Date(row?.Created).getTime() - (1 * 60 + 30) * 60 * 1000);
+                              const formattedDate = new Intl.DateTimeFormat('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                              })
+                                .format(adjustedTime)
+                                .replace(/ /g, '/');
+                              const formattedTime = adjustedTime.toLocaleTimeString('en-GB', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false,
+                              });
+                              return `${formattedDate} ${formattedTime}`;
+                            })()
+                           }
                         </td>
 
                         {/* <td> {(row.Status != 'Pending') ? (row.Approver?.Title ? row.Approver.Title:(row.ActionTakenBy.Title?row.ActionTakenBy.Title:"")) : ""}</td> */}
                         <td style={{ minWidth: '70px', maxWidth: '70px', cursor: 'pointer' }} title={row.Status !== "Pending"
-                            ? row.Approver?.Title || row.ActionTakenBy?.Title || ""
-                            : ""}>
+                          ? row.Approver?.Title || row.ActionTakenBy?.Title || ""
+                          : ""}>
                           {row.Status !== "Pending"
                             ? row.Approver?.Title || row.ActionTakenBy?.Title || ""
                             : ""}
@@ -391,18 +429,29 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                         {/* <td style={{ minWidth: '70px', maxWidth: '70px' }}>{(row.Status != 'Pending') ? ((new Date(row.Modified)).toLocaleString()) : ""}</td> */}
                         <td style={{ minWidth: '70px', maxWidth: '70px' }} title={row.Status !== 'Pending'
-                          ? `${new Intl.DateTimeFormat('en-GB', {
+                          ?
+                          // `${new Intl.DateTimeFormat('en-GB', {
+                          //   day: '2-digit',
+                          //   month: 'short',
+                          //   year: 'numeric'
+                          // }).format(new Date(row.Modified)).replace(/ /g, "/")} ${new Date(row.Modified).toLocaleTimeString('en-GB', {
+                          //   hour: '2-digit',
+                          //   minute: '2-digit',
+                          //   hour12: false
+                          // })}`
+                          `${new Intl.DateTimeFormat('en-GB', {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric'
-                          }).format(new Date(row.Modified)).replace(/ /g, "/")} ${new Date(row.Modified).toLocaleTimeString('en-GB', {
+                          }).format(new Date(new Date(row?.Modified).getTime() - (1 * 60 + 30) * 60 * 1000)).replace(/ /g, "/")} ${new Date(new Date(row?.Modified).getTime() - (1 * 60 + 30) * 60 * 1000).toLocaleTimeString('en-GB', {
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: false
                           })}`
                           : ""}>
-                          {row.Status !== 'Pending'
-                            ? `${new Intl.DateTimeFormat('en-GB', {
+                          {/* {row.Status !== 'Pending'
+                            ? 
+                            `${new Intl.DateTimeFormat('en-GB', {
                               day: '2-digit',
                               month: 'short',
                               year: 'numeric'
@@ -411,7 +460,27 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                               minute: '2-digit',
                               hour12: false
                             })}`
-                            : ""}
+                            : ""} */}
+                          {row.Status !== 'Pending' ? (
+                            (() => {
+                              const adjustedTime = new Date(new Date(row?.Modified).getTime() - (1 * 60 + 30) * 60 * 1000);
+                              const formattedDate = new Intl.DateTimeFormat('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                              })
+                                .format(adjustedTime)
+                                .replace(/ /g, '/');
+                              const formattedTime = adjustedTime.toLocaleTimeString('en-GB', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false,
+                              });
+                              return `${formattedDate} ${formattedTime}`;
+                            })()
+                          ) : (
+                            ""
+                          )}
                           {/* {(row.Status != 'Pending') ?(new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.Modified))):""} */}
                         </td>
 

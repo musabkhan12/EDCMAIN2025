@@ -326,18 +326,28 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                         <td> {row.Requester ? row.Requester.Title : row.RequesterName.Title}</td>
 
                         <td title={row.Status !== 'Pending'
-                          ? `${new Intl.DateTimeFormat('en-GB', {
+                          ?
+                          // `${new Intl.DateTimeFormat('en-GB', {
+                          //   day: '2-digit',
+                          //   month: 'short',
+                          //   year: 'numeric'
+                          // }).format(new Date(row.Created)).replace(/ /g, "-")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
+                          //   hour: '2-digit',
+                          //   minute: '2-digit',
+                          //   hour12: false
+                          // })}`
+                          `${new Intl.DateTimeFormat('en-GB', {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric'
-                          }).format(new Date(row.Created)).replace(/ /g, "-")} ${new Date(row.Created).toLocaleTimeString('en-GB', {
+                          }).format(new Date(new Date(row?.Created).getTime() - (1 * 60 + 30) * 60 * 1000)).replace(/ /g, "/")} ${new Date(new Date(row?.Created).getTime() - (1 * 60 + 30) * 60 * 1000).toLocaleTimeString('en-GB', {
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: false
                           })}`
                           : ""}>
                           {/* {new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.Created))} */}
-                          {row.Status !== 'test'
+                          {/* {row.Status !== 'test'
                             ?
                              `${new Intl.DateTimeFormat('en-GB', {
                               day: '2-digit',
@@ -348,7 +358,28 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                               minute: '2-digit',
                               hour12: false
                             })}`
-                            : ""}
+
+                            : ""} */}
+                          {row.Status !== 'test' ? (
+                            (() => {
+                              const adjustedTime = new Date(new Date(row?.Created).getTime() - (1 * 60 + 30) * 60 * 1000);
+                              const formattedDate = new Intl.DateTimeFormat('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                              })
+                                .format(adjustedTime)
+                                .replace(/ /g, '/');
+                              const formattedTime = adjustedTime.toLocaleTimeString('en-GB', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false,
+                              });
+                              return `${formattedDate} ${formattedTime}`;
+                            })()
+                          ) : (
+                            ""
+                          )}
                         </td>
 
                         {/* <td> {(row.Status != 'Pending') ? (row.Approver?.Title ? row.Approver.Title:(row.ActionTakenBy.Title?row.ActionTakenBy.Title:"")) : ""}</td> */}
@@ -359,19 +390,30 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                         </td>
 
                         <td title={row.Status !== 'Pending'
-                          ? `${new Intl.DateTimeFormat('en-GB', {
+                          ?
+                          //  `${new Intl.DateTimeFormat('en-GB', {
+                          //   day: '2-digit',
+                          //   month: 'short',
+                          //   year: 'numeric'
+                          // }).format(new Date(row.Modified)).replace(/ /g, "-")} ${new Date(row.Modified).toLocaleTimeString('en-GB', {
+                          //   hour: '2-digit',
+                          //   minute: '2-digit',
+                          //   hour12: false
+                          // })}`
+                          `${new Intl.DateTimeFormat('en-GB', {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric'
-                          }).format(new Date(row.Modified)).replace(/ /g, "-")} ${new Date(row.Modified).toLocaleTimeString('en-GB', {
+                          }).format(new Date(new Date(row?.Modified).getTime() - (1 * 60 + 30) * 60 * 1000)).replace(/ /g, "/")} ${new Date(new Date(row?.Modified).getTime() - (1 * 60 + 30) * 60 * 1000).toLocaleTimeString('en-GB', {
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: false
                           })}`
                           : ""}>
                           {/* {(row.Status != 'Pending') ?(new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.Modified))):""} */}
-                          {row.Status !== 'Pending'
-                            ? `${new Intl.DateTimeFormat('en-GB', {
+                          {/* {row.Status !== 'Pending'
+                            ?
+                            `${new Intl.DateTimeFormat('en-GB', {
                               day: '2-digit',
                               month: 'short',
                               year: 'numeric'
@@ -380,7 +422,28 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                               minute: '2-digit',
                               hour12: false
                             })}`
-                            : ""}
+                     
+                            : ""} */}
+                          {row.Status !== 'Pending' ? (
+                            (() => {
+                              const adjustedTime = new Date(new Date(row?.Modified).getTime() - (1 * 60 + 30) * 60 * 1000);
+                              const formattedDate = new Intl.DateTimeFormat('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                              })
+                                .format(adjustedTime)
+                                .replace(/ /g, '/');
+                              const formattedTime = adjustedTime.toLocaleTimeString('en-GB', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false,
+                              });
+                              return `${formattedDate} ${formattedTime}`;
+                            })()
+                          ) : (
+                            ""
+                          )}
                         </td>
 
                         <td title={row.Remark}> {row.Remark}</td>

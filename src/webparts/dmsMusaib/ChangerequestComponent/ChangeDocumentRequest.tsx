@@ -35,7 +35,8 @@ import {
   getTemplatelink,
   updateDigitalsign,
   getdigitalsignaturerequestbyIDYes,
-  CheckIfAlreadyactionTaken
+  CheckIfAlreadyactionTaken,
+  getallProcessApprovalitemsLevel
 } from './DocumentCancellation';
 import Select from "react-select";
 import Swal from 'sweetalert2';
@@ -204,6 +205,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [showpreviousattachment, setshowpreviousattachment] = React.useState(false);
   const [disabledforwardarr, setdisabledforwardarr] = React.useState(false);
   const [modeValue, setmode] = React.useState("");
+  const [maxlevelAllprocess, setmaxlevelAllprocess] = React.useState("");
+
   const [ValidRemark, setValidRemark] = React.useState(true);
   const [MandatRemark, setMandatRemark] = React.useState(false);
 
@@ -520,6 +523,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         setInputDisabled(false);
       }
       const setBannerById = await getItemByIDCR(sp, Number(formitemid));
+      let maxlevelAllprocess = await getallProcessApprovalitemsLevel(sp, Number(formitemid));
+      setmaxlevelAllprocess(maxlevelAllprocess);
       const newItem1 = await getdigitalsignaturerequestbyID("ChangeRequestList", sp, Number(formitemid));
       const isRecordExist = await getdigitalsignaturerequestbyIDYes("ChangeRequestList", sp, Number(formitemid));
       console.log("newItem1newItem1", newItem1);
@@ -1837,6 +1842,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               SubmiitedDate: new Date(formData.RequestDate).toISOString(),
               SubmitStatus: "Yes",
               Status: "Pending",
+              IsRework: "No",
               OESSubmitStatus: "No",
               InitiatorSubmitStatus: "Yes",
               CurrentUserRole: "OES",
@@ -1853,7 +1859,30 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               AttachmentJson: AttachmentJso,
               PreviousAttachmentID: ""
             }
-            const postResult = await updateItemChangeRequestList(arr, sp, editItemID);
+            let arrework = {
+              Title: formData.RequesterName,
+              RequesterNameId: formData.RequesterNameId,
+              RequesterDesignation: formData.RequesterDesignation,
+              RequestDate: new Date(formData.RequestDate).toISOString(),
+              IssueDate: finalissuedateNew,
+              RequestTypeId: formData.RequestTypeId,
+              AmendmentTypeId: formData.AmendmentTypeId,
+              ChangeRequestTypeId: selectedCheckboxIds,
+              ClassificationId: formData.ClassificationId,
+              SubmiitedDate: new Date(formData.RequestDate).toISOString(),
+              SubmitStatus: "Yes",
+              Status: "Pending",
+              IsRework: "No",
+              OESSubmitStatus: "No",
+              InitiatorSubmitStatus: "Yes",
+              CurrentUserRole: "OES",
+              DocumentName: attachmentIds.length != 0 ? DocumentName : formData.DocumentName,
+              DocumentTypeId: formData.DocumentTypeId,
+              AttachmentId: Attachmentidsss,
+              AttachmentJson: AttachmentJso,
+              PreviousAttachmentID: ""
+            }
+            const postResult = await updateItemChangeRequestList(formData.Status == "Rework" ? arrework : arr, sp, editItemID);
             const postId = postResult?.data?.ID;
             console.log("postPayload edit arr", arr, postResult);
             debugger
@@ -1957,7 +1986,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                   }
 
                   let newfileNameNew = file.name.includes(docCode) ? filenamenew : newfileNameNewX;
-                  
+
                   newfileNameNew = await cleanFileNameSave(newfileNameNew);
                   const finalFileNameNew = `${newfileNameNew.replace(/\.[^/.]+$/, "")}_${dateTimeSuffix}${newfileNameNew.substring(newfileNameNew.lastIndexOf('.'))}`;
                   DocumentName = finalFileNameNew;
@@ -2371,7 +2400,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               //SubmiitedDate: selectedOption?.SubmiitedDate,
               SubmiitedDate: new Date(formData.SubmiitedDate).toISOString(),
               SubmitStatus: "No",
-              Status: "Save as draft",
+              Status: formData.Status == "Rework" ? "Rework" : "Save as draft",
               DocumentName: DocumentName,
               DocumentTypeId: formData.DocumentTypeId || undefined,
               OESSubmitStatus: "No",
@@ -2724,7 +2753,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     let successMessage = "";
     if (status === 'Rework' || status === 'Rejected') {
       setMandatRemark(true)
-    }else{
+    } else {
       setMandatRemark(false)
     }
     if ((status === 'Rework' || status === 'Rejected') && (formData.Remark === "" || formData.Remark == null)) {
@@ -3264,34 +3293,34 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
             // //////////////Update Document cancellation List when Submitted
             let arr3 = {
-              Title: formData.RequesterName,
-              RequesterNameId: formData.RequesterNameId,
-              RequesterDesignation: formData.RequesterDesignation,
-              DepartmentId: formData.DepartmentId,
+              //Title: formData.RequesterName,
+              //RequesterNameId: formData.RequesterNameId,
+              //RequesterDesignation: formData.RequesterDesignation,
+              //DepartmentId: formData.DepartmentId,
               TemplateTypeId: formData.TemplateTypeId,
               RequestDate: formData.RequestDate,
               //IssueDate: formData.IssueDate,
-              LocationId: selectedOption?.LocationId,
+              LocationId: formData?.LocationId,
               FileName: formData.filename,
-              CustodianId: selectedOption?.CustodianId,
-              SerialNumber: selectedOption?.SerialNumber,
-              IssueNumber: selectedOption?.IssueNumber,
-              RevisionNumber: selectedOption?.RevisionNumber,
+              CustodianId: formData?.CustodianId,
+              //SerialNumber: formData?.SerialNumber,
+              //IssueNumber: formData?.IssueNumber,
+              //RevisionNumber: formData?.RevisionNumber,
               //RevisionDate: selectedOption?.RevisionDate,
-              DocumentCode: selectedOption?.value,
-              ReferenceNumber: selectedOption?.ReferenceNumber,
-              AmendmentTypeId: selectedOption?.AmendmentTypeId,
-              RequestTypeId: selectedOption?.RequestTypeId,
-              ClassificationId: selectedOption?.ClassificationId,
+              //DocumentCode: formData?.DocumentCode,
+              //ReferenceNumber: formData?.ReferenceNumber,
+              AmendmentTypeId: formData?.AmendmentTypeId,
+              RequestTypeId: formData?.RequestTypeId,
+              ClassificationId: formData?.ClassificationId,
               ChangeRequestTypeId: selectedCheckboxIds,
-              SubmiitedDate: selectedOption?.SubmiitedDate,
+              SubmiitedDate: formData?.SubmiitedDate,
               SubmitStatus: "Yes",
               Status: "Pending",
               // DocumentName: "",
               // IsRework: false,
               // DigitalSignStatus: false,
               //ChangeRequestIDId: formData.ChangeRequestID,
-              DocumentTypeId: selectedOption?.DocumentTypeId,
+              DocumentTypeId: formData?.DocumentTypeId,
               OESSubmitStatus: "No",
               InitiatorSubmitStatus: "Yes",
               CurrentUserRole: "OES",
@@ -3300,7 +3329,30 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
 
             }
-            const postResult3 = await updateItemChangeRequestList(arr3, sp, editItemID);
+            let arrework = {
+              //Title: formData.RequesterName,
+              //RequesterNameId: formData.RequesterNameId,
+              //RequesterDesignation: formData.RequesterDesignation,
+              //RequestDate: new Date(formData.RequestDate).toISOString(),
+              //IssueDate: finalissuedateNew,
+              RequestTypeId: formData.RequestTypeId,
+              AmendmentTypeId: formData.AmendmentTypeId,
+              ChangeRequestTypeId: selectedCheckboxIds,
+              ClassificationId: formData.ClassificationId,
+              SubmiitedDate: new Date(formData.RequestDate).toISOString(),
+              SubmitStatus: "Yes",
+              Status: "Pending",
+              IsRework: "No",
+              OESSubmitStatus: "No",
+              InitiatorSubmitStatus: "Yes",
+              CurrentUserRole: "OES",
+              DocumentName: attachmentIds.length != 0 ? DocumentName : formData.DocumentName,
+              DocumentTypeId: formData.DocumentTypeId,
+              AttachmentId: Attachmentidsss,
+              AttachmentJson: AttachmentJso,
+              PreviousAttachmentID: ""
+            }
+            const postResult3 = await updateItemChangeRequestList(formData.Status == "Rework" ? arrework : arr3, sp, editItemID);
             const postId3 = postResult?.data?.ID;
 
 
@@ -3570,43 +3622,66 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let AttachmentJso = attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson;
             // //////////////Update Document cancellation List when Submitted
             let arr3 = {
-              Title: formData.RequesterName,
-              RequesterNameId: formData.RequesterNameId,
-              RequesterDesignation: formData.RequesterDesignation,
-              DepartmentId: formData.DepartmentId,
+              // Title: formData.RequesterName,
+              // RequesterNameId: formData.RequesterNameId,
+              // RequesterDesignation: formData.RequesterDesignation,
+              // DepartmentId: formData.DepartmentId,
               TemplateTypeId: formData.TemplateTypeId,
               RequestDate: formData.RequestDate,
               IssueDate: formData.IssueDate,
-              LocationId: selectedOption?.LocationId,
+              //LocationId: selectedOption?.LocationId,
               FileName: formData.filename,
-              CustodianId: selectedOption?.CustodianId,
-              SerialNumber: selectedOption?.SerialNumber,
-              IssueNumber: selectedOption?.IssueNumber,
-              RevisionNumber: selectedOption?.RevisionNumber,
-              //RevisionDate: selectedOption?.RevisionDate,
-              DocumentCode: selectedOption?.value,
-              ReferenceNumber: selectedOption?.ReferenceNumber,
-              AmendmentTypeId: selectedOption?.AmendmentTypeId,
-              RequestTypeId: selectedOption?.RequestTypeId,
-              ClassificationId: selectedOption?.ClassificationId,
+              //CustodianId: selectedOption?.CustodianId,
+              // SerialNumber: selectedOption?.SerialNumber,
+              // IssueNumber: selectedOption?.IssueNumber,
+              // RevisionNumber: selectedOption?.RevisionNumber,
+              // //RevisionDate: selectedOption?.RevisionDate,
+              // DocumentCode: selectedOption?.value,
+              // ReferenceNumber: selectedOption?.ReferenceNumber,
+              AmendmentTypeId: formData?.AmendmentTypeId,
+              RequestTypeId: formData?.RequestTypeId,
+              ClassificationId: formData?.ClassificationId,
               ChangeRequestTypeId: selectedCheckboxIds,
-              SubmiitedDate: selectedOption?.SubmiitedDate,
+              SubmiitedDate: formData?.SubmiitedDate,
               SubmitStatus: "No",
-              Status: "Rework",
+              //Status: "Rework",
               // DocumentName: "",
               // IsRework: false,
               // DigitalSignStatus: false,
               //ChangeRequestIDId: formData.ChangeRequestID,
-              DocumentTypeId: selectedOption?.DocumentTypeId,
-              OESSubmitStatus: "No",
-              InitiatorSubmitStatus: "No",
-              CurrentUserRole: "Initiator",
+              DocumentTypeId: formData?.DocumentTypeId,
+              //OESSubmitStatus: "No",
+              //InitiatorSubmitStatus: "No",
+              //CurrentUserRole: "Initiator",
               AttachmentId: Attachmentidsss,
               AttachmentJson: AttachmentJso
 
 
             }
-            const postResult3 = await updateItemChangeRequestList(arr3, sp, editItemID);
+            let arrework = {
+              //Title: formData.RequesterName,
+              //RequesterNameId: formData.RequesterNameId,
+              //RequesterDesignation: formData.RequesterDesignation,
+              //RequestDate: new Date(formData.RequestDate).toISOString(),
+              //IssueDate: finalissuedateNew,
+              RequestTypeId: formData.RequestTypeId,
+              AmendmentTypeId: formData.AmendmentTypeId,
+              ChangeRequestTypeId: selectedCheckboxIds,
+              ClassificationId: formData.ClassificationId,
+              //SubmiitedDate: new Date(formData.RequestDate).toISOString(),
+              //SubmitStatus: "Yes",
+              //Status: "Rework",
+              //IsRework: "Yes",
+              // OESSubmitStatus: "No",
+              // InitiatorSubmitStatus: "Yes",
+              // CurrentUserRole: "OES",
+              DocumentName: attachmentIds.length != 0 ? DocumentName : formData.DocumentName,
+              DocumentTypeId: formData.DocumentTypeId,
+              AttachmentId: Attachmentidsss,
+              AttachmentJson: AttachmentJso,
+              PreviousAttachmentID: ""
+            }
+            const postResult3 = await updateItemChangeRequestList(formData.Status == "Rework" ? arrework : arr3, sp, editItemID);
             //const postId3 = postResult?.data?.ID;
 
 
@@ -4872,7 +4947,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                         {
                           (InputDisabled && editID != null && modeValue === "approve" && editID.ApprovalType === "Approval" && editID.Status === "Pending") ? (
                             <WorkflowAction currentItem={editID} ctx={props.context} ContentType={CONTENTTYPE_ChangeDocument}
-                              DisableApproval={false} DisableCancel={false}
+                              DisableApproval={false} DisableCancel={false} maxlevel={maxlevelAllprocess}
                             />
                           ) : (<div></div>)
                         }

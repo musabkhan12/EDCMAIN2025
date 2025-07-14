@@ -1992,9 +1992,13 @@ const MemoContext = ({ props }: any) => {
                 CCDepartmentsId: formData.CCDepartments || [],
                 SubmiitedDate: new Date().toLocaleDateString("en-CA"),
                 SubmitStatus: "No",
-                Status: "Save as draft",
-                // DocumentName:"",
-                IsRework: "No",
+                // Status: "Save as draft",
+                // IsRework: "No"
+                // /////////
+                Status: "Rework",
+                IsRework: "Yes",
+                
+                // /////////////
                 RecommendationTypeId: formData.recommendationTypeId,
                 RecommendationDetails: formData.RecommendationTypeValue === "TextBox" ? formData.recommendationDetails : "",
                 DocumentCode: formData.DocCode,
@@ -2241,7 +2245,8 @@ const MemoContext = ({ props }: any) => {
 
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -2477,7 +2482,8 @@ const MemoContext = ({ props }: any) => {
             // }, 1000);
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -3973,7 +3979,7 @@ const MemoContext = ({ props }: any) => {
                             }
 
 
-                            {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.ApprovalType !== "Approval")) &&
+                            {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && (editID.ApprovalType !== "Approval" || editID.Status == "Rework"))) &&
                               <div className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                 className='me-1' alt="x" /> Cancel</div>
                             }

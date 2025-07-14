@@ -2310,9 +2310,18 @@ const FormContext = ({ props }: any) => {
                 CCDepartmentsId: formData.CCDepartments || [],
                 SubmiitedDate: new Date().toLocaleDateString("en-CA"),
                 SubmitStatus: "No",
-                Status: "Save as draft",
-                // DocumentName:"",
-                IsRework: "No",
+                 // ///////
+                // Status: "Save as draft",
+               
+                // IsRework: "No",
+               
+
+                Status: "Rework",
+                IsRework: "Yes",
+               
+
+
+                // //////
                 RecommendationTypeId: formData.recommendationTypeId,
                 RecommendationDetails: formData.RecommendationTypeValue === "TextBox" ? formData.recommendationDetails : "",
                 DocumentCode: formData.DocCode,
@@ -2659,7 +2668,8 @@ const FormContext = ({ props }: any) => {
             // }
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -2961,7 +2971,8 @@ const FormContext = ({ props }: any) => {
             // }, 1000);
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
           }

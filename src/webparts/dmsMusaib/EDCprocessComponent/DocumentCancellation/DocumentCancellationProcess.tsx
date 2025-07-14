@@ -1372,7 +1372,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href =`https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -1483,7 +1485,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // }, 1000);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href =`https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -2057,8 +2061,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             // ActionTakenOn: new Date().toLocaleDateString("en-CA"),
                             ActionTakenOn: new Date().toISOString(),
                             // ActionTakenRoleId: formData.RequesterDesignation,
-                            Status: status,
+                            // Status: status,
                             // Remark: remark,
+                            // Status: "Pending",
 
                         }
                         const postResult = await updateApprovalItem(arr, sp, editID.Id);
@@ -2086,10 +2091,12 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             ChangeRequestTypeId: selectedOption.ChangeRequestTypeId ? selectedOption.ChangeRequestTypeId : [],
                             SubmiitedDate: selectedOption.SubmiitedDate,
                             SubmitStatus: "No",
-                            Status: "Save as draft",
-                            // DocumentName: "",
-                            // IsRework: false,
-                            // DigitalSignStatus: false,
+                            // Status: "Save as draft",
+                            // //////
+                            Status: "Rework",
+                            IsRework:"Yes",
+                            // /////
+                           
                             ChangeRequestIDId: formData.ChangeRequestID,
                             DocumentTypeId: selectedOption.DocumentTypeId,
                             OESSubmitStatus: "No",
@@ -2165,7 +2172,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire(successMessage, '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href =`https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -3053,11 +3062,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
 
-                                                        {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.IsInitiator == "Yes")) &&
+                                                        {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.IsInitiator == "Yes" && (editID.Status == "Pending" ))) &&
                                                             <div style={{ width: '145px' }} className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                                                 className='me-1' alt="x" /> Cancel</div>
                                                         }
-                                                        {((modeValue === "approve") && (editID !== null && editID.Status == "Approved")) &&
+                                                        {((modeValue === "approve") && (editID !== null && (editID.Status == "Approved" || editID.Status == "Rework"))) &&
                                                             <div style={{ width: '145px' }} className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                                                 className='me-1' alt="x" /> Cancel</div>
                                                         }

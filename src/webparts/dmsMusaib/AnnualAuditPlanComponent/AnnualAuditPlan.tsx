@@ -2185,7 +2185,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     // MainListID: String(editItemID),
                                     MainListID: String(postId),
                                     // RequestId: formData.memoNo,
-                                    RequestId:memoNum,
+                                    RequestId: memoNum,
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
                                     RequesterRoleId: RequesterRoleId,
@@ -2380,9 +2380,18 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 CCDepartmentsId: formData.CCDepartments || [],
                                 SubmiitedDate: new Date().toLocaleDateString("en-CA"),
                                 SubmitStatus: "No",
-                                Status: "Save as draft",
-                                // DocumentName:"",
-                                IsRework: "No",
+                                // Status: "Save as draft",
+
+                                // IsRework: "No",
+                                // IsRework: "No",
+
+
+                                Status: "Rework",
+                                IsRework: "Yes",
+                               
+
+
+                                // //////
                                 RecommendationTypeId: formData.recommendationTypeId,
                                 RecommendationDetails: formData.RecommendationTypeValue === "TextBox" ? formData.recommendationDetails : "",
                                 DocumentCode: formData.DocCode,
@@ -2698,7 +2707,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         // }
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -2958,7 +2969,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         // }, 1000);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }

@@ -2506,9 +2506,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             Description: formData.description,
                             SubmiitedDate: new Date().toLocaleDateString("en-CA"),
                             SubmitStatus: "No",
-                            Status: "Save as draft",
+                            Status: formData.Status == "Rework" ? "Rework" : "Save as draft",
                             DocumentName: DocumentName,
-                            IsRework: "No",
+                            IsRework: formData.Status == "Rework" ? "Yes" : "No",
                             AttachmentId: attachmentIds || [],
                             AttachmentJson: JSON.stringify(bannerImageArray) || "",
                             SharewithId: sharewithIds

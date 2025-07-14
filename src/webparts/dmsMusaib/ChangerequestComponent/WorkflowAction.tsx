@@ -15,6 +15,7 @@ export interface IWorkflowActionProps {
   DisableRework?: boolean;
   DisableReject?: boolean;
   DisableCancel?: boolean;
+  maxlevel: string;
 
 }
 
@@ -45,22 +46,22 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
   const handleCancel = () => {
     window.location.href = `${siteUrl}/SitePages/MyApprovals.aspx`;
   }
-    const handleKeyDowntextarea = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault(); // Prevent form submission or unwanted behavior
-        // Optional: do something when Enter is pressed (like submit or blur)
-      }
-    };
+  const handleKeyDowntextarea = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault(); // Prevent form submission or unwanted behavior
+      // Optional: do something when Enter is pressed (like submit or blur)
+    }
+  };
   const handleFromSubmit = async (e: any, Status: string) => {
     const IsactionTaken = await CheckIfAlreadyactionTaken(sp, props.currentItem.Id);
     let url = window.location.href.split('/sites/')[0];
     debugger
     let currentchangerequest = await getItemByIDCR(sp, Number(props.currentItem.ListItemId));
-    
+
     let currentchangerequestLatest = await getItemByIDCRlatest(sp, Number(props.currentItem.ListItemId));
     let allprocessitems = await getallProcessApprovalitems(sp, Number(props.currentItem.ListItemId));
 
-    let currentReferenceNo = currentchangerequest[0].ReferenceNumber;
+    let currentReferenceNo = currentchangerequest[0]?.ReferenceNumber;
     let RevisionNumber = currentchangerequest[0].RevisionNumber;
     let arrrr = currentReferenceNo.split('.')
     for (let i = 0; i < arrrr.length; i++) {
@@ -68,15 +69,23 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         arrrr[i] = arrrr[i].replace("TMP", "RRF");
       }
     }
-   
+    let isFinalApproval: boolean = false;
     console.log("props.currentItem", props.currentItem, currentchangerequest);
     let test = arrrr.join('.');
+
     let testRev = currentchangerequest[0].RequestType?.RequestCode == "Edit" && RevisionNumber != null ? Number(RevisionNumber) : Number(RevisionNumber);
     console.log("arrrr", arrrr, test);
-    if (props.currentItem.Maxlevel == props.currentItem.Level) {
-      if ((props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One") {
-        currentReferenceNo = test
+    // if (props.currentItem.Maxlevel == props.currentItem.Level && Status == 'Approved') {
+    //   if ((props.currentItem.LevelType == "All" || props.currentItem.LevelType == "One") && allprocessitems.length == 1) {
+    //     currentReferenceNo = test
+    //   }
+    // }
+    if (Number(props.maxlevel) == Number(props.currentItem.Level) && Status == 'Approved') {
+      if ((props.currentItem.LevelType == "All" || props.currentItem.LevelType == "One") && allprocessitems.length == 1) {
+        isFinalApproval = true;
       }
+    } else {
+      isFinalApproval = false;
     }
     if (!IsactionTaken) {
       Swal.fire("Action has already been taken for this record.");
@@ -93,6 +102,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
       Swal.fire('Please fill the mandatory fields', '', 'warning');
       return;
     }
+
     if (props.ContentType == "Document Cancellation" || props.ContentType == "Change Request") {
       const currentUser = await sp.web.currentUser();
 
@@ -103,10 +113,10 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         Status: Status,
 
         ActionTakenById: currentUser.Id,
-        ActionTakenOn: new Date().toISOString(),
-        ContentTitle: ((props.currentItem.LevelType == "All" && allprocessitems.length == 1) ||
-          props.currentItem.LevelType == "One") && Status == 'Approved'
-          ? test : currentReferenceNo
+        ActionTakenOn: new Date().toISOString()
+        // ContentTitle: ((props.currentItem.LevelType == "All" && allprocessitems.length == 1) ||
+        //   props.currentItem.LevelType == "One") && allprocessitems.length == 1 && Status == 'Approved'
+        //   ? test : currentReferenceNo
       };
 
       postPayload2 = {
@@ -116,30 +126,41 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         InitiatorSubmitStatus: "No",
         CurrentUserRole: "Initiator",
         SubmitStatus: "No",
+        IsRework: Status == 'Rework' ? "Yes" : ""
         //ReferenceNumber: (props.currentItem.LevelType == "Everyone" && allprocessitems.length == 1) || props.currentItem.LevelType == "Anyone" ? test : currentReferenceNo
       };
       postPayloadapp = {
         Status: Status,
-        ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
+        ReferenceNumber: isFinalApproval ? test : currentReferenceNo
       };
       let finalrevisiondate = currentchangerequestLatest[0].RevisionDate == null || currentchangerequestLatest[0].RevisionDate == undefined ? undefined : new Date(currentchangerequestLatest[0].RevisionDate).toISOString();
       let finalissuedate = currentchangerequestLatest[0].IssueDate == null || currentchangerequestLatest[0].IssueDate == undefined ? undefined : new Date(currentchangerequestLatest[0].IssueDate).toISOString();
       if (currentchangerequest[0].RequestType?.RequestCode == "Edit") {
-        postPayloadapp1 = {
-          //IssueDate: new Date(ApprovedChanedoc && ApprovedChanedoc[0]?.IssueDate).toISOString(),
-          CIssueDate: currentchangerequest[0]?.TemplateType?.TemplateTypeName != "Change Request" ? finalissuedate : new Date().toISOString(),
-          CRevisionDate: currentchangerequest[0].TemplateType?.TemplateTypeName != "Change Request" ? finalrevisiondate : new Date().toISOString(),
-          RevisionDate: new Date().toISOString(),
-          RevisionNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? testRev : RevisionNumber,
-          ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
-        };
+        isFinalApproval ?
+          postPayloadapp1 = {
+            //IssueDate: new Date(ApprovedChanedoc && ApprovedChanedoc[0]?.IssueDate).toISOString(),
+            CIssueDate: currentchangerequest[0]?.TemplateType?.TemplateTypeName != "Change Request" ? finalissuedate : new Date().toISOString(),
+            CRevisionDate: currentchangerequest[0].TemplateType?.TemplateTypeName != "Change Request" ? finalrevisiondate : new Date().toISOString(),
+            RevisionDate: isFinalApproval ? new Date().toISOString() : undefined,
+            RevisionNumber: isFinalApproval ? testRev : RevisionNumber,
+            ReferenceNumber: isFinalApproval ? test : currentReferenceNo
+          } :
+          postPayloadapp1 = {
+            //IssueDate: new Date(ApprovedChanedoc && ApprovedChanedoc[0]?.IssueDate).toISOString(),
+            CIssueDate: currentchangerequest[0]?.TemplateType?.TemplateTypeName != "Change Request" ? finalissuedate : new Date().toISOString(),
+            CRevisionDate: currentchangerequest[0].TemplateType?.TemplateTypeName != "Change Request" ? finalrevisiondate : new Date().toISOString(),
+            //RevisionDate: isFinalApproval ? new Date().toISOString() : undefined,
+            RevisionNumber: isFinalApproval ? testRev : RevisionNumber,
+            ReferenceNumber: isFinalApproval ? test : currentReferenceNo
+          }
+          ;
       } else {
         postPayloadapp1 = {
           // Status: Status,
           IssueDate: new Date().toISOString(),
           CIssueDate: currentchangerequest[0]?.TemplateType?.TemplateTypeName != "Change Request" ? finalissuedate : new Date().toISOString(),
-          RevisionNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? testRev : RevisionNumber,
-          ReferenceNumber: (props.currentItem.LevelType == "All" && allprocessitems.length == 1) || props.currentItem.LevelType == "One" ? test : currentReferenceNo
+          RevisionNumber: isFinalApproval ? testRev : RevisionNumber,
+          ReferenceNumber: isFinalApproval ? test : currentReferenceNo
         };
       }
 
@@ -241,7 +262,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
     <div className="card">
 
-      <div 
+      <div
       // className="card-body" onKeyDown={(e) => {
       //   if (e.key === 'Enter') {
       //     e.preventDefault(); // Prevent page reload from any source
@@ -258,7 +279,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
                 <label htmlFor="example-textarea" className="form-label text-dark font-14">Remarks:</label>
 
-                <textarea  style={{ height: '80px' }} className={`form-control ${(!ValidRemark) ? "border-on-error" : ""}`} id="example-textarea" rows={5} name="Remark" value={formData.Remark}
+                <textarea style={{ height: '80px' }} className={`form-control ${(!ValidRemark) ? "border-on-error" : ""}`} id="example-textarea" rows={5} name="Remark" value={formData.Remark}
 
                   onChange={(e) => onChange(e.target.name, e.target.value)}></textarea>
 
@@ -356,11 +377,11 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
                 </a>) : (<div></div>)}
 
                 {!props.DisableCancel ? (
-                //   <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={(e) => handleCancel()}>
+                  //   <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={(e) => handleCancel()}>
 
-                //   <i className="fe-x me-1"></i> Cancel
+                  //   <i className="fe-x me-1"></i> Cancel
 
-                // </button>
+                  // </button>
                   <div
                     role="button"
                     tabIndex={0}
@@ -376,7 +397,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
                     <i className="fe-x me-1"></i> Cancel
                   </div>
 
-              ) : (<div></div>)}
+                ) : (<div></div>)}
 
               </div>
 
