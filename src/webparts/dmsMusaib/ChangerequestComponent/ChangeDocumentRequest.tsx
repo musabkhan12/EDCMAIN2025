@@ -86,8 +86,11 @@ interface ForwardTo {
   leveltype: string;
   roleError?: boolean;
   approverError?: boolean;
+  responsibilityerror?: boolean;
   typeError?: boolean;
   rowError?: boolean;
+  Responsibility?: string;
+  IsSignatureRequired?: boolean
 }
 interface ChangeRequestCheckbox {
   id: number;
@@ -177,7 +180,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [Templatelink, setTemplatelink] = React.useState(null);
   const [DigitalsignID, setDigitalsignID] = React.useState(null);
   const [redirecturl, setredirecturl] = React.useState(null);
-
+  const [sharewitherr, setsharewitherr] = React.useState(false);
   const [currentUser, setCurrentUser] = React.useState(null);
   const [selectedOption, setSelectedOption] = React.useState(null);
   const [selectedOptionReq, setSelectedOptionReq] = React.useState(null);
@@ -231,6 +234,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     IssueDate: "",
     LocationId: 0,
     CustodianId: 0,
+    PreparedById: [],
     SerialNumber: "",
     IssueNumber: "",
     RevisionNumber: "",
@@ -264,8 +268,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
   const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
     {
-      id: 0, role: 0, level: 1, approvers: [], leveltype: "One", roleError: false,
+      id: 0, role: 0, level: 1, approvers: [], leveltype: "One", roleError: false, Responsibility: "Signer", IsSignatureRequired: true,
       approverError: false,
+      responsibilityerror: false,
       typeError: false,
       rowError: false
     } // Default row
@@ -281,6 +286,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [remark, setRemark] = React.useState("");
   const [showview, setshowview] = React.useState(false);
   const [showButton, setShowButton] = React.useState(false);
+  const [sharewithusers, setSharewithusers] = React.useState([]);
   // Function to handle People Picker selection
   const onPeoplePickerChange = (items: any[]) => {
     setSelectedUsers(items);
@@ -417,6 +423,16 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       TemplateTypeId: selectedTemplatefirst?.value
       // Format as YYYY-MM-DD
     }));
+
+    let currentuserinpreparedby: any = [];
+
+    currentuserinpreparedby = [{
+      value: currentUser.Id,
+      label: currentUser.Title,
+      UserName: currentUser.Title
+    }];
+
+    setSharewithusers(currentuserinpreparedby);
     var DocCodeArr = await getAllDocumentCode(sp);
     let doccodearrew: any;
     const options = DocCodeArr.map((item: any) => ({
@@ -564,6 +580,24 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           }
 
         }
+        let sharewithuser: any[] = [];
+
+        if (setBannerById[0].PreparedBy && setBannerById[0].PreparedBy?.length > 0) {
+          sharewithuser = setBannerById[0].PreparedBy?.map((approver: any) => ({
+            value: approver.ID,
+            label: approver.Title,
+            UserName: approver.Title
+            // UserEmail: approver.EMail
+          }));
+        } else {
+          sharewithuser = [{
+            value: currentUser.Id,
+            label: currentUser.Title,
+            UserName: currentUser.Title
+          }];
+        }
+
+        setSharewithusers(sharewithuser);
 
         if (ProcessItemId && ProcessItemId.Level === 0 && ProcessItemId.CurrentUserRole === "OES" && ProcessItemId.IsInitiator == "No") {
           const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_ChangeDocument, setBannerById[0].DocumentCode)
@@ -575,6 +609,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               leveltype: item.LevelType,
               role: item.ApproverRole?.Id || 0, // Assuming role comes from ApproverRole
               level: item.Level || 1, // Default to 1 if missing
+              Responsibility: item.Responsibility || "",
+              IsSignatureRequired: item.IsSignatureRequired == "Yes" ? true : false,
               approvers: item.Approvers?.map((approver: any) => ({
                 value: approver.Id,
                 label: approver.Title,
@@ -600,6 +636,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               leveltype: item.LevelType,
               role: item.ApproverRole?.Id, // Assuming role comes from ApproverRole
               level: item.Level, // Default to 1 if missing
+              Responsibility: item.Responsibility || "",
+              IsSignatureRequired: item.IsSignatureRequired == "Yes" ? true : false,
               approvers: item.Approvers?.map((approver: any) => ({
                 value: approver.Id,
                 label: approver.Title,
@@ -891,7 +929,23 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     }));
     setselectedOptionLoc(selectedList);  // Set the selected users
   };
+  const onSelectsharewith = (selectedOptions: any) => {
+    // const newSelections = selectedOptions || [];
+    // const allOptions = [...sharewithusers, ...newSelections];
 
+    // const uniqueOptions = allOptions.filter(
+    //     (option, index, self) =>
+    //         index === self.findIndex((o) => o.value === option.value)
+    // );
+
+    // setSharewithusers(uniqueOptions);
+    const uniqueOptions = (selectedOptions || []).filter(
+      (option: any, index: any, self: any) =>
+        index === self.findIndex((o: any) => o.value === option.value)
+    );
+    setSharewithusers(uniqueOptions);
+
+  };
   const onSelectCustodian = (selectedList: any) => {
     console.log(selectedList, "selectedListclasss");
     setFormData(prevData => ({
@@ -918,7 +972,16 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       )
     );
   };
+  const handleChangeResp = (event: React.ChangeEvent<HTMLSelectElement>, lvl: number) => {
+    event.preventDefault();
+    const updatedArr = forwardToArr.map(row =>
+      // row.level === lvl ? { ...row, Responsibility: event.target.value} : row
 
+      row.level === lvl ? { ...row, Responsibility: event.target.value, IsSignatureRequired:  true  } : row
+    );
+    //   setApprovalType(event.target.value);
+    setForwardToArr(updatedArr);
+  };
   const fetchLocations = async () => {
     try {
       // Fetch the items
@@ -1028,7 +1091,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const handleAddRow = () => {
     setForwardToArr((prev) => [
       ...prev,
-      { id: 0, role: 0, level: prev.length + 1, approvers: [], leveltype: "One" }
+      { id: 0, role: 0, level: prev.length + 1, approvers: [], leveltype: "One", Responsibility: "Signer", IsSignatureRequired: true }
     ]);
   };
 
@@ -1298,6 +1361,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     // let validateOverview:boolean = false;
     // let validatetitlelength = false;
     // let validateTitle = false;
+    setsharewitherr(false);
     setlocationerr(false);
     setcustodianerr(false);
     setdocumenttypeerr(false);
@@ -1356,6 +1420,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       if (!SelectedOptionTemplate) {
         settemplatetypeerr(true);
         valid = false;
+      }
+      if (!sharewithusers || sharewithusers.length === 0) {
+        setsharewitherr(true);
       }
       if (cancellReason.length > 0) {
         let valid = true;
@@ -1443,6 +1510,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       setValidCancelReason(valid1);
     }
     else {
+      setsharewitherr(false);
       if (!RequesterName) {
         valid = false;
       }
@@ -1595,8 +1663,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       }
       let doccode = selectedOptionReq?.requestcode == "New" && formData.Status != "Rework" ? await generateDocCode(serialno) : selectedOption?.DocumentCode;
       let referencecode = await generateReferenceCode(serialno, issueno);
-      let finalrevisiondate = changerequestdata[0].RevisionDate == null || changerequestdata[0].RevisionDate == undefined ? undefined : new Date(changerequestdata[0].RevisionDate).toISOString();
-      let finalissuedate = changerequestdata[0].IssueDate == null || changerequestdata[0].IssueDate == undefined ? undefined : new Date(changerequestdata[0].IssueDate).toISOString();
+
+      let finalrevisiondate: any;
+      let finalissuedate: any;
+      if (changerequestdata && changerequestdata.length > 0) {
+        finalrevisiondate = changerequestdata[0]?.RevisionDate == null || changerequestdata[0]?.RevisionDate == undefined ? undefined : new Date(changerequestdata[0]?.RevisionDate).toISOString();
+        finalissuedate = changerequestdata[0]?.IssueDate == null || changerequestdata[0]?.IssueDate == undefined ? undefined : new Date(changerequestdata[0]?.IssueDate).toISOString();
+        console.log("vbvbvb", changerequestdata[0]?.RevisionDate);
+      }
+
       console.log("doccode doccode", doccode, referencecode);
       const now = new Date();
       const dateTimeSuffix = await formatDateTime(now);
@@ -1814,7 +1889,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             }
             let Attachmentidsss = attachmentIds.length != 0 ? attachmentIds : formData.AttachmentId;
             let AttachmentJso = attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson;
-
+            const sharewithIds: any[] = [];
+            sharewithusers.forEach((user: any) => {
+              if (user?.value) {
+                sharewithIds.push(user.value);
+              }
+            });
             // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
             let arr = {
               Title: formData.RequesterName,
@@ -1823,7 +1903,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RequestDate: new Date(formData.RequestDate).toISOString(),
               DepartmentId: formData.DepartmentId,
               TemplateTypeId: formData.TemplateTypeId,
-
+              PreparedById: sharewithIds.length > 0 ? sharewithIds : formData.PreparedById,
               //IssueDate: new Date(formData.IssueDate).toISOString(),
               LocationId: formData.LocationId,
               FileName: formData.filename,
@@ -1848,9 +1928,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               CurrentUserRole: "OES",
               DocumentName: attachmentIds.length != 0 ? DocumentName : formData.DocumentName,
               DocumentTypeId: formData.DocumentTypeId,
-              CDocumentCode: selectedTemplate != "Change Request" ? changerequestdata[0].DocumentCode : docCode,
-              CIssueNumber: selectedTemplate != "Change Request" ? Number(changerequestdata[0].IssueNo) : Number(issueno),
-              CRevisionNumber: selectedTemplate != "Change Request" ? Number(changerequestdata[0].RevisionNo) : Number(revisionno),
+              CDocumentCode: selectedTemplate != "Change Request" && changerequestdata && changerequestdata?.length > 0 ? changerequestdata[0]?.DocumentCode : docCode,
+              CIssueNumber: selectedTemplate != "Change Request" && changerequestdata && changerequestdata?.length > 0 ? Number(changerequestdata[0]?.IssueNo) : Number(issueno),
+              CRevisionNumber: selectedTemplate != "Change Request" && changerequestdata && changerequestdata?.length > 0 ? Number(changerequestdata[0]?.RevisionNo) : Number(revisionno),
               CIssueDate: selectedTemplate != "Change Request" ? finalissuedate : finalissuedateNew,
               CRevisionDate: selectedTemplate != "Change Request" ? finalrevisiondate : undefined,
               //AttachmentId: selectedOptionReq.label == "New" ? Attachmentidsss : selectedOption?.AttachmentId,
@@ -1860,6 +1940,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               PreviousAttachmentID: ""
             }
             let arrework = {
+              PreparedById: sharewithIds.length > 0 ? sharewithIds : formData.PreparedById,
               Title: formData.RequesterName,
               RequesterNameId: formData.RequesterNameId,
               RequesterDesignation: formData.RequesterDesignation,
@@ -2162,6 +2243,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 attachmentIds.push(DocumentLink?.ID);
               }
             }
+            const sharewithIds: any[] = [];
+            sharewithusers.forEach((user: any) => {
+              if (user?.value) {
+                sharewithIds.push(user.value);
+              }
+            });
             let Attachmentidsss = attachmentIds.length != 0 ? attachmentIds : formData.AttachmentId;
             let AttachmentJso = attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson;
             const postPayload = {
@@ -2171,7 +2258,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RequestDate: formData.RequestDate != "" ? new Date(formData.RequestDate).toISOString() : new Date().toISOString(),
               DepartmentId: formData.DepartmentId,
               TemplateTypeId: formData.TemplateTypeId,
-
+              PreparedById: sharewithIds.length > 0 ? sharewithIds : formData.PreparedById,
               //IssueDate: formData.IssueDate,
               IssueDate: finalissuedateNew,
               LocationId: formData.LocationId,
@@ -2197,9 +2284,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               CurrentUserRole: "OES",
               DocumentName: DocumentName,
               DocumentTypeId: formData.DocumentTypeId,
-              CDocumentCode: selectedTemplate != "Change Request" ? changerequestdata[0].DocumentCode : docCode,
-              CIssueNumber: selectedTemplate != "Change Request" ? Number(changerequestdata[0].IssueNo) : Number(issueno),
-              CRevisionNumber: selectedTemplate != "Change Request" ? Number(changerequestdata[0].RevisionNo) : Number(revisionno),
+              CDocumentCode: selectedTemplate != "Change Request" && changerequestdata && changerequestdata?.length > 0 ? changerequestdata[0]?.DocumentCode : docCode,
+              CIssueNumber: selectedTemplate != "Change Request" && changerequestdata && changerequestdata?.length > 0 ? Number(changerequestdata[0]?.IssueNo) : Number(issueno),
+              CRevisionNumber: selectedTemplate != "Change Request" && changerequestdata && changerequestdata?.length > 0 ? Number(changerequestdata[0]?.RevisionNo) : Number(revisionno),
               CIssueDate: selectedTemplate != "Change Request" ? finalissuedate : finalissuedateNew,
               CRevisionDate: selectedTemplate != "Change Request" ? finalrevisiondate : undefined,
               //AttachmentId: selectedOptionReq.label == "New" ? Attachmentidsss : selectedOption?.AttachmentId,
@@ -2374,6 +2461,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 attachmentIds.push(itemId);
               }
             }
+            const sharewithIds: any[] = [];
+            sharewithusers.forEach((user: any) => {
+              if (user?.value) {
+                sharewithIds.push(user.value);
+              }
+            });
             let Attachmentidsss = attachmentIds.length != 0 ? attachmentIds : formData.AttachmentId;
             let AttachmentJso = attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson;
             // let TypeMasterData: any = await getAnnouncementandNewsTypeMaster(sp, Number(formData.Type))
@@ -2395,6 +2488,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               RequestTypeId: formData.RequestTypeId || undefined,
               ClassificationId: formData.ClassificationId || undefined,
               FileName: formData.filename,
+              PreparedById: sharewithIds.length > 0 ? sharewithIds : formData.PreparedById || undefined,
               //ChangeRequestTypeId: formData.ChangeRequestTypeId,
               ChangeRequestTypeId: selectedCheckboxIds,
               //SubmiitedDate: selectedOption?.SubmiitedDate,
@@ -2565,7 +2659,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 attachmentIds.push(itemId);
               }
             }
-
+            const sharewithIds: any[] = [];
+            sharewithusers.forEach((user: any) => {
+              if (user?.value) {
+                sharewithIds.push(user.value);
+              }
+            });
             let Attachmentidsss = attachmentIds.length != 0 ? attachmentIds : formData.AttachmentId;
             let AttachmentJso = attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson;
             const postPayload = {
@@ -2576,6 +2675,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               TemplateTypeId: formData.TemplateTypeId || undefined,
               RequestDate: new Date(formData.RequestDate).toISOString(),
               //IssueDate: new Date().toISOString(),
+              PreparedById: sharewithIds.length > 0 ? sharewithIds : formData.PreparedById || undefined,
               LocationId: formData.LocationId || undefined,
               FileName: formData.filename,
               CustodianId: formData.CustodianId || undefined,
@@ -2798,8 +2898,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         const roleError = row.role === 0;
         const approverError = row.approvers.length === 0;
         const typeError = !(row.leveltype === "One" || row.leveltype === "All");
-
-        const isRowValid = !roleError && !approverError && !typeError;
+        const responsibilityerror = row.Responsibility.trim() === "" || row.Responsibility == null;
+        const isRowValid = !roleError && !approverError && !typeError && !responsibilityerror;
 
         if (!isRowValid) {
           isFormValid = false;
@@ -2810,7 +2910,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           roleError,
           approverError,
           typeError,
-          rowError: roleError && approverError && typeError, // mark full-row error only if fully empty
+          responsibilityerror,
+          rowError: roleError && approverError && typeError && responsibilityerror, // mark full-row error only if fully empty
         };
       });
 
@@ -2882,7 +2983,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 ProcessName: "Change Request",
                 FormNameId: FormNameId,
                 ApprovalType: "Approval",
-                IsApprovalGenerated: "No"
+                IsApprovalGenerated: "No",
+                Responsibility: item.Responsibility || "",
+                IsSignatureRequired: item.IsSignatureRequired ? "Yes" : "No",
               }
               if (item.id) {
                 const postResult2 = await UpdateAllProcessItem(arr2, sp, item.id);
@@ -2999,7 +3102,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                   ProcessName: "Change Request",
                   FormNameId: FormNameId,
                   ApprovalType: "Approval",
-                  IsApprovalGenerated: "No"
+                  IsApprovalGenerated: "No",
+                  Responsibility: item.Responsibility || "",
+                  IsSignatureRequired: item.IsSignatureRequired ? "Yes" : "No",
                   // RedirectionLink:,
                 }
                 if (item.id) {
@@ -3290,13 +3395,19 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             }
             const postResult = await updateApprovalItem(arr, sp, editID.Id);
             const postId = postResult?.data?.ID;
-
+            const sharewithIds: any[] = [];
+            sharewithusers.forEach((user: any) => {
+              if (user?.value) {
+                sharewithIds.push(user.value);
+              }
+            });
             // //////////////Update Document cancellation List when Submitted
             let arr3 = {
               //Title: formData.RequesterName,
               //RequesterNameId: formData.RequesterNameId,
               //RequesterDesignation: formData.RequesterDesignation,
               //DepartmentId: formData.DepartmentId,
+              PreparedById: sharewithIds.length > 0 ? sharewithIds : formData.PreparedById || undefined,
               TemplateTypeId: formData.TemplateTypeId,
               RequestDate: formData.RequestDate,
               //IssueDate: formData.IssueDate,
@@ -3309,6 +3420,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               //RevisionDate: selectedOption?.RevisionDate,
               //DocumentCode: formData?.DocumentCode,
               //ReferenceNumber: formData?.ReferenceNumber,
+              //PreparedById: sharewithIds,
               AmendmentTypeId: formData?.AmendmentTypeId,
               RequestTypeId: formData?.RequestTypeId,
               ClassificationId: formData?.ClassificationId,
@@ -3335,11 +3447,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               //RequesterDesignation: formData.RequesterDesignation,
               //RequestDate: new Date(formData.RequestDate).toISOString(),
               //IssueDate: finalissuedateNew,
+              PreparedById: sharewithIds.length > 0 ? sharewithIds : formData.PreparedById || undefined,
               RequestTypeId: formData.RequestTypeId,
               AmendmentTypeId: formData.AmendmentTypeId,
               ChangeRequestTypeId: selectedCheckboxIds,
               ClassificationId: formData.ClassificationId,
               SubmiitedDate: new Date(formData.RequestDate).toISOString(),
+              //PreparedById: sharewithIds,
               SubmitStatus: "Yes",
               Status: "Pending",
               IsRework: "No",
@@ -3618,6 +3732,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             //   }
             //   attachmentIds.push(DocumentLink?.ID);
             // }
+            const sharewithIds: any[] = [];
+            sharewithusers.forEach((user: any) => {
+              if (user?.value) {
+                sharewithIds.push(user.value);
+              }
+            });
             let Attachmentidsss = attachmentIds.length != 0 ? attachmentIds : formData.AttachmentId;
             let AttachmentJso = attachmentIds.length != 0 ? JSON.stringify(bannerImageArray) : formData.AttachmentJson;
             // //////////////Update Document cancellation List when Submitted
@@ -3626,6 +3746,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               // RequesterNameId: formData.RequesterNameId,
               // RequesterDesignation: formData.RequesterDesignation,
               // DepartmentId: formData.DepartmentId,
+
               TemplateTypeId: formData.TemplateTypeId,
               RequestDate: formData.RequestDate,
               IssueDate: formData.IssueDate,
@@ -3643,6 +3764,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               ClassificationId: formData?.ClassificationId,
               ChangeRequestTypeId: selectedCheckboxIds,
               SubmiitedDate: formData?.SubmiitedDate,
+              PreparedById: sharewithIds.length > 0 ? sharewithIds : formData.PreparedById || undefined,
               SubmitStatus: "No",
               //Status: "Rework",
               // DocumentName: "",
@@ -3664,6 +3786,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               //RequesterDesignation: formData.RequesterDesignation,
               //RequestDate: new Date(formData.RequestDate).toISOString(),
               //IssueDate: finalissuedateNew,
+              PreparedById: sharewithIds.length > 0 ? sharewithIds : formData.PreparedById || undefined,
               RequestTypeId: formData.RequestTypeId,
               AmendmentTypeId: formData.AmendmentTypeId,
               ChangeRequestTypeId: selectedCheckboxIds,
@@ -4572,6 +4695,26 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   </div>
                                 </div>
                               }
+                              <div className="col-lg-4">
+                                <div className="mb-3">
+                                  <label htmlFor="revisionNo">Prepared By<span className="text-danger1"> *</span></label>
+                                  <div title={sharewithusers.map(user => user.label).join(', ')}>
+                                    <Select
+                                      //onKeyDown={handleKeyDown}
+                                      isClearable={true}
+                                      options={rows1}
+                                      isMulti
+                                      value={sharewithusers}
+                                      name="share with"
+                                      className={`newse ${(!ValidSubmit && sharewitherr) ? "border-on-error" : ""}`}
+                                      // onChange={(selectedOption: any) => onSelect(selectedOption)}
+                                      onChange={(selectedOptions: any) => onSelectsharewith(selectedOptions)}
+                                      placeholder="Enter Prepared By"
+                                      isDisabled={InputDisabled && formData?.Status != "Rework"}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
                             </div>
 
                           </div>
@@ -4732,19 +4875,21 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 <table style={{ overflow: 'inherit' }} className="mtbalenew tpnew table-centered table-nowrap table-borderless mb-0 newtabledc" id="myTabl">
                                   <thead >
                                     <tr>
-                                      <th style={{ minWidth: "40px", maxWidth: "40px" }}>S.No</th>
-                                      <th style={{ borderBottomLeftRadius: "0px" }}>Role<span className="text-danger1">*</span></th>
-                                      <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level<span className="text-danger1">*</span></th>
-                                      <th >Approver Name<span className="text-danger1">*</span></th>
-                                      <th >Approval Criteria<span className="text-danger1">*</span></th>
-                                      <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
+                                      <th style={{ minWidth: "35px", maxWidth: "35px" }}>S.No</th>
+                                      <th style={{ borderBottomLeftRadius: "0px", minWidth: "60px", maxWidth: "60px" }}>Role<span className="text-danger1">*</span></th>
+                                      <th style={{ borderBottomLeftRadius: "0px", minWidth: '86px', maxWidth: '86px' }}>Responsibility<span className="text-danger1"> *</span></th>
+                                      <th style={{ minWidth: "46px", maxWidth: "46px" }} title="Use your electronic digital signature to sign this document digitally">E-Sign?</th>
+                                      <th style={{ minWidth: '40px', maxWidth: '40px' }} >Level<span className="text-danger1">*</span></th>
+                                      <th style={{ minWidth: "110px", maxWidth: "110px" }}  >Approver Name<span className="text-danger1">*</span></th>
+                                      <th style={{ minWidth: "75px", maxWidth: "75px" }} >Approval Criteria<span className="text-danger1">*</span></th>
+                                      <th style={{ minWidth: '45px', maxWidth: '45px' }}>Action</th>
                                     </tr>
                                   </thead>
                                   <tbody style={{ maxHeight: "8007px", overflow: 'inherit' }}>
                                     {console.log("forwardToArrforwardToArrforwardToArr", forwardToArr, UserRoles, ApprovalTypeOptions)}
                                     {forwardToArr.map((row, index) => (
 
-                                      <tr key={index}> <td style={{ minWidth: "30px", maxWidth: "30px" }}>
+                                      <tr key={index}> <td style={{ minWidth: "35px", maxWidth: "35px" }}>
                                         <div
                                           style={{ marginLeft: "0px", overflow: 'inherit' }}
                                           className="indexdesign"
@@ -4752,7 +4897,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           {index + 1}</div></td>
                                         <td
                                           title={row.role != 0 && UserRoles.filter((role: any) => role.value == row.role)[0].label}
-                                          style={{ overflow: 'inherit' }}
+                                          style={{ overflow: 'inherit', minWidth: '60px', maxWidth: '60px' }}
                                           className="ng-binding">
                                           <select
                                             //onKeyDown={handleKeyDown}
@@ -4776,9 +4921,51 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           </select>
 
                                         </td>
-                                        <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>Level {index + 1}</td>
+                                        <td style={{ overflow: 'inherit', minWidth: '86px', maxWidth: '86px' }}>
+                                          <div
+                                          //  style={{ display: "flex", alignItems: 'center', gap: '8px' }}
+                                          >
+                                            <select
+                                              id="responsibleId"
+                                              value={row.Responsibility}
+                                              onChange={(e) => handleChangeResp(e, row.level)}
+                                              className={`form-select ${row.responsibilityerror ? "border-on-error" : ""}`}
+                                              disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}
+                                              title={row.Responsibility ? row.Responsibility : "Select"}
+                                            >
+                                              <option value="">Select </option>
+                                              <option value="Signer">Signer</option>
+                                              <option value="Reviewer">Reviewer</option>
+                                              <option value="Endorser">Endorser</option>
+
+                                            </select>
+
+                                          </div>
+                                        </td>
+                                        <td style={{ minWidth: "46px", maxWidth: "46px", overflow: 'inherit' }}>
+                                          <div
+                                          //  style={{ display: "flex", alignItems: 'center', gap: '8px' }}
+                                          >
+                                            <input
+                                              type="checkbox"
+                                              checked={row.IsSignatureRequired}
+                                              disabled={row.Responsibility === "Signer" || row.Responsibility === "Endorser" || row.Responsibility === "" || (!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES"))}
+                                              style={{ marginLeft: '17px', width: "15px" }}
+
+                                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                const isChecked = e.target.checked;
+                                                const updatedArr = forwardToArr.map(row1 =>
+                                                  row1.level === row.level ? { ...row1, IsSignatureRequired: isChecked } : row1
+                                                );
+                                                setForwardToArr(updatedArr);
+                                              }}
+                                            />
+
+                                          </div>
+                                        </td>
+                                        <td style={{ minWidth: '40px', maxWidth: '40px', overflow: 'inherit' }}>Level {index + 1}</td>
                                         {console.log("row.approvers", row.approvers)}
-                                        <td style={{ overflow: 'inherit' }} title={row.approvers && row.approvers.map(x => x.label).join(',')}>
+                                        <td style={{ overflow: 'inherit', minWidth: '110px', maxWidth: '110px', }} title={row.approvers && row.approvers.map(x => x.label).join(',')}>
 
                                           <Select
                                             //onKeyDown={handleKeyDown}
@@ -4801,7 +4988,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         </td>
                                         <td
                                           //title={ApprovalTypeOptions.filter(x => x.value = row.leveltype)[0].label}
-                                          style={{ overflow: 'inherit' }} className="ng-binding">
+                                          style={{ overflow: 'inherit', minWidth: '75px', maxWidth: '75px', }} className="ng-binding">
                                           {/* <select
                                             //onKeyDown={handleKeyDown}
                                             //className={`form-select ${(!Validforward) ? "border-on-error" : ""}`}
@@ -4826,7 +5013,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                             <option value="All">Everyone</option>
                                           </select>
                                         </td>
-                                        <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>
+                                        <td style={{ minWidth: '45px', maxWidth: '45px', overflow: 'inherit' }}>
                                           {/* <i className="fe-trash-2 text-danger"></i> */}
                                           {editID.CurrentUserRole === "OES" ? <img src={require("../assets/del.png")} onClick={() => handleDeleteRow(index)} /> :
                                             <img src={require("../assets/recycle-bin.png")} className='sidebariconsmall' />}

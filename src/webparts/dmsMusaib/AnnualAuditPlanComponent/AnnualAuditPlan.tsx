@@ -52,6 +52,8 @@ interface ForwardTo {
     level: number;
     approvers: any[]; // Or a more specific type like `string[]` or `SPUser[]`
     approvalType: string;
+    Responsibility: string;
+    IsSignatureRequired: boolean;
 }
 
 interface Location {
@@ -458,9 +460,20 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         setForwardToArr(updatedArr);
     };
 
+    const handleChangeResp = (event: React.ChangeEvent<HTMLSelectElement>, lvl: number) => {
+        event.preventDefault();
+        const updatedArr = forwardToArr.map(row =>
+            // row.level === lvl ? { ...row, Responsibility: event.target.value} : row
+
+            row.level === lvl ? { ...row, Responsibility: event.target.value, IsSignatureRequired: event.target.value === "Signer" ? true : false } : row
+        );
+        //   setApprovalType(event.target.value);
+        setForwardToArr(updatedArr);
+    };
+
 
     const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
-        { id: 0, role: 0, level: 1, approvers: [], approvalType: "One" } // Default row
+        { id: 0, role: 0, level: 1, approvers: [], approvalType: "One", Responsibility: "Signer", IsSignatureRequired: true } // Default row
     ]);
 
     const Breadcrumb = [
@@ -949,6 +962,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         role: item.ApproverRole?.Id || 0, // Assuming role comes from ApproverRole
                         level: item.Level || 1, // Default to 1 if missing
                         approvalType: item.LevelType,
+                        Responsibility: item.Responsibility || "",
+                        IsSignatureRequired: item.IsSignatureRequired == "Yes" ? true : false,
                         approvers: item.Approvers?.map((approver: any) => ({
                             value: approver.Id,
                             label: approver.Title,
@@ -1090,7 +1105,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     const handleAddRow = () => {
         setForwardToArr((prev) => [
             ...prev,
-            { id: 0, role: 0, level: prev.length + 1, approvers: [], approvalType: "One" }
+            { id: 0, role: 0, level: prev.length + 1, approvers: [], approvalType: "One", Responsibility: "Signer", IsSignatureRequired: true }
         ]);
     };
 
@@ -1408,7 +1423,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             if (!forwardToArr) {
                 valid1 = false;
             }
-            if (forwardToArr.length > 0 && forwardToArr.every((row: any) => row.role !== 0 && row.approvalType.trim() !== "" && row.approvers.length != 0) == false) {
+            if (forwardToArr.length > 0 && forwardToArr.every((row: any) => row.role !== 0 && row.approvalType.trim() !== "" && row.Responsibility.trim() !== "" && row.approvers.length != 0) == false) {
 
 
                 Array.from(document.getElementsByClassName("HierarchyClsErr")).forEach((element: Element) => {
@@ -1781,6 +1796,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     // IsApprovalGenerated: "No"
                                     // RedirectionLink:,
 
+                                    Responsibility: item.Responsibility || "",
+                                    IsSignatureRequired: item.IsSignatureRequired ? "Yes" : "No",
+
 
 
                                 }
@@ -2141,7 +2159,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                         if (forwardToArr.length) {
                             isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
-                                row.approvalType.trim() !== "");
+                                row.approvalType.trim() !== "" && row.Responsibility.trim() !== "");
 
                             // if (!isValid) {
                             //     // alert("Each row must have a role selected and at least one approver.");
@@ -2192,8 +2210,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     ProcessName: "IMS Audit Plan",
                                     FormNameId: FormNameId.Id,
                                     ApprovalType: "Approval",
-                                    IsApprovalGenerated: "No"
+                                    IsApprovalGenerated: "No",
                                     // RedirectionLink:,
+
+                                    Responsibility: item.Responsibility || "",
+                                    IsSignatureRequired: item.IsSignatureRequired ? "Yes" : "No",
 
 
 
@@ -2388,7 +2409,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                 Status: "Rework",
                                 IsRework: "Yes",
-                               
+
 
 
                                 // //////
@@ -2556,6 +2577,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 ApprovalType: "Approval",
                                 // IsApprovalGenerated: "No"
                                 // RedirectionLink:,
+                                Responsibility: item.Responsibility || "",
+                                IsSignatureRequired: item.IsSignatureRequired ? "Yes" : "No",
 
 
 
@@ -2567,7 +2590,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             }
                             else {
                                 if (forwardToArr.every(row => row.role == 0 && row.approvers.length == 0 &&
-                                    row.approvalType.trim() == "") == false) {
+                                    row.approvalType.trim() == "" && row.Responsibility.trim() == "") == false) {
                                     const postResult2 = await addAllProcessItem(arr2, sp);
                                     const postId2 = postResult2?.data?.ID;
                                 }
@@ -2871,13 +2894,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                         if (forwardToArr.length) {
                             isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
-                                row.approvalType.trim() !== "");
+                                row.approvalType.trim() !== "" && row.Responsibility.trim() !== "");
                         }
 
                         // if (isValid) {
                         for (const item of forwardToArr) {
                             if ((item.role == 0 && item.approvers.length == 0 &&
-                                item.approvalType.trim() == "") == false) {
+                                item.approvalType.trim() == "" && item.Responsibility.trim() == "") == false) {
 
 
 
@@ -2911,8 +2934,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     ProcessName: "IMS Audit Plan",
                                     FormNameId: FormNameId.Id,
                                     ApprovalType: "Approval",
-                                    IsApprovalGenerated: "No"
+                                    IsApprovalGenerated: "No",
                                     // RedirectionLink:,
+
+                                    Responsibility: item.Responsibility || "",
+                                    IsSignatureRequired: item.IsSignatureRequired ? "Yes" : "No",
 
 
 
@@ -4698,10 +4724,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                     <tr>
                                                                         <th style={{ minWidth: "30px", maxWidth: "30px" }}>S.No</th>
                                                                         <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Role<span className="text-danger1"> *</span></th>
+                                                                        <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Responsibility<span className="text-danger1"> *</span></th>
+                                                                        <th style={{ minWidth: "40px", maxWidth: "40px" }} title="Use your electronic digital signature to sign this document digitally">E-Sign?</th>
                                                                         <th style={{ minWidth: '40px', maxWidth: '40px' }} >Level</th>
                                                                         <th>Approver name<span className="text-danger1"> *</span></th>
                                                                         <th style={{ minWidth: '80px', maxWidth: '80px' }} >Approval criteria<span className="text-danger1"> *</span></th>
-                                                                        <th style={{ minWidth: '40px', maxWidth: '40px' }}>Action</th>
+                                                                        <th style={{ minWidth: '36px', maxWidth: '36px' }}>Action</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody style={{ maxHeight: "8007px", overflow: 'inherit' }}>
@@ -4735,6 +4763,47 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 </select>
 
                                                                             </td>
+                                                                            <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px' }}>
+                                                                                <div
+                                                                                // style={{ display: "flex", alignItems: 'center', gap: '8px' }}
+                                                                                >
+                                                                                    <select
+                                                                                        id="responsibleId"
+                                                                                        value={row.Responsibility}
+                                                                                        onChange={(e) => handleChangeResp(e, row.level)}
+                                                                                        className={`newse HierarchyClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`}
+                                                                                        disabled={InputDisabled}
+                                                                                        title={row.Responsibility ? row.Responsibility : "Select"}
+
+                                                                                    >
+                                                                                        <option value="">Select </option>
+                                                                                        <option value="Signer">Signer</option>
+                                                                                        <option value="Reviewer">Reviewer</option>
+                                                                                    </select>
+
+                                                                                </div>
+                                                                            </td>
+                                                                            <td style={{ minWidth: "40px", maxWidth: "40px", overflow: 'inherit' }}>
+                                                                                <div
+                                                                                //  style={{ display: "flex", alignItems: 'center', gap: '8px' }}
+                                                                                >
+                                                                                    <input
+                                                                                        type="checkbox"
+                                                                                        checked={row.IsSignatureRequired}
+                                                                                        disabled={row.Responsibility === "Signer" || row.Responsibility === "" || InputDisabled}
+                                                                                        style={{ marginLeft: '17px', width: "20px" }}
+                                                                                        title="Signature Required"
+                                                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                                                            const isChecked = e.target.checked;
+                                                                                            const updatedArr = forwardToArr.map(row1 =>
+                                                                                                row1.level === row.level ? { ...row1, IsSignatureRequired: isChecked } : row1
+                                                                                            );
+                                                                                            setForwardToArr(updatedArr);
+                                                                                        }}
+                                                                                    />
+
+                                                                                </div>
+                                                                            </td>
                                                                             <td style={{ minWidth: '40px', maxWidth: '40px', overflow: 'inherit' }}>Level {index + 1}</td>
                                                                             <td style={{ overflow: 'inherit' }} title={row?.approvers.map((approver: any) => approver.label).join(", ") || "Enter Approver Name"}>
 
@@ -4762,7 +4831,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     <option value="All">Everyone</option>
                                                                                 </select>
                                                                             </td>
-                                                                            <td style={{ minWidth: '40px', maxWidth: '40px', overflow: 'inherit' }}>
+                                                                            <td style={{ minWidth: '36px', maxWidth: '36px', overflow: 'inherit' }}>
 
                                                                                 {/* {editID.CurrentUserRole === "OES" ?  */}
 

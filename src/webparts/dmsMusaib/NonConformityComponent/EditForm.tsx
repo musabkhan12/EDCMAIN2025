@@ -48,6 +48,8 @@ let CurrentuserEmail = "";
 let RequesterEmail = "";
 let setloading: boolean = false;
 let optionsmemoNumbernewnc: any[] = [];
+let editoptsmemoAllNC: any[] = [];
+let editoptsmemoAllObs: any[] = [];
 let optionsmemoNumbernewobs: any[] = [];
 let forwardisdisabled: boolean = false;
 let Approveclicked: boolean = false;
@@ -470,9 +472,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     if (e.target.files) {
       const newFilesArray = Array.from(e.target.files); // Convert FileList to Array
       const existingFiles = _self.state.copyFil || []; // previously uploaded
-  
+
       const allFiles = [...existingFiles, ...newFilesArray];
-  
+
       _self.setState({
         fileCount: allFiles.length,
         files: e.target.files, // optional: might not represent all files now
@@ -506,9 +508,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     if (e.target.files) {
       const newFilesArray = Array.from(e.target.files); // Convert FileList to Array
       const existingFiles = _self.state.copyFilauditee || []; // previously uploaded
-  
+
       const allFiles = [...existingFiles, ...newFilesArray];
-  
+
       _self.setState({
         fileCountauditee: allFiles.length,
         filesauditee: e.target.files, // optional: might not represent all files now
@@ -1042,188 +1044,208 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   }
   public async getListData() {
     debugger
-    let memoopt = await this.getAuditreport();
-    let departopt = await this.getDepartment();
     const sp = spfi().using(SPFx(this.props.context));
-    try {
-      const Items: any = await sp.web.lists.getByTitle("NonConformityList").items.getById(this.state.mainItemId)
-        .select("*, Category/Id, Category/Title, SubCategory/Id, Location/Id, Location/Title, SubCategory/Title, AssignedTo/Id, AssignedTo/Title,AssignedTo/EMail,DelegateTo/EMail, DelegateTo/Id, DelegateTo/Title, AnalyzedBy/Id, AnalyzedBy/Title, ReviewedBy/Id, ReviewedBy/Title, PersonAssigned/Id, PersonAssigned/Title,Author/Id,Author/Title,Author/EMail")
-        .expand("Category, SubCategory, Location, AssignedTo, DelegateTo, AnalyzedBy, ReviewedBy, PersonAssigned,Author")();
-      console.log("Itemsedit", Items);
-      this.setState({
-        ncItemId: Items.Id,
-        editDepartment: Items.DepartmentId,
-        editfromdepartment: Items.FromDepartmentId,
-        editncType: Items.NCType,
-        isIMSUpdated: Items.IMSUpdated,
-        riskandopportunitiesUpdated: Items.RiskOpportunitiesUpdated,
-        correctionApplicable: Items.Correctionapplicable == "Yes" ? true : false,
-        notEffective: Items.NotEffective == "Yes" ? true : false,
-        effectiveClosed: Items.EffectiveandProblemClosed == "Yes" ? true : false,
-        editMemoNumber: Items.ApprovedAuditReportMemoNumber,
-        editNCNumber: Items.NCNumber,
-        editApprovedAuditReport: Items.ApprovedAuditReportId,
-        editNCNumberID: Items.NCNumberID,
-        editCriteria: Items.Criteria,
-        editNCRNo: Items.NCRNo,
-        editReferenceNumber: Items.ReferenceNumber,
-        editDocumentCode: Items.DocumentCode,
-        editRevisionDate: Items.RevisionDate,
-        editIssueDate: Items.IssueDate,
-        editRevisionNo: Items.RevisionNumber,
-        editIssueNo: Items.IssueNumber,
-        CategoryOthers: Items.CategoryOthers,
-        LocationOthers: Items.LocationOthers,
-        SubCategoryOthers: Items.SubCategoryOthers,
-        editCloseOutStatus: Items.CloseOutStatus,
-        editCategoryValueIsCheck: Items.Category ? Items.Category.map((cat: any) => cat.Id) : [],
-        editSubCategoryValueIsCheck: Items.SubCategory ? Items.SubCategory.map((sub: any) => sub.Id) : [],
-        editLocationValueIsCheck: Items.Location ? Items.Location.map((loc: any) => loc.Id) : [],
-        editAssignToId: Items.AssignedTo ? Items.AssignedTo.Id : null,
-        editAssignTo: Items.AssignedTo ? Items.AssignedTo.Title : null,
-        editDelegateToEmail: Items.DelegateTo ? Items.DelegateTo.EMail : null,
-        editAssignToEmail: Items.AssignedTo ? Items.AssignedTo.EMail : null,
-        editProblemDescription: Items.ProblemDescription,
-        editDueDate: Items.DueDate ? new Date(Items.DueDate) : null,
-        editPersonAssignedId: Items.AssignedTo ? Items.AssignedTo.Id : null,
-        editPersonAssigned: Items.AssignedTo ? Items.AssignedTo.Title : null,
-        editDate: Items.Date ? new Date(Items.Date) : null,
-        editDeadlineCompletion: Items.DueDate ? new Date(Items.DueDate) : null,
-        editCorrection: Items.Correctionproblem,
-        editRootCause: Items.RootCause,
-        editCorrectiveAction: Items.CorrectiveAction,
-        editDelegateToId: Items.DelegateTo ? Items.DelegateTo.Id : null,
-        editDelegateTo: Items.DelegateTo ? Items.DelegateTo.Title : null,
-        editAnalyzedById: Items.AnalyzedBy ? Items.AnalyzedBy.Id : null,
-        editAnalyzedBy: Items.AnalyzedBy ? Items.AnalyzedBy.Title : null,
-        editReviewedById: Items.ReviewedBy ? Items.ReviewedBy.Id : null,
-        editReviewedBy: Items.ReviewedBy ? Items.ReviewedBy.Title : null,
-        editCorrectiveActionImplementedOn: Items.CorrectiveActionImplementedOn,
-        editSubmitStatus: Items.SubmitStatus,
-        editCurrentUserRole: Items.CurrentUserRole,
-        editFirstInitiatorSubmitStatus: Items.FirstInitiatorSubmitStatus,
-        editFirstAssignedToSubmitStatus: Items.FirstAssignedToSubmitStatus,
-        editDelegateToSubmitStatus: Items.DelegateToSubmitStatus,
-        editAnalyzedBySubmitStatus: Items.AnalyzedBySubmitStatus,
-        editReviewedBySubmitStatus: Items.ReviewedBySubmitStatus,
-        editLastAssignedToSubmitStatus: Items.LastAssignedToSubmitStatus,
-        editLastInitiatorSubmitStatus: Items.LastInitiatorSubmitStatus,
-        editStatus: Items.Status,
-        editAttachmentPreArray: [],
-        editAttachmentJson: [],
-        notUpdateDepartmentCode: Items.NCRNo,
-        notUpdateSerialNo: Items.SerialNumber,
-        Requester: Items.Author,
-        //remarks: Items.FinalRemarks,
-        reworkremarks: Items.ReworkRemarks
-      });
-      const showCategoryOthers = Items.Category?.some((cat: any) => cat.Title === "Others") || false;
-      const showSubCategoryOthers = Items.SubCategory?.some((sub: any) => sub.Title === "Others") || false;
-      const showLocationOthers = Items.Location?.some((loc: any) => loc.Title === "Others") || false;
-      this.setState({ showcategoryothers: showCategoryOthers, showlocationothers: showLocationOthers, showsubcategoryothers: showSubCategoryOthers });
-      const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items();
-      const optionsdept = deptItems.map((item: {
-        DepartmentCode: any; Title: string; Id: number, ADDepartmentName: string
-      }) => ({
-        value: item.Id,
-        label: item.Title,
-        adDepartmentName: item.ADDepartmentName,
-        data: { departmentCode: item.DepartmentCode },
-      }));
-      if (Items?.NCType) {
+    let memoopt = await this.getAuditreport().then(async (x) => {
+      let departopt = await this.getDepartment();
+
+      try {
+        const Items: any = await sp.web.lists.getByTitle("NonConformityList").items.getById(this.state.mainItemId)
+          .select("*, Category/Id, Category/Title, SubCategory/Id, Location/Id, Location/Title, SubCategory/Title, AssignedTo/Id, AssignedTo/Title,AssignedTo/EMail,DelegateTo/EMail, DelegateTo/Id, DelegateTo/Title, AnalyzedBy/Id, AnalyzedBy/Title, ReviewedBy/Id, ReviewedBy/Title, PersonAssigned/Id, PersonAssigned/Title,Author/Id,Author/Title,Author/EMail")
+          .expand("Category, SubCategory, Location, AssignedTo, DelegateTo, AnalyzedBy, ReviewedBy, PersonAssigned,Author")();
+        console.log("Itemsedit", Items);
         this.setState({
-          editncType: Items?.NCType,
-          editmemonumberOptions: Items?.NCType == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs
+          ncItemId: Items.Id,
+          editDepartment: Items.DepartmentId,
+          editfromdepartment: Items.FromDepartmentId,
+          editncType: Items.NCType,
+          isIMSUpdated: Items.IMSUpdated,
+          riskandopportunitiesUpdated: Items.RiskOpportunitiesUpdated,
+          correctionApplicable: Items.Correctionapplicable == "Yes" ? true : false,
+          notEffective: Items.NotEffective == "Yes" ? true : false,
+          effectiveClosed: Items.EffectiveandProblemClosed == "Yes" ? true : false,
+          editMemoNumber: Items.ApprovedAuditReportMemoNumber,
+          editNCNumber: Items.NCNumber,
+          editApprovedAuditReport: Items.ApprovedAuditReportId,
+          editNCNumberID: Items.NCNumberID,
+          editCriteria: Items.Criteria,
+          editNCRNo: Items.NCRNo,
+          editReferenceNumber: Items.ReferenceNumber,
+          editDocumentCode: Items.DocumentCode,
+          editRevisionDate: Items.RevisionDate,
+          editIssueDate: Items.IssueDate,
+          editRevisionNo: Items.RevisionNumber,
+          editIssueNo: Items.IssueNumber,
+          CategoryOthers: Items.CategoryOthers,
+          LocationOthers: Items.LocationOthers,
+          SubCategoryOthers: Items.SubCategoryOthers,
+          editCloseOutStatus: Items.CloseOutStatus,
+          editCategoryValueIsCheck: Items.Category ? Items.Category.map((cat: any) => cat.Id) : [],
+          editSubCategoryValueIsCheck: Items.SubCategory ? Items.SubCategory.map((sub: any) => sub.Id) : [],
+          editLocationValueIsCheck: Items.Location ? Items.Location.map((loc: any) => loc.Id) : [],
+          editAssignToId: Items.AssignedTo ? Items.AssignedTo.Id : null,
+          editAssignTo: Items.AssignedTo ? Items.AssignedTo.Title : null,
+          editDelegateToEmail: Items.DelegateTo ? Items.DelegateTo.EMail : null,
+          editAssignToEmail: Items.AssignedTo ? Items.AssignedTo.EMail : null,
+          editProblemDescription: Items.ProblemDescription,
+          editDueDate: Items.DueDate ? new Date(Items.DueDate) : null,
+          editPersonAssignedId: Items.AssignedTo ? Items.AssignedTo.Id : null,
+          editPersonAssigned: Items.AssignedTo ? Items.AssignedTo.Title : null,
+          editDate: Items.Date ? new Date(Items.Date) : null,
+          editDeadlineCompletion: Items.DueDate ? new Date(Items.DueDate) : null,
+          editCorrection: Items.Correctionproblem,
+          editRootCause: Items.RootCause,
+          editCorrectiveAction: Items.CorrectiveAction,
+          editDelegateToId: Items.DelegateTo ? Items.DelegateTo.Id : null,
+          editDelegateTo: Items.DelegateTo ? Items.DelegateTo.Title : null,
+          editAnalyzedById: Items.AnalyzedBy ? Items.AnalyzedBy.Id : null,
+          editAnalyzedBy: Items.AnalyzedBy ? Items.AnalyzedBy.Title : null,
+          editReviewedById: Items.ReviewedBy ? Items.ReviewedBy.Id : null,
+          editReviewedBy: Items.ReviewedBy ? Items.ReviewedBy.Title : null,
+          editCorrectiveActionImplementedOn: Items.CorrectiveActionImplementedOn,
+          editSubmitStatus: Items.SubmitStatus,
+          editCurrentUserRole: Items.CurrentUserRole,
+          editFirstInitiatorSubmitStatus: Items.FirstInitiatorSubmitStatus,
+          editFirstAssignedToSubmitStatus: Items.FirstAssignedToSubmitStatus,
+          editDelegateToSubmitStatus: Items.DelegateToSubmitStatus,
+          editAnalyzedBySubmitStatus: Items.AnalyzedBySubmitStatus,
+          editReviewedBySubmitStatus: Items.ReviewedBySubmitStatus,
+          editLastAssignedToSubmitStatus: Items.LastAssignedToSubmitStatus,
+          editLastInitiatorSubmitStatus: Items.LastInitiatorSubmitStatus,
+          editStatus: Items.Status,
+          editAttachmentPreArray: [],
+          editAttachmentJson: [],
+          notUpdateDepartmentCode: Items.NCRNo,
+          notUpdateSerialNo: Items.SerialNumber,
+          Requester: Items.Author,
+          //remarks: Items.FinalRemarks,
+          reworkremarks: Items.ReworkRemarks
         });
-      }
-      let nctypenew: string = Items.NCType == "NC" ? "NC Number" : "Observation NUmber";
-      let NCNumberoptionnew = await getNCNumbers(sp, Items.ApprovedAuditReportMemoNumber, nctypenew);
-      let optionsNCNumber: any = [];
-      if (NCNumberoptionnew.length > 0) {
-        optionsNCNumber = NCNumberoptionnew[0].map((item: any) => ({
-          value: item.ID,
-          label: item.NCNumber,
-          ncNo: item.NCNumber,
-          reportcode: item.ReportCode,
-          nctype: item.NCType
+        const showCategoryOthers = Items.Category?.some((cat: any) => cat.Title === "Others") || false;
+        const showSubCategoryOthers = Items.SubCategory?.some((sub: any) => sub.Title === "Others") || false;
+        const showLocationOthers = Items.Location?.some((loc: any) => loc.Title === "Others") || false;
+        this.setState({ showcategoryothers: showCategoryOthers, showlocationothers: showLocationOthers, showsubcategoryothers: showSubCategoryOthers });
+        const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items();
+        const optionsdept = deptItems.map((item: {
+          DepartmentCode: any; Title: string; Id: number, ADDepartmentName: string
+        }) => ({
+          value: item.Id,
+          label: item.Title,
+          adDepartmentName: item.ADDepartmentName,
+          data: { departmentCode: item.DepartmentCode },
         }));
-      }
-      let optionsNCNumbernew: any[] = [];
-      optionsNCNumbernew = optionsNCNumber.length > 0 && await this.getUniqueBy(optionsNCNumber, "ncNo");
-      let editmemonumberOptionsselect = Items?.NCType == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs
-      let approvedauditreportselected = editmemonumberOptionsselect.filter((x: any) => x.value == Items.ApprovedAuditReportId);
-      let ncnumberselected = optionsNCNumbernew.filter((x: any) => x.value == Items.NCNumberID);
-      let selecteddepartment = optionsdept.filter((x: any) => x.value == Items.DepartmentId);
-      let fromselecteddepartment = optionsdept.filter((x: any) => x.value == Items.FromDepartmentId);
-      this.setState({
-        editNCNumberOptions: optionsNCNumbernew, NCNumberselected: ncnumberselected,
-        ApprovedAuditSelected: approvedauditreportselected,
-        departmentselected: selecteddepartment,
-        editfromdepartmentselected: fromselecteddepartment
-      })
-      //this.setState({ editApprovedAuditReport: item.key, editMemoNumber: item.memoNumber });
-      RequesterEmail = Items.Author.EMail;
-      const apprItems = await sp.web.lists
-        .getByTitle("ProcessApprovalList")
-        .items.select(
-          "*",
-          "AssignedTo/Title,AssignedTo/Id,AssignedTo/EMail,ActionTakenRole,ActionTakenRole/Role,RequesterName/Title,ActionTakenBy/Title"
-        )
-        .expand("AssignedTo,ActionTakenRole,RequesterName,ActionTakenBy")
-        .filter(
-          "ListItemId eq '" +
-          this.state.mainItemId +
-          "' and ProcessName eq 'Non Conformity'"
-        )
-        .orderBy("Id", false)();
-      debugger
-      let url = window.location.href;
-      let parts = url.split("#/")[1].split("/");
-      let editType = parts[1]; // "edit"
-      let id = parts[2];
-      let currentlevel: any;
-      let finallevel: any;
-      if (editType == "edit") {
-        // if (currentApprover.CurrentUserRole !== "LastInitiator") {
-        showreworkremarks = true;
-        // }
-      }
-      if (editType === "approve") {
+        if (Items?.NCType) {
+          this.setState({
+            editncType: Items?.NCType,
+            editmemonumberOptions: Items?.NCType == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs
+          });
+        }
+        let nctypenew: string = Items.NCType == "NC" ? "NC Number" : "Observation NUmber";
+        let NCNumberoptionnew = await getNCNumbers(sp, Items.ApprovedAuditReportMemoNumber, nctypenew);
+        let optionsNCNumber: any = [];
+        if (NCNumberoptionnew.length > 0) {
+          optionsNCNumber = NCNumberoptionnew[0].map((item: any) => ({
+            value: item.ID,
+            label: item.NCNumber,
+            ncNo: item.NCNumber,
+            reportcode: item.ReportCode,
+            nctype: item.NCType
+          }));
+        }
+        let optionsNCNumbernew: any[] = [];
+        debugger
+        console.log("nmnnmnm", this.state.editmemonumberOptions, optionsmemoNumbernewnc, editoptsmemoAllNC, editoptsmemoAllObs);
+        optionsNCNumbernew = optionsNCNumber.length > 0 && await this.getUniqueBy(optionsNCNumber, "ncNo");
+        let editmemonumberOptionsselect = Items?.NCType == "NC" ? editoptsmemoAllNC : editoptsmemoAllObs;
+        let approvedauditreportselected = editmemonumberOptionsselect.filter((x: any) => Number(x.value) == Number(Items.ApprovedAuditReportId));
+        let ncnumberselected = optionsNCNumbernew.filter((x: any) => x.value == Items.NCNumberID);
+        let selecteddepartment = optionsdept.filter((x: any) => x.value == Items.DepartmentId);
+        let fromselecteddepartment = optionsdept.filter((x: any) => x.value == Items.FromDepartmentId);
+        this.setState({
+          editNCNumberOptions: optionsNCNumbernew, NCNumberselected: ncnumberselected,
+          ApprovedAuditSelected: approvedauditreportselected,
+          departmentselected: selecteddepartment,
+          editfromdepartmentselected: fromselecteddepartment
+        })
+        //this.setState({ editApprovedAuditReport: item.key, editMemoNumber: item.memoNumber });
+        RequesterEmail = Items.Author.EMail;
+        const apprItems = await sp.web.lists
+          .getByTitle("ProcessApprovalList")
+          .items.select(
+            "*",
+            "AssignedTo/Title,AssignedTo/Id,AssignedTo/EMail,ActionTakenRole,ActionTakenRole/Role,RequesterName/Title,ActionTakenBy/Title"
+          )
+          .expand("AssignedTo,ActionTakenRole,RequesterName,ActionTakenBy")
+          .filter(
+            "ListItemId eq '" +
+            this.state.mainItemId +
+            "' and ProcessName eq 'Non Conformity'"
+          )
+          .orderBy("Id", false)();
+        debugger
+        let url = window.location.href;
+        let parts = url.split("#/")[1].split("/");
+        let editType = parts[1]; // "edit"
+        let id = parts[2];
+        let currentlevel: any;
+        let finallevel: any;
+        if (editType == "edit") {
+          // if (currentApprover.CurrentUserRole !== "LastInitiator") {
+          showreworkremarks = true;
+          // }
+        }
+        if (editType === "approve") {
 
-        let approvalItemIdnew = parts[3];
-        let Approverdata = await this.getapprovalbyID(Number(approvalItemIdnew), "Non Conformity");
-        console.log("Approverdata", Approverdata, "Approverdata0", Approverdata && Approverdata[0], Approvallistitemid, approvalItemIdnew);
+          let approvalItemIdnew = parts[3];
+          let Approverdata = await this.getapprovalbyID(Number(approvalItemIdnew), "Non Conformity");
+          console.log("Approverdata", Approverdata, "Approverdata0", Approverdata && Approverdata[0], Approvallistitemid, approvalItemIdnew);
 
-        if (Approverdata.length > 0) {
-          const currentApprover = Approverdata[0];
-          const isAnalyzedRole = currentApprover.CurrentUserRole === "AnalyzedBy";
-          const isFirstAssigned = currentApprover.CurrentUserRole === "FirstAssignedTo" || currentApprover.CurrentUserRole === "DelegateTo";
-          const isCurrentUser = (currentApprover.CurrentUserRole === "FirstAssignedTo" && currentApprover.AssignedTo?.EMail === CurrentuserEmail) ||
-            (currentApprover.CurrentUserRole === "DelegateTo" && currentApprover.DelegateTo?.EMail === CurrentuserEmail) ||
-            (currentApprover.CurrentUserRole === "AnalyzedBy" && currentApprover.AssignedTo?.EMail === CurrentuserEmail);
+          if (Approverdata.length > 0) {
+            const currentApprover = Approverdata[0];
+            const isAnalyzedRole = currentApprover.CurrentUserRole === "AnalyzedBy";
+            const isFirstAssigned = currentApprover.CurrentUserRole === "FirstAssignedTo" || currentApprover.CurrentUserRole === "DelegateTo";
+            const isCurrentUser = (currentApprover.CurrentUserRole === "FirstAssignedTo" && currentApprover.AssignedTo?.EMail === CurrentuserEmail) ||
+              (currentApprover.CurrentUserRole === "DelegateTo" && currentApprover.DelegateTo?.EMail === CurrentuserEmail) ||
+              (currentApprover.CurrentUserRole === "AnalyzedBy" && currentApprover.AssignedTo?.EMail === CurrentuserEmail);
 
-          const currentstatus = currentApprover.Status == "Approved";
-          const finalstatus = Items.Status == "Approved";
-          currentlevel = currentApprover.Level;
-          finallevel = currentApprover.Maxlevel;
-          ApproverEmail = currentApprover.AssignedTo?.EMail;
+            const currentstatus = currentApprover.Status == "Approved";
+            const finalstatus = Items.Status == "Approved";
+            currentlevel = currentApprover.Level;
+            finallevel = currentApprover.Maxlevel;
+            ApproverEmail = currentApprover.AssignedTo?.EMail;
 
 
-          if (this.state.editLastInitiatorSubmitStatus == "No" && this.state.editCurrentUserRole == "LastInitiator" && currentApprover.AssignedTo?.EMail === CurrentuserEmail) {
-            forwardisdisabled = false
-          } else {
-            forwardisdisabled = true;
+            if (this.state.editLastInitiatorSubmitStatus == "No" && this.state.editCurrentUserRole == "LastInitiator" && currentApprover.AssignedTo?.EMail === CurrentuserEmail) {
+              forwardisdisabled = false
+            } else {
+              forwardisdisabled = true;
+            }
+            if (isAnalyzedRole && isCurrentUser) {
+              IsAnalyzedBy = true;
+              showimsupdated = true;
+              isdisableims = false;
+            }
+            if (currentApprover.CurrentUserRole !== "LastInitiator") {
+              showreworkremarks = true;
+            }
+            // This will override previous value only if role is "FirstAssignedTo"
+            if (!isFirstAssigned && Items.IMSUpdated != "" && Items.IMSUpdated != null && Items.RiskOpportunitiesUpdated != "" && Items.RiskOpportunitiesUpdated != null && !(isAnalyzedRole && isCurrentUser)) {
+              showimsupdated = true;
+              isdisableims = true;
+            }
+
+            if (Items.Status == "Approved") {
+              showcorrectionappicable = true;
+              isdisablefinal = true;
+            }
+
+            // showfinalapproval = currentstatus;
+            // isdisablefinal = finalstatus;
           }
-          if (isAnalyzedRole && isCurrentUser) {
-            IsAnalyzedBy = true;
-            showimsupdated = true;
-            isdisableims = false;
-          }
-          if (currentApprover.CurrentUserRole !== "LastInitiator") {
-            showreworkremarks = true;
-          }
-          // This will override previous value only if role is "FirstAssignedTo"
-          if (!isFirstAssigned && Items.IMSUpdated != "" && Items.IMSUpdated != null && Items.RiskOpportunitiesUpdated != "" && Items.RiskOpportunitiesUpdated != null && !(isAnalyzedRole && isCurrentUser)) {
+
+        }
+        if (editType == "view") {
+
+          if (Items.IMSUpdated != "" && Items.IMSUpdated != null && Items.RiskOpportunitiesUpdated != "" && Items.RiskOpportunitiesUpdated != null) {
             showimsupdated = true;
             isdisableims = true;
           }
@@ -1232,197 +1254,182 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             showcorrectionappicable = true;
             isdisablefinal = true;
           }
-
-          // showfinalapproval = currentstatus;
-          // isdisablefinal = finalstatus;
         }
+        var cnt: any = 0;
+        var appItems: any[] = [];
+        console.log("apprItems111", apprItems);
+        if (apprItems.length > 0) {
+          if (Items.SubmitStatus == "Yes" && (Items.CurrentUserRole == "FirstAssignedTo" || Items.CurrentUserRole == "DelegateTo")) {
+            //this.setState({ approvalItemId: apprItems[0].ID })
+            if (apprItems.length == 1) {
+              Approvallistitemid = apprItems[0].ID
+            } else if (apprItems.length > 1) {
+              let initatoritem = apprItems.filter((x) => (x.CurrentUserRole == "FirstAssignedTo" || x.CurrentUserRole == "DelegateTo") && x.Status == "Pending")
+              if (initatoritem.length > 0) {
+                Approvallistitemid = initatoritem[0].ID
+              }
+            }
 
-      }
-      if (editType == "view") {
-
-        if (Items.IMSUpdated != "" && Items.IMSUpdated != null && Items.RiskOpportunitiesUpdated != "" && Items.RiskOpportunitiesUpdated != null) {
-          showimsupdated = true;
-          isdisableims = true;
-        }
-
-        if (Items.Status == "Approved") {
-          showcorrectionappicable = true;
-          isdisablefinal = true;
-        }
-      }
-      var cnt: any = 0;
-      var appItems: any[] = [];
-      console.log("apprItems111", apprItems);
-      if (apprItems.length > 0) {
-        if (Items.SubmitStatus == "Yes" && (Items.CurrentUserRole == "FirstAssignedTo" || Items.CurrentUserRole == "DelegateTo")) {
-          //this.setState({ approvalItemId: apprItems[0].ID })
-          if (apprItems.length == 1) {
-            Approvallistitemid = apprItems[0].ID
-          } else if (apprItems.length > 1) {
-            let initatoritem = apprItems.filter((x) => (x.CurrentUserRole == "FirstAssignedTo" || x.CurrentUserRole == "DelegateTo") && x.Status == "Pending")
+          }
+          if (Items.SubmitStatus == "Yes" && Items.Status == "Rework" && Items.CurrentUserRole == "FirstInitiator" && apprItems.length > 1) {
+            //this.setState({ approvalItemId: apprItems[0].ID })
+            let initatoritem = apprItems.filter((x) => x.CurrentUserRole == "FirstInitiator" && x.Status == "Pending")
             if (initatoritem.length > 0) {
               Approvallistitemid = initatoritem[0].ID
+            }
+
+          }
+          apprItems.forEach(async function (itm: any) {
+            //Audit Report
+            var objToAdd: any = {};
+            objToAdd["Level"] = itm.Level;
+            objToAdd["AssignedTo"] = itm.AssignedTo.Title;
+            objToAdd["AssignedToEmail"] = itm.AssignedTo.EMail;
+            objToAdd["RequesterName"] = itm.RequesterName.Title;
+            objToAdd["ActionTakenRole"] = itm.ActionTakenRoleId == null ? itm.CurrentUserRole : itm.ActionTakenRole?.Role;
+            {
+              /* Divyansh Changes */
+            }
+            if (itm.RequestedDate == "" || itm.RequestedDate == null) {
+              objToAdd["RequestedDate"] = "";
+            } else {
+              objToAdd["RequestedDate"] = itm.RequestedDate;
+            }
+            if (itm.ActionTakenById != null) {
+              objToAdd["ActionTakenBy"] = itm.ActionTakenBy.Title;
+            }
+            else {
+              objToAdd["ActionTakenBy"] = "";
+            }
+
+            objToAdd["ActionTakenOn"] = itm.ActionTakenOn;
+            objToAdd["Remarks"] = itm.Remark;
+            objToAdd["Status"] = itm.Status;
+            objToAdd["Index"] = itm.Level;
+
+            appItems.push(objToAdd);
+            cnt = cnt + 1;
+          });
+          this.setState({ apprItems: appItems });
+        }
+        //Get Files
+        const upFiles = await sp.web.lists.getByTitle("NonConformityDocs").items.select("*", "File/Name,FileLeafRef,FileRef,EncodedAbsUrl").expand("File")
+          .filter("NonConformityId eq '" + this.state.mainItemId + "'")();
+        if (upFiles.length > 0) {
+          var obJFiles: any[] = [];
+          let fCount: number = 0;
+          upFiles.forEach(async function (item: any) {
+            obJFiles.push({
+              "Name": item?.File.Name,
+              "type": "old",
+              "Id": item.Id,
+              "FileRef": item.FileRef,
+              "FileLeafRef": item.FileLeafRef,
+              "Uploaded": item.Modified,
+              "Path": item.EncodedAbsUrl
+            })
+          })
+          fCount = upFiles.length;
+          this.setState({ exFiles: obJFiles, fileCount: fCount });
+        }
+        const upFilesauditee = await sp.web.lists.getByTitle("AuditeeAttachmentDocs").items.select("*", "File/Name,FileLeafRef,FileRef,EncodedAbsUrl").expand("File")
+          .filter("NonConformityId eq '" + this.state.mainItemId + "'")();
+        if (upFilesauditee.length > 0) {
+          var obJFiles: any[] = [];
+          let fCount: number = 0;
+          upFilesauditee.forEach(async function (item: any) {
+            obJFiles.push({
+              "Name": item?.File.Name,
+              "type": "old",
+              "Id": item.Id,
+              "FileRef": item.FileRef,
+              "FileLeafRef": item.FileLeafRef,
+              "Uploaded": item.Modified,
+              "Path": item.EncodedAbsUrl
+            })
+          })
+          fCount = upFilesauditee.length;
+          this.setState({ exFilesauditee: obJFiles, fileCountauditee: fCount });
+        }
+        if (Items.substatus == "No" || (Items.Status == "Rework" && Items.CurrentUserRole == "FirstAssignedTo")) {
+          this.setState({ ShowDeleteicon: true })
+        }
+        //AllProcessApproval Table data
+        debugger
+        const approvalItems = await sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.select("*", "Approvers/Name", "Approvers/EMail", "Approvers/ID").expand("Approvers")
+          .filter("MainListID eq '" + this.state.mainItemId + "'and ProcessName eq 'Non Conformity'")
+          .orderBy("Level", true)();
+        var allApp: any[] = [];
+        var cnt: any = 0;
+        const sorted = [...approvalItems].sort((a, b) => b.Level - a.Level);
+
+
+        debugger
+        if (approvalItems.length > 0) {
+          approvalItems.forEach(async function (itm: any) {
+            var objToAdd: any = {};
+            let approve: string[] = [];
+            itm.Approvers.forEach(function (it: any) {
+              approve.push(it.Name.split('|membership|')[1].toString());
+              // ids.push(it.Id);
+            })
+            objToAdd["Role"] = itm.ApproverRoleId;
+            objToAdd["Type"] = itm.LevelType;
+            objToAdd["Name"] = itm.ApproversId;
+            objToAdd["itemId"] = itm.Id;
+            objToAdd["Index"] = itm.Level;
+            objToAdd["appEx"] = approve;
+
+
+            allApp.push(objToAdd);
+            cnt = cnt + 1;
+          });
+          editforwardrecord = true;
+          //const sorted = [...allApp].sort((a, b) => a.index - b.index);
+          //this.setState({ approvers: sorted });
+          this.setState({ approvers: allApp });
+          const approvers = sorted[0]?.Approvers || [];
+          const currentUserEmail = this.props.context.pageContext.user.email;
+
+          const finalApprover = approvers.map((user: any) => ({
+            id: user.ID,
+            email: user.EMail
+          }));
+          const isFinalApprover = finalApprover.some(
+            (approver: any) => approver.email?.toLowerCase() === currentUserEmail?.toLowerCase()
+          ) && Items.CurrentUserRole == "Approverrole";
+          console.log("finallevel", finallevel, currentlevel);
+          debugger
+          if (editType === "approve") {
+            if (Items.Status != "Approved" && isFinalApprover && finallevel == currentlevel && Items.CurrentUserRole == "Approverrole") {
+              showcorrectionappicable = true;
+              isdisablefinal = false;
+              this.setState({ IsFinalapprover: isFinalApprover });
             }
           }
 
         }
-        if (Items.SubmitStatus == "Yes" && Items.Status == "Rework" && Items.CurrentUserRole == "FirstInitiator" && apprItems.length > 1) {
-          //this.setState({ approvalItemId: apprItems[0].ID })
-          let initatoritem = apprItems.filter((x) => x.CurrentUserRole == "FirstInitiator" && x.Status == "Pending")
-          if (initatoritem.length > 0) {
-            Approvallistitemid = initatoritem[0].ID
-          }
 
+        //Get latest last rec the NC list   
+        const latestItem = await sp.web.lists
+          .getByTitle("NonConformityList").items.select("Id", "SerialNumber", "Created", "SubmitStatus")
+          .orderBy("SerialNumber", false).top(1)();
+        if (latestItem.length > 0) {
+          var serialNo = latestItem[0].SerialNumber + 1;
+          if (serialNo < 999)
+            serialNo = ("0000" + serialNo).slice(-3);
+          this.setState({ editserialNo: serialNo })
         }
-        apprItems.forEach(async function (itm: any) {
-          //Audit Report
-          var objToAdd: any = {};
-          objToAdd["Level"] = itm.Level;
-          objToAdd["AssignedTo"] = itm.AssignedTo.Title;
-          objToAdd["AssignedToEmail"] = itm.AssignedTo.EMail;
-          objToAdd["RequesterName"] = itm.RequesterName.Title;
-          objToAdd["ActionTakenRole"] = itm.ActionTakenRoleId == null ? itm.CurrentUserRole : itm.ActionTakenRole?.Role;
-          {
-            /* Divyansh Changes */
-          }
-          if (itm.RequestedDate == "" || itm.RequestedDate == null) {
-            objToAdd["RequestedDate"] = "";
-          } else {
-            objToAdd["RequestedDate"] = itm.RequestedDate;
-          }
-          if (itm.ActionTakenById != null) {
-            objToAdd["ActionTakenBy"] = itm.ActionTakenBy.Title;
-          }
-          else {
-            objToAdd["ActionTakenBy"] = "";
-          }
-
-          objToAdd["ActionTakenOn"] = itm.ActionTakenOn;
-          objToAdd["Remarks"] = itm.Remark;
-          objToAdd["Status"] = itm.Status;
-          objToAdd["Index"] = itm.Level;
-
-          appItems.push(objToAdd);
-          cnt = cnt + 1;
-        });
-        this.setState({ apprItems: appItems });
-      }
-      //Get Files
-      const upFiles = await sp.web.lists.getByTitle("NonConformityDocs").items.select("*", "File/Name,FileLeafRef,FileRef,EncodedAbsUrl").expand("File")
-        .filter("NonConformityId eq '" + this.state.mainItemId + "'")();
-      if (upFiles.length > 0) {
-        var obJFiles: any[] = [];
-        let fCount: number = 0;
-        upFiles.forEach(async function (item: any) {
-          obJFiles.push({
-            "Name": item?.File.Name,
-            "type": "old",
-            "Id": item.Id,
-            "FileRef": item.FileRef,
-            "FileLeafRef": item.FileLeafRef,
-            "Uploaded": item.Modified,
-            "Path": item.EncodedAbsUrl
-          })
-        })
-        fCount = upFiles.length;
-        this.setState({ exFiles: obJFiles, fileCount: fCount });
-      }
-      const upFilesauditee = await sp.web.lists.getByTitle("AuditeeAttachmentDocs").items.select("*", "File/Name,FileLeafRef,FileRef,EncodedAbsUrl").expand("File")
-        .filter("NonConformityId eq '" + this.state.mainItemId + "'")();
-      if (upFilesauditee.length > 0) {
-        var obJFiles: any[] = [];
-        let fCount: number = 0;
-        upFilesauditee.forEach(async function (item: any) {
-          obJFiles.push({
-            "Name": item?.File.Name,
-            "type": "old",
-            "Id": item.Id,
-            "FileRef": item.FileRef,
-            "FileLeafRef": item.FileLeafRef,
-            "Uploaded": item.Modified,
-            "Path": item.EncodedAbsUrl
-          })
-        })
-        fCount = upFilesauditee.length;
-        this.setState({ exFilesauditee: obJFiles, fileCountauditee: fCount });
-      }
-      if (Items.substatus == "No" || (Items.Status =="Rework" && Items.CurrentUserRole == "FirstAssignedTo")) {
-        this.setState({ ShowDeleteicon: true })
-      }
-      //AllProcessApproval Table data
-      debugger
-      const approvalItems = await sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.select("*", "Approvers/Name", "Approvers/EMail", "Approvers/ID").expand("Approvers")
-        .filter("MainListID eq '" + this.state.mainItemId + "'and ProcessName eq 'Non Conformity'")
-        .orderBy("Level", true)();
-      var allApp: any[] = [];
-      var cnt: any = 0;
-      const sorted = [...approvalItems].sort((a, b) => b.Level - a.Level);
-
-
-      debugger
-      if (approvalItems.length > 0) {
-        approvalItems.forEach(async function (itm: any) {
-          var objToAdd: any = {};
-          let approve: string[] = [];
-          itm.Approvers.forEach(function (it: any) {
-            approve.push(it.Name.split('|membership|')[1].toString());
-            // ids.push(it.Id);
-          })
-          objToAdd["Role"] = itm.ApproverRoleId;
-          objToAdd["Type"] = itm.LevelType;
-          objToAdd["Name"] = itm.ApproversId;
-          objToAdd["itemId"] = itm.Id;
-          objToAdd["Index"] = itm.Level;
-          objToAdd["appEx"] = approve;
-
-
-          allApp.push(objToAdd);
-          cnt = cnt + 1;
-        });
-        editforwardrecord = true;
-        //const sorted = [...allApp].sort((a, b) => a.index - b.index);
-        //this.setState({ approvers: sorted });
-        this.setState({ approvers: allApp });
-        const approvers = sorted[0]?.Approvers || [];
-        const currentUserEmail = this.props.context.pageContext.user.email;
-
-        const finalApprover = approvers.map((user: any) => ({
-          id: user.ID,
-          email: user.EMail
-        }));
-        const isFinalApprover = finalApprover.some(
-          (approver: any) => approver.email?.toLowerCase() === currentUserEmail?.toLowerCase()
-        ) && Items.CurrentUserRole == "Approverrole";
-        console.log("finallevel", finallevel, currentlevel);
-        debugger
-        if (editType === "approve") {
-          if (Items.Status != "Approved" && isFinalApprover && finallevel == currentlevel && Items.CurrentUserRole == "Approverrole") {
-            showcorrectionappicable = true;
-            isdisablefinal = false;
-            this.setState({ IsFinalapprover: isFinalApprover });
-          }
+        else {
+          var serialNo: any = "001";
+          this.setState({ editserialNo: serialNo })
         }
 
+      } catch (e) {
+        console.error(e);
       }
+    });
 
-      //Get latest last rec the NC list   
-      const latestItem = await sp.web.lists
-        .getByTitle("NonConformityList").items.select("Id", "SerialNumber", "Created", "SubmitStatus")
-        .orderBy("SerialNumber", false).top(1)();
-      if (latestItem.length > 0) {
-        var serialNo = latestItem[0].SerialNumber + 1;
-        if (serialNo < 999)
-          serialNo = ("0000" + serialNo).slice(-3);
-        this.setState({ editserialNo: serialNo })
-      }
-      else {
-        var serialNo: any = "001";
-        this.setState({ editserialNo: serialNo })
-      }
-
-    } catch (e) {
-      console.error(e);
-    }
   }
   private async getDataRoles() {
     const sp = spfi().using(SPFx(this.props.context));
@@ -1588,6 +1595,26 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         optionsmemoNumbernewnc = await this.getUniqueBy(optionsmemoNumbernewnc, "reportCode");
         optionsmemoNumbernewnc.sort((a, b) => a.label.localeCompare(b.label));
         optionsmemoNumbernewobs.sort((a, b) => a.label.localeCompare(b.label));
+        const editoptsmemoAll1 = this.state.editncType === "NC" ? filteredItemsNC : filteredItemsObs;
+
+        const optionsallnc = filteredItemsNC.map((item: any) => ({
+          value: item.ID,
+          label: item.ReportCode,
+          itemId: item.ID,
+          reportCode: item.ReportCode,
+          ncNo: item.NCNumber,
+          department: item.DepartmentAuditedId
+        }));
+        const optionsallobs = filteredItemsObs.map((item: any) => ({
+          value: item.ID,
+          label: item.ReportCode,
+          itemId: item.ID,
+          reportCode: item.ReportCode,
+          ncNo: item.NCNumber,
+          department: item.DepartmentAuditedId
+        }));
+        editoptsmemoAllNC = optionsallnc;
+        editoptsmemoAllObs = optionsallobs;
         this.setState({
           editmemonumberOptions: this.state.editncType == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
           editmemonumberOptionsall: this.state.editncType == "NC" ? optionsNCNumber : optionsObservationNumber
@@ -2096,7 +2123,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     let test1 = this.state.correctionApplicable ? "Yes" : "No";
     let test2 = this.state.notEffective ? "Yes" : "No";
     let test3 = this.state.effectiveClosed ? "Yes" : "No";
-    let ncStatus = _editsubmitStatus == "Rework" ? "Rework" : "Pending";
+    let ncStatus = _editsubmitStatus == "Rework" || this.state.editStatus == "Rework" ? "Rework" : "Pending";
     if (this.state.editncType == "Observation" && this.state.editDelegateToId != null && this.state.editCurrentUserRole == "LastAssignedTo" && _editsubmitStatus != "Rework") {
       observationStatus1 = "Approved"
     } else
@@ -2105,7 +2132,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       } else {
         observationStatus1 = "Pending"
       };
-    observationStatus = _editsubmitStatus == "Rework" ? "Rework" : observationStatus1;
+    observationStatus = _editsubmitStatus == "Rework" || this.state.editStatus == "Rework" ? "Rework" : observationStatus1;
     // let submitstatus: string = "";
     // submitstatus = ((_editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "FirstAssignedTo")
     //   || (_editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "DelegateTo")
@@ -2145,7 +2172,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       ReviewedById: this.state.editReviewedById || null,
       CorrectiveActionImplementedOn: this.state.editCorrectiveActionImplementedOn,
       SubmiitedDate: new Date(),
-      SubmitStatus: _editsubmitStatus == "draft" ? "No" : "Yes",
+      SubmitStatus: _editsubmitStatus == "draft" || this.state.editStatus == "Rework" ? "No" : "Yes",
       SubmiitedById: this.props.currentUserID || null,
       CurrentUserRole: currentUserRole,
       FirstInitiatorSubmitStatus: firstInitiatorSubmitStatus,
@@ -2156,7 +2183,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       LastAssignedToSubmitStatus: lastAssignedToSubmitStatus,
       LastInitiatorSubmitStatus: lastInitiatorSubmitStatus,
       Status: this.state.editncType == "Observation" ? observationStatus : ncStatus,
-      IsRework: _editsubmitStatus == "Rework" || _editsubmitStatus == "Reject" ? "Yes" : "No",
+      //IsRework: _editsubmitStatus == "Rework" || _editsubmitStatus == "Reject" ? "Yes" : "No",
+      IsRework: _editsubmitStatus == "Rework" || this.state.editStatus == "Rework" ? "Yes" : "No",
       ReworkById: reworkById,
       SerialNumber: serialNumber,
       NCRNo: ncrnumber,
@@ -2236,7 +2264,34 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       ncrnumber = 'NC/' + this.state.editdepartmentCode + "/" + moment(new Date()).format("MM") + "/" + this.state.editserialNo;
       //documentCode = 'NC/' + this.state.editdepartmentCode + "/" + moment(new Date()).format("MM") + "/" + this.state.editserialNo;
     }
-    else if (this.state.editCurrentUserRole == "FirstInitiator") {
+    else if (_editsubmitStatus == "submit" && this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator") {
+      firstInitiatorSubmitStatus = "Yes";
+      firstAssignedToSubmitStatus = "No";
+      delegateToSubmitStatus = "No";
+      analyzedBySubmitStatus = "No";
+      reviewedBySubmitStatus = "No";
+      lastAssignedToSubmitStatus = "No";
+      lastInitiatorSubmitStatus = "No";
+      currentUserRole = "FirstAssignedTo";
+      reworkById = null;
+      serialNumber = this.state.editserialNo;
+      ncrnumber = 'NC/' + this.state.editdepartmentCode + "/" + moment(new Date()).format("MM") + "/" + this.state.editserialNo;
+      //documentCode = 'NC/' + this.state.editdepartmentCode + "/" + moment(new Date()).format("MM") + "/" + this.state.editserialNo;
+    }
+    else if (this.state.editStatus == "Rework" && _editsubmitStatus == "draft" && this.state.editCurrentUserRole == "FirstInitiator") {
+      firstInitiatorSubmitStatus = "No"
+      firstAssignedToSubmitStatus = "No";
+      delegateToSubmitStatus = "No";
+      analyzedBySubmitStatus = "No";
+      reviewedBySubmitStatus = "No";
+      lastAssignedToSubmitStatus = "No";
+      lastInitiatorSubmitStatus = "No";
+      currentUserRole = "FirstInitiator"; //LastInitiator
+      //reworkById = this.state.editAssignToId || null;
+      //serialNumber = this.state.notUpdateSerialNo;
+      //ncrnumber = this.state.notUpdateDepartmentCode;
+    }
+    else if (this.state.editStatus != "Rework" && this.state.editCurrentUserRole == "FirstInitiator") {
       firstInitiatorSubmitStatus = "Yes";
       firstAssignedToSubmitStatus = "No";
       delegateToSubmitStatus = "No";
@@ -3992,7 +4047,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                         </span>
                       )}
                       {this.state.showDialog && <div id="myModal" className={styles.modal}>
-                      <div className={`${styles.modalcontent} ${Showfile ? styles.wideModal : ''}`}>
+                        <div className={`${styles.modalcontent} ${Showfile ? styles.wideModal : ''}`}>
                           <span className={styles.close} onClick={() => this._CloseModal()}>&times;</span>
                           <h4 className="font-16 text-dark fw-bold mb-1">Attachment Details</h4>
                           <p className="text-muted font-14 mb-3 fw-400">Below are the attachment details for Non Conformity / Observation</p>
@@ -4352,7 +4407,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       )}
                       {this.state.showDialogauditee && (
                         <div id="myModal" className={styles.modal}>
-                           <div className={`${styles.modalcontent} ${Showfile ? styles.wideModal : ''}`}>
+                          <div className={`${styles.modalcontent} ${Showfile ? styles.wideModal : ''}`}>
                             {/* Close button */}
                             <span className={styles.close} onClick={() => this._CloseModalauditee()}>&times;</span>
 

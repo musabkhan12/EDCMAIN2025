@@ -3,8 +3,8 @@ export const getAllDocumentCode = async (_sp) => {
   let arr = [];
 
   await _sp.web.lists.getByTitle("ChangeRequestList").items
-    .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title")
-    .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")
+    .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title,PreparedBy/ID,PreparedBy/Title")
+    .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,PreparedBy")
     .filter("Status eq 'Approved'")
     .orderBy("Modified", false).top(5000)() // Order by Modified descending to get latest first
     .then((res) => {
@@ -52,11 +52,12 @@ export const getchangerequesttemp = async (_sp) => {
   let arr = [];
 
   await _sp.web.lists.getByTitle("ChangeRequestList").items
-    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId")
-    .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department")
+    .select("ChangeRequestType/ID,TemplateType/TemplateTypeName,TemplateTypeId,DocumentCode,IssueDate,RevisionDate,SerialNumber,IssueNumber,RevisionNumber")
+    .expand("TemplateType,ChangeRequestType")
     .filter(`TemplateType/TemplateTypeName eq 'Change Request' and Status eq 'Approved'`)
-    .orderBy("ID", false)() // Order by Modified descending to get latest first
+    .orderBy("ID", false).top(5000)() // Order by Modified descending to get latest first
     .then((res) => {
+      // TemplateType/TemplateTypeName eq 'Change Request' and 
       console.log(res);
 
       // Filter only latest entry for each unique DocumentCode
@@ -89,8 +90,8 @@ export const getDocumentCodeselected = async (_sp, locId, custoId, doctypeId) =>
   let arr = [];
 
   await _sp.web.lists.getByTitle("ChangeRequestList").items
-    .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title")
-    .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")
+    .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title,PreparedBy/ID,PreparedBy/Title")
+    .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,PreparedBy")
     .filter(`LocationId eq '${locId}' and CustodianId eq '${custoId}' and DocumentTypeId eq '${doctypeId}' and Status ne 'Save as draft' and Status ne 'Rejected'`)
     .orderBy("SerialNumber", false).top(1)() // Order by Modified descending to get latest first
     .then((res) => {
@@ -123,8 +124,8 @@ export const getDocumentCodeselectedApproved = async (_sp, doccode, locId, custo
   let arr = [];
 
   await _sp.web.lists.getByTitle("ChangeRequestList").items
-    .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title")
-    .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")
+    .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title,PreparedBy/ID,PreparedBy/Title")
+    .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,PreparedBy")
     .filter(`DocumentCode eq '${doccode}' and Status eq 'Approved'`)
     .orderBy("ID", true).top(1)() // Order by Modified descending to get latest first
     .then((res) => {
@@ -696,8 +697,8 @@ export const getItemByIDCR = async (_sp, id) => {
   let bannerimg = []
 
   await _sp.web.lists.getByTitle("ChangeRequestList").items.getById(id)
-    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,RequestType/ID,RequestType/RequestType,RequestType/RequestCode,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId")
-    .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,RequestType,Author,Department")
+    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,RequestType/ID,RequestType/RequestType,RequestType/RequestCode,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId,PreparedBy/ID,PreparedBy/Title")
+    .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,RequestType,Author,Department,PreparedBy")
     ()
     .then((res) => {
       console.log(res, ' let arrs=[]');
@@ -718,8 +719,8 @@ export const getItemByIDCRlatest = async (_sp, id) => {
   let bannerimg = []
 
   await _sp.web.lists.getByTitle("ChangeRequestList").items
-    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,RequestType/ID,RequestType/RequestType,RequestType/RequestCode,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateType/TemplateTypeValue,TemplateTypeId")
-    .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,RequestType,Author,Department")
+    .select("ChangeRequestType/ID,TemplateType/TemplateTypeName,TemplateTypeId,DocumentCode,IssueDate,RevisionDate,SerialNumber,IssueNumber,RevisionNumber")
+    .expand("TemplateType,ChangeRequestType")
     .filter(`TemplateType/TemplateTypeValue eq 'Change Request' and Status eq 'Approved'`)
     .orderBy("ID", false) // Order by ID descending to get latest first
     .top(1)
@@ -727,7 +728,7 @@ export const getItemByIDCRlatest = async (_sp, id) => {
     .then((res) => {
       console.log(res, ' let arrs=[]');
 
-      arr.push(res)
+      arr=res
       // arr = res;
     })
     .catch((error) => {

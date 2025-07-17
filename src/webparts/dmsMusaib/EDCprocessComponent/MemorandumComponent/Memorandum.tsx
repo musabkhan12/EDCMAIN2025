@@ -60,6 +60,8 @@ interface ForwardTo {
   level: number;
   approvers: any[]; // Or a more specific type like `string[]` or `SPUser[]`
   approvalType: string;
+  Responsibility: string;
+  IsSignatureRequired: boolean;
 }
 
 const MemoContext = ({ props }: any) => {
@@ -183,6 +185,9 @@ const MemoContext = ({ props }: any) => {
     RequestDate: null,
 
   });
+  const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
+    { id: 0, role: 0, level: 1, approvers: [], approvalType: "One", Responsibility: "Signer", IsSignatureRequired: true } // Default row
+  ]);
 
   const cancelModalAction = (refresh?: boolean,) => {
     debugger
@@ -374,10 +379,27 @@ const MemoContext = ({ props }: any) => {
     setForwardToArr(updatedArr);
   };
 
+  const handleChangeResp = (event: React.ChangeEvent<HTMLSelectElement>, lvl: number) => {
+    event.preventDefault();
+    const updatedArr = forwardToArr.map(row =>
+      // row.level === lvl ? { ...row, Responsibility: event.target.value} : row
 
-  const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
-    { id: 0, role: 0, level: 1, approvers: [], approvalType: "One" } // Default row
-  ]);
+      row.level === lvl ? { ...row, Responsibility: event.target.value, IsSignatureRequired: event.target.value === "Signer" ? true : false } : row
+    );
+    //   setApprovalType(event.target.value);
+    setForwardToArr(updatedArr);
+  };
+
+
+  const handleChangeCheck = (value: boolean, lvl: number) => {
+    // event.preventDefault();
+    const updatedArr = forwardToArr.map(row =>
+      row.level === lvl ? { ...row, IsSignatureRequired: value } : row
+    );
+    setForwardToArr(updatedArr);
+  };
+
+
 
   const Breadcrumb = [
     {
@@ -768,6 +790,8 @@ const MemoContext = ({ props }: any) => {
             role: item.ApproverRole?.Id || 0, // Assuming role comes from ApproverRole
             level: item.Level || 1, // Default to 1 if missing
             approvalType: item.LevelType,
+            Responsibility: item.Responsibility || "",
+            IsSignatureRequired: item.IsSignatureRequired == "Yes" ? true : false,
             approvers: item.Approvers?.map((approver: any) => ({
               value: approver.Id,
               label: approver.Title,
@@ -876,7 +900,7 @@ const MemoContext = ({ props }: any) => {
   const handleAddRow = () => {
     setForwardToArr((prev) => [
       ...prev,
-      { id: 0, role: 0, level: prev.length + 1, approvers: [], approvalType: "One" }
+      { id: 0, role: 0, level: prev.length + 1, approvers: [], approvalType: "One", Responsibility: "Signer", IsSignatureRequired: true }
     ]);
   };
 
@@ -1165,7 +1189,7 @@ const MemoContext = ({ props }: any) => {
       if (!forwardToArr) {
         valid1 = false;
       }
-      if (forwardToArr.length > 0 && forwardToArr.every((row: any) => row.role !== 0 && row.approvalType.trim() !== "" && row.approvers.length != 0) == false) {
+      if (forwardToArr.length > 0 && forwardToArr.every((row: any) => row.role !== 0 && row.approvalType.trim() !== "" && row.Responsibility.trim() !== "" && row.approvers.length != 0) == false) {
 
 
         Array.from(document.getElementsByClassName("HierarchyClsErr")).forEach((element: Element) => {
@@ -1245,7 +1269,7 @@ const MemoContext = ({ props }: any) => {
     // return valid;
   };
 
-  const getNewFileName = async (originalFileName: string,MemoNum:string): Promise<string> => {
+  const getNewFileName = async (originalFileName: string, MemoNum: string): Promise<string> => {
     const userId = currentUser.Id; // Or however you get the current user ID
     const date = new Date();
     // const fileExtension = originalFileName.split('.').pop();
@@ -1271,7 +1295,7 @@ const MemoContext = ({ props }: any) => {
     ];
     const fileExtension = originalFileName.split('.').pop();
     const fileNameWithoutExtension = originalFileName.split('.').slice(0, -1).join('.');
-    const NewFileName = MemoNum !="" ?`${MemoNum}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`: `${formData.memoFileName}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`;
+    const NewFileName = MemoNum != "" ? `${MemoNum}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}` : `${formData.memoFileName}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`;
 
 
     // return `${userId}_${components.join('')}_${originalFileName}`;
@@ -1311,7 +1335,7 @@ const MemoContext = ({ props }: any) => {
                 if (!file.ID) {
                   //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                   // DocumentName = file.name;
-                  const newFileName = await getNewFileName(file.name,"");
+                  const newFileName = await getNewFileName(file.name, "");
                   DocumentName = newFileName;
                   const fileAddResult = await folder.files.addChunked(newFileName, file);
                   const fileNew = fileAddResult.file;
@@ -1477,6 +1501,10 @@ const MemoContext = ({ props }: any) => {
                   ApprovalType: "Approval",
                   // IsApprovalGenerated: "No"
                   RedirectionLink: "Memorandum/approve/" + editItemID,
+
+
+                  Responsibility: item.Responsibility || "",
+                  IsSignatureRequired: item.IsSignatureRequired ? "Yes" : "No",
 
 
 
@@ -1658,7 +1686,7 @@ const MemoContext = ({ props }: any) => {
                 if (!file.ID) {
                   //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                   // DocumentName = file.name;
-                  const newFileName = await getNewFileName(file.name,memoFileName);
+                  const newFileName = await getNewFileName(file.name, memoFileName);
                   DocumentName = newFileName;
                   const fileAddResult = await folder.files.addChunked(newFileName, file);
                   const fileNew = fileAddResult.file;
@@ -1779,7 +1807,7 @@ const MemoContext = ({ props }: any) => {
 
             if (forwardToArr.length) {
               isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
-                row.approvalType.trim() !== "");
+                row.approvalType.trim() !== "" && row.Responsibility.trim() !== "");
 
               // if (!isValid) {
               //     // alert("Each row must have a role selected and at least one approver.");
@@ -1823,7 +1851,7 @@ const MemoContext = ({ props }: any) => {
                   // MainListID: String(editItemID),
                   MainListID: String(postId),
                   // RequestId: formData.memoNo,
-                  RequestId:memoNum,
+                  RequestId: memoNum,
                   RequesterNameId: currentUser.Id,
                   RequestedDate: new Date().toLocaleDateString("en-CA"),
                   RequesterRoleId: RequesterRoleId,
@@ -1832,6 +1860,10 @@ const MemoContext = ({ props }: any) => {
                   ApprovalType: "Approval",
                   IsApprovalGenerated: "No",
                   RedirectionLink: "Memorandum/approve/" + postId,
+
+
+                  Responsibility: item.Responsibility || "",
+                  IsSignatureRequired: item.IsSignatureRequired ? "Yes" : "No",
 
 
 
@@ -1927,7 +1959,7 @@ const MemoContext = ({ props }: any) => {
                 if (!file.ID) {
                   //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                   // DocumentName = file.name;
-                  const newFileName = await getNewFileName(file.name,"");
+                  const newFileName = await getNewFileName(file.name, "");
                   DocumentName = newFileName;
                   const fileAddResult = await folder.files.addChunked(newFileName, file);
                   const fileNew = fileAddResult.file;
@@ -1997,7 +2029,7 @@ const MemoContext = ({ props }: any) => {
                 // /////////
                 Status: "Rework",
                 IsRework: "Yes",
-                
+
                 // /////////////
                 RecommendationTypeId: formData.recommendationTypeId,
                 RecommendationDetails: formData.RecommendationTypeValue === "TextBox" ? formData.recommendationDetails : "",
@@ -2157,6 +2189,10 @@ const MemoContext = ({ props }: any) => {
                 RedirectionLink: "Memorandum/approve/" + editItemID,
 
 
+                Responsibility: item.Responsibility || "",
+                IsSignatureRequired: item.IsSignatureRequired ? "Yes" : "No",
+
+
 
               }
               if (item.id) {
@@ -2166,7 +2202,7 @@ const MemoContext = ({ props }: any) => {
               }
               else {
                 if (forwardToArr.every(row => row.role == 0 && row.approvers.length == 0 &&
-                  row.approvalType.trim() == "") == false) {
+                  row.approvalType.trim() == "" && row.Responsibility.trim() == "") == false) {
                   const postResult2 = await addAllProcessItem(arr2, sp);
                   const postId2 = postResult2?.data?.ID;
                 }
@@ -2283,7 +2319,7 @@ const MemoContext = ({ props }: any) => {
                 if (!file.ID) {
                   //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                   // DocumentName = file.name;
-                  const newFileName = await getNewFileName(file.name,"");
+                  const newFileName = await getNewFileName(file.name, "");
                   DocumentName = newFileName;
                   const fileAddResult = await folder.files.addChunked(newFileName, file);
                   const fileNew = fileAddResult.file;
@@ -2404,7 +2440,7 @@ const MemoContext = ({ props }: any) => {
 
             if (forwardToArr.length) {
               isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
-                row.approvalType.trim() !== "");
+                row.approvalType.trim() !== "" && row.Responsibility.trim() !== "");
             }
 
             // if (isValid) {
@@ -2446,6 +2482,9 @@ const MemoContext = ({ props }: any) => {
                   ApprovalType: "Approval",
                   IsApprovalGenerated: "No",
                   RedirectionLink: "Memorandum/approve/" + postId,
+
+                  Responsibility: item.Responsibility || "",
+                  IsSignatureRequired: item.IsSignatureRequired ? "Yes" : "No",
 
 
 
@@ -3329,40 +3368,40 @@ const MemoContext = ({ props }: any) => {
 
                                 <div className="col-lg-4">
                                   <div className="mb-3">
-                                  <div className='d-flex justify-content-between'>
-                                    <label htmlFor="attachment" className="col-form-label">Attachment</label>
-                                    <div >
+                                    <div className='d-flex justify-content-between'>
+                                      <label htmlFor="attachment" className="col-form-label">Attachment</label>
+                                      <div >
+                                        <div>
+                                          {FilesArr.length > 0 ?
+                                            (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
+                                              <FontAwesomeIcon icon={faPaperclip} />{" "}{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
+                                            </a>) : ""
+
+                                          }
+                                        </div>
+                                      </div>
+                                    </div>
+
                                     <div>
-                                        {FilesArr.length > 0 ?
-                                          (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
-                                            <FontAwesomeIcon icon={faPaperclip} />{" "}{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
-                                          </a>) : ""
+                                      <input style={{ height: '47px', padding: '10px' }}
+                                        type="file"
+                                        // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                        className="form-control"
+                                        id="attachment"
+                                        accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                        onChange={(e) => onFileChange(e, "Gallery", "MemorandumDocs")}
+                                        // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
+                                        disabled={InputDisabled}
+                                        multiple
+                                      />
 
-                                        }
-                                      </div>
-                                      </div>
-                                      </div>
-
-                                      <div>
-                                        <input style={{ height: '47px', padding: '10px' }}
-                                          type="file"
-                                          // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                          className="form-control"
-                                          id="attachment"
-                                          accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                                          onChange={(e) => onFileChange(e, "Gallery", "MemorandumDocs")}
-                                          // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
-                                          disabled={InputDisabled}
-                                          multiple
-                                        />
-
-                                      </div>
-
-                                     
+                                    </div>
 
 
 
-                                   
+
+
+
 
                                   </div>
                                 </div>
@@ -3835,10 +3874,12 @@ const MemoContext = ({ props }: any) => {
                                   <tr>
                                     <th style={{ minWidth: "30px", maxWidth: "30px" }}>S.No</th>
                                     <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Role<span className="text-danger1"> *</span></th>
+                                    <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Responsibility<span className="text-danger1"> *</span></th>
+                                    <th style={{ minWidth: "40px", maxWidth: "40px" }} title="Use your electronic digital signature to sign this document digitally">E-Sign?</th>
                                     <th style={{ minWidth: '40px', maxWidth: '40px' }} >Level</th>
                                     <th>Approver name<span className="text-danger1"> *</span></th>
-                                    <th style={{ minWidth: '70px', maxWidth: '70px' }} >Approval criteria<span className="text-danger1"> *</span></th>
-                                    <th style={{ minWidth: '40px', maxWidth: '40px' }}>Action</th>
+                                    <th style={{ minWidth: '80px', maxWidth: '80px' }} >Approval criteria<span className="text-danger1"> *</span></th>
+                                    <th style={{ minWidth: '36px', maxWidth: '36px' }}>Action</th>
                                   </tr>
                                 </thead>
                                 <tbody style={{ maxHeight: '8000000000px', overflow: 'inherit' }}>
@@ -3851,6 +3892,7 @@ const MemoContext = ({ props }: any) => {
                                         {index + 1}</div>
                                       </td>
                                       <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }} className="ng-binding">
+
                                         <select
                                           // className="form-select"
 
@@ -3869,6 +3911,47 @@ const MemoContext = ({ props }: any) => {
 
                                         </select>
 
+
+                                      </td>
+                                      <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px' }}>
+                                        <div
+                                        //  style={{ display: "flex", alignItems: 'center', gap: '8px' }}
+                                         >
+                                          <select
+                                            id="responsibleId"
+                                            value={row.Responsibility}
+                                            onChange={(e) => handleChangeResp(e, row.level)}
+                                            className={`newse HierarchyClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`}
+                                            disabled={InputDisabled}
+                                            title={row.Responsibility ? row.Responsibility : "Select"}
+                                          >
+                                            <option value="">Select </option>
+                                            <option value="Signer">Signer</option>
+                                            <option value="Reviewer">Reviewer</option>
+                                          </select>
+
+                                        </div>
+                                      </td>
+                                      <td style={{ minWidth: "40px", maxWidth: "40px", overflow: 'inherit' }}>
+                                        <div
+                                        //  style={{ display: "flex", alignItems: 'center', gap: '8px' }}
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            checked={row.IsSignatureRequired}
+                                            disabled={row.Responsibility === "Signer" || row.Responsibility === "" || InputDisabled}
+                                            style={{ marginLeft: '17px', width: "15px" }}
+                                             title="Signature Required"
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                              const isChecked = e.target.checked;
+                                              const updatedArr = forwardToArr.map(row1 =>
+                                                row1.level === row.level ? { ...row1, IsSignatureRequired: isChecked } : row1
+                                              );
+                                              setForwardToArr(updatedArr);
+                                            }}
+                                          />
+
+                                        </div>
                                       </td>
                                       <td style={{ minWidth: '40px', maxWidth: '40px', overflow: 'inherit' }}>Level {index + 1}</td>
                                       <td style={{ overflow: 'inherit' }} title={row?.approvers.map((approver: any) => approver.label).join(", ") || "Enter Approver Name"}
@@ -3890,16 +3973,16 @@ const MemoContext = ({ props }: any) => {
 
 
                                       </td>
-                                      <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
+                                      <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px', }}>
                                         <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse HierarchyClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={InputDisabled}
                                           title={row.approvalType ? (row.approvalType === "One" ? "Anyone" : "Everyone") : "Select Approval Type"}
                                         >
-                                          <option value="">Select </option>
+                                          <option value="">Select</option>
                                           <option value="One">Anyone</option>
                                           <option value="All">Everyone</option>
                                         </select>
                                       </td>
-                                      <td style={{ minWidth: '40px', maxWidth: '40px', overflow: 'inherit' }}>
+                                      <td style={{ minWidth: '36px', maxWidth: '36px', overflow: 'inherit' }}>
 
                                         {/* {editID.CurrentUserRole === "OES" ?  */}
 

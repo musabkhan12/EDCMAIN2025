@@ -55,6 +55,8 @@ interface ForwardTo {
     level: number;
     approvers: any[]; // Or a more specific type like `string[]` or `SPUser[]`
     approvalType: string;
+    Responsibility: string;
+    IsSignatureRequired: boolean;
 }
 
 const DocumentCancellationProcessContext = ({ props }: any) => {
@@ -106,7 +108,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     const [Showfile, setShowfile] = React.useState(false);
     const [redirecturl, setredirecturl] = React.useState(null);
     const [ShowModalTemplateDoc, setShowModalTemplateDoc] = React.useState(false);
-    
+    const [sharewithusers, setSharewithusers] = React.useState([]);
     const [formData, setFormData] = React.useState({
         RequesterNameId: 0,
         RequesterName: "",
@@ -156,7 +158,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
         filename: "",
-        Remark:""
+        Remark: "",
+        PreparedById: [],
+        PreparedBy:[],
 
 
 
@@ -177,6 +181,16 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         event.preventDefault();
         const updatedArr = forwardToArr.map(row =>
             row.level === lvl ? { ...row, approvalType: event.target.value } : row
+        );
+        //   setApprovalType(event.target.value);
+        setForwardToArr(updatedArr);
+    };
+    const handleChangeResp = (event: React.ChangeEvent<HTMLSelectElement>, lvl: number) => {
+        event.preventDefault();
+        const updatedArr = forwardToArr.map(row =>
+            // row.level === lvl ? { ...row, Responsibility: event.target.value} : row
+
+            row.level === lvl ? { ...row, Responsibility: event.target.value, IsSignatureRequired: event.target.value ===""?false:true } : row
         );
         //   setApprovalType(event.target.value);
         setForwardToArr(updatedArr);
@@ -231,14 +245,14 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             if (path1.includes("/approve/")) {
                 setForwardToArr((prev) => [
                     ...prev,
-                    { id: 0, role: 0, level: prev.length + 1, approvers: [], approvalType: "One" }
+                    { id: 0, role: 0, level: prev.length + 1, approvers: [], approvalType: "One", Responsibility: "Signer", IsSignatureRequired: true }
                 ]);
             }
         }
         else {
             setForwardToArr((prev) => [
                 ...prev,
-                { id: 0, role: 0, level: prev.length + 1, approvers: [], approvalType: "One" }
+                { id: 0, role: 0, level: prev.length + 1, approvers: [], approvalType: "One", Responsibility: "Signer", IsSignatureRequired: true }
             ]);
             setInputDisabled(false);
         }
@@ -318,8 +332,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             DocumentTypeId: item.DocumentTypeId,
             Department: item.DepartmentId || null,
             DepartmentName: item.Department?.Department || "",
-            AttachmentId: item.AttachmentId ||[],
-            AttachmentDigitalSignatureId :item.AttachmentDigitalSignatureId ||[],
+            AttachmentId: item.AttachmentId || [],
+            AttachmentDigitalSignatureId: item.AttachmentDigitalSignatureId || [],
             AttachmentJson: item.AttachmentJson,
 
             Location: item.Location.Location,
@@ -331,9 +345,14 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             TemplateTypeValue: item.TemplateType?.TemplateTypeName || "",
 
             filename: item?.FileName || "",
+            PreparedById: item?.PreparedById || [],
+
+            PreparedBy:item?.PreparedBy||[],
 
 
         }));
+
+
 
 
         setRows(options);
@@ -424,6 +443,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         role: item.ApproverRole?.Id || 0, // Assuming role comes from ApproverRole
                         level: item.Level || 1, // Default to 1 if missing
                         approvalType: item.LevelType,
+                        Responsibility: item.Responsibility || "",
+                        IsSignatureRequired: item.IsSignatureRequired == "Yes" ? true : false,
                         approvers: item.Approvers?.map((approver: any) => ({
                             value: approver.Id,
                             label: approver.Title,
@@ -480,7 +501,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     ChangeRequestIDId: setBannerById[0].ChangeRequestID,
                     DocumentTypeId: setBannerById[0].DocumentTypeId,
                     AttachmentId: setBannerById[0].AttachmentId || [],
-                    AttachmentDigitalSignatureId :setBannerById[0].AttachmentDigitalSignatureId ||[],
+                    AttachmentDigitalSignatureId: setBannerById[0].AttachmentDigitalSignatureId || [],
                     AttachmentJson: setBannerById[0].AttachmentJson,
 
                     Location: setBannerById[0].Location.Location,
@@ -527,7 +548,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                     DepartmentName: setBannerById[0].Department?.Department || "",
                     Department: setBannerById[0].DepartmentId || null,
                     AttachmentId: setBannerById[0].AttachmentId,
-                    AttachmentDigitalSignatureId :setBannerById[0].AttachmentDigitalSignatureId ||[],
+                    AttachmentDigitalSignatureId: setBannerById[0].AttachmentDigitalSignatureId || [],
                     AttachmentJson: setBannerById[0].AttachmentJson,
 
                     Location: setBannerById[0].Location.Location,
@@ -540,14 +561,29 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                     filename: setBannerById[0]?.FileName || "",
                     Status: setBannerById[0].Status,
-
+                    PreparedById:setBannerById[0].PreparedById ||[],
+                    PreparedBy:setBannerById[0].PreparedBy||[],
 
                     // Format as YYYY-MM-DD
                 }));
 
                 // setFormData(arr2);
 
+
                 setSelectedOption(arr);
+                setSharewithusers(setBannerById[0]?.PreparedBy?.map((obj: any) => {
+                    // const filteredUser = Selectedoptions.find((dept: any) => dept.value === obj.ID);
+
+                    return {
+                        value: obj.ID,
+                        label: obj.Title,
+                        UserName: obj.Title,
+                        UserEmail: obj.Email
+
+
+                    };
+
+                }) || []);
 
                 const rowData: any[] = await getItemByID2(sp, Number(setBannerById[0].ID)) //baseUrl
                 if (rowData.length > 0) {
@@ -634,6 +670,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 TemplateTypeValue: selectedList.TemplateTypeValue || "",
 
                 filename: selectedList?.filename || "",
+                PreparedById: selectedList?.PreparedById || [],
+                PreparedBy:selectedList?.PreparedBy||[],
             }));
         } else {
             setFormData(prevData => ({
@@ -658,7 +696,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 Department: null,
                 DepartmentName: "",
                 AttachmentId: [],
-                AttachmentDigitalSignatureId:[],
+                AttachmentDigitalSignatureId: [],
                 AttachmentJson: "",
                 Location: "",
                 Custodian: "",
@@ -668,8 +706,23 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 TemplateTypeId: null,
                 TemplateTypeValue: "",
                 filename: "",
+                PreparedById:  [],
+                PreparedBy:[],
             }));
         }
+        setSharewithusers(selectedList?.PreparedBy?.map((obj: any) => {
+            // const filteredUser = Selectedoptions.find((dept: any) => dept.value === obj.ID);
+
+            return {
+                value: obj.ID,
+                label: obj.Title,
+                UserName: obj.Title,
+                UserEmail: obj.Email
+
+
+            };
+
+        }) || []);
         setSelectedOption(selectedList);
         if (selectedList?.AttachmentId.length) {
             setDocumentLink(await getDocumentLinkByID(sp, selectedList.AttachmentId))
@@ -713,7 +766,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     const handleAddRow = () => {
         setForwardToArr((prev) => [
             ...prev,
-            { id: 0, role: 0, level: prev.length + 1, approvers: [], approvalType: "One" }
+            { id: 0, role: 0, level: prev.length + 1, approvers: [], approvalType: "One", Responsibility: "Signer", IsSignatureRequired: true }
         ]);
     };
 
@@ -971,11 +1024,12 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             InitiatorSubmitStatus: "Yes",
                             CurrentUserRole: "OES",
                             AttachmentId: selectedOption.AttachmentId,
-                            AttachmentDigitalSignatureId :selectedOption.AttachmentDigitalSignatureId,
+                            AttachmentDigitalSignatureId: selectedOption.AttachmentDigitalSignatureId,
                             AttachmentJson: selectedOption.AttachmentJson,
                             TemplateTypeId: selectedOption.TemplateTypeId,
 
                             FileName: formData.filename,
+                            PreparedById :formData.PreparedById,
 
 
                         }
@@ -1118,7 +1172,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             CurrentUserRole: "OES",
                             TemplateTypeId: selectedOption.TemplateTypeId,
                             AttachmentId: selectedOption.AttachmentId,
-                            AttachmentDigitalSignatureId :selectedOption.AttachmentDigitalSignatureId,
+                            AttachmentDigitalSignatureId: selectedOption.AttachmentDigitalSignatureId,
                             AttachmentJson: selectedOption.AttachmentJson ? selectedOption.AttachmentJson : "",
 
 
@@ -1132,6 +1186,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             CIssueDate: formData.CIssueDate,
 
                             FileName: formData.filename,
+                            PreparedById :formData.PreparedById,
 
 
                         };
@@ -1241,9 +1296,10 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                 InitiatorSubmitStatus: "No",
                                 CurrentUserRole: "OES",
                                 AttachmentId: selectedOption.AttachmentId,
-                                AttachmentDigitalSignatureId :selectedOption.AttachmentDigitalSignatureId,
+                                AttachmentDigitalSignatureId: selectedOption.AttachmentDigitalSignatureId,
                                 AttachmentJson: selectedOption.AttachmentJson,
                                 TemplateTypeId: selectedOption.TemplateTypeId,
+                                PreparedById :formData.PreparedById,
 
 
                             }
@@ -1281,11 +1337,12 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                 InitiatorSubmitStatus: "No",
                                 CurrentUserRole: "OES",
                                 AttachmentId: selectedOption.AttachmentId,
-                                AttachmentDigitalSignatureId :selectedOption.AttachmentDigitalSignatureId,
+                                AttachmentDigitalSignatureId: selectedOption.AttachmentDigitalSignatureId,
                                 AttachmentJson: selectedOption.AttachmentJson,
                                 TemplateTypeId: selectedOption.TemplateTypeId,
 
                                 FileName: formData.filename,
+                                PreparedById :formData.PreparedById,
 
 
                             }
@@ -1372,7 +1429,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href =`https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
 
                                 // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
@@ -1427,7 +1484,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             InitiatorSubmitStatus: "No",
                             CurrentUserRole: "OES",
                             AttachmentId: selectedOption.AttachmentId,
-                            AttachmentDigitalSignatureId :selectedOption.AttachmentDigitalSignatureId,
+                            AttachmentDigitalSignatureId: selectedOption.AttachmentDigitalSignatureId,
                             AttachmentJson: selectedOption.AttachmentJson,
                             TemplateTypeId: selectedOption.TemplateTypeId,
 
@@ -1441,6 +1498,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             CIssueDate: formData.CIssueDate,
 
                             FileName: formData.filename,
+                            PreparedById :formData.PreparedById,
 
 
                         };
@@ -1485,7 +1543,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // }, 1000);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href =`https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
 
                                 // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
@@ -1519,9 +1577,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         if ((status === 'Rework' || status === 'Rejected') && formData.Remark === "") {
             //   setValidRemark(false);
             document.getElementById("Remark-textarea")?.classList.add("border-on-error");
-              Swal.fire('Please fill the mandatory fields', '', 'warning');
-              return;
-            }
+            Swal.fire('Please fill the mandatory fields', '', 'warning');
+            return;
+        }
 
         switch (status) {
             case "Forward":
@@ -1552,7 +1610,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             }
 
             const isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
-                row.approvalType.trim() !== "");
+                row.approvalType.trim() !== "" && row.Responsibility.trim() !== "");
 
             if (!isValid) {
                 // alert("Each row must have a role selected and at least one approver.");
@@ -1641,8 +1699,10 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                 ProcessName: "Document Cancellation",
                                 FormNameId: FormNameId,
                                 ApprovalType: "Approval",
-                                IsApprovalGenerated: "No"
+                                IsApprovalGenerated: "No",
                                 // RedirectionLink:,
+                                Responsibility: item.Responsibility || "",
+                                IsSignatureRequired: item.IsSignatureRequired ? "Yes" : "No",
 
 
 
@@ -1721,7 +1781,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
             if (forwardToArr.length) {
                 isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
-                    row.approvalType.trim() !== "");
+                    row.approvalType.trim() !== "" && row.Responsibility.trim() !== "");
 
                 // if (!isValid) {
                 //     // alert("Each row must have a role selected and at least one approver.");
@@ -1801,8 +1861,10 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                     ProcessName: "Document Cancellation",
                                     FormNameId: FormNameId,
                                     ApprovalType: "Approval",
-                                    IsApprovalGenerated: "No"
+                                    IsApprovalGenerated: "No",
                                     // RedirectionLink:,
+                                    Responsibility: item.Responsibility || "",
+                                    IsSignatureRequired: item.IsSignatureRequired ? "Yes" : "No",
 
 
 
@@ -1865,7 +1927,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         //     }, 100);
                         // }, 1000);
                         // // }
-                         Swal.fire(successMessage, '', 'success').then(async (result) => {
+                        Swal.fire(successMessage, '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
                                 window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
@@ -1963,7 +2025,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             InitiatorSubmitStatus: "Yes",
                             CurrentUserRole: "OES",
                             AttachmentId: selectedOption.AttachmentId,
-                            AttachmentDigitalSignatureId :selectedOption.AttachmentDigitalSignatureId,
+                            AttachmentDigitalSignatureId: selectedOption.AttachmentDigitalSignatureId,
                             AttachmentJson: selectedOption.AttachmentJson
 
 
@@ -2094,16 +2156,16 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             // Status: "Save as draft",
                             // //////
                             Status: "Rework",
-                            IsRework:"Yes",
+                            IsRework: "Yes",
                             // /////
-                           
+
                             ChangeRequestIDId: formData.ChangeRequestID,
                             DocumentTypeId: selectedOption.DocumentTypeId,
                             OESSubmitStatus: "No",
                             InitiatorSubmitStatus: "No",
                             CurrentUserRole: "OES",
                             AttachmentId: selectedOption.AttachmentId,
-                            AttachmentDigitalSignatureId :selectedOption.AttachmentDigitalSignatureId,
+                            AttachmentDigitalSignatureId: selectedOption.AttachmentDigitalSignatureId,
                             AttachmentJson: selectedOption.AttachmentJson
 
 
@@ -2172,7 +2234,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire(successMessage, '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href =`https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
 
                                 // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
                             }
@@ -2202,37 +2264,37 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             setShowfile(true);
         }
         if (sts == "Open") {
-          if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
-            const viewerUrl = `${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=embedview`;
-    
-            //window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=view`);
-            setredirecturl(viewerUrl);
-          } else {
-            setredirecturl(fileUrl);
-            //window.open(fileUrl, "_blank"); // Open PDF and other files normally
-          }
-    
+            if (/\.(doc|docx|xls|xlsx|ppt|pptx|csv|docs)$/i.test(fileUrl)) {
+                const viewerUrl = `${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj.FileRef)}&action=embedview`;
+
+                //window.open(`${SITE_URL}/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(obj?.FileRef != "" ? obj.FileRef : obj.fileUrl)}&action=view`);
+                setredirecturl(viewerUrl);
+            } else {
+                setredirecturl(fileUrl);
+                //window.open(fileUrl, "_blank"); // Open PDF and other files normally
+            }
+
         } else if (sts == "Download") {
-          const link = document.createElement("a");
-          link.href = fileUrl;
-          link.setAttribute("download", obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name)); // Suggests a filename for download
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-    
+            const link = document.createElement("a");
+            link.href = fileUrl;
+            link.setAttribute("download", obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name)); // Suggests a filename for download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
         }
-    
-      }
-      const cleanFileName = (filename: string) => {
+
+    }
+    const cleanFileName = (filename: string) => {
         // Match a 14-digit datetime suffix before the file extension
         const datetimePattern = /_\d{14}(?=\.[^.]+$)/;
-    
+
         if (datetimePattern.test(filename)) {
-          return filename.replace(datetimePattern, '');
+            return filename.replace(datetimePattern, '');
         }
-    
+
         return filename;
-      }
+    }
 
 
     return (
@@ -2293,47 +2355,47 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                             <h4 style={{ textAlign: 'left', margin: 'inherit' }} className="text-dark font-16 fw-bold mb-3">Requested By</h4>
                                                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
 
-                                                            {(formData.Status === "Approved" || formData.Status === "Rejected") && !hidedigisign && DigitalsignID != null && (
-                                                                <span
-                                                                    onClick={() => updatedigisignnew()}
-                                                                    style={{ cursor: "pointer" }}
+                                                                {(formData.Status === "Approved" || formData.Status === "Rejected") && !hidedigisign && DigitalsignID != null && (
+                                                                    <span
+                                                                        onClick={() => updatedigisignnew()}
+                                                                        style={{ cursor: "pointer" }}
+                                                                    >
+                                                                        <div className="" title='Sync digital signed document from Signing Hub'>
+                                                                            <img
+                                                                                style={{ cursor: 'pointer', height: '40px' }}
+                                                                                className='mt-0'
+                                                                                src={require("../../assets/digisign.png")}
+                                                                                alt="Signature Icon"
+                                                                            />
+                                                                        </div>
+                                                                    </span>
+                                                                )}
+                                                                {TemplateDoc && TemplateDoc.length > 0 && <div className='btn btn-primary'
+                                                                    // onClick={() => OpenFile(TemplateDoc[0], "Open")}
+                                                                    onClick={() => OpenFileTemplate(TemplateDoc[0], "Open")}
+
                                                                 >
-                                                                    <div className="" title='Sync digital signed document from Signing Hub'>
-                                                                        <img
-                                                                            style={{ cursor: 'pointer', height: '40px' }}
-                                                                            className='mt-0'
-                                                                            src={require("../../assets/digisign.png")}
-                                                                            alt="Signature Icon"
-                                                                        />
-                                                                    </div>
-                                                                </span>
-                                                            )}
-                                                            {TemplateDoc && TemplateDoc.length > 0 && <div className='btn btn-primary'
-                                                                // onClick={() => OpenFile(TemplateDoc[0], "Open")}
-                                                                onClick={() => OpenFileTemplate(TemplateDoc[0], "Open")}
-
-                                                            >
-                                                                {(() => {
-                                                                    const parts = TemplateDoc[0]?.FileRef?.split('/');
-                                                                    const folderName = parts && parts[3] ? parts[3] : null;
-                                                                    return folderName === "DocumentCancellationDigitalSignedDocs" ? (
-                                                                        // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} alt="Download Icon" />
-                                                                        // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/digisigndownload.png")} alt="Digital Sign Download Icon" />
-                                                                        <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/signicon.png")} alt="Digital Sign Download Icon" />
+                                                                    {(() => {
+                                                                        const parts = TemplateDoc[0]?.FileRef?.split('/');
+                                                                        const folderName = parts && parts[3] ? parts[3] : null;
+                                                                        return folderName === "DocumentCancellationDigitalSignedDocs" ? (
+                                                                            // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} alt="Download Icon" />
+                                                                            // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/digisigndownload.png")} alt="Digital Sign Download Icon" />
+                                                                            <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/signicon.png")} alt="Digital Sign Download Icon" />
 
 
-                                                                    ) : (
-                                                                        <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} alt="Download Icon" />
-                                                                        // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/digisigndownload.png")} alt="Digital Sign Download Icon" />
-                                                                    );
-                                                                })()}
+                                                                        ) : (
+                                                                            <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} alt="Download Icon" />
+                                                                            // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/digisigndownload.png")} alt="Digital Sign Download Icon" />
+                                                                        );
+                                                                    })()}
 
 
-                                                                {/* <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} ></img> */}
-                                                                {/* <FontAwesomeIcon icon={faEye} /> */}
+                                                                    {/* <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} ></img> */}
+                                                                    {/* <FontAwesomeIcon icon={faEye} /> */}
+                                                                </div>
+                                                                }
                                                             </div>
-                                                            }
-                                                             </div>
                                                         </div>
 
                                                         {FormLoading &&
@@ -2357,132 +2419,132 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                             </div>
                                                             // :
                                                         }
-                                                            <div className="row">
-                                                                <div className="col-lg-4">
+                                                        <div className="row">
+                                                            <div className="col-lg-4">
 
 
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="RequesterName" className="form-label">Name</label>
-                                                                        <input style={{ height: '47px' }} type="text" id="Name" name="RequesterName" className="form-control" title={formData.RequesterName} value={formData.RequesterName} disabled={true} />
-                                                                    </div>
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="RequesterName" className="form-label">Name</label>
+                                                                    <input style={{ height: '47px' }} type="text" id="Name" name="RequesterName" className="form-control" title={formData.RequesterName} value={formData.RequesterName} disabled={true} />
                                                                 </div>
-                                                                <div className="col-lg-4">
+                                                            </div>
+                                                            <div className="col-lg-4">
 
 
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="Department" className="form-label">Department</label>
-                                                                        <input style={{ height: '47px' }} type="text" id="Department" name="DepartmentName" className="form-control" title={formData.DepartmentName} value={formData.DepartmentName} disabled={true} />
-                                                                    </div>
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="Department" className="form-label">Department</label>
+                                                                    <input style={{ height: '47px' }} type="text" id="Department" name="DepartmentName" className="form-control" title={formData.DepartmentName} value={formData.DepartmentName} disabled={true} />
                                                                 </div>
+                                                            </div>
 
-                                                                <div className="col-lg-4">
+                                                            <div className="col-lg-4">
 
 
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="RequesterDesignation" className="form-label">Designation</label>
-                                                                        <input style={{ height: '47px' }} type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" title={formData.RequesterDesignation} value={formData.RequesterDesignation} disabled={true} />
-                                                                    </div>
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="RequesterDesignation" className="form-label">Designation</label>
+                                                                    <input style={{ height: '47px' }} type="text" id="RequesterDesignation" name="RequesterDesignation" className="form-control" title={formData.RequesterDesignation} value={formData.RequesterDesignation} disabled={true} />
                                                                 </div>
-                                                                <div className="col-lg-4">
+                                                            </div>
+                                                            <div className="col-lg-4">
 
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="RequestDate" className="form-label">Request Date</label>
-                                                                        <input style={{ height: '47px' }} type="text" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDateNew} title={formData.RequestDateNew} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={true} />
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="RequestDate" className="form-label">Request Date</label>
+                                                                    <input style={{ height: '47px' }} type="text" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDateNew} title={formData.RequestDateNew} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={true} />
 
-                                                                        {/* <input type="date" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDate} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} /> */}
-                                                                    </div>
+                                                                    {/* <input type="date" id="RequestDate" name="RequestDate" className="form-control" value={formData.RequestDate} onChange={(e) => setFormData({ ...formData, RequestDate: e.target.value })} disabled={InputDisabled} /> */}
                                                                 </div>
+                                                            </div>
 
 
-                                                                <div className="col-lg-4">
+                                                            <div className="col-lg-4">
 
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="DocumentCode" className="form-label">Document Code <span className="text-danger1"> *</span></label>
-                                                                        {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
-                                                                       <div  title={formData?.DocumentCode || ""}> <Select
-                                                                            // title={selectedOption?.value}
-                                                                            title={formData?.DocumentCode || ""}
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="DocumentCode" className="form-label">Document Code <span className="text-danger1"> *</span></label>
+                                                                    {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
+                                                                    <div title={formData?.DocumentCode || ""}> <Select
+                                                                        // title={selectedOption?.value}
+                                                                        title={formData?.DocumentCode || ""}
 
-                                                                            isClearable
-                                                                            options={rows}
-                                                                            value={selectedOption}
-                                                                            name="DocumentCode"
-                                                                            className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                                                            onChange={(selectedOption: any) => onSelect(selectedOption)}
-                                                                            placeholder="Search Document Code" isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false)}
-                                                                        /></div>
-                                                                    </div>
+                                                                        isClearable={true}
+                                                                        options={rows}
+                                                                        value={selectedOption}
+                                                                        name="DocumentCode"
+                                                                        className={`newse ${(!ValidDraft) ? "border-on-error" : ""} ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                        onChange={(selectedOption: any) => onSelect(selectedOption)}
+                                                                        placeholder="Search Document Code" isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false)}
+                                                                    /></div>
                                                                 </div>
-                                                                <div className="col-lg-4">
+                                                            </div>
+                                                            <div className="col-lg-4">
 
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="example-email" className="form-label">Issue No</label>
-                                                                        <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.IssueNumber} value={formData.IssueNumber} />
-                                                                    </div>
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="example-email" className="form-label">Issue No</label>
+                                                                    <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.IssueNumber} value={formData.IssueNumber} />
                                                                 </div>
+                                                            </div>
 
-                                                                <div className="col-lg-4">
+                                                            <div className="col-lg-4">
 
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="example-email" className="form-label">Revision No</label>
-                                                                        <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.RevisionNumber} value={formData.RevisionNumber} />
-                                                                    </div>
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="example-email" className="form-label">Revision No</label>
+                                                                    <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.RevisionNumber} value={formData.RevisionNumber} />
                                                                 </div>
-                                                                <div className="col-lg-4">
+                                                            </div>
+                                                            <div className="col-lg-4">
 
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="example-email" className="form-label">Reference No</label>
-                                                                        <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.ReferenceNumber} value={formData.ReferenceNumber} />
-                                                                    </div>
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="example-email" className="form-label">Reference No</label>
+                                                                    <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.ReferenceNumber} value={formData.ReferenceNumber} />
                                                                 </div>
-                                                                <div className="col-lg-4">
+                                                            </div>
+                                                            <div className="col-lg-4">
 
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="example-email" className="form-label">Document Type</label>
-                                                                        <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.DocumentType} value={formData.DocumentType} />
-                                                                    </div>
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="example-email" className="form-label">Document Type</label>
+                                                                    <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.DocumentType} value={formData.DocumentType} />
                                                                 </div>
-                                                                <div className="col-lg-4">
+                                                            </div>
+                                                            <div className="col-lg-4">
 
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="example-email" className="form-label">Location</label>
-                                                                        <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Location} value={formData.Location} />
-                                                                    </div>
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="example-email" className="form-label">Location</label>
+                                                                    <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Location} value={formData.Location} />
                                                                 </div>
+                                                            </div>
 
-                                                                <div className="col-lg-4">
+                                                            <div className="col-lg-4">
 
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="example-email" className="form-label">Custodian</label>
-                                                                        <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Custodian} value={formData.Custodian} />
-                                                                    </div>
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="example-email" className="form-label">Custodian</label>
+                                                                    <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Custodian} value={formData.Custodian} />
                                                                 </div>
+                                                            </div>
 
-                                                                <div className="col-lg-4">
+                                                            <div className="col-lg-4">
 
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="example-email" className="form-label">Amendment Type</label>
-                                                                        <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.AmendmentType} value={formData.AmendmentType} />
-                                                                    </div>
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="example-email" className="form-label">Amendment Type</label>
+                                                                    <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.AmendmentType} value={formData.AmendmentType} />
                                                                 </div>
+                                                            </div>
 
-                                                                <div className="col-lg-4">
+                                                            <div className="col-lg-4">
 
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="example-email" className="form-label">Classification</label>
-                                                                        <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Classification} value={formData.Classification} />
-                                                                    </div>
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="example-email" className="form-label">Classification</label>
+                                                                    <input style={{ height: '47px' }} disabled type="text" id="example-email" name="example-email" className="form-control" placeholder="" title={formData.Classification} value={formData.Classification} />
                                                                 </div>
+                                                            </div>
 
-                                                                <div className="col-lg-4">
+                                                            <div className="col-lg-4">
 
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="example-email" className="form-label">Template Type</label>
-                                                                        <input style={{ height: '47px' }} disabled type="text" id="templateid" name="example-email" className="form-control" placeholder="" title={formData.TemplateTypeValue} value={formData.TemplateTypeValue} />
-                                                                    </div>
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="example-email" className="form-label">Template Type</label>
+                                                                    <input style={{ height: '47px' }} disabled type="text" id="templateid" name="example-email" className="form-control" placeholder="" title={formData.TemplateTypeValue} value={formData.TemplateTypeValue} />
                                                                 </div>
+                                                            </div>
 
-                                                                {/* <div className="col-lg-8">
+                                                            {/* <div className="col-lg-8">
 
                                                             <div className="mb-3">
                                                                 <label htmlFor="example-email" className="form-label">Document Link</label>
@@ -2494,79 +2556,103 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                 </div>
                                                             </div> */}
 
-                                                                {/* changes  */}
+                                                            {/* changes  */}
 
-                                                                <div className="col-lg-4">
-                                                                    <div className="mb-3">
-                                                                        <label htmlFor="RequesterName" className="form-label">Document Name</label>
-                                                                        {/* <input type="text" id="Name" name="department" className="form-control" value={formData.Department} disabled={true} />
+                                                            <div className="col-lg-4">
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="RequesterName" className="form-label">Document Name</label>
+                                                                    {/* <input type="text" id="Name" name="department" className="form-control" value={formData.Department} disabled={true} />
    */}
-                                                                        <div
-                                                                            title={formData.filename || ""}
-                                                                            style={{ width: "100%" }}
-                                                                        >
-                                                                            <input style={{ height: '47px' }} type="text"
-                                                                                id="example-email"
-                                                                                name="example-email"
-                                                                                // className={`form-control ${(!ValidDraft && filenameerr) ? "border-on-error" : ""} ${(!ValidSubmit && filenameerr) ? "border-on-error" : ""}`}
-                                                                                className={`form-control`}
-                                                                                // onChange={(e) => onChangefilename("filename", e.target.value)}
-                                                                                // placeholder="Document name"
-                                                                                value={formData.filename} disabled={true} />
+                                                                    <div
+                                                                        title={formData.filename || ""}
+                                                                        style={{ width: "100%" }}
+                                                                    >
+                                                                        <input style={{ height: '47px' }} type="text"
+                                                                            id="example-email"
+                                                                            name="example-email"
+                                                                            // className={`form-control ${(!ValidDraft && filenameerr) ? "border-on-error" : ""} ${(!ValidSubmit && filenameerr) ? "border-on-error" : ""}`}
+                                                                            className={`form-control`}
+                                                                            // onChange={(e) => onChangefilename("filename", e.target.value)}
+                                                                            // placeholder="Document name"
+                                                                            value={formData.filename} disabled={true} />
 
-
-                                                                        </div>
 
                                                                     </div>
+
                                                                 </div>
+                                                            </div>
 
-                                                                {/* changes */}
+                                                            {/* changes */}
 
-                                                                <div className="col-lg-4">
-                                                                    <div className="mb-3">
+                                                            <div className="col-lg-4">
+                                                                <div className="mb-3">
 
-                                                                        <div className='d-flex justify-content-between'>
+                                                                    <div className='d-flex justify-content-between'>
+                                                                        <div>
+                                                                            <label htmlFor="bannerImage" className="form-label">
+                                                                                Attachment
+                                                                            </label>
+                                                                        </div>
+                                                                        <div>
                                                                             <div>
-                                                                                <label htmlFor="bannerImage" className="form-label">
-                                                                                    Attachment
-                                                                                </label>
-                                                                            </div>
-                                                                            <div>
-                                                                                <div>
-                                                                                    {DocumentLink != null ?
-                                                                                        (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
-                                                                                            <FontAwesomeIcon icon={faPaperclip} /> 1 file Attached
-                                                                                        </a>) : ""
+                                                                                {DocumentLink != null ?
+                                                                                    (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
+                                                                                        <FontAwesomeIcon icon={faPaperclip} /> 1 file Attached
+                                                                                    </a>) : ""
 
-                                                                                    }
-                                                                                </div>
+                                                                                }
                                                                             </div>
                                                                         </div>
-                                                                        <input
-                                                                            type="file"
+                                                                    </div>
+                                                                    <input
+                                                                        type="file"
 
-                                                                            id="bannerImage"
-                                                                            name="bannerImage"
-                                                                            accept=".jpeg,.jpg,.png,.gif"
-                                                                            // className={`form-control  ${(!ValidSubmit) ? "border-on-error" : ""}`}
-                                                                            className="form-control inputcss"
-                                                                            // onChange={(e) => onFileChange(e, "bannerimg", "Document")}
-                                                                            // disabled={ApprovalMode}
-                                                                            disabled={true}
+                                                                        id="bannerImage"
+                                                                        name="bannerImage"
+                                                                        accept=".jpeg,.jpg,.png,.gif"
+                                                                        // className={`form-control  ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                                                        className="form-control inputcss"
+                                                                        // onChange={(e) => onFileChange(e, "bannerimg", "Document")}
+                                                                        // disabled={ApprovalMode}
+                                                                        disabled={true}
 
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            {/*  */}
+
+                                                            <div className="col-lg-4">
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="Prepared">Prepared By</label>
+                                                                    <div className="mt-10"
+                                                                    // title={sharewithusers.map(user => user.label).join(', ')}
+                                                                    >
+                                                                        <Select
+                                                                            //onKeyDown={handleKeyDown}
+                                                                            isClearable={true}
+                                                                            options={rows1}
+                                                                            isMulti
+                                                                            value={sharewithusers}
+                                                                            // value={formData.PreparedById}
+                                                                            name="share with"
+                                                                            className={`form-control `}
+                                                                            // onChange={(selectedOption: any) => onSelect(selectedOption)}
+                                                                            // onChange={(selectedOptions: any) => onSelectsharewith(selectedOptions)}
+                                                                            placeholder=""
+                                                                            isDisabled={true}
                                                                         />
                                                                     </div>
                                                                 </div>
-
-
-
-
-
-
-
-
-
                                                             </div>
+
+
+                                                            {/*  */}
+
+
+
+
+                                                        </div>
                                                         {/* // } */}
                                                     </div>
 
@@ -2710,10 +2796,13 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         <tr>
                                                                             <th style={{ minWidth: "35px", maxWidth: "35px" }}>S.No</th>
                                                                             <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Role<span className="text-danger1"> *</span></th>
-                                                                            <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level</th>
+                                                                            <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Responsibility<span className="text-danger1"> *</span></th>
+                                                                            <th style={{ minWidth: "40px", maxWidth: "40px" }} title="Use your electronic digital signature to sign this document digitally">E-Sign?</th>
+                                                                            <th style={{ minWidth: '40px', maxWidth: '40px' }} >Level</th>
+                                                                            {/* <th style={{ minWidth: '120px', maxWidth: '120px' }}>Approver name</th> */}
                                                                             <th>Approver name<span className="text-danger1"> *</span></th>
-                                                                            <th style={{ minWidth: '70px', maxWidth: '70px' }} >Approval criteria<span className="text-danger1"> *</span></th>
-                                                                            <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
+                                                                            <th style={{ minWidth: '80px', maxWidth: '80px' }} >Approval criteria<span className="text-danger1"> *</span></th>
+                                                                            <th style={{ minWidth: '36px', maxWidth: '36px' }}>Action</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody style={{ maxHeight: "8007px", overflow: 'inherit' }}>
@@ -2744,6 +2833,51 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                     </select>
 
                                                                                 </td>
+                                                                                <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px' }}>
+                                                                                    <div
+                                                                                    //  style={{ display: "flex", alignItems: 'center', gap: '8px' }}
+                                                                                    >
+                                                                                        <select
+                                                                                            id="responsibleId"
+                                                                                            value={row.Responsibility}
+                                                                                            onChange={(e) => handleChangeResp(e, row.level)}
+                                                                                            className={`newse ForwardClsErr form-select`}
+                                                                                            // disabled={InputDisabled}
+                                                                                            disabled={!(editID.CurrentUserRole == "OES" && editID.Status == "Pending")}
+                                                                                            title={row.Responsibility ? row.Responsibility : "Select"}
+                                                                                        >
+                                                                                            <option value="">Select </option>
+                                                                                            <option value="Signer">Signer</option>
+                                                                                            <option value="Reviewer">Reviewer</option>
+                                                                                            <option value="Endorser">Endorser</option>
+                                                                                        </select>
+
+                                                                                    </div>
+                                                                                </td>
+
+                                                                                <td style={{ minWidth: "40px", maxWidth: "40px", overflow: 'inherit' }}>
+                                                                                    <div
+                                                                                    //  style={{ display: "flex", alignItems: 'center', gap: '8px' }}
+                                                                                    >
+                                                                                        <input
+                                                                                            type="checkbox"
+                                                                                            checked={row.IsSignatureRequired}
+                                                                                            // disabled={!(editID.CurrentUserRole == "OES" && editID.Status == "Pending") && (row.Responsibility === "Signer" ||row.Responsibility === "Endorser" || row.Responsibility === "") }
+                                                                                            // disabled={row.Responsibility !== "Endorser" || row.Responsibility === "" || InputDisabled}
+                                                                                            disabled={row.Responsibility !== "Reviewer" ||(!(editID.CurrentUserRole == "OES" && editID.Status == "Pending"))}
+                                                                                            style={{ marginLeft: '17px', width: "15px" }}
+                                                                                            title="Signature Required"
+                                                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                                                                const isChecked = e.target.checked;
+                                                                                                const updatedArr = forwardToArr.map(row1 =>
+                                                                                                    row1.level === row.level ? { ...row1, IsSignatureRequired: isChecked } : row1
+                                                                                                );
+                                                                                                setForwardToArr(updatedArr);
+                                                                                            }}
+                                                                                        />
+
+                                                                                    </div>
+                                                                                </td>
                                                                                 <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>Level {index + 1}</td>
                                                                                 <td style={{ overflow: 'inherit' }} title={row.approvers.map((approver: any) => approver.label).join(", ")}>
 
@@ -2763,6 +2897,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
                                                                                 </td>
+
+
+
                                                                                 <td style={{ overflow: 'inherit', minWidth: '70px', maxWidth: '70px', }}>
                                                                                     {/* <label htmlFor="approvalType">Approval Type: </label> */}
                                                                                     <select id="approvalType" value={row.approvalType} onChange={(e) => handleChange(e, row.level)} className={`newse ForwardClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`} disabled={!(editID.CurrentUserRole == "OES" && editID.Status == "Pending")} title={row.approvalType === "One" ? "Anyone" : row.approvalType === "All" ? "Everyone" : "Select Approval Type"}>
@@ -2771,7 +2908,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                         <option value="All">Everyone</option>
                                                                                     </select>
                                                                                 </td>
-                                                                                <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>
+                                                                                <td style={{ minWidth: '36px', maxWidth: '36px', overflow: 'inherit' }}>
                                                                                     {/* <i className="fe-trash-2 text-danger"></i> */}
                                                                                     {/* {editID.CurrentUserRole === "OES"? <img src={require("../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} />:
                                                                                 <img src={require("../assets/recycle-bin.png")}  className='sidebariconsmall' />} */}
@@ -2800,7 +2937,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                                             <div className="mb-0" >
 
-                                                                                <label htmlFor="example-textarea" className="form-label text-dark font-14" style={{textAlign: 'left'}}>Remarks <span className="text-danger1"> *</span></label>
+                                                                                <label htmlFor="example-textarea" className="form-label text-dark font-14" style={{ textAlign: 'left' }}>Remarks <span className="text-danger1"> *</span></label>
 
                                                                                 <textarea
                                                                                     style={{ height: '80px' }}
@@ -2886,11 +3023,14 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                     <thead >
                                                                         <tr>
                                                                             <th style={{ minWidth: "35px", maxWidth: "35px" }}>S.No</th>
-                                                                            <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Role</th>
+                                                                            <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Role<span className="text-danger1"> *</span></th>
+                                                                            <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Responsibility<span className="text-danger1"> *</span></th>
+                                                                            <th style={{ minWidth: "40px", maxWidth: "40px" }} title="Use your electronic digital signature to sign this document digitally">E-Sign?</th>
                                                                             <th style={{ minWidth: '40px', maxWidth: '40px' }} >Level</th>
-                                                                            <th style={{ minWidth: '120px', maxWidth: '120px' }}>Approver name</th>
-                                                                            <th style={{ minWidth: '70px', maxWidth: '70px' }} >Approval criteria</th>
-                                                                            <th style={{ minWidth: '50px', maxWidth: '50px' }}>Action</th>
+                                                                            {/* <th style={{ minWidth: '120px', maxWidth: '120px' }}>Approver name</th> */}
+                                                                            <th>Approver name<span className="text-danger1"> *</span></th>
+                                                                            <th style={{ minWidth: '80px', maxWidth: '80px' }} >Approval criteria<span className="text-danger1"> *</span></th>
+                                                                            <th style={{ minWidth: '36px', maxWidth: '36px' }}>Action</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody style={{ maxHeight: "8007px", overflow: 'inherit' }}>
@@ -2923,6 +3063,49 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                     </select>
 
                                                                                 </td>
+                                                                                <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px' }}>
+                                                                                    <div
+                                                                                    //  style={{ display: "flex", alignItems: 'center', gap: '8px' }}
+                                                                                    >
+                                                                                        <select
+                                                                                            id="responsibleId"
+                                                                                            value={row.Responsibility}
+                                                                                            onChange={(e) => handleChangeResp(e, row.level)}
+                                                                                            className={`newse HierarchyClsErr form-select ${(!ValidForwardTo) ? "border-on-error" : ""}`}
+                                                                                            // disabled={InputDisabled}
+                                                                                            disabled={true}
+                                                                                            title={row.Responsibility ? row.Responsibility : "Select"}
+                                                                                        >
+                                                                                            <option value="">Select </option>
+                                                                                            <option value="Signer">Signer</option>
+                                                                                            <option value="Reviewer">Reviewer</option>
+                                                                                            <option value="Endorser">Endorser</option>
+                                                                                        </select>
+
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td style={{ minWidth: "40px", maxWidth: "40px", overflow: 'inherit' }}>
+                                                                                    <div
+                                                                                    //  style={{ display: "flex", alignItems: 'center', gap: '8px' }}
+                                                                                    >
+                                                                                        <input
+                                                                                            type="checkbox"
+                                                                                            checked={row.IsSignatureRequired}
+                                                                                            disabled={true}
+                                                                                            // disabled={row.Responsibility === "Signer" || row.Responsibility === "" || InputDisabled}
+                                                                                            style={{ marginLeft: '17px', width: "15px" }}
+                                                                                            title="Signature Required"
+                                                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                                                                const isChecked = e.target.checked;
+                                                                                                const updatedArr = forwardToArr.map(row1 =>
+                                                                                                    row1.level === row.level ? { ...row1, IsSignatureRequired: isChecked } : row1
+                                                                                                );
+                                                                                                setForwardToArr(updatedArr);
+                                                                                            }}
+                                                                                        />
+
+                                                                                    </div>
+                                                                                </td>
                                                                                 <td style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>Level {index + 1}</td>
                                                                                 <td style={{ overflow: 'inherit', minWidth: '120px', maxWidth: '120px', }} title={row.approvers.map((approver: any) => approver.label).join(", ")}>
 
@@ -2950,7 +3133,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                         <option value="All">Everyone</option>
                                                                                     </select>
                                                                                 </td>
-                                                                                <td style={{ minWidth: '50px', maxWidth: '50px', overflow: 'inherit' }}>
+                                                                                <td style={{ minWidth: '36px', maxWidth: '36px', overflow: 'inherit' }}>
                                                                                     {/* <i className="fe-trash-2 text-danger"></i> */}
                                                                                     {/* {editID.CurrentUserRole === "OES"? <img src={require("../../../CustomAsset/del.png")} onClick={() => handleDeleteRow(index)} />:
                             <img src={require("../assets/recycle-bin.png")}  className='sidebariconsmall' />} */}
@@ -3062,7 +3245,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
 
-                                                        {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.IsInitiator == "Yes" && (editID.Status == "Pending" ))) &&
+                                                        {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.IsInitiator == "Yes" && (editID.Status == "Pending"))) &&
                                                             <div style={{ width: '145px' }} className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                                                 className='me-1' alt="x" /> Cancel</div>
                                                         }

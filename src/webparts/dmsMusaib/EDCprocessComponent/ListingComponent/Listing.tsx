@@ -1,4 +1,4 @@
-import  * as React from 'react';
+import * as React from 'react';
 import { IListingProps } from './IListingProps';
 import { IListingState } from './IListingState';
 import FormComponent from '../FormComponent/Form';
@@ -36,9 +36,9 @@ export class Listing extends React.Component<IListingProps, IListingState> {
             siteUrl: "",
             currentPage: 1,
             itemsPerPage: 10,
-            visiblePageStart:1,
+            visiblePageStart: 1,
             totalItems: 0,
-            loading:false,
+            loading: false,
             sortColumn: 'ReqDt', // Track the currently sorted column
             sortDirection: 'desc', // Track the sort direction
             searchValues: { // Track search input values for each column
@@ -59,8 +59,8 @@ export class Listing extends React.Component<IListingProps, IListingState> {
     }
 
     async componentDidMount() {
-       debugger
-        this.setState({loading:true});
+        debugger
+        this.setState({ loading: true });
         const userdata = await this._sp.web.currentUser();
 
         console.log(userdata, "user data edc")
@@ -102,7 +102,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
     //         console.log("Editing item:", item);
     //         this.setState({ showform: !0, process: item.ProcessName });
     //     }
-   
+
     // old code for pagination
     // private handlePageChange(pageNumber: number) {
     //     this.setState({ currentPage: pageNumber });
@@ -110,20 +110,20 @@ export class Listing extends React.Component<IListingProps, IListingState> {
     private handlePageChange(pageNumber: number) {
         let { visiblePageStart } = this.state;
         const visiblePageCount = 5;
-      
+
         // Adjust the visible page range
         if (pageNumber < visiblePageStart) {
-          visiblePageStart = Math.max(1, pageNumber - visiblePageCount + 1);
+            visiblePageStart = Math.max(1, pageNumber - visiblePageCount + 1);
         } else if (pageNumber >= visiblePageStart + visiblePageCount) {
-          visiblePageStart = pageNumber;
+            visiblePageStart = pageNumber;
         }
-      
+
         this.setState({
-          currentPage: pageNumber,
-          visiblePageStart
+            currentPage: pageNumber,
+            visiblePageStart
         });
-      }
-      
+    }
+
     private handleItemsPerPageChange(event: React.ChangeEvent<HTMLSelectElement>) {
         this.setState({ itemsPerPage: parseInt(event.target.value, 10), currentPage: 1 });
     }
@@ -148,7 +148,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
     }
 
     public render(): React.ReactElement<IListingProps> {
-        const { showform, items, currentPage, itemsPerPage, totalItems, visiblePageStart , sortColumn, sortDirection, searchValues } = this.state;
+        const { showform, items, currentPage, itemsPerPage, totalItems, visiblePageStart, sortColumn, sortDirection, searchValues } = this.state;
 
         // Filter items based on search values
         const filteredItems = items.filter(item => {
@@ -180,7 +180,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
         const allItems = currentItems.map((item: any, i: number) => {
             let path = `#/${item.ProcessName}/${item.MainListId}`;
 
-            if ((item.ProcessName == "Document Cancellation" || item.ProcessName == "Change Request" ||  item.ProcessName =="IMS Annual Audit Program" ||  item.ProcessName =="IMS Audit Plan"||item.ProcessName ==  "Memorandum") && item.Status == "Rework") {
+            if ((item.ProcessName == "Document Cancellation" || item.ProcessName == "Change Request" || item.ProcessName == "IMS Annual Audit Program" || item.ProcessName == "IMS Audit Plan" || item.ProcessName == "Memorandum" || item.ProcessName == "Annual Audit Report" || item.ProcessName == "IMS Audit Report and Checklist") && item.Status == "Rework") {
                 if (item.ProcessItemId) {
                     let actionType = "approve";
                     path = `#/${item.ProcessName}/${actionType}/${item.MainListId}/${item.ProcessItemId}`;
@@ -240,8 +240,8 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                 <tr key={i}>
                     <td style={{ minWidth: '40px', maxWidth: '40px' }}>
                         {/* <div style={{ marginLeft: '5px' }} className='indexdesign'>{i + 1}</div> */}
-                           {/* <div style={{ marginLeft: '5px' }} className='indexdesign'>{i + 1}</div> */}
-                           <div style={{ marginLeft: '5px' }} className='indexdesign'> {(currentPage - 1) * itemsPerPage + i + 1}</div>
+                        {/* <div style={{ marginLeft: '5px' }} className='indexdesign'>{i + 1}</div> */}
+                        <div style={{ marginLeft: '5px' }} className='indexdesign'> {(currentPage - 1) * itemsPerPage + i + 1}</div>
                     </td>
                     <td title={item.ProcessName == "Non Conformity" ? item?.NCNumber : item?.RequestId} style={{ minWidth: '105px', maxWidth: '105px' }}>{item.ProcessName == "Non Conformity" ? item?.NCNumber : item?.RequestId}</td>
                     <td title={item.ProcessName == "Non Conformity" ? item?.ProblemDescription : item.Title} style={{ minWidth: '105px', maxWidth: '105px' }}>{item.ProcessName == "Non Conformity" ? item?.ProblemDescription : item.Title}</td>
@@ -262,7 +262,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                     </td>
                     <td title={item.ReqName} style={{ minWidth: '80px', maxWidth: '80px' }}>{item.ReqName}</td>
                     <td title={moment(item.ReqDt).format("DD/MMM/YYYY")} style={{ minWidth: '85px', maxWidth: '85px' }}>{moment(item.ReqDt).format("DD/MMM/YYYY")}</td>
-                    <td title={item.SubmitStatus == "No" ? "Save as Draft" : item.Status} style={{ minWidth: '70px', maxWidth: '70px' }}>{item.SubmitStatus == "No" ? "Save as Draft" : item.Status}</td>
+                    <td title={item.SubmitStatus == "No" && item.Status != "Rework" ? "Save as Draft" : item.Status} style={{ minWidth: '70px', maxWidth: '70px' }}>{item.SubmitStatus == "No" && item.Status != "Rework"? "Save as Draft" : item.Status}</td>
                     <td style={{ minWidth: '50px', maxWidth: '50px' }}>
                         <a href={path} onClick={() => this.editItem(item)}>
                             {/* <a  onClick={() => this.editItem(item)}> */}
@@ -272,18 +272,18 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                 </tr>
             );
         });
-
+        console.log("llll", allItems, currentItems)
         // Calculate the total number of pages
         const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-// Only show 5 pages at a time
-const visiblePageCount = 5;
-const visiblePageEnd = Math.min(visiblePageStart + visiblePageCount - 1, totalPages);
+        // Only show 5 pages at a time
+        const visiblePageCount = 5;
+        const visiblePageEnd = Math.min(visiblePageStart + visiblePageCount - 1, totalPages);
 
         // Generate page numbers for pagination
         const pageNumbers = [];
-for (let i = visiblePageStart; i <= visiblePageEnd; i++) {
-  pageNumbers.push(i);
-}
+        for (let i = visiblePageStart; i <= visiblePageEnd; i++) {
+            pageNumbers.push(i);
+        }
         // const pageNumbers = [];
         // for (let i = 1; i <= totalPages; i++) {
         //     pageNumbers.push(i);
@@ -361,7 +361,7 @@ for (let i = visiblePageStart; i <= visiblePageEnd; i++) {
                                                     <div
                                                         onClick={() => this.handleSort(column)}
                                                         style={{ cursor: 'pointer', height: '35px' }}
-                                                        // display: 'flex',
+                                                    // display: 'flex',
                                                     >
                                                         {column === 'ProcessName'
                                                             ? 'Process Name'
@@ -417,82 +417,84 @@ for (let i = visiblePageStart; i <= visiblePageEnd; i++) {
                                         />
                                     </span>
                                 </div> :
+
                                 <tbody>{allItems}</tbody>
                             }
+                            {console.log("allitemmmm", allItems)}
                         </table>
                         <div className="pagination">
-                        <button 
-  onClick={(e) => {
-    e.preventDefault();  // Prevent default form submission
-    e.stopPropagation(); // Stop event bubbling
-    this.handlePageChange(currentPage - 1);
-  }}
-  disabled={currentPage === 1}
-  type="button"  // Explicitly set type to prevent form submission
->
-  Previous
-</button>
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();  // Prevent default form submission
+                                    e.stopPropagation(); // Stop event bubbling
+                                    this.handlePageChange(currentPage - 1);
+                                }}
+                                disabled={currentPage === 1}
+                                type="button"  // Explicitly set type to prevent form submission
+                            >
+                                Previous
+                            </button>
 
-  {visiblePageStart > 1 && (
-  <button
-  type='button' 
-    onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      this.setState({ visiblePageStart: visiblePageStart - 5 });
-    }}
-  >
-    «
-  </button>
-)}
-  {pageNumbers.map(number => (
-    <button
-        type="button"  // Crucial for SharePoint to prevent form submission
-      key={number}
-      onClick={() => this.handlePageChange(number)}
-      disabled={number === currentPage}
-      style={{ fontWeight: number === currentPage ? 'bold' : 'normal' }}
-    >
-      {number}
-    </button>
-  ))}
+                            {visiblePageStart > 1 && (
+                                <button
+                                    type='button'
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        this.setState({ visiblePageStart: visiblePageStart - 5 });
+                                    }}
+                                >
+                                    «
+                                </button>
+                            )}
+                            {pageNumbers.map(number => (
+                                <button
+                                    type="button"  // Crucial for SharePoint to prevent form submission
+                                    key={number}
+                                    onClick={() => this.handlePageChange(number)}
+                                    disabled={number === currentPage}
+                                    style={{ fontWeight: number === currentPage ? 'bold' : 'normal' }}
+                                >
+                                    {number}
+                                </button>
+                            ))}
 
-{visiblePageEnd < totalPages && (
-  <button 
-    type="button"
-    onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      this.setState({ visiblePageStart: visiblePageStart + 5 });
-    }}
-  >
-    »
-  </button>
-)}
+                            {visiblePageEnd < totalPages && (
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        this.setState({ visiblePageStart: visiblePageStart + 5 });
+                                    }}
+                                >
+                                    »
+                                </button>
+                            )}
 
-<button
-  onClick={(e) => {
-    e.preventDefault();    // Stop default form submission
-    e.stopPropagation();  // Prevent event bubbling
-    this.handlePageChange(currentPage + 1);
-  }}
-  disabled={currentPage === totalPages}
-  type="button"  // Crucial for SharePoint
->
-  Next
-</button>
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();    // Stop default form submission
+                                    e.stopPropagation();  // Prevent event bubbling
+                                    this.handlePageChange(currentPage + 1);
+                                }}
+                                disabled={currentPage === totalPages}
+                                type="button"  // Crucial for SharePoint
+                            >
+                                Next
+                            </button>
 
-  <select
-    style={{ height: '38px', marginTop: '19px' }}
-    value={this.state.itemsPerPage}
-    onChange={this.handleItemsPerPageChange}
-  >
-    <option value={5}>5</option>
-    <option value={10}>10</option>
-    <option value={20}>20</option>
-    <option value={50}>50</option>
-  </select>
-</div>
+                            <select
+                                style={{ height: '38px', marginTop: '19px' }}
+                                value={this.state.itemsPerPage}
+                                onChange={this.handleItemsPerPageChange}
+                            >
+                                <option value={5}>5</option>
+                                <option value={10}>10</option>
+                                <option value={20}>20</option>
+                                <option value={50}>50</option>
+                            </select>
+                        </div>
                         {/* <div className="pagination">
                             <button onClick={() => this.handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Previous</button>
                             {pageNumbers.map(number => (
@@ -569,18 +571,18 @@ for (let i = visiblePageStart; i <= visiblePageEnd; i++) {
                 }
             }
             else {
-            allItems.push({
-                RequestId: itm.MemoNumber || "",
-                Title: itm.Subject || "",
-                ProcessName: "IMS Annual Audit Program",
-                ReqName: itm.Author ? itm.Author.Title : '',
-                ReqDt: new Date(itm.Created),
-                Status: itm.Status,
-                MainListId: itm.Id,
-                Id: itm.Id,
-                SubmitStatus: ''
-            });
-        }
+                allItems.push({
+                    RequestId: itm.MemoNumber || "",
+                    Title: itm.Subject || "",
+                    ProcessName: "IMS Annual Audit Program",
+                    ReqName: itm.Author ? itm.Author.Title : '',
+                    ReqDt: new Date(itm.Created),
+                    Status: itm.Status,
+                    MainListId: itm.Id,
+                    Id: itm.Id,
+                    SubmitStatus: ''
+                });
+            }
         });
 
         const MemoItems = await spfi(this._sp).web.lists.getByTitle("Memorandum").items.select('Id,MemoNumber,Title,Author/Title,Created,Status,Subject').expand('Author').filter(`Author/ID eq '${this.props.userid}'`)();
@@ -795,8 +797,44 @@ for (let i = visiblePageStart; i <= visiblePageEnd; i++) {
 
         const AnnualAuditReportList = await spfi(this._sp).web.lists.getByTitle("AnnualAuditReportList").items.select('*,ReportCode,Id,Title,Author/Title,Created,Status,ReferenceNumber').expand('Author').filter(`Author/ID eq '${this.props.userid}'`)();
         AnnualAuditReportList.forEach(async itm => {
+            debugger
+            if (itm.Status === "Rework") {
+                const processItems2 = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and (Status eq 'Pending' or Status eq 'Save as draft') and (ProcessName eq 'Annual Audit Report' or ProcessName eq 'IMS Audit Report and Checklist') and ListItemId eq ${itm.Id}`)();
+                if (processItems2.length > 0) {
+                    for (const itom of processItems2) {
 
-            if (itm.Status === "Pending") {
+                        allItems.push({
+                            RequestId: itm.ReportCode ? itm.ReportCode : "",
+                            ReportCode: itm.ReportCode ? itm.ReportCode : "",
+                            Title: itm.MemoNumber ? itm.MemoNumber : "",
+                            ProcessName: "IMS Audit Report and Checklist",
+                            ReqName: itm.Author ? itm.Author.Title : '',
+                            ReqDt: new Date(itm.Created),
+                            Status: itm.Status,
+                            MainListId: itm.Id,
+                            Id: itm.Id,
+                            ProcessItemId: itom.Id,
+                            SubmitStatus: ''
+                        });
+
+                    }
+
+                }
+                else {
+                    allItems.push({
+                        RequestId: itm.ReportCode ? itm.ReportCode : "",
+                        ReportCode: itm.ReportCode ? itm.ReportCode : "",
+                        Title: itm.MemoNumber ? itm.MemoNumber : "",
+                        ProcessName: "IMS Audit Report and Checklist",
+                        ReqName: itm.Author ? itm.Author.Title : '',
+                        ReqDt: new Date(itm.Created),
+                        Status: itm.Status,
+                        MainListId: itm.Id,
+                        Id: itm.Id,
+                        SubmitStatus: ''
+                    });
+                }
+            } else if (itm.Status === "Pending") {
                 const processItems2 = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and (Status eq 'Pending' or Status eq 'Save as draft') and ProcessName eq 'Annual Audit Report' and ListItemId eq ${itm.Id}`)();
                 if (processItems2.length > 0) {
                     for (const itom of processItems2) {
@@ -819,7 +857,6 @@ for (let i = visiblePageStart; i <= visiblePageEnd; i++) {
 
                 }
                 else {
-
                     allItems.push({
                         RequestId: itm.ReportCode ? itm.ReportCode : "",
                         ReportCode: itm.ReportCode ? itm.ReportCode : "",
@@ -832,11 +869,9 @@ for (let i = visiblePageStart; i <= visiblePageEnd; i++) {
                         Id: itm.Id,
                         SubmitStatus: ''
                     });
-
                 }
             }
             else {
-
                 allItems.push({
                     RequestId: itm.ReportCode ? itm.ReportCode : "",
                     ReportCode: itm.ReportCode ? itm.ReportCode : "",
@@ -870,7 +905,7 @@ for (let i = visiblePageStart; i <= visiblePageEnd; i++) {
                 //RequestId:  item.NCRNo,
 
                 NCRNo: item.NCRNo,
-                NCNumber: item.NCNumber + " / " + item.NCType + " / "+ item.Department.Department,
+                NCNumber: item.NCNumber + " / " + item.NCType + " / " + item.Department.Department,
                 Title: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
                 //Title: item.ProblemDescription,
                 ProblemDescription: item.ProblemDescription,
