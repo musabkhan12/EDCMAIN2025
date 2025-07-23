@@ -123,7 +123,7 @@ export const getDataRoles = async (_sp) => {
     let arr = []
     let arrs = []
     let bannerimg = []
-    await _sp.web.lists.getByTitle("DepartmentMasterList").items
+    await _sp.web.lists.getByTitle("ProcessDepartmentMasterList").items
     .select("*,ToUsers/Title,CCUsers/Title").expand("ToUsers,CCUsers").filter("Active eq 'Yes'")()
       .then((res) => {
         // console.log(res, ' let arrs=[]');

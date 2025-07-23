@@ -697,7 +697,7 @@ export const getItemByIDCR = async (_sp, id) => {
   let bannerimg = []
 
   await _sp.web.lists.getByTitle("ChangeRequestList").items.getById(id)
-    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,RequestType/ID,RequestType/RequestType,RequestType/RequestCode,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId,PreparedBy/ID,PreparedBy/Title")
+    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,RequestType/ID,RequestType/RequestType,RequestType/RequestCode,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId,PreparedBy/ID,PreparedBy/Title,PreparedBy/EMail")
     .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,RequestType,Author,Department,PreparedBy")
     ()
     .then((res) => {
@@ -728,7 +728,7 @@ export const getItemByIDCRlatest = async (_sp, id) => {
     .then((res) => {
       console.log(res, ' let arrs=[]');
 
-      arr=res
+      arr = res
       // arr = res;
     })
     .catch((error) => {
@@ -903,7 +903,7 @@ export const addAllProcessItem = async (itemData, _sp) => {
 };
 
 export const UpdateAllProcessItem = async (itemData, _sp, id) => {
-
+  debugger
   let resultArr = []
   try {
 

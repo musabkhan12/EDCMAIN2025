@@ -4681,440 +4681,8 @@ const ArgPoc = ({ props }: any) => {
   //   }
   // }, []);
   // end
-  const getdoclibdata = async (FolderPath: any, siteID: any, docLibName: any) => {
-    showSearchInput = true
-    setlistorgriddata('');
-    // here in edc spfx  i remove this from here and add it above updated breadcrumb because it was working fine in dms but not in edc 
-    //   setlistorgriddata('');
-    // const wait = document.getElementById('files-container')
-    // wait.classList.remove('hidemydatacards')
-    const noFileMessage = document.createElement("p");
-
-    //  ismyrequordoclibforfilepreview = "getdoclibdata"
-    //  ismyrequordoclibforfilepreview = "getdoclibdata"
-    console.log('path   inside getdoclib', FolderPath)
-    console.log('SiteID :    ', siteID)
-    console.log('docLibName :    ', docLibName);
-    console.log('currentEntity :    ', currentEntity);
-
-    // // Hide the list and grid view start
-    // const hidegidvewlistviewbutton2=document.getElementById("hidegidvewlistviewbutton2")
-    // const hidegidvewlistviewbutton = document.getElementById('hidegidvewlistviewbutton')
-    // if (hidegidvewlistviewbutton2) {
-    //   console.log("enter here .....................")
-    //   hidegidvewlistviewbutton2.style.display = 'none'
-
-    // }
-    // if (hidegidvewlistviewbutton) {
-    // console.log("enter here .....................")
-    // hidegidvewlistviewbutton.style.display = 'none'
-
-    // }
-    // // End
-    // Extract the current entity from url
-    const segments = FolderPath?.split('/');
-    const currentSubsite = segments[3];
-    console.log("segments", segments);
-    console.log("Inside get doclib current entity", currentSubsite);
-    console.log("Devision", currentDevision);
-    console.log("Department", currentDepartment);
-    // set current entity ,current document library and folder name
-    const folName = segments[segments.length - 1];
-    const testidsub = await sp.site.openWebById(siteID);
-    let library;
-    if (folName === docLibName) {
-      console.log("its document libray", folName)
-      library = testidsub.web.getList(`${FolderPath}`);
-    } else {
-      console.log("its folder", folName)
-      currentFolder = folName
-      const library1 = testidsub.web.getFolderByServerRelativePath(`${FolderPath}`);
-      library = await library1.getItem()
-    }
-    currentEntity = currentSubsite;
-    currentDocumentLibrary = docLibName;
-    // Update the url  start
-    if (currentDevision !== "") {
-      console.log("Devision present", currentDevision);
-      if (currentDepartment !== "") {
-        console.log("Department present", currentDepartment);
-        const newUrl = `${window.location.origin}${window.location.pathname}?${FolderPath}?${docLibName}?${siteID}?${currentDevision}?${currentDepartment}`;
-        window.history.pushState(null, '', newUrl);
-      } else {
-        const newUrl = `${window.location.origin}${window.location.pathname}?${FolderPath}?${docLibName}?${siteID}?${currentDevision}`;
-        window.history.pushState(null, '', newUrl);
-      }
-    } else {
-      const newUrl = `${window.location.origin}${window.location.pathname}?${FolderPath}?${docLibName}?${siteID}`;
-      window.history.pushState(null, '', newUrl);
-    }
-
-    // end
-    routeToDiffSideBar = "";
-
-    // const testidsub = await sp.site.openWebById(siteID);
-    let files: any = [];
-    let batchSize = 5000;
-    let nextLink = null;
-    let hasMoreItems = true;
-    currentsiteID = siteID;
-    currentfolderpath = FolderPath;
-    const container = document.getElementById("files-container");
-
-    container.classList.remove('hidemydatacards')
-    container.innerHTML = "";
-    console.log("folderpath:", FolderPath);
-    try {
-      while (hasMoreItems) {
-        let response;
-        if (nextLink) {
-          response = await sp.web(nextLink);
-        } else {
-          try {
-            response = await testidsub.web
-              .getFolderByServerRelativePath(FolderPath)
-              .files.select(
-                "Name",
-                "Length",
-                "ServerRelativeUrl",
-                "UniqueId",
-                "MajorVersion",
-                "ListItemAllFields/Status",
-                "ListItemAllFields/IsDeleted"
-              )
-              .expand("ListItemAllFields")
-              .orderBy("ListItemAllFields/Modified", false)
-              .filter(`ListItemAllFields/IsDeleted eq ${null} and ListItemAllFields/Status ne 'Pending'`)
-              .top(batchSize)();
-            myfolderdata = response
-            console.log(response, "response")
-          } catch (error) {
-            const container = document.getElementById("files-container");
-            noFileMessage.textContent = "No files found.";
-            noFileMessage.style.color = "gray";
-            noFileMessage.style.fontSize = "16px";
-            noFileMessage.style.textAlign = "center";
-            const CreateFolder = document.getElementById("CreateFolder")
-            const createFileButton = document.getElementById("createFileButton")
-            if (createFileButton) {
-              createFileButton.style.display = "none";
-            }
-            if (CreateFolder) {
-              CreateFolder.style.display = "none";
-            }
-            // Append the message to the container
-            container.appendChild(noFileMessage);
-            console.error("Error fetching files:", error);
-          }
-
-        }
-        // Add the current batch of files to the files array
-        files = [...files, ...response as IFileInfo[]];
-        // Check if there is a nextLink for more items
-        if ("@odata.nextLink" in response) {
-          nextLink = response["@odata.nextLink"];
-        } else {
-          hasMoreItems = false; // No more items, exit loop
-        }
-      }
-      console.log("All files fetched:", files);
-
-      // Get the details of the users permission.
-      // start
-      // const library = testidsub.web.lists.getByTitle(docLibName);
-      // const library = testidsub.web.getList(`${FolderPath}`);
-      const permissions = await library.getCurrentUserEffectivePermissions();
-      // console.log("permissions",permissions);
-
-      // Check for all permissions
-      //   const userPermissions = {
-      //     canViewPages: testidsub.web.hasPermissions(permissions, PermissionKind.ViewPages),
-      //     canView: testidsub.web.hasPermissions(permissions, PermissionKind.ViewListItems),
-      //     canEdit: testidsub.web.hasPermissions(permissions, PermissionKind.EditListItems),
-      //     canAdd: testidsub.web.hasPermissions(permissions, PermissionKind.AddListItems),          
-      //     canFullControl: testidsub.web.hasPermissions(permissions, PermissionKind.FullMask),
-      //     canFullControl1: testidsub.web.hasPermissions(permissions, PermissionKind.ManagePermissions),
-      //     canDelete: testidsub.web.hasPermissions(permissions, PermissionKind.DeleteListItems),
-      //     canApprove: testidsub.web.hasPermissions(permissions, PermissionKind.ApproveItems),
-      //     canOpen: testidsub.web.hasPermissions(permissions, PermissionKind.OpenItems),
-      //     canViewVersions: testidsub.web.hasPermissions(permissions, PermissionKind.ViewVersions),
-      //     canDeleteVersions: testidsub.web.hasPermissions(permissions, PermissionKind.DeleteVersions),
-      //     canManagePermissions: testidsub.web.hasPermissions(permissions, PermissionKind.ManagePermissions),
-      //     canViewFormPages: testidsub.web.hasPermissions(permissions, PermissionKind.ViewFormPages),
-      //     canEditMyUserInfo: testidsub.web.hasPermissions(permissions, PermissionKind.EditMyUserInfo)
-      // };
-      const userPermissions = {
-        hasFullControl: testidsub.web.hasPermissions(permissions, PermissionKind.FullMask) || testidsub.web.hasPermissions(permissions, PermissionKind.ManagePermissions),
-        hasContribute: testidsub.web.hasPermissions(permissions, PermissionKind.AddListItems) &&
-          testidsub.web.hasPermissions(permissions, PermissionKind.EditListItems) &&
-          testidsub.web.hasPermissions(permissions, PermissionKind.DeleteListItems),
-        hasEdit: testidsub.web.hasPermissions(permissions, PermissionKind.EditListItems),
-        // hasEdit1: testidsub.web.hasPermissions(permissions, PermissionKind.),
-        hasRead: testidsub.web.hasPermissions(permissions, PermissionKind.ViewListItems),
-        hasView: testidsub.web.hasPermissions(permissions, PermissionKind.ViewPages)
-      };
-      console.log("userPermissions", userPermissions);
-      // End
-
-      // Belong to admin or not start
-      // Toggle the createFile and createFolder button based on the permission
-      // let permission:string;
-      // const CreateFolder=document.getElementById("CreateFolder")
-      // const createFileButton=document.getElementById("createFileButton")
-      // if(userPermissions.hasFullControl){
-      //   console.log(`Current User has full control on the library/Folder`);
-      //   if(createFileButton){
-      //     createFileButton.style.display=  "block";
-      //   }
-      //   if(CreateFolder){
-      //     CreateFolder.style.display="block";
-      //   }
-      // }else if(userPermissions.hasContribute || userPermissions.hasEdit){
-      //   console.log(`Current User has Contribute/Edit permission on the library/Folder`);
-      //   if(createFileButton){
-      //     createFileButton.style.display=  "block";
-      //   }
-      //   if(CreateFolder){
-      //     CreateFolder.style.display="none";
-      //   }
-      // }else{
-      //   console.log(`Current User has no permission on the library/Folder`);
-      //   if(createFileButton){
-      //     createFileButton.style.display=  "none";
-      //   }
-      //   if(CreateFolder){
-      //     CreateFolder.style.display="none";
-      //   }
-      // }
-      // Below code check the user belong to which group
-      // try {
-      //   const currentUser = await sp.web.currentUser();
-      //   const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
-      //   const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
-      //   const isMemberOfContribute = userGroups.some(group => group.Title === `${currentEntity}_Contribute`);
-      //   const isMemberOfInitiator = userGroups.some(group => group.Title === `${currentEntity}_Initiator`);
-      //   const isMemberOfRead = userGroups.some(group => group.Title === `${currentEntity}_Read`);
-      //   const isMemberOfView = userGroups.some(group => group.Title === `${currentEntity}_View`);
-      //   const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
-      //   console.log("isMemberOfSuperAdmin",isMemberOfSuperAdmin);
-      //   console.log("isMemberOfContribute",isMemberOfContribute);
-      //   console.log("isMemberOfInitiator",isMemberOfInitiator);
-      //   console.log("isMemberOfRead",isMemberOfRead);
-      //   console.log("isMemberOfView",isMemberOfView);
-      //   console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
-      //   // console.log(`User is a member of the group: ${currentEntity}_Admin`);
-      //   if (isMemberOfGroup || isMemberOfSuperAdmin) {
-      //     console.log(`User is a member of the group: ${currentEntity}_Admin`);
-      //     if(createFileButton){
-      //       createFileButton.style.display=  "block";
-      //     }
-      //     if(createFileButton2){
-      //     createFileButton2.style.display="block";
-      //     }
-      //  }else if(isMemberOfContribute || isMemberOfInitiator || isMemberOfRead){
-      //       if(createFileButton){
-      //         createFileButton.style.display=  "block";
-      //       }
-      //       if(createFileButton2){
-      //         createFileButton2.style.display="none";
-      //         }
-      //  }else {
-      //   console.log(`User is not a member of the group: ${currentEntity}_Admin`);
-      //   if(createFileButton){
-      //     createFileButton.style.display="none";
-      //   }
-      //   if(createFileButton2){
-      //     createFileButton2.style.display="none";
-      //   }
-      //  }
-      // } catch (error) {
-      //   console.log(`User is not a member of the group: ${currentEntity}_Admin`);
-      //   if(createFileButton){
-      //     createFileButton.style.display="none";
-      //   }
-      //   if(createFileButton2){
-      //     createFileButton2.style.display="none";
-      //   }
 
 
-      // }
-      // End
-      const DMSEntityFileMasterList = `DMS${currentEntity}FileMaster`;
-      console.log(DMSEntityFileMasterList);
-
-      const filesData = await sp.web.lists
-        .getByTitle(`${DMSEntityFileMasterList}`)
-        .items.select("FileUID", "IsFavourite")
-        .filter(
-          `IsFavourite eq 1 and CurrentUser eq '${currentUserEmailRef.current}'`
-        )();
-
-      // Create a map for quick lookup of IsFavourite status by FileUID
-      const favouriteMap = new Map(
-        filesData.map((item: any) => [item.FileUID, item.IsFavourite])
-      );
-
-
-      // console.log("FavouriteMap",favouriteMap)
-      console.log("Files", filesData);
-      // Add breadCrumb start
-      // handleNavigation(currentSubsite,currentDevision , currentDepartment ,  currentDocumentLibrary, currentFolder);
-      // End
-      // const container = document.getElementById("files-container");
-      // container.innerHTML = "";
-      setdisplayuploadfileandcreatefolder(true)
-      // Hide the list and grid view start
-      // const hidegidvewlistviewbutton2=document.getElementById("hidegidvewlistviewbutton2")
-      // const hidegidvewlistviewbutton = document.getElementById('hidegidvewlistviewbutton')
-      // if (hidegidvewlistviewbutton2) {
-      //   console.log("enter here .....................")
-      //   hidegidvewlistviewbutton2.style.display = 'none'
-
-      // }
-      // if (hidegidvewlistviewbutton) {
-      // console.log("enter here .....................")
-      // hidegidvewlistviewbutton.style.display = 'none'
-
-      // }
-      // End
-      const currentUser = await sp.web.currentUser();
-      const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
-      const isMemberOfDeligation = userGroups.some(group => group.Title === `${currentEntity}_FolderDeligation`);
-      const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
-      const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
-      console.log(`User is a member of ${currentEntity}_Deligation group`, isMemberOfDeligation);
-      console.log(`User is a member of ${currentEntity}_Admin group`, isMemberOfGroup);
-      console.log(`User is a member of ${currentEntity}_DMSSuperAdmin group`, isMemberOfSuperAdmin);
-
-      const CreateFolder = document.getElementById("CreateFolder")
-      const createFileButton = document.getElementById("createFileButton")
-      if (isMemberOfSuperAdmin || isMemberOfGroup) {
-        console.log(`Current User is  admin or super admin`);
-        IsFolderDeligationUser = false;
-        if (createFileButton) {
-          createFileButton.style.display = "block";
-        }
-        if (CreateFolder) {
-          CreateFolder.style.display = "block";
-        }
-      }
-      else if (userPermissions.hasFullControl) {
-        console.log(`Current User has full control on the library/Folder and user does not belong to admin or super admin group`);
-        if (createFileButton) {
-          createFileButton.style.display = "block";
-        }
-        if (CreateFolder) {
-          CreateFolder.style.display = "block";
-        }
-
-        if (isMemberOfDeligation) {
-          IsFolderDeligationUser = true;
-        } else {
-          IsFolderDeligationUser = false;
-        }
-      } else if (userPermissions.hasContribute || userPermissions.hasEdit) {
-        console.log(`Current User has Contribute/Edit permission on the library/Folder`);
-        if (createFileButton) {
-          createFileButton.style.display = "block";
-        }
-        if (CreateFolder) {
-          CreateFolder.style.display = "none";
-        }
-
-        if (isMemberOfDeligation) {
-          IsFolderDeligationUser = true;
-          CreateFolder.style.display = "block";
-        } else {
-          IsFolderDeligationUser = false;
-          CreateFolder.style.display = "none";
-        }
-      } else if (isMemberOfDeligation) {
-        IsFolderDeligationUser = true;
-        console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
-        if (createFileButton) {
-          createFileButton.style.display = "block";
-        }
-        if (CreateFolder) {
-          CreateFolder.style.display = "block";
-        }
-      }
-      else {
-        console.log(`Current User has no permission on the library/Folder`);
-        if (createFileButton) {
-          createFileButton.style.display = "none";
-        }
-        if (CreateFolder) {
-          CreateFolder.style.display = "none";
-        }
-      }
-      ismyrequordoclibforfilepreview = "getdoclibdata"
-      // handleNavigation(currentSubsite,currentDevision , currentDepartment ,  currentDocumentLibrary, currentFolder);
-      setlistorgriddata('');
-      const wait = document.getElementById('files-container')
-      wait.classList.remove('hidemydatacards')
-      updateBreadcrumb(FolderPath);
-      const container = document.getElementById("files-container");
-      container.innerHTML = "";
-      const hidegidvewlistviewbutton2 = document.getElementById("hidegidvewlistviewbutton2")
-      const hidegidvewlistviewbutton = document.getElementById('hidegidvewlistviewbutton')
-      if (hidegidvewlistviewbutton2) {
-        console.log("enter here .....................")
-        hidegidvewlistviewbutton2.style.display = 'none'
-
-      }
-      if (hidegidvewlistviewbutton) {
-        console.log("enter here .....................")
-        hidegidvewlistviewbutton.style.display = 'none'
-
-      }
-      if (files.length === 0) {
-        // console.log("no file found");
-        const container = document.getElementById("files-container");
-        container.innerHTML = "";
-
-        // Create a message element
-        const noFileMessage = document.createElement("p");
-        noFileMessage.textContent = "No files found.";
-        noFileMessage.style.color = "gray";
-        noFileMessage.style.fontSize = "16px";
-        noFileMessage.style.textAlign = "center";
-
-        // Append the message to the container
-        container.appendChild(noFileMessage);
-
-      }
-      files.forEach(async (file: any) => {
-        const isFavourite = favouriteMap.get(file.UniqueId) || 0;
-        const favouriteText = isFavourite ? "Unmark as Favourite" : "Mark as Favourite";
-
-        // Set display properties based on favorite status
-        const displayPropertyforFillFavourite = isFavourite ? "block" : "none";
-        const displayPropertyforUnFillFavourite = isFavourite ? "none" : "block";
-
-        if (file.ListItemAllFields.IsDeleted === null) {
-          if (file.ListItemAllFields.Status !== "Pending") {
-            if (file.ListItemAllFields.Status !== "Rejected") {
-              let permission = file.ListItemAllFields.Status;
-              const { fileIcon } = getFileIcon(file.Name);
-              const card = createFileCardForDocumentLibrary(file, fileIcon, siteID, false, docLibName, displayPropertyforUnFillFavourite, displayPropertyforFillFavourite, favouriteText, permission, FolderPath,);
-              container.appendChild(card);
-            }
-          }
-        }
-      });
-    } catch (error) {
-      const CreateFolder = document.getElementById("CreateFolder")
-      const createFileButton = document.getElementById("createFileButton")
-      if (createFileButton) {
-        createFileButton.style.display = "none";
-      }
-      if (CreateFolder) {
-        CreateFolder.style.display = "none";
-      }
-      console.error("Error fetching Doclib data:", error);
-    }
-
-  };
   // const getdoclibdata = async (FolderPath: any , siteID:any , docLibName:any) => {
   //   console.log('path   ', FolderPath)
   //   console.log('SiteID :    ', siteID)
@@ -6007,6 +5575,715 @@ const ArgPoc = ({ props }: any) => {
   //   }
 
   // };
+  
+  // this was old working code for getdoclibdata before search
+  // const getdoclibdata = async (FolderPath: any, siteID: any, docLibName: any , ) => {
+  //   showSearchInput = true
+  //   setlistorgriddata('');
+  //   // here in edc spfx  i remove this from here and add it above updated breadcrumb because it was working fine in dms but not in edc 
+  //   //   setlistorgriddata('');
+  //   // const wait = document.getElementById('files-container')
+  //   // wait.classList.remove('hidemydatacards')
+  //   const noFileMessage = document.createElement("p");
+
+  //   //  ismyrequordoclibforfilepreview = "getdoclibdata"
+  //   //  ismyrequordoclibforfilepreview = "getdoclibdata"
+  //   console.log('path   inside getdoclib', FolderPath)
+  //   console.log('SiteID :    ', siteID)
+  //   console.log('docLibName :    ', docLibName);
+  //   console.log('currentEntity :    ', currentEntity);
+
+  //   // // Hide the list and grid view start
+  //   // const hidegidvewlistviewbutton2=document.getElementById("hidegidvewlistviewbutton2")
+  //   // const hidegidvewlistviewbutton = document.getElementById('hidegidvewlistviewbutton')
+  //   // if (hidegidvewlistviewbutton2) {
+  //   //   console.log("enter here .....................")
+  //   //   hidegidvewlistviewbutton2.style.display = 'none'
+
+  //   // }
+  //   // if (hidegidvewlistviewbutton) {
+  //   // console.log("enter here .....................")
+  //   // hidegidvewlistviewbutton.style.display = 'none'
+
+  //   // }
+  //   // // End
+  //   // Extract the current entity from url
+  //   const segments = FolderPath?.split('/');
+  //   const currentSubsite = segments[3];
+  //   console.log("segments", segments);
+  //   console.log("Inside get doclib current entity", currentSubsite);
+  //   console.log("Devision", currentDevision);
+  //   console.log("Department", currentDepartment);
+  //   // set current entity ,current document library and folder name
+  //   const folName = segments[segments.length - 1];
+  //   const testidsub = await sp.site.openWebById(siteID);
+  //   let library;
+  //   if (folName === docLibName) {
+  //     console.log("its document libray", folName)
+  //     library = testidsub.web.getList(`${FolderPath}`);
+  //   } else {
+  //     console.log("its folder", folName)
+  //     currentFolder = folName
+  //     const library1 = testidsub.web.getFolderByServerRelativePath(`${FolderPath}`);
+  //     library = await library1.getItem()
+  //   }
+  //   currentEntity = currentSubsite;
+  //   currentDocumentLibrary = docLibName;
+  //   // Update the url  start
+  //   if (currentDevision !== "") {
+  //     console.log("Devision present", currentDevision);
+  //     if (currentDepartment !== "") {
+  //       console.log("Department present", currentDepartment);
+  //       const newUrl = `${window.location.origin}${window.location.pathname}?${FolderPath}?${docLibName}?${siteID}?${currentDevision}?${currentDepartment}`;
+  //       window.history.pushState(null, '', newUrl);
+  //     } else {
+  //       const newUrl = `${window.location.origin}${window.location.pathname}?${FolderPath}?${docLibName}?${siteID}?${currentDevision}`;
+  //       window.history.pushState(null, '', newUrl);
+  //     }
+  //   } else {
+  //     const newUrl = `${window.location.origin}${window.location.pathname}?${FolderPath}?${docLibName}?${siteID}`;
+  //     window.history.pushState(null, '', newUrl);
+  //   }
+
+  //   // end
+  //   routeToDiffSideBar = "";
+
+  //   // const testidsub = await sp.site.openWebById(siteID);
+  //   let files: any = [];
+  //   let batchSize = 5000;
+  //   let nextLink = null;
+  //   let hasMoreItems = true;
+  //   currentsiteID = siteID;
+  //   currentfolderpath = FolderPath;
+  //   const container = document.getElementById("files-container");
+
+  //   container.classList.remove('hidemydatacards')
+  //   container.innerHTML = "";
+  //   console.log("folderpath:", FolderPath);
+  //   try {
+  //     while (hasMoreItems) {
+  //       let response;
+  //       if (nextLink) {
+  //         response = await sp.web(nextLink);
+  //       } else {
+  //         try {
+  //           response = await testidsub.web
+  //             .getFolderByServerRelativePath(FolderPath)
+  //             .files.select(
+  //               "Name",
+  //               "Length",
+  //               "ServerRelativeUrl",
+  //               "UniqueId",
+  //               "MajorVersion",
+  //               "ListItemAllFields/Status",
+  //               "ListItemAllFields/IsDeleted"
+  //             )
+  //             .expand("ListItemAllFields")
+  //             .orderBy("ListItemAllFields/Modified", false)
+  //             .filter(`ListItemAllFields/IsDeleted eq ${null} and ListItemAllFields/Status ne 'Pending'`)
+  //             .top(batchSize)();
+  //           myfolderdata = response
+  //           console.log(response, "response")
+  //         } catch (error) {
+  //           const container = document.getElementById("files-container");
+  //           noFileMessage.textContent = "No files found.";
+  //           noFileMessage.style.color = "gray";
+  //           noFileMessage.style.fontSize = "16px";
+  //           noFileMessage.style.textAlign = "center";
+  //           const CreateFolder = document.getElementById("CreateFolder")
+  //           const createFileButton = document.getElementById("createFileButton")
+  //           if (createFileButton) {
+  //             createFileButton.style.display = "none";
+  //           }
+  //           if (CreateFolder) {
+  //             CreateFolder.style.display = "none";
+  //           }
+  //           // Append the message to the container
+  //           container.appendChild(noFileMessage);
+  //           console.error("Error fetching files:", error);
+  //         }
+
+  //       }
+  //       // Add the current batch of files to the files array
+  //       files = [...files, ...response as IFileInfo[]];
+  //       // Check if there is a nextLink for more items
+  //       if ("@odata.nextLink" in response) {
+  //         nextLink = response["@odata.nextLink"];
+  //       } else {
+  //         hasMoreItems = false; // No more items, exit loop
+  //       }
+  //     }
+  //     console.log("All files fetched:", files);
+
+  //     // Get the details of the users permission.
+  //     // start
+  //     // const library = testidsub.web.lists.getByTitle(docLibName);
+  //     // const library = testidsub.web.getList(`${FolderPath}`);
+  //     const permissions = await library.getCurrentUserEffectivePermissions();
+  //     // console.log("permissions",permissions);
+
+  //     // Check for all permissions
+  //     //   const userPermissions = {
+  //     //     canViewPages: testidsub.web.hasPermissions(permissions, PermissionKind.ViewPages),
+  //     //     canView: testidsub.web.hasPermissions(permissions, PermissionKind.ViewListItems),
+  //     //     canEdit: testidsub.web.hasPermissions(permissions, PermissionKind.EditListItems),
+  //     //     canAdd: testidsub.web.hasPermissions(permissions, PermissionKind.AddListItems),          
+  //     //     canFullControl: testidsub.web.hasPermissions(permissions, PermissionKind.FullMask),
+  //     //     canFullControl1: testidsub.web.hasPermissions(permissions, PermissionKind.ManagePermissions),
+  //     //     canDelete: testidsub.web.hasPermissions(permissions, PermissionKind.DeleteListItems),
+  //     //     canApprove: testidsub.web.hasPermissions(permissions, PermissionKind.ApproveItems),
+  //     //     canOpen: testidsub.web.hasPermissions(permissions, PermissionKind.OpenItems),
+  //     //     canViewVersions: testidsub.web.hasPermissions(permissions, PermissionKind.ViewVersions),
+  //     //     canDeleteVersions: testidsub.web.hasPermissions(permissions, PermissionKind.DeleteVersions),
+  //     //     canManagePermissions: testidsub.web.hasPermissions(permissions, PermissionKind.ManagePermissions),
+  //     //     canViewFormPages: testidsub.web.hasPermissions(permissions, PermissionKind.ViewFormPages),
+  //     //     canEditMyUserInfo: testidsub.web.hasPermissions(permissions, PermissionKind.EditMyUserInfo)
+  //     // };
+  //     const userPermissions = {
+  //       hasFullControl: testidsub.web.hasPermissions(permissions, PermissionKind.FullMask) || testidsub.web.hasPermissions(permissions, PermissionKind.ManagePermissions),
+  //       hasContribute: testidsub.web.hasPermissions(permissions, PermissionKind.AddListItems) &&
+  //         testidsub.web.hasPermissions(permissions, PermissionKind.EditListItems) &&
+  //         testidsub.web.hasPermissions(permissions, PermissionKind.DeleteListItems),
+  //       hasEdit: testidsub.web.hasPermissions(permissions, PermissionKind.EditListItems),
+  //       // hasEdit1: testidsub.web.hasPermissions(permissions, PermissionKind.),
+  //       hasRead: testidsub.web.hasPermissions(permissions, PermissionKind.ViewListItems),
+  //       hasView: testidsub.web.hasPermissions(permissions, PermissionKind.ViewPages)
+  //     };
+  //     console.log("userPermissions", userPermissions);
+  //     // End
+
+  //     // Belong to admin or not start
+  //     // Toggle the createFile and createFolder button based on the permission
+  //     // let permission:string;
+  //     // const CreateFolder=document.getElementById("CreateFolder")
+  //     // const createFileButton=document.getElementById("createFileButton")
+  //     // if(userPermissions.hasFullControl){
+  //     //   console.log(`Current User has full control on the library/Folder`);
+  //     //   if(createFileButton){
+  //     //     createFileButton.style.display=  "block";
+  //     //   }
+  //     //   if(CreateFolder){
+  //     //     CreateFolder.style.display="block";
+  //     //   }
+  //     // }else if(userPermissions.hasContribute || userPermissions.hasEdit){
+  //     //   console.log(`Current User has Contribute/Edit permission on the library/Folder`);
+  //     //   if(createFileButton){
+  //     //     createFileButton.style.display=  "block";
+  //     //   }
+  //     //   if(CreateFolder){
+  //     //     CreateFolder.style.display="none";
+  //     //   }
+  //     // }else{
+  //     //   console.log(`Current User has no permission on the library/Folder`);
+  //     //   if(createFileButton){
+  //     //     createFileButton.style.display=  "none";
+  //     //   }
+  //     //   if(CreateFolder){
+  //     //     CreateFolder.style.display="none";
+  //     //   }
+  //     // }
+  //     // Below code check the user belong to which group
+  //     // try {
+  //     //   const currentUser = await sp.web.currentUser();
+  //     //   const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+  //     //   const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
+  //     //   const isMemberOfContribute = userGroups.some(group => group.Title === `${currentEntity}_Contribute`);
+  //     //   const isMemberOfInitiator = userGroups.some(group => group.Title === `${currentEntity}_Initiator`);
+  //     //   const isMemberOfRead = userGroups.some(group => group.Title === `${currentEntity}_Read`);
+  //     //   const isMemberOfView = userGroups.some(group => group.Title === `${currentEntity}_View`);
+  //     //   const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
+  //     //   console.log("isMemberOfSuperAdmin",isMemberOfSuperAdmin);
+  //     //   console.log("isMemberOfContribute",isMemberOfContribute);
+  //     //   console.log("isMemberOfInitiator",isMemberOfInitiator);
+  //     //   console.log("isMemberOfRead",isMemberOfRead);
+  //     //   console.log("isMemberOfView",isMemberOfView);
+  //     //   console.log(`Is member of ${currentEntity}_Admin:`, isMemberOfGroup);
+  //     //   // console.log(`User is a member of the group: ${currentEntity}_Admin`);
+  //     //   if (isMemberOfGroup || isMemberOfSuperAdmin) {
+  //     //     console.log(`User is a member of the group: ${currentEntity}_Admin`);
+  //     //     if(createFileButton){
+  //     //       createFileButton.style.display=  "block";
+  //     //     }
+  //     //     if(createFileButton2){
+  //     //     createFileButton2.style.display="block";
+  //     //     }
+  //     //  }else if(isMemberOfContribute || isMemberOfInitiator || isMemberOfRead){
+  //     //       if(createFileButton){
+  //     //         createFileButton.style.display=  "block";
+  //     //       }
+  //     //       if(createFileButton2){
+  //     //         createFileButton2.style.display="none";
+  //     //         }
+  //     //  }else {
+  //     //   console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+  //     //   if(createFileButton){
+  //     //     createFileButton.style.display="none";
+  //     //   }
+  //     //   if(createFileButton2){
+  //     //     createFileButton2.style.display="none";
+  //     //   }
+  //     //  }
+  //     // } catch (error) {
+  //     //   console.log(`User is not a member of the group: ${currentEntity}_Admin`);
+  //     //   if(createFileButton){
+  //     //     createFileButton.style.display="none";
+  //     //   }
+  //     //   if(createFileButton2){
+  //     //     createFileButton2.style.display="none";
+  //     //   }
+
+
+  //     // }
+  //     // End
+  //     const DMSEntityFileMasterList = `DMS${currentEntity}FileMaster`;
+  //     console.log(DMSEntityFileMasterList);
+
+  //     const filesData = await sp.web.lists
+  //       .getByTitle(`${DMSEntityFileMasterList}`)
+  //       .items.select("FileUID", "IsFavourite")
+  //       .filter(
+  //         `IsFavourite eq 1 and CurrentUser eq '${currentUserEmailRef.current}'`
+  //       )();
+
+  //     // Create a map for quick lookup of IsFavourite status by FileUID
+  //     const favouriteMap = new Map(
+  //       filesData.map((item: any) => [item.FileUID, item.IsFavourite])
+  //     );
+
+
+  //     // console.log("FavouriteMap",favouriteMap)
+  //     console.log("Files", filesData);
+  //     // Add breadCrumb start
+  //     // handleNavigation(currentSubsite,currentDevision , currentDepartment ,  currentDocumentLibrary, currentFolder);
+  //     // End
+  //     // const container = document.getElementById("files-container");
+  //     // container.innerHTML = "";
+  //     setdisplayuploadfileandcreatefolder(true)
+  //     // Hide the list and grid view start
+  //     // const hidegidvewlistviewbutton2=document.getElementById("hidegidvewlistviewbutton2")
+  //     // const hidegidvewlistviewbutton = document.getElementById('hidegidvewlistviewbutton')
+  //     // if (hidegidvewlistviewbutton2) {
+  //     //   console.log("enter here .....................")
+  //     //   hidegidvewlistviewbutton2.style.display = 'none'
+
+  //     // }
+  //     // if (hidegidvewlistviewbutton) {
+  //     // console.log("enter here .....................")
+  //     // hidegidvewlistviewbutton.style.display = 'none'
+
+  //     // }
+  //     // End
+  //     const currentUser = await sp.web.currentUser();
+  //     const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+  //     const isMemberOfDeligation = userGroups.some(group => group.Title === `${currentEntity}_FolderDeligation`);
+  //     const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
+  //     const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
+  //     console.log(`User is a member of ${currentEntity}_Deligation group`, isMemberOfDeligation);
+  //     console.log(`User is a member of ${currentEntity}_Admin group`, isMemberOfGroup);
+  //     console.log(`User is a member of ${currentEntity}_DMSSuperAdmin group`, isMemberOfSuperAdmin);
+
+  //     const CreateFolder = document.getElementById("CreateFolder")
+  //     const createFileButton = document.getElementById("createFileButton")
+  //     if (isMemberOfSuperAdmin || isMemberOfGroup) {
+  //       console.log(`Current User is  admin or super admin`);
+  //       IsFolderDeligationUser = false;
+  //       if (createFileButton) {
+  //         createFileButton.style.display = "block";
+  //       }
+  //       if (CreateFolder) {
+  //         CreateFolder.style.display = "block";
+  //       }
+  //     }
+  //     else if (userPermissions.hasFullControl) {
+  //       console.log(`Current User has full control on the library/Folder and user does not belong to admin or super admin group`);
+  //       if (createFileButton) {
+  //         createFileButton.style.display = "block";
+  //       }
+  //       if (CreateFolder) {
+  //         CreateFolder.style.display = "block";
+  //       }
+
+  //       if (isMemberOfDeligation) {
+  //         IsFolderDeligationUser = true;
+  //       } else {
+  //         IsFolderDeligationUser = false;
+  //       }
+  //     } else if (userPermissions.hasContribute || userPermissions.hasEdit) {
+  //       console.log(`Current User has Contribute/Edit permission on the library/Folder`);
+  //       if (createFileButton) {
+  //         createFileButton.style.display = "block";
+  //       }
+  //       if (CreateFolder) {
+  //         CreateFolder.style.display = "none";
+  //       }
+
+  //       if (isMemberOfDeligation) {
+  //         IsFolderDeligationUser = true;
+  //         CreateFolder.style.display = "block";
+  //       } else {
+  //         IsFolderDeligationUser = false;
+  //         CreateFolder.style.display = "none";
+  //       }
+  //     } else if (isMemberOfDeligation) {
+  //       IsFolderDeligationUser = true;
+  //       console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
+  //       if (createFileButton) {
+  //         createFileButton.style.display = "block";
+  //       }
+  //       if (CreateFolder) {
+  //         CreateFolder.style.display = "block";
+  //       }
+  //     }
+  //     else {
+  //       console.log(`Current User has no permission on the library/Folder`);
+  //       if (createFileButton) {
+  //         createFileButton.style.display = "none";
+  //       }
+  //       if (CreateFolder) {
+  //         CreateFolder.style.display = "none";
+  //       }
+  //     }
+  //     ismyrequordoclibforfilepreview = "getdoclibdata"
+  //     // handleNavigation(currentSubsite,currentDevision , currentDepartment ,  currentDocumentLibrary, currentFolder);
+  //     setlistorgriddata('');
+  //     const wait = document.getElementById('files-container')
+  //     wait.classList.remove('hidemydatacards')
+  //     updateBreadcrumb(FolderPath);
+  //     const container = document.getElementById("files-container");
+  //     container.innerHTML = "";
+  //     const hidegidvewlistviewbutton2 = document.getElementById("hidegidvewlistviewbutton2")
+  //     const hidegidvewlistviewbutton = document.getElementById('hidegidvewlistviewbutton')
+  //     if (hidegidvewlistviewbutton2) {
+  //       console.log("enter here .....................")
+  //       hidegidvewlistviewbutton2.style.display = 'none'
+
+  //     }
+  //     if (hidegidvewlistviewbutton) {
+  //       console.log("enter here .....................")
+  //       hidegidvewlistviewbutton.style.display = 'none'
+
+  //     }
+  //     if (files.length === 0) {
+  //       // console.log("no file found");
+  //       const container = document.getElementById("files-container");
+  //       container.innerHTML = "";
+
+  //       // Create a message element
+  //       const noFileMessage = document.createElement("p");
+  //       noFileMessage.textContent = "No files found.";
+  //       noFileMessage.style.color = "gray";
+  //       noFileMessage.style.fontSize = "16px";
+  //       noFileMessage.style.textAlign = "center";
+
+  //       // Append the message to the container
+  //       container.appendChild(noFileMessage);
+
+  //     }
+  //     files.forEach(async (file: any) => {
+  //       const isFavourite = favouriteMap.get(file.UniqueId) || 0;
+  //       const favouriteText = isFavourite ? "Unmark as Favourite" : "Mark as Favourite";
+
+  //       // Set display properties based on favorite status
+  //       const displayPropertyforFillFavourite = isFavourite ? "block" : "none";
+  //       const displayPropertyforUnFillFavourite = isFavourite ? "none" : "block";
+
+  //       if (file.ListItemAllFields.IsDeleted === null) {
+  //         if (file.ListItemAllFields.Status !== "Pending") {
+  //           if (file.ListItemAllFields.Status !== "Rejected") {
+  //             let permission = file.ListItemAllFields.Status;
+  //             const { fileIcon } = getFileIcon(file.Name);
+  //             const card = createFileCardForDocumentLibrary(file, fileIcon, siteID, false, docLibName, displayPropertyforUnFillFavourite, displayPropertyforFillFavourite, favouriteText, permission, FolderPath,);
+  //             container.appendChild(card);
+  //           }
+  //         }
+  //       }
+  //     });
+  //   } catch (error) {
+  //     const CreateFolder = document.getElementById("CreateFolder")
+  //     const createFileButton = document.getElementById("createFileButton")
+  //     if (createFileButton) {
+  //       createFileButton.style.display = "none";
+  //     }
+  //     if (CreateFolder) {
+  //       CreateFolder.style.display = "none";
+  //     }
+  //     console.error("Error fetching Doclib data:", error);
+  //   }
+
+  // };
+
+
+  // this is updated get doclibdata fuction after search fix 
+  const getdoclibdata = async (FolderPath: any, siteID: any, docLibName: any, searchText: any = null) => {
+    showSearchInput = true;
+    routeToDiffSideBar = "documentLibrary";
+    setlistorgriddata('');
+    const noFileMessage = document.createElement("p");
+
+    console.log('path   inside getdoclib', FolderPath);
+    console.log('SiteID :    ', siteID);
+    console.log('docLibName :    ', docLibName);
+    console.log('currentEntity :    ', currentEntity);
+    console.log('searchText :    ', searchText?.value); // Debugging
+
+    const segments = FolderPath?.split('/');
+    const currentSubsite = segments[3];
+    console.log("segments", segments);
+    console.log("Inside get doclib current entity", currentSubsite);
+    console.log("Devision", currentDevision);
+    console.log("Department", currentDepartment);
+
+    const folName = segments[segments.length - 1];
+    const testidsub = await sp.site.openWebById(siteID);
+    let library;
+    if (folName === docLibName) {
+        console.log("its document libray", folName);
+        library = testidsub.web.getList(`${FolderPath}`);
+    } else {
+        console.log("its folder", folName);
+        currentFolder = folName;
+        const library1 = testidsub.web.getFolderByServerRelativePath(`${FolderPath}`);
+        library = await library1.getItem();
+    }
+    currentEntity = currentSubsite;
+    currentDocumentLibrary = docLibName;
+
+    if (currentDevision !== "") {
+        console.log("Devision present", currentDevision);
+        if (currentDepartment !== "") {
+            console.log("Department present", currentDepartment);
+            const newUrl = `${window.location.origin}${window.location.pathname}?${FolderPath}?${docLibName}?${siteID}?${currentDevision}?${currentDepartment}`;
+            window.history.pushState(null, '', newUrl);
+        } else {
+            const newUrl = `${window.location.origin}${window.location.pathname}?${FolderPath}?${docLibName}?${siteID}?${currentDevision}`;
+            window.history.pushState(null, '', newUrl);
+        }
+    } else {
+        const newUrl = `${window.location.origin}${window.location.pathname}?${FolderPath}?${docLibName}?${siteID}`;
+        window.history.pushState(null, '', newUrl);
+    }
+
+    let files: any = [];
+    let batchSize = 5000;
+    let nextLink = null;
+    let hasMoreItems = true;
+    currentsiteID = siteID;
+    currentfolderpath = FolderPath;
+    const container = document.getElementById("files-container");
+
+    container.classList.remove('hidemydatacards');
+    container.innerHTML = "";
+    console.log("folderpath:", FolderPath);
+
+    try {
+        while (hasMoreItems) {
+            let response;
+            if (nextLink) {
+                response = await sp.web(nextLink);
+            } else {
+                try {
+                    response = await testidsub.web
+                        .getFolderByServerRelativePath(FolderPath)
+                        .files.select(
+                            "Name",
+                            "Length",
+                            "ServerRelativeUrl",
+                            "UniqueId",
+                            "MajorVersion",
+                            "ListItemAllFields/Status",
+                            "ListItemAllFields/IsDeleted"
+                        )
+                        .expand("ListItemAllFields")
+                        .orderBy("ListItemAllFields/Modified", false)
+                        .filter(`ListItemAllFields/IsDeleted eq ${null} and ListItemAllFields/Status ne 'Pending'`)
+                        .top(batchSize)();
+                    myfolderdata = response;
+                    console.log(response, "response");
+                } catch (error) {
+                    const container = document.getElementById("files-container");
+                    noFileMessage.textContent = "No files found.";
+                    noFileMessage.style.color = "gray";
+                    noFileMessage.style.fontSize = "16px";
+                    noFileMessage.style.textAlign = "center";
+                    const CreateFolder = document.getElementById("CreateFolder");
+                    const createFileButton = document.getElementById("createFileButton");
+                    if (createFileButton) {
+                        createFileButton.style.display = "none";
+                    }
+                    if (CreateFolder) {
+                        CreateFolder.style.display = "none";
+                    }
+                    container.appendChild(noFileMessage);
+                    console.error("Error fetching files:", error);
+                }
+            }
+            files = [...files, ...response as IFileInfo[]];
+            if ("@odata.nextLink" in response) {
+                nextLink = response["@odata.nextLink"];
+            } else {
+                hasMoreItems = false;
+            }
+        }
+        console.log("All files fetched:", files);
+
+        // Apply client-side search filter if needed
+        if (searchText?.value && typeof searchText.value === "string" && searchText.value.trim() !== "") {
+            files = files.filter((file: any) => file.Name?.toLowerCase().includes(searchText.value.toLowerCase()));
+            console.log("Filtered files:", files); // Debugging
+        }
+
+        const permissions = await library.getCurrentUserEffectivePermissions();
+        const userPermissions = {
+            hasFullControl: testidsub.web.hasPermissions(permissions, PermissionKind.FullMask) || testidsub.web.hasPermissions(permissions, PermissionKind.ManagePermissions),
+            hasContribute: testidsub.web.hasPermissions(permissions, PermissionKind.AddListItems) &&
+                testidsub.web.hasPermissions(permissions, PermissionKind.EditListItems) &&
+                testidsub.web.hasPermissions(permissions, PermissionKind.DeleteListItems),
+            hasEdit: testidsub.web.hasPermissions(permissions, PermissionKind.EditListItems),
+            hasRead: testidsub.web.hasPermissions(permissions, PermissionKind.ViewListItems),
+            hasView: testidsub.web.hasPermissions(permissions, PermissionKind.ViewPages)
+        };
+        console.log("userPermissions", userPermissions);
+
+        const DMSEntityFileMasterList = `DMS${currentEntity}FileMaster`;
+        console.log(DMSEntityFileMasterList);
+
+        const filesData = await sp.web.lists
+            .getByTitle(`${DMSEntityFileMasterList}`)
+            .items.select("FileUID", "IsFavourite")
+            .filter(
+                `IsFavourite eq 1 and CurrentUser eq '${currentUserEmailRef.current}'`
+            )();
+
+        const favouriteMap = new Map(
+            filesData.map((item: any) => [item.FileUID, item.IsFavourite])
+        );
+
+        console.log("Files", filesData);
+        setdisplayuploadfileandcreatefolder(true);
+
+        const currentUser = await sp.web.currentUser();
+        const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+        const isMemberOfDeligation = userGroups.some(group => group.Title === `${currentEntity}_FolderDeligation`);
+        const isMemberOfGroup = userGroups.some(group => group.Title === `${currentEntity}_Admin`);
+        const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
+        console.log(`User is a member of ${currentEntity}_Deligation group`, isMemberOfDeligation);
+        console.log(`User is a member of ${currentEntity}_Admin group`, isMemberOfGroup);
+        console.log(`User is a member of ${currentEntity}_DMSSuperAdmin group`, isMemberOfSuperAdmin);
+
+        const CreateFolder = document.getElementById("CreateFolder");
+        const createFileButton = document.getElementById("createFileButton");
+        if (isMemberOfSuperAdmin || isMemberOfGroup) {
+            console.log(`Current User is admin or super admin`);
+            IsFolderDeligationUser = false;
+            if (createFileButton) {
+                createFileButton.style.display = "block";
+            }
+            if (CreateFolder) {
+                CreateFolder.style.display = "block";
+            }
+        } else if (userPermissions.hasFullControl) {
+            console.log(`Current User has full control on the library/Folder and user does not belong to admin or super admin group`);
+            if (createFileButton) {
+                createFileButton.style.display = "block";
+            }
+            if (CreateFolder) {
+                CreateFolder.style.display = "block";
+            }
+            if (isMemberOfDeligation) {
+                IsFolderDeligationUser = true;
+            } else {
+                IsFolderDeligationUser = false;
+            }
+        } else if (userPermissions.hasContribute || userPermissions.hasEdit) {
+            console.log(`Current User has Contribute/Edit permission on the library/Folder`);
+            if (createFileButton) {
+                createFileButton.style.display = "block";
+            }
+            if (CreateFolder) {
+                CreateFolder.style.display = "none";
+            }
+            if (isMemberOfDeligation) {
+                IsFolderDeligationUser = true;
+                CreateFolder.style.display = "block";
+            } else {
+                IsFolderDeligationUser = false;
+                CreateFolder.style.display = "none";
+            }
+        } else if (isMemberOfDeligation) {
+            IsFolderDeligationUser = true;
+            console.log(`User is a member of the group: ${currentEntity}_FolderDeligation`);
+            if (createFileButton) {
+                createFileButton.style.display = "block";
+            }
+            if (CreateFolder) {
+                CreateFolder.style.display = "block";
+            }
+        } else {
+            console.log(`Current User has no permission on the library/Folder`);
+            if (createFileButton) {
+                createFileButton.style.display = "none";
+            }
+            if (CreateFolder) {
+                CreateFolder.style.display = "none";
+            }
+        }
+        ismyrequordoclibforfilepreview = "getdoclibdata";
+        setlistorgriddata('');
+        const wait = document.getElementById('files-container');
+        wait.classList.remove('hidemydatacards');
+        updateBreadcrumb(FolderPath);
+        const container = document.getElementById("files-container");
+        container.innerHTML = "";
+        const hidegidvewlistviewbutton2 = document.getElementById("hidegidvewlistviewbutton2");
+        const hidegidvewlistviewbutton = document.getElementById('hidegidvewlistviewbutton');
+        if (hidegidvewlistviewbutton2) {
+            console.log("enter here .....................");
+            hidegidvewlistviewbutton2.style.display = 'none';
+        }
+        if (hidegidvewlistviewbutton) {
+            console.log("enter here .....................");
+            hidegidvewlistviewbutton.style.display = 'none';
+        }
+        if (files.length === 0) {
+            const container = document.getElementById("files-container");
+            container.innerHTML = "";
+            const noFileMessage = document.createElement("p");
+            noFileMessage.textContent = "No files found.";
+            noFileMessage.style.color = "gray";
+            noFileMessage.style.fontSize = "16px";
+            noFileMessage.style.textAlign = "center";
+            container.appendChild(noFileMessage);
+        }
+        files.forEach(async (file: any) => {
+            const isFavourite = favouriteMap.get(file.UniqueId) || 0;
+            const favouriteText = isFavourite ? "Unmark as Favourite" : "Mark as Favourite";
+            const displayPropertyforFillFavourite = isFavourite ? "block" : "none";
+            const displayPropertyforUnFillFavourite = isFavourite ? "none" : "block";
+            if (file.ListItemAllFields.IsDeleted === null) {
+                if (file.ListItemAllFields.Status !== "Pending") {
+                    if (file.ListItemAllFields.Status !== "Rejected") {
+                        let permission = file.ListItemAllFields.Status;
+                        const { fileIcon } = getFileIcon(file.Name);
+                        const card = createFileCardForDocumentLibrary(file, fileIcon, siteID, false, docLibName, displayPropertyforUnFillFavourite, displayPropertyforFillFavourite, favouriteText, permission, FolderPath);
+                        container.appendChild(card);
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        const CreateFolder = document.getElementById("CreateFolder");
+        const createFileButton = document.getElementById("createFileButton");
+        if (createFileButton) {
+            createFileButton.style.display = "none";
+        }
+        if (CreateFolder) {
+            CreateFolder.style.display = "none";
+        }
+        console.error("Error fetching Doclib data:", error);
+    }
+};
+
+  
   window.documentLibraryPopUp = async function (fileId: string, siteID: any, FolderPath: any, FileName: any, permission: any) {
     console.log("Inside the documentLibraryPopUp");
     console.log(siteID, "siteID")
@@ -7243,8 +7520,253 @@ const ArgPoc = ({ props }: any) => {
   //   }
 
   // }
+   
+  // this was working previous code file preview but took few miliseconds to hide buttons 
+  // window.PreviewFile = function(path :any , SiteID:any , docLibName:any,status:string , filepreviewurl){
+  //   // console.log(docLibName , "docLibName")
+  //   console.log("Status",status);
+  //   console.log(filepreviewurl , "filepreviewurl")
+  //   console.log("path",path);
+  //   const segments = path.split('/');
+  //   // extarct the current entity start
+  //     const currentSubsite = segments[3];
+  //   // end
+  //   // Find the index of 'sites'
+  //   const sitesIndex = segments.indexOf('sites');
+     
+  //   // If 'sites' is found and there are enough segments after it
+  //   let myactualdoclib
+  //   if (sitesIndex !== -1 && segments.length > sitesIndex + 3) {
+  //     myactualdoclib = segments[sitesIndex + 3];
+  //     console.log(myactualdoclib , "myactualdoclib")
+  //     // return segments[sitesIndex + 3];  // The document library is the 4th segment after 'sites'
+  //   } else {
+  //     // return null;  // Return null if not enough segments are available
+  //   }
+  //   event.preventDefault()
+  //   event.stopPropagation()
+  //   const createpreviewdiv = document.createElement('div')
+  //   createpreviewdiv.style.display = 'grid'
+  //   const previewfileframe = document.createElement('iframe')
+  //   previewfileframe.id = 'filePreview'
+  //   previewfileframe.style.width = '930px'
+  //   previewfileframe.style.height = '500px'
+  //   const librarydiv= document.getElementById('files-container')
+  //   const createbutton = document.createElement('button')
+  //   createbutton.textContent = 'Close File preivew';
+  //   console.log("enter here in preview : ",path)
+  //   const encodedFilePath = encodeURIComponent(path);
+  //   console.log(encodedFilePath, "encodedFilePath");
+     
+  //   // Extract the parent folder correctly
+  //   const parentFolder = path.substring(0, path.lastIndexOf('/'));
+  //   console.log(parentFolder, "parentFolder");
+     
+  //   // Correctly encode the parent folder
+  //   const encodedParentFolder = encodeURIComponent(parentFolder);
+     
+  //   // Get the base site URL
+  //   const siteUrl = window.location.origin;
+  //   console.log(siteUrl, "siteUrl");
+     
+  //   console.log(path , ".....path")
+  //   if( ismyrequordoclibforfilepreview === "myRequest2" || ismyrequordoclibforfilepreview === "myFavourite" || ismyrequordoclibforfilepreview  === "sharewithme" || ismyrequordoclibforfilepreview  === "sharewithothers"){
+  //     const previewUrl = filepreviewurl
+     
+  //     console.log(previewUrl, "Generated preview URL");
+     
+  //     console.log("Generated Preview URL:", previewUrl);
+  //     if(previewUrl){
+  //       librarydiv.innerHTML = "";
+  //       previewfileframe.src = previewUrl;
+  //       previewfileframe.onload = () => {
+  //         console.log("Iframe has loaded");
+     
+  //         const checkAndHideButton = () => {
+  //           try {
+  //             const iframeDocument = previewfileframe.contentDocument || previewfileframe.contentWindow?.document;
+  //             if (iframeDocument) {
+  //               const button = iframeDocument.getElementById("OneUpCommandBar") as HTMLElement;
+  //               const excelToolbar = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
+  //               // const openInAppButton=iframeDocument.getElementById('openCommandGroup') as HTMLButtonElement;
+  //               // console.log("openInAppButton",openInAppButton);
+  //               if(excelToolbar){
+  //                 excelToolbar.style.display= "none"
+  //               }
+  //               if (button) {
+  //                 console.log("Hiding the OneUpCommandBar element");
+  //                 button.style.display = "none";
+     
+     
+  //                 // spinner.style.display = "none";
+  //                 previewfileframe.style.display = "block";
+     
+     
+  //               } else {
+  //                 console.log("OneUpCommandBar not found, rechecking...");
+  //               }
+               
+  //               const helpbutton = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
+  //               if(helpbutton){
+  //                 helpbutton.style.display = "none"
+  //               }
+  //             }
+  //           } catch (error) {
+  //             console.error("Error accessing iframe content:", error);
+  //           }
+     
+     
+  //           setTimeout(checkAndHideButton, 100);
+  //         };
+     
+     
+  //         checkAndHideButton();
+  //       };
+  //       createpreviewdiv.appendChild(createbutton)
+  //       createpreviewdiv.appendChild(previewfileframe);
+  //       librarydiv.appendChild(createpreviewdiv)
+  //       createbutton.addEventListener('click', function() {
+  //         event.preventDefault()
+  //         event.stopPropagation()
+     
+  //         if(ismyrequordoclibforfilepreview === "myRequest2"){
+  //           myRequest2();
+  //         }
+  //         if(ismyrequordoclibforfilepreview === "myFavourite"){
+  //           myFavorite();
+  //         }
+  //         if(ismyrequordoclibforfilepreview === "sharewithme"){
+  //           ShareWithMe();
+  //         }
+  //         if(ismyrequordoclibforfilepreview === "sharewithothers"){
+  //           ShareWithOther();
+  //         }
+  //         // if(flag === "shareWithMe"){
+  //         //     ShareWithMe(null,null);
+  //         // }
+  //         // if(flag === "documentLibrary"){
+  //         //   getdoclibdata(currentfolderpath , currentsiteID , currentDocumentLibrary)
+  //         // }
+         
+  //     });
+  //     }
+  //   }
+  //   if(ismyrequordoclibforfilepreview === "getdoclibdata"){
+    
+  //     // i have added this when there was issue in file preview at path there was & in the path
+  //     // so i encode the path and then append in preview url 
+  //     let encodepath:any
+  
+  
+  //     const hasAmpersand = path.includes('&');
+  //     if (hasAmpersand) {
+  //       console.log("Path contains '&'");  
+  //        encodepath = encodeURIComponent(path); // Properly declare the variable
+  //       // alert("getdoclibdata encodepath: " + encodepath);
+  //     } else {
+  //       console.log("Path does not contain '&'");
+  //       encodepath = path;
+  //     }
+    
+  //   // Generate the correct preview URL
+  
+  //     const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${encodepath}&parent=${encodedParentFolder}`;
+  //     // const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${path}&parent=${encodedParentFolder}`;
+     
+  
+     
+  //   console.log(previewUrl, "Generated preview URL");
+     
+  //     console.log("Generated Preview URL:", previewUrl);
+  //     if(previewUrl){
+  //       librarydiv.innerHTML = "";
+  //       previewfileframe.src = previewUrl;
+  //       previewfileframe.onload = () => {
+  //         console.log("Iframe has loaded");
+     
+  //         const checkAndHideButton = () => {
+  //           try {
+  //             const iframeDocument = previewfileframe.contentDocument || previewfileframe.contentWindow?.document;
+  //             if (iframeDocument) {
+  //               const button = iframeDocument.getElementById("OneUpCommandBar") as HTMLElement;
+  //               const excelToolbar = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
+  //               if(excelToolbar){
+  //                 excelToolbar.style.display= "none"
+  //               }
+  //               if (button) {
+  //                 console.log("Hiding the OneUpCommandBar element");
+  //                 button.style.display = "block";
+  //                 const commandBar1 = button.querySelectorAll("button");
+  //                 commandBar1.forEach(button => {
+  //                   button.style.display = "none";
+  //                 });
+  //                  // Show only the "Open" button
+  //                 const openButton = iframeDocument.getElementById("openCommandGroup");
+  //                 const userProfile = iframeDocument.getElementById("presenceCommand");
+  //                 if(userProfile){
+  //                   userProfile.style.display='none'
+  //                 }
+  //                 if (openButton) {
+  //                   // console.log("openButton",openButton);
+  //                   if(status === 'Auto Approved'){
+  //                     openButton.style.display = "block";
+  //                   }
+                   
+  //                 }
+  //                 previewfileframe.style.display = "block";
+     
+     
+  //               } else {
+  //                 console.log("OneUpCommandBar not found, rechecking...");
+  //               }
+  //               // if(openInAppButton){
+  //               //   openInAppButton.style.display='block'
+  //               // }
+  //               const helpbutton = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
+  //               if(helpbutton){
+  //                 helpbutton.style.display = "none"
+  //               }
+  //             }
+  //           } catch (error) {
+  //             console.error("Error accessing iframe content:", error);
+  //           }
+     
+     
+  //           setTimeout(checkAndHideButton, 100);
+  //         };
+     
+     
+  //         checkAndHideButton();
+  //       };
+  //       createpreviewdiv.appendChild(createbutton)
+  //       createpreviewdiv.appendChild(previewfileframe);
+  //       librarydiv.appendChild(createpreviewdiv)
+  //       createbutton.addEventListener('click', function() {
+  //         event.preventDefault()
+  //         event.stopPropagation()
+     
+  //         // if(flag === "shareWithMe"){
+  //         //     ShareWithMe(null,null);
+  //         // }
+  //         // if(flag === "documentLibrary"){
+  //         //   getdoclibdata(currentfolderpath , currentsiteID , currentDocumentLibrary)
+  //         // }
+  //         if(isprocessfolder === true){
+  //             //  alert(currentfolderpath  + "currentfolderpath in process true")
+  //              getdoclibdata(currentfolderpath , currentsiteID , currentDocumentLibrary )
+  //         }else{
+  //             // alert(currentfolderpath  + "currentfolderpath in process false")
+  //          getdoclibdata(currentfolderpath , currentsiteID , currentDocumentLibrary )
+  //         }
+        
+  //     });
+  //     }
+  //   }
+     
+  //   }
 
-  window.PreviewFile = function(path :any , SiteID:any , docLibName:any,status:string , filepreviewurl){
+  //  here is updated file preview fuction with fully hide button 
+  window.PreviewFile = function(path :any , SiteID:any , docLibName:any, status:string , filepreviewurl){
     // console.log(docLibName , "docLibName")
     console.log("Status",status);
     console.log(filepreviewurl , "filepreviewurl")
@@ -7273,6 +7795,8 @@ const ArgPoc = ({ props }: any) => {
     previewfileframe.id = 'filePreview'
     previewfileframe.style.width = '930px'
     previewfileframe.style.height = '500px'
+    // Set initial display to none to prevent flicker
+    previewfileframe.style.display = 'none'
     const librarydiv= document.getElementById('files-container')
     const createbutton = document.createElement('button')
     createbutton.textContent = 'Close File preivew';
@@ -7305,8 +7829,10 @@ const ArgPoc = ({ props }: any) => {
           console.log("Iframe has loaded");
      
           const checkAndHideButton = () => {
+            // *** Key Change: Declare iframeDocument outside try block ***
+            let iframeDocument: Document | null = null;
             try {
-              const iframeDocument = previewfileframe.contentDocument || previewfileframe.contentWindow?.document;
+              iframeDocument = previewfileframe.contentDocument || previewfileframe.contentWindow?.document;
               if (iframeDocument) {
                 const button = iframeDocument.getElementById("OneUpCommandBar") as HTMLElement;
                 const excelToolbar = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
@@ -7319,10 +7845,8 @@ const ArgPoc = ({ props }: any) => {
                   console.log("Hiding the OneUpCommandBar element");
                   button.style.display = "none";
      
-     
-                  // spinner.style.display = "none";
+                  // Show iframe only after hiding elements
                   previewfileframe.style.display = "block";
-     
      
                 } else {
                   console.log("OneUpCommandBar not found, rechecking...");
@@ -7335,12 +7859,15 @@ const ArgPoc = ({ props }: any) => {
               }
             } catch (error) {
               console.error("Error accessing iframe content:", error);
+              // Show iframe on error to avoid it being hidden forever
+              previewfileframe.style.display = "block";
             }
      
-     
-            setTimeout(checkAndHideButton, 100);
+            // Continue checking if elements are not yet hidden
+            if (!iframeDocument || !iframeDocument.getElementById("OneUpCommandBar")) {
+              setTimeout(checkAndHideButton, 100);
+            }
           };
-     
      
           checkAndHideButton();
         };
@@ -7352,7 +7879,7 @@ const ArgPoc = ({ props }: any) => {
           event.stopPropagation()
      
           if(ismyrequordoclibforfilepreview === "myRequest2"){
-            myRequest2();
+            myRequest();
           }
           if(ismyrequordoclibforfilepreview === "myFavourite"){
             myFavorite();
@@ -7378,8 +7905,6 @@ const ArgPoc = ({ props }: any) => {
       // i have added this when there was issue in file preview at path there was & in the path
       // so i encode the path and then append in preview url 
       let encodepath:any
-  
-  
       const hasAmpersand = path.includes('&');
       if (hasAmpersand) {
         console.log("Path contains '&'");  
@@ -7390,14 +7915,10 @@ const ArgPoc = ({ props }: any) => {
         encodepath = path;
       }
     
-    // Generate the correct preview URL
-  
+      // Generate the correct preview URL
       const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${encodepath}&parent=${encodedParentFolder}`;
-      // const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${path}&parent=${encodedParentFolder}`;
      
-  
-     
-    console.log(previewUrl, "Generated preview URL");
+      console.log(previewUrl, "Generated preview URL");
      
       console.log("Generated Preview URL:", previewUrl);
       if(previewUrl){
@@ -7407,8 +7928,10 @@ const ArgPoc = ({ props }: any) => {
           console.log("Iframe has loaded");
      
           const checkAndHideButton = () => {
+            // *** Key Change: Declare iframeDocument outside try block ***
+            let iframeDocument: Document | null = null;
             try {
-              const iframeDocument = previewfileframe.contentDocument || previewfileframe.contentWindow?.document;
+              iframeDocument = previewfileframe.contentDocument || previewfileframe.contentWindow?.document;
               if (iframeDocument) {
                 const button = iframeDocument.getElementById("OneUpCommandBar") as HTMLElement;
                 const excelToolbar = iframeDocument.getElementById("m_excelEmbedRenderer_m_ewaEmbedViewerBar") as HTMLElement;
@@ -7435,8 +7958,8 @@ const ArgPoc = ({ props }: any) => {
                     }
                    
                   }
+                  // Show iframe only after hiding elements
                   previewfileframe.style.display = "block";
-     
      
                 } else {
                   console.log("OneUpCommandBar not found, rechecking...");
@@ -7451,12 +7974,15 @@ const ArgPoc = ({ props }: any) => {
               }
             } catch (error) {
               console.error("Error accessing iframe content:", error);
+              // Show iframe on error to avoid it being hidden forever
+              previewfileframe.style.display = "block";
             }
      
-     
-            setTimeout(checkAndHideButton, 100);
+            // Continue checking if elements are not yet hidden
+            if (!iframeDocument || !iframeDocument.getElementById("OneUpCommandBar")) {
+              setTimeout(checkAndHideButton, 100);
+            }
           };
-     
      
           checkAndHideButton();
         };
@@ -7475,17 +8001,17 @@ const ArgPoc = ({ props }: any) => {
           // }
           if(isprocessfolder === true){
               //  alert(currentfolderpath  + "currentfolderpath in process true")
-               getdoclibdata(currentfolderpath , currentsiteID , currentDocumentLibrary )
+               getdoclibdata(currentfolderpath , currentsiteID , currentDocumentLibrary)
           }else{
               // alert(currentfolderpath  + "currentfolderpath in process false")
-           getdoclibdata(currentfolderpath , currentsiteID , currentDocumentLibrary )
+           getdoclibdata(currentfolderpath , currentsiteID , currentDocumentLibrary)
           }
         
       });
       }
     }
-     
-    }
+  }
+
   const RemoveSSearchFile = async (event: React.FormEvent) => {
     event.preventDefault();
     event.stopPropagation();
@@ -7640,7 +8166,10 @@ const ArgPoc = ({ props }: any) => {
           if (routeToDiffSideBar === "myRequest") {
             myRequest(null, null, searchInput);
           }
-
+          else if (routeToDiffSideBar === "documentLibrary") {
+            // console.log("Inside search => documentLibrary");
+            getdoclibdata(currentfolderpath, currentsiteID, currentDocumentLibrary, searchInput);
+          }
           else if (routeToDiffSideBar === "myFavourite") {
 
             // console.log("myFavourite");

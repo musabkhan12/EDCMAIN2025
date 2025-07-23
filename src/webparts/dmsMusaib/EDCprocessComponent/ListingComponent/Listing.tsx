@@ -262,7 +262,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                     </td>
                     <td title={item.ReqName} style={{ minWidth: '80px', maxWidth: '80px' }}>{item.ReqName}</td>
                     <td title={moment(item.ReqDt).format("DD/MMM/YYYY")} style={{ minWidth: '85px', maxWidth: '85px' }}>{moment(item.ReqDt).format("DD/MMM/YYYY")}</td>
-                    <td title={item.SubmitStatus == "No" && item.Status != "Rework" ? "Save as Draft" : item.Status} style={{ minWidth: '70px', maxWidth: '70px' }}>{item.SubmitStatus == "No" && item.Status != "Rework"? "Save as Draft" : item.Status}</td>
+                    <td title={item.SubmitStatus == "No" && item.Status != "Rework" ? "Save as Draft" : item.Status} style={{ minWidth: '70px', maxWidth: '70px' }}>{item.SubmitStatus == "No" && item.Status != "Rework" ? "Save as Draft" : item.Status}</td>
                     <td style={{ minWidth: '50px', maxWidth: '50px' }}>
                         <a href={path} onClick={() => this.editItem(item)}>
                             {/* <a  onClick={() => this.editItem(item)}> */}
@@ -699,7 +699,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
 
         });
 
-        const ChangeRequestDocumentCancellationListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.select('Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,ReferenceNumber,Created').expand('Author', 'RequesterName').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
+        const ChangeRequestDocumentCancellationListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.select('FileName,Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,ReferenceNumber,Created').expand('Author', 'RequesterName').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
         for (const item of ChangeRequestDocumentCancellationListItems) {
             if (item.Status === "Rework") {
                 const processItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and (Status eq 'Pending' or Status eq 'Save as draft') and ProcessName eq 'Document Cancellation' and ListItemId eq ${item.Id}`)();
@@ -707,7 +707,8 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                     for (const itm of processItems) {
                         allItems.push({
                             RequestId: item.DocumentCode,
-                            Title: item.ReferenceNumber,
+                            // Title: item.ReferenceNumber,
+                            Title: item.FileName == "" || item.FileName == null ? " " : item.FileName,
                             ProcessName: "Document Cancellation",
                             ReqName: item.RequesterName?.Title || '',
                             ReqDt: new Date(item.Created),
@@ -721,7 +722,8 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                 } else {
                     allItems.push({
                         RequestId: item.DocumentCode,
-                        Title: item.ReferenceNumber,
+                        // Title: item.ReferenceNumber,
+                        Title: item.FileName == "" || item.FileName == null ? " " : item.FileName,
                         ProcessName: "Document Cancellation",
                         ReqName: item.RequesterName?.Title || '',
                         ReqDt: new Date(item.Created),
@@ -734,7 +736,8 @@ export class Listing extends React.Component<IListingProps, IListingState> {
             } else {
                 allItems.push({
                     RequestId: item.DocumentCode,
-                    Title: item.ReferenceNumber,
+                    // Title: item.ReferenceNumber,
+                    Title: item.FileName == "" || item.FileName == null ? " " : item.FileName,
                     ProcessName: "Document Cancellation",
                     ReqName: item.RequesterName?.Title || '',
                     ReqDt: new Date(item.Created),
@@ -746,7 +749,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
             }
         }
 
-        const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList").items.select('Id,FileName,ReferenceNumber,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,Created').expand('Author', 'RequesterName').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
+        const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList").items.select('Id,FileName,ReferenceNumber,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,Created,FileName').expand('Author', 'RequesterName').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
         debugger
         for (const item of ChangeRequestListItems) {
             if (item.Status === "Rework") {
@@ -755,7 +758,8 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                     for (const itm of processItems) {
                         allItems.push({
                             RequestId: item.DocumentCode == "" || item.DocumentCode == null ? item.FileName : item.DocumentCode,
-                            Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
+                            //Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
+                            Title: item.FileName == "" || item.FileName == null ? " " : item.FileName,
                             ProcessName: "Change Request",
                             ReqName: item.RequesterName?.Title || '',
                             ReqDt: new Date(item.Created),
@@ -769,7 +773,8 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                 } else {
                     allItems.push({
                         RequestId: item.DocumentCode == "" || item.DocumentCode == null ? item.FileName : item.DocumentCode,
-                        Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
+                        //Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
+                        Title: item.FileName == "" || item.FileName == null ? " " : item.FileName,
                         ProcessName: "Change Request",
                         ReqName: item.RequesterName?.Title || '',
                         ReqDt: new Date(item.Created),
@@ -782,7 +787,8 @@ export class Listing extends React.Component<IListingProps, IListingState> {
             } else {
                 allItems.push({
                     RequestId: item.DocumentCode == "" || item.DocumentCode == null ? item.FileName : item.DocumentCode,
-                    Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
+                    //Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
+                    Title: item.FileName == "" || item.FileName == null ? " " : item.FileName,
                     ProcessName: "Change Request",
                     ReqName: item.RequesterName?.Title || '',
                     ReqDt: new Date(item.Created),
@@ -905,7 +911,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                 //RequestId:  item.NCRNo,
 
                 NCRNo: item.NCRNo,
-                NCNumber: item.NCNumber + " / " + item.NCType + " / " + item.Department.Department,
+                NCNumber: item.NCNumber + " / " + item.NCType + " / " + item.Department?.Department,
                 Title: item.DocumentCode == "" || item.DocumentCode == null ? " " : item.DocumentCode,
                 //Title: item.ProblemDescription,
                 ProblemDescription: item.ProblemDescription,

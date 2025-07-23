@@ -193,6 +193,8 @@ const FormContext = ({ props }: any) => {
     RequesterName: "",
     RequestDate: null,
 
+    Remark:""
+
   });
   const [selectCCUsers, setSelectCCUsers] = React.useState([]);
   const [ListNameId, setListNameId] = React.useState(null);
@@ -641,7 +643,17 @@ const FormContext = ({ props }: any) => {
         // }
       }
 
-      setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditProgram))
+      // setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditProgram))
+      let ProcessApprovalItem = await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_AuditProgram);
+
+
+      // setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_DocumentCancel))
+      setDraftApprovalItem(ProcessApprovalItem);
+      setFormData(prevData => ({
+          ...prevData,
+
+          Remark: ProcessApprovalItem[0]?.Remark || "",
+      }));
 
     }
     // formitemid =20;
@@ -1439,6 +1451,15 @@ const FormContext = ({ props }: any) => {
   const handleFormSubmit = async () => {
     if (await validateForm(FormSubmissionMode.SUBMIT)) {
       if (editForm) {
+        if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
+          if (formData.Remark === "") {
+              //   setValidRemark(false);
+              document.getElementById("Remark-textarea2")?.classList.add("border-on-error");
+              Swal.fire('Please fill the mandatory fields', '', 'warning');
+              return;
+             
+          }
+      }
         Swal.fire({
           title: 'Do you want to submit this request?',
           showConfirmButton: true,
@@ -1796,6 +1817,7 @@ const FormContext = ({ props }: any) => {
                 // ActionTakenRoleId: formData.RequesterDesignation,
                 Status: "Approved",
                 // Remark: remark,
+                Remark: formData.Remark,
 
               }
               const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
@@ -2664,6 +2686,7 @@ const FormContext = ({ props }: any) => {
                 // // Remark: remark,
                 Title: formData.subject,
                 ContentTitle: formData.subject,
+                Remark: formData.Remark,
 
               }
               const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
@@ -4748,6 +4771,46 @@ const FormContext = ({ props }: any) => {
                             </div>
                           </div>
                         </div>
+
+                        {/* //////&&&&& */}
+                        {(editID != null && editID.CurrentUserRole === "Initiator" && editID.IsInitiator == "Yes" && editID.Level == 0) && editID.Status === "Pending" && <div className="row mt-3">
+                                                    <div className="col-12 text-center">
+
+
+
+                                                        <div className="row">
+                                                            <div className="col-lg-12">
+
+                                                                <div className="mb-0" >
+
+                                                                    <label htmlFor="example-textarea" className="form-label text-dark font-14" style={{ textAlign: 'left' }}>Remarks <span className="text-danger1"> *</span></label>
+
+                                                                    <textarea
+                                                                        style={{ height: '80px' }}
+                                                                        className={`form-control `}
+                                                                        id="Remark-textarea2"
+                                                                        rows={5}
+                                                                        name="Remark"
+                                                                        value={formData.Remark}
+                                                                        onChange={(e) => setFormData({ ...formData, Remark: e.target.value })}
+                                                                    ></textarea>
+
+                                                                </div>
+
+                                                            </div>
+
+
+
+                                                        </div>
+
+
+
+
+                                                    </div>
+                                                </div>
+                                                }
+
+                                                {/* ////////&&&& */}
 
 
 

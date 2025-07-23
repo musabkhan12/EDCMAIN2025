@@ -103,7 +103,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
           .select("*,Requester/Id,Requester/Title,Approver/Id,Approver/Title")
           .expand("Approver,Requester")
           .filter('ContentId eq ' + props.ContentItemId + "and ProcessName eq '" + props.ContentType + "'")
-          .orderBy('Created', false)().then(datarows => {
+          .orderBy('Created', true)().then(datarows => {
 
             if (datarows.length == 0) {
 
@@ -140,7 +140,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
             "ListItemId eq " + props.ContentItemId.Id +
             " and ProcessName eq '" + props.ContentType + "'"
           )
-          .orderBy('Created', false)().then(datarows => {
+          .orderBy('Created', true)().then(datarows => {
 
             if (datarows.length == 0) {
 
@@ -309,7 +309,9 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
 
                     AuditHistoryRows.map((row: any, index: number) =>
-
+                    // AuditHistoryRows
+                    // .sort((a: any, b: any) => new Date(a.created).getTime() - new Date(b.created).getTime())
+                    // .map((row: any, index: number) => 
                       <tr>
 
                         <td style={{ minWidth: '50px', maxWidth: '50px' }}> {index + 1}</td>
@@ -373,7 +375,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric'
-                          }).format(new Date(new Date(row?.Created).getTime() - (1 * 60 + 30) * 60 * 1000)).replace(/ /g, "/")} ${new Date(new Date(row?.Created).getTime() - (1 * 60 + 30) * 60 * 1000).toLocaleTimeString('en-GB', {
+                          }).format(new Date(new Date(row?.Created))).replace(/ /g, "/")} ${new Date(new Date(row?.Created)).toLocaleTimeString('en-GB', {
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: false
@@ -393,14 +395,14 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric'
-                          }).format(new Date(new Date(row?.Created).getTime() - (1 * 60 + 30) * 60 * 1000)).replace(/ /g, "/")} ${new Date(new Date(row?.Created).getTime() - (1 * 60 + 30) * 60 * 1000).toLocaleTimeString('en-GB', {
+                          }).format(new Date(new Date(row?.Created))).replace(/ /g, "/")} ${new Date(new Date(row?.Created)).toLocaleTimeString('en-GB', {
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: false
                           })}` */}
                           {
                             (() => {
-                              const adjustedTime = new Date(new Date(row?.Created).getTime() - (1 * 60 + 30) * 60 * 1000);
+                              const adjustedTime = new Date(new Date(row?.Created));
                               const formattedDate = new Intl.DateTimeFormat('en-GB', {
                                 day: '2-digit',
                                 month: 'short',
@@ -443,7 +445,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric'
-                          }).format(new Date(new Date(row?.Modified).getTime() - (1 * 60 + 30) * 60 * 1000)).replace(/ /g, "/")} ${new Date(new Date(row?.Modified).getTime() - (1 * 60 + 30) * 60 * 1000).toLocaleTimeString('en-GB', {
+                          }).format(new Date(new Date(row?.Modified))).replace(/ /g, "/")} ${new Date(new Date(row?.Modified)).toLocaleTimeString('en-GB', {
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: false
@@ -463,7 +465,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                             : ""} */}
                           {row.Status !== 'Pending' ? (
                             (() => {
-                              const adjustedTime = new Date(new Date(row?.Modified).getTime() - (1 * 60 + 30) * 60 * 1000);
+                              const adjustedTime = new Date(new Date(row?.Modified));
                               const formattedDate = new Intl.DateTimeFormat('en-GB', {
                                 day: '2-digit',
                                 month: 'short',

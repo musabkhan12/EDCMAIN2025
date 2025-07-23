@@ -217,6 +217,12 @@ const optionsApp: IDropdownOption[] = [
   { key: 'One', text: 'Anyone' }
 
 ]
+const optionsResponsibility: IDropdownOption[] = [
+
+  { key: 'Signer', text: 'Signer' },
+  { key: 'Reviewer', text: 'Reviewer' }
+
+]
 export default class EditForm extends React.Component<IAuditPlanProps, IEditState> {
 
   constructor(props: IAuditPlanProps) {
@@ -329,7 +335,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       editProcessActionTakenById: null,
       editProcessActionTakenBy: "",
       processListItemID: null,
-      approvers: [{ Role: "", Level: "", Name: "", Type: "One", Index: 0, appEx: "", itemId: "" }],
+      approvers: [{
+        Role: "", Level: "", Name: "", Type: "One", Index: 0, appEx: "", itemId: "", Responsibility: "Signer", IsSignatureRequired: true,
+        responsibilityerror: false
+      }],
       optionsRole: [],
       apprDelId: [],
       indApp: 0,
@@ -1124,7 +1133,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         const showSubCategoryOthers = Items.SubCategory?.some((sub: any) => sub.Title === "Others") || false;
         const showLocationOthers = Items.Location?.some((loc: any) => loc.Title === "Others") || false;
         this.setState({ showcategoryothers: showCategoryOthers, showlocationothers: showLocationOthers, showsubcategoryothers: showSubCategoryOthers });
-        const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items();
+        const deptItems = await sp.web.lists.getByTitle("ProcessDepartmentMasterList").items();
         const optionsdept = deptItems.map((item: {
           DepartmentCode: any; Title: string; Id: number, ADDepartmentName: string
         }) => ({
@@ -1379,8 +1388,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             objToAdd["itemId"] = itm.Id;
             objToAdd["Index"] = itm.Level;
             objToAdd["appEx"] = approve;
-
-
+            objToAdd["Responsibility"] = itm.Responsibility || "";
+            objToAdd["IsSignatureRequired"] = itm.IsSignatureRequired == "Yes" ? true : false;
             allApp.push(objToAdd);
             cnt = cnt + 1;
           });
@@ -1662,7 +1671,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   public async getDepartment() {
     const sp = spfi().using(SPFx(this.props.context));
     try {
-      const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items();
+      const deptItems = await sp.web.lists.getByTitle("ProcessDepartmentMasterList").items();
       const options = deptItems.map((item: {
         DepartmentCode: any; Title: string; Id: number, ADDepartmentName: string
       }) => ({
@@ -1878,6 +1887,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     this.state.approvers.forEach((row, index) => {
       const isNameEmpty = !row.Name || row.Name.length === 0;
       const isRoleEmpty = !row.Role || row.Role.toString().trim() === '';
+      const isResponsibilityEmpty = !row.Responsibility || row.Responsibility.trim() === '' || row.Responsibility == "Select";
       console.log("indexxxx", index);
       const peoplePickerElements = document.querySelectorAll(`#approverpeoplepicker-${index} .ms-BasePicker-text`);
 
@@ -1898,6 +1908,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
       if (isRoleEmpty) {
         editErrors[`approvers[${index}].Role`] = 'Role is required';
+        hasError = true;
+      }
+      if (isResponsibilityEmpty) {
+        editErrors[`approvers[${index}].Responsibility`] = 'Responsibility is required';
         hasError = true;
       }
     });
@@ -2071,7 +2085,14 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     this.state.approvers[i].Type = item.key;
     this.setState({ approvers: this.state.approvers });
   }
-
+  private handleChangeResp(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption, i: number) {
+    this.state.approvers[i].Responsibility = item.key;
+    this.setState({ approvers: this.state.approvers });
+  }
+  // private handleChangeResp(item: any, i: number) {
+  //   this.state.approvers[i].Responsibility = item.key;
+  //   this.setState({ approvers: this.state.approvers });
+  // }
   private _getPeoplePickerItemsApp(items: any[], i: number) {
     debugger
     var arr: any[];
@@ -2091,7 +2112,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     debugger
     var itm = this.state.indApp + 1;
     this.setState({ indApp: itm });
-    this.state.approvers.push({ Role: "", Level: "", Name: "", Index: itm, itemId: "" });
+    this.state.approvers.push({
+      Role: "", Level: "", Name: "", Index: itm, itemId: "", Responsibility: "Signer", IsSignatureRequired: true,
+      responsibilityerror: false
+    });
     this.setState({ approvers: this.state.approvers });
   }
 
@@ -2123,7 +2147,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     let test1 = this.state.correctionApplicable ? "Yes" : "No";
     let test2 = this.state.notEffective ? "Yes" : "No";
     let test3 = this.state.effectiveClosed ? "Yes" : "No";
-    let ncStatus = _editsubmitStatus == "Rework" || this.state.editStatus == "Rework" ? "Rework" : "Pending";
+    let ncStatus = (_editsubmitStatus == "Rework" || this.state.editStatus == "Rework") && this.state.editCurrentUserRole != "FirstInitiator"
+      //(_editsubmitStatus == "submit" && this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator")
+      ? "Rework" : "Pending";
+
     if (this.state.editncType == "Observation" && this.state.editDelegateToId != null && this.state.editCurrentUserRole == "LastAssignedTo" && _editsubmitStatus != "Rework") {
       observationStatus1 = "Approved"
     } else
@@ -2172,7 +2199,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       ReviewedById: this.state.editReviewedById || null,
       CorrectiveActionImplementedOn: this.state.editCorrectiveActionImplementedOn,
       SubmiitedDate: new Date(),
-      SubmitStatus: _editsubmitStatus == "draft" || this.state.editStatus == "Rework" ? "No" : "Yes",
+     // SubmitStatus: _editsubmitStatus == "draft" || this.state.editStatus == "Rework" || (_editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "FirstAssignedTo") ? "No" : "Yes",
+      SubmitStatus: _editsubmitStatus == "draft"  ? "No" : "Yes",
       SubmiitedById: this.props.currentUserID || null,
       CurrentUserRole: currentUserRole,
       FirstInitiatorSubmitStatus: firstInitiatorSubmitStatus,
@@ -2685,6 +2713,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                   RequesterRoleId: _self.state.reqRolId,
                   ApproversId: it.Name,
                   ApprovalType: "Approval",
+                  Responsibility: it.Responsibility || "",
+                  IsSignatureRequired: it.IsSignatureRequired ? "Yes" : "No",
                 }).catch(function (ex) {
                   console.log(ex.errorMessage);
                 })
@@ -2708,6 +2738,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                   RequesterRoleId: _self.state.reqRolId,
                   ApproversId: it.Name,
                   ApprovalType: "Approval",
+                  Responsibility: it.Responsibility || "",
+                  IsSignatureRequired: it.IsSignatureRequired ? "Yes" : "No",
                 }).catch(function (ex) {
                   console.log(ex.errorMessage);
                 })
@@ -3414,6 +3446,38 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               // className={this.state.editErrors?.approvers ? 'dropdown-error' : ''}
               />
             </td>
+            <td title={optionsResponsibility.find(opt => opt.key === this.state.approvers[i].Responsibility)?.text || "Select"}
+              style={{ overflow: 'inherit' }} className="ng-binding">
+              <Dropdown
+                disabled={this.state.forwarDisable || forwardisdisabled}
+                placeholder="Select options"
+                selectedKey={this.state.approvers[i].Responsibility || 'Signer'}
+                options={optionsResponsibility} onChange={(e, itm: IDropdownOption) => this.handleChangeResp(e, itm, i)}
+                className={this.state.editErrors?.Responsibility ? 'dropdown-error' : ''}
+
+              />
+            </td>
+
+            <td style={{ minWidth: "50px", maxWidth: "50px", overflow: 'inherit' }}>
+              <div
+              //  style={{ display: "flex", alignItems: 'center', gap: '8px' }}
+              >
+                <input
+                  type="checkbox"
+                  checked={this.state.approvers[i].IsSignatureRequired}
+                  disabled={this.state.approvers[i].Responsibility === "Signer" || this.state.approvers[i].Responsibility === "" || (this.state.forwarDisable || forwardisdisabled)}
+                  style={{ marginLeft: '17px', width: "15px" }}
+
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const isChecked = e.target.checked;
+                    this.state.approvers[i].IsSignatureRequired = isChecked;
+                    this.setState({ approvers: this.state.approvers });
+
+                  }}
+                />
+
+              </div>
+            </td>
             <td title={`Level ${(i + 1).toString()}` || "Level "} style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>
               <TextField value={`Level ${(i + 1).toString()}`} disabled={true}></TextField>
             </td>
@@ -3600,14 +3664,58 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           <td title={item.RequesterName} style={{ minWidth: "90px", maxWidth: "90px" }}>
             {item.RequesterName}
           </td>
-          <td title={moment(new Date(item.RequestedDate)).format("DD/MMM/YYYY HH:mm:ss")} style={{ minWidth: '90px', maxWidth: '90px' }}>
-            {item.RequestedDate ? moment(new Date(item.RequestedDate)).format("DD/MMM/YYYY HH:mm:ss") : ""}
+          <td title=
+            {`${new Intl.DateTimeFormat('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric'
+            }).format(new Date(new Date(item?.RequestedDate).getTime() - 4 * 60 * 60 * 1000)).replace(/ /g, "/")} ${new Date(new Date(item?.RequestedDate).getTime() - 4 * 60 * 60 * 1000).toLocaleTimeString('en-GB', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            })}`}
+            // {moment(new Date(item.RequestedDate)).format("DD/MMM/YYYY HH:mm")}
+            style={{ minWidth: '90px', maxWidth: '90px' }}>
+            {/* {item.RequestedDate ? moment(new Date(item.RequestedDate)).format("DD/MMM/YYYY HH:mm") : ""} */}
+            {`${new Intl.DateTimeFormat('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric'
+            }).format(new Date(new Date(item?.RequestedDate).getTime() - 4 * 60 * 60 * 1000)).replace(/ /g, "/")} ${new Date(new Date(item?.RequestedDate).getTime() - 4 * 60 * 60 * 1000).toLocaleTimeString('en-GB', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            })}`}
           </td>
           <td title={item.ActionTakenBy} style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.ActionTakenBy}
           </td>
-          <td title={moment(new Date(item.ActionTakenOn)).format("DD/MMM/YYYY HH:mm:ss")} style={{ minWidth: '90px', maxWidth: '90px' }}>
-            {item.ActionTakenOn ? moment(new Date(item.ActionTakenOn)).format("DD/MMM/YYYY HH:mm:ss") : ""}
+          <td title=
+            {item?.ActionTakenOn == null || item?.ActionTakenOn == undefined || item?.ActionTakenOn == "" ? "" :
+              (`${new Intl.DateTimeFormat('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              }).format(new Date(new Date(item?.ActionTakenOn).getTime() - 4 * 60 * 60 * 1000)).replace(/ /g, "/")} ${new Date(new Date(item?.ActionTakenOn).getTime() - 4 * 60 * 60 * 1000).toLocaleTimeString('en-GB', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+              })}`)
+            }
+            // {moment(new Date(item.ActionTakenOn)).format("DD/MMM/YYYY HH:mm")} 
+            style={{ minWidth: '90px', maxWidth: '90px' }}>
+            {item?.ActionTakenOn == null || item?.ActionTakenOn == undefined || item?.ActionTakenOn == "" ? "" :
+              (`${new Intl.DateTimeFormat('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              }).format(new Date(new Date(item?.ActionTakenOn).getTime() - 4 * 60 * 60 * 1000)).replace(/ /g, "/")} ${new Date(new Date(item?.ActionTakenOn).getTime() - 4 * 60 * 60 * 1000).toLocaleTimeString('en-GB', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+              })}`)
+            }
+            {/* {item.ActionTakenOn ? moment(new Date(item.ActionTakenOn)).format("DD/MMM/YYYY HH:mm") : ""} */}
           </td>
           <td title={item.Remarks} style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.Remarks}
@@ -4686,6 +4794,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                             <tr>
                               <th style={{ minWidth: "40px", maxWidth: "40px" }}>S.No</th>
                               <th style={{ borderBottomLeftRadius: "0px" }}>Role</th>
+                              <th style={{ borderBottomLeftRadius: "0px", minWidth: '86px', maxWidth: '86px' }}>Responsibility<span className="text-danger1"> *</span></th>
+                              <th style={{ minWidth: "46px", maxWidth: "46px" }} title="Use your electronic digital signature to sign this document digitally">E-Sign?</th>
                               <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level</th>
                               <th >Approver Name</th>
                               <th >Approval Criteria</th>

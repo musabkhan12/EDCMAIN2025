@@ -4,7 +4,7 @@ import * as React from 'react';
 // import type { IChangeDocumentRequestProps } from './IChangeDocumentRequestProps';
 import { escape } from '@microsoft/sp-lodash-subset';
 import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
-
+import "@pnp/sp/profiles";
 import Provider from '../../../GlobalContext/provider';
 import VerticalSideBar from '../../verticalSideBar/components/VerticalSideBar';
 import HorizontalNavbar from '../../horizontalNavBar/components/HorizontalNavBar';
@@ -65,6 +65,7 @@ let filechanged: boolean = false;
 let locationPath: any;
 let enableTemplatetype: boolean = false;
 let Showfile: boolean = false;
+let IsRecorddisabled: boolean = false;
 export enum FormSubmissionMode {
   DRAFT, SUBMIT
 }
@@ -90,7 +91,8 @@ interface ForwardTo {
   typeError?: boolean;
   rowError?: boolean;
   Responsibility?: string;
-  IsSignatureRequired?: boolean
+  IsSignatureRequired?: boolean;
+  IsPreparedBy?: boolean;
 }
 interface ChangeRequestCheckbox {
   id: number;
@@ -241,6 +243,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     RevisionDate: "",
     DocumentCode: "",
     ReferenceNumber: "",
+    FileName: "",
     AmendmentTypeId: 0,
     RequestTypeId: 0,
     ClassificationId: 0,
@@ -272,7 +275,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       approverError: false,
       responsibilityerror: false,
       typeError: false,
-      rowError: false
+      rowError: false, IsPreparedBy: false
     } // Default row
   ]);
   const [currentUserDept, setcurrentUserDept] = React.useState("");
@@ -432,13 +435,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       UserName: currentUser.Title
     }];
 
-    setSharewithusers(currentuserinpreparedby);
+    setSharewithusers([]);
     var DocCodeArr = await getAllDocumentCode(sp);
     let doccodearrew: any;
     const options = DocCodeArr.map((item: any) => ({
       value: item.DocumentCode,
       label: item.DocumentCode,
       IssueNumber: item.IssueNumber,
+      FileName: item.FileName,
       ReferenceNumber: item.ReferenceNumber,
       RevisionNumber: item.RevisionNumber,
       ChangeRequestID: item.ID,
@@ -491,8 +495,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       formitemid = Number(iDs);
       setFormItemId(Number(iDs));
       setEditID(await getApprovalByID(sp, Number(iDs), CONTENTTYPE_ChangeDocument));
+
       ProcessItemId = await getApprovalByID(sp, Number(iDs), CONTENTTYPE_ChangeDocument);
       setInputDisabled(await getApprovalByID2(sp, Number(iDs), CONTENTTYPE_ChangeDocument));
+      let disablerecord = await CheckIfAlreadyactionTaken(sp, ProcessItemId?.Id, CONTENTTYPE_ChangeDocument);
+      IsRecorddisabled = !disablerecord;
     }
     else {
       const path = window.location.hash;
@@ -519,6 +526,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
           setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_ChangeDocument));
           ProcessItemId = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_ChangeDocument);
+          let disablerecord = await CheckIfAlreadyactionTaken(sp, ProcessItemId?.Id, CONTENTTYPE_ChangeDocument);
+          IsRecorddisabled = !disablerecord;
           setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_ChangeDocument));
         }
       }
@@ -586,23 +595,24 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           sharewithuser = setBannerById[0].PreparedBy?.map((approver: any) => ({
             value: approver.ID,
             label: approver.Title,
-            UserName: approver.Title
-            // UserEmail: approver.EMail
+            UserName: approver.Title,
+            UserEmail: approver.EMail
           }));
-        } else {
-          sharewithuser = [{
-            value: currentUser.Id,
-            label: currentUser.Title,
-            UserName: currentUser.Title
-          }];
         }
+        //  else {
+        //   sharewithuser = [{
+        //     value: currentUser.Id,
+        //     label: currentUser.Title,
+        //     UserName: currentUser.Title
+        //   }];
+        // }
 
         setSharewithusers(sharewithuser);
 
         if (ProcessItemId && ProcessItemId.Level === 0 && ProcessItemId.CurrentUserRole === "OES" && ProcessItemId.IsInitiator == "No") {
           const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_ChangeDocument, setBannerById[0].DocumentCode)
 
-          if (ApprowData.length > 0) {
+          if (ApprowData.length > 0 && ApprowData.length == sharewithuser.length) {
 
             const EditApprowData = ApprowData.map((item: any) => ({
               id: item.ID,
@@ -611,6 +621,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               level: item.Level || 1, // Default to 1 if missing
               Responsibility: item.Responsibility || "",
               IsSignatureRequired: item.IsSignatureRequired == "Yes" ? true : false,
+              IsPreparedBy: item.Responsibility == "Preparer" ? true : false,
               approvers: item.Approvers?.map((approver: any) => ({
                 value: approver.Id,
                 label: approver.Title,
@@ -622,7 +633,245 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             setForwardToArrEdit(EditApprowData);
 
           }
+          if (ApprowData.length > 0 && ApprowData.length < sharewithuser.length) {
+            // Flatten all approver IDs from ApprowData
+            // const existingApproverIds = ApprowData
+            //   .flatMap(item => item.approvers.map((approver: any) => approver.value));
 
+            const approverIdArrays = ApprowData.map(item =>
+              (item.ApproversId[0])
+            );
+
+            // Step 2: Flatten the array of ID arrays manually using reduce
+            const existingApproverIds = approverIdArrays.reduce((acc, val) => acc.concat(val), []);
+
+            // Step 3: Filter sharewithuser to get only users NOT in existingApproverIds
+            const missingUsers = (sharewithuser || []).filter(user =>
+              !existingApproverIds.includes(user.value)
+            );
+            const EditApprowData = ApprowData.map((item: any) => ({
+              id: item.ID,
+              leveltype: item.LevelType,
+              role: item.ApproverRole?.Id || 0, // Assuming role comes from ApproverRole
+              level: item.Level || 1, // Default to 1 if missing
+              Responsibility: item.Responsibility || "",
+              IsSignatureRequired: item.IsSignatureRequired == "Yes" ? true : false,
+              IsPreparedBy: item.Responsibility == "Preparer" ? true : false,
+              approvers: item.Approvers?.map((approver: any) => ({
+                value: approver.Id,
+                label: approver.Title,
+
+              })) || []
+            }));
+
+            // Create new rows for missing users
+            // const missingApproverRows: ForwardTo[] = missingUsers.map((user: any, index: number) => ({
+            //   id: 0,
+            //   leveltype: "One",
+            //   role: 0,
+            //   level: ApprowData.length + index + 1, // Continue levels from existing data
+            //   Responsibility: "Preparer",
+            //   IsSignatureRequired: true,
+            //   IsPreparedBy: true,
+            //   approvers: [
+            //     {
+            //       value: user.value,
+            //       label: user.label
+            //     }
+            //   ],
+            //   roleError: false,
+            //   approverError: false,
+            //   responsibilityerror: false,
+            //   typeError: false,
+            //   rowError: false
+            // }));
+            const buildMissingApproverRows = async (): Promise<ForwardTo[]> => {
+              const missingApproverRows: ForwardTo[] = await Promise.all(
+                missingUsers.map(async (user: any, index: number) => {
+                  // Fallback to user.value if login name format not available
+                  const userLogin = user.UserEmail || user.UserEmail || `i:0#.f|membership|${user.UserEmail}`;
+
+                  let designation = "";
+
+                  try {
+                    const profile = await sp.profiles.getPropertiesFor(userLogin);
+                    designation = profile.UserProfileProperties.find((p: any) => p.Key === "Title")?.Value || "";
+                  } catch (err) {
+                    console.warn(`Could not retrieve profile for ${userLogin}`, err);
+                  }
+                  let role = setRolesValue.filter((role: any) => role.label == designation)[0]?.value
+                  return {
+                    id: 0,
+                    leveltype: "One",
+                    role: role || 0, // Use job title as role if found
+                    level: ApprowData.length + index + 1,
+                    Responsibility: "Preparer",
+                    IsSignatureRequired: true,
+                    IsPreparedBy: true,
+                    approvers: [
+                      {
+                        value: user.value,
+                        label: user.label
+                      }
+                    ],
+                    roleError: false,
+                    approverError: false,
+                    responsibilityerror: false,
+                    typeError: false,
+                    rowError: false
+                  };
+                })
+              );
+
+              return missingApproverRows;
+            };
+
+            const missingRows = await buildMissingApproverRows();
+
+            const updatedApprowData: ForwardTo[] = [...EditApprowData, ...missingRows];
+
+            setForwardToArr(updatedApprowData);
+            setForwardToArrEdit(updatedApprowData);
+          }
+
+          if (ApprowData.length == 0 && sharewithuser?.length > 0) {
+            // Remove Requester from the sharewithuser list
+            const filteredUsers = sharewithuser.filter(user => user.value !== setBannerById[0].RequesterNameId);
+
+            // Create EditApprowData based on filtered users
+            // const EditApprowDataPre: ForwardTo[] = filteredUsers && filteredUsers.length > 0 ? filteredUsers.map((user: any, index: number) =>
+            //    ({
+            //   id: 0, // You can use user.value if a unique ID is needed
+            //   leveltype: "One", // or whatever default logic you prefer
+            //   role: 0, // Role is blank as per requirement
+            //   level: index + 1, // Default level
+            //   Responsibility: "Preparer",
+            //   IsSignatureRequired: true,
+            //   IsPreparedBy: true,
+            //   approvers: [
+            //     {
+            //       value: user.value,
+            //       label: user.label
+            //     }
+            //   ]
+            // })) : [
+            //   {
+            //     id: 0,
+            //     role: 0,
+            //     level: 1,
+            //     leveltype: "One",
+            //     Responsibility: "Signer",
+            //     IsSignatureRequired: true,
+            //     IsPreparedBy: false,
+            //     approvers: [],
+            //     roleError: false,
+            //     approverError: false,
+            //     responsibilityerror: false,
+            //     typeError: false,
+            //     rowError: false
+            //   }
+            // ];
+            const buildEditApprowDataPre = async (): Promise<ForwardTo[]> => {
+              if (!filteredUsers || filteredUsers.length === 0) {
+                return [
+                  {
+                    id: 0,
+                    role: 0,
+                    level: 1,
+                    leveltype: "One",
+                    Responsibility: "Signer",
+                    IsSignatureRequired: true,
+                    IsPreparedBy: false,
+                    approvers: [],
+                    roleError: false,
+                    approverError: false,
+                    responsibilityerror: false,
+                    typeError: false,
+                    rowError: false
+                  }
+                ];
+              }
+
+              // Get web URL once before mapping
+              const web = await sp.web.select("Url")();
+              console.log("Web Absolute URL:", web.Url);
+
+              const rows: ForwardTo[] = await Promise.all(
+                filteredUsers.map(async (user: any, index: number) => {
+                  const loginName = `i:0#.f|membership|${user.UserEmail}`;
+                  const encodedLogin = encodeURIComponent(loginName);
+                  const url = `${web.Url}/_api/SP.UserProfiles.PeopleManager/GetPropertiesFor(accountName=@v)?@v='${encodedLogin}'`;
+
+                  let designation = "";
+
+                  try {
+                    const res = await fetch(url, {
+                      method: "GET",
+                      headers: {
+                        "Accept": "application/json;odata=verbose"
+                      }
+                    });
+                    const data = await res.json();
+                    const props = data.d.UserProfileProperties.results;
+                    const title = props.find((p: any) => p.Key === "Title")?.Value;
+                    // You can also get department or other props if needed here
+                    designation = title || "";
+                    console.log("Job Title:", title);
+                  } catch (err) {
+                    console.error("Error getting user profile:", err);
+                  }
+
+                  const role = setRolesValue.find((role: any) => role.label === designation)?.value || 0;
+
+                  return {
+                    id: 0,
+                    leveltype: "One",
+                    role: role,
+                    level: index + 1,
+                    Responsibility: "Preparer",
+                    IsSignatureRequired: true,
+                    IsPreparedBy: true,
+                    approvers: [
+                      {
+                        value: user.value,
+                        label: user.label
+                      }
+                    ],
+                    roleError: false,
+                    approverError: false,
+                    responsibilityerror: false,
+                    typeError: false,
+                    rowError: false
+                  };
+                })
+              );
+
+              return rows;
+
+            };
+            const EditApprowDataPre = await buildEditApprowDataPre();
+            setForwardToArr(EditApprowDataPre);
+            setForwardToArrEdit(EditApprowDataPre);
+          }
+          if (ApprowData.length > 0 && ApprowData.length > sharewithuser.length) {
+            const EditApprowData1 = ApprowData.map((item: any) => ({
+              id: item.ID,
+              leveltype: item.LevelType,
+              role: item.ApproverRole?.Id, // Assuming role comes from ApproverRole
+              level: item.Level, // Default to 1 if missing
+              Responsibility: item.Responsibility || "",
+              IsSignatureRequired: item.IsSignatureRequired == "Yes" ? true : false,
+              IsPreparedBy: item.Responsibility == "Preparer" ? true : false,
+              approvers: item.Approvers?.map((approver: any) => ({
+                value: approver.Id,
+                label: approver.Title,
+
+              }))
+            }));
+            //setdisabledforwardarr(true);
+            setForwardToArr(EditApprowData1);
+            setForwardToArrEdit(EditApprowData1);
+          }
           // MainListID
         }
 
@@ -638,6 +887,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               level: item.Level, // Default to 1 if missing
               Responsibility: item.Responsibility || "",
               IsSignatureRequired: item.IsSignatureRequired == "Yes" ? true : false,
+              IsPreparedBy: item.Responsibility == "Preparer" ? true : false,
               approvers: item.Approvers?.map((approver: any) => ({
                 value: approver.Id,
                 label: approver.Title,
@@ -652,10 +902,38 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
           // MainListID
         }
+        if (ProcessItemId && ProcessItemId.CurrentUserRole == "Initiator" && ProcessItemId.IsInitiator == "Yes" && ProcessItemId.IsRework == "Yes") {
+          const ApprowData1: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_ChangeDocument, setBannerById[0].DocumentCode)
+
+          if (ApprowData1.length > 0) {
+
+            const EditApprowData1 = ApprowData1.map((item: any) => ({
+              id: item.ID,
+              leveltype: item.LevelType,
+              role: item.ApproverRole?.Id, // Assuming role comes from ApproverRole
+              level: item.Level, // Default to 1 if missing
+              Responsibility: item.Responsibility || "",
+              IsSignatureRequired: item.IsSignatureRequired == "Yes" ? true : false,
+              IsPreparedBy: false,
+              approvers: item.Approvers?.map((approver: any) => ({
+                value: approver.Id,
+                label: approver.Title,
+
+              }))
+            }));
+            //setdisabledforwardarr(true);
+            setForwardToArr(EditApprowData1);
+            setForwardToArrEdit(EditApprowData1);
+
+          }
+
+          // MainListID
+        }
         setissueNo(setBannerById[0].IssueNumber);
         setserialNo(setBannerById[0].SerialNumber);
         setFormData(prevData => ({
           ...prevData,
+          FileName: setBannerById[0].FileName,
           IssueNumber: setBannerById[0].IssueNumber,
           ReferenceNumber: setBannerById[0].ReferenceNumber,
           RevisionNumber: setBannerById[0].RevisionNumber,
@@ -977,7 +1255,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     const updatedArr = forwardToArr.map(row =>
       // row.level === lvl ? { ...row, Responsibility: event.target.value} : row
 
-      row.level === lvl ? { ...row, Responsibility: event.target.value, IsSignatureRequired:  true  } : row
+      row.level === lvl ? { ...row, Responsibility: event.target.value, IsSignatureRequired: true } : row
     );
     //   setApprovalType(event.target.value);
     setForwardToArr(updatedArr);
@@ -1091,7 +1369,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const handleAddRow = () => {
     setForwardToArr((prev) => [
       ...prev,
-      { id: 0, role: 0, level: prev.length + 1, approvers: [], leveltype: "One", Responsibility: "Signer", IsSignatureRequired: true }
+      { id: 0, role: 0, level: prev.length + 1, approvers: [], leveltype: "One", Responsibility: "Signer", IsSignatureRequired: true, IsPreparedBy: false, }
     ]);
   };
 
@@ -1423,6 +1701,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       }
       if (!sharewithusers || sharewithusers.length === 0) {
         setsharewitherr(true);
+        valid = false;
       }
       if (cancellReason.length > 0) {
         let valid = true;
@@ -2965,7 +3244,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
               let arr2 = {
                 Title: currentUser.Title,
-                ContentTitle: formData.ReferenceNumber,
+                //ContentTitle: formData.ReferenceNumber,
+                ContentTitle: formData.FileName,
                 MainListNameId: ListNameId,
                 ApproverRoleId: item.role,
                 Level: Number(item.level),
@@ -3084,7 +3364,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               if (status != "Rework") {
                 let arr2 = {
                   Title: currentUser.Title,
-                  ContentTitle: selectedOption?.ReferenceNumber,
+                  //ContentTitle: selectedOption?.ReferenceNumber,
+                  ContentTitle: selectedOption?.FileName || formData.FileName,
                   MainListNameId: ListNameId,
                   ApproverRoleId: item.role,
                   Level: Number(item.level),
@@ -3171,6 +3452,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     let actionMessage = "";
     let successMessage = "";
     const now = new Date();
+    console.log("forwardToArrEdit", forwardToArrEdit, forwardToArr);
     const dateTimeSuffix = await formatDateTime(now);
     switch (status) {
       case "Approved":
@@ -3187,10 +3469,24 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       //     break;
     }
     const docCode1 = formData.DocumentCode;
-
+    if (status === 'Approved') {
+      setMandatRemark(true)
+    } else {
+      setMandatRemark(false)
+    }
+    const IsactionTaken = await CheckIfAlreadyactionTaken(sp, editID.Id, CONTENTTYPE_ChangeDocument);
+    if (!IsactionTaken) {
+      Swal.fire("Action has already been taken on this record.");
+      return;
+    }
     if (status == "Approved") {
       if (await validateForm(FormSubmissionMode.SUBMIT)) {
 
+        if (status === 'Approved' && (formData.Remark === "" || formData.Remark == null)) {
+          setValidRemark(false);
+          Swal.fire('Please fill the mandatory fields', '', 'warning');
+          return;
+        }
         //   if (valid) {
         Swal.fire({
           title: actionMessage,
@@ -3390,7 +3686,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               ActionTakenOn: new Date().toISOString(),
               // ActionTakenRoleId: formData.RequesterDesignation,
               Status: "Approved",
-              // Remark: remark,
+              Remark: formData.Remark,
 
             }
             const postResult = await updateApprovalItem(arr, sp, editID.Id);
@@ -3407,6 +3703,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               //RequesterNameId: formData.RequesterNameId,
               //RequesterDesignation: formData.RequesterDesignation,
               //DepartmentId: formData.DepartmentId,
+              Remarks: "",
               PreparedById: sharewithIds.length > 0 ? sharewithIds : formData.PreparedById || undefined,
               TemplateTypeId: formData.TemplateTypeId,
               RequestDate: formData.RequestDate,
@@ -3447,6 +3744,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               //RequesterDesignation: formData.RequesterDesignation,
               //RequestDate: new Date(formData.RequestDate).toISOString(),
               //IssueDate: finalissuedateNew,
+              Remarks: "",
               PreparedById: sharewithIds.length > 0 ? sharewithIds : formData.PreparedById || undefined,
               RequestTypeId: formData.RequestTypeId,
               AmendmentTypeId: formData.AmendmentTypeId,
@@ -3511,6 +3809,28 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 console.error(`Error deleting item with ID: ${item.id}`, error);
               }
             }
+            // const toDeletefor = forwardToArrEdit.filter(
+            //   (itemEdit) => !forwardToArr.some(item => item.id === itemEdit.id) // Assuming ID is the unique key
+            // );
+            if (sharewithIds.length > 0) {
+              const preparerToDelete = forwardToArrEdit.filter(item => {
+                return (
+                  item.Responsibility === "Preparer" &&
+                  item.approvers.length === 1 &&
+                  !sharewithIds.includes(item.approvers[0].value)
+                );
+              });
+              for (const item of preparerToDelete) {
+                try {
+                  await sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.getById(item.id).delete();
+                  // console.log(`Deleted item with ID: ${item.ID}`);
+                } catch (error) {
+                  console.error(`Error deleting item with ID: ${item.id}`, error);
+                }
+              }
+            }
+
+            // Delete each item from SharePoint
 
             setLoading(false);
             Swal.fire(successMessage, '', 'success').then(async (result) => {
@@ -3746,7 +4066,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               // RequesterNameId: formData.RequesterNameId,
               // RequesterDesignation: formData.RequesterDesignation,
               // DepartmentId: formData.DepartmentId,
-
+              Remarks: formData.Remark,
               TemplateTypeId: formData.TemplateTypeId,
               RequestDate: formData.RequestDate,
               IssueDate: formData.IssueDate,
@@ -3786,6 +4106,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
               //RequesterDesignation: formData.RequesterDesignation,
               //RequestDate: new Date(formData.RequestDate).toISOString(),
               //IssueDate: finalissuedateNew,
+              Remarks: formData.Remark,
               PreparedById: sharewithIds.length > 0 ? sharewithIds : formData.PreparedById || undefined,
               RequestTypeId: formData.RequestTypeId,
               AmendmentTypeId: formData.AmendmentTypeId,
@@ -3949,11 +4270,20 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         const file = files[0];
         if (!allowedTypes.includes(file.type)) {
           Swal.fire({
-            icon: "error",
+            //icon: "error",
             title: "Invalid File Type",
             text: "Only images and document files are allowed.",
           });
           return;
+        }
+        const fileExtension = files[0].name.split('.').pop().toLowerCase();
+        if (fileExtension === 'doc') {
+          Swal.fire({
+            // icon: "error",
+            title: "Invalid File Type",
+            text: "Please convert the .doc file to .docx format and reattach the updated file.",
+          });
+          return;        // Stop further execution
         }
         var arr = {};
         arr = {
@@ -4108,7 +4438,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             type="checkbox"
             className={`form-check-input ${(!ValidSubmit && changerequesttypeerr) ? "border-on-error" : ""}`}
             id={`checkbox-${checkbox.id}`}
-            disabled={InputDisabled && formData?.Status !== "Rework"}
+            disabled={(InputDisabled && formData?.Status !== "Rework") || IsRecorddisabled}
             checked={selectedCheckboxIds.indexOf(checkbox.id) !== -1}
             onChange={() => handleCheckboxChange(checkbox.id)}
           />
@@ -4329,7 +4659,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       className={`${(!ValidDraft && departmenterr) ? "border-on-error" : ""} ${(!ValidSubmit && departmenterr) ? "border-on-error" : ""}`}
                                       onChange={(selectedOption: any) => onSelectDepart(selectedOption)}
                                       placeholder="Search Department"
-                                      isDisabled={InputDisabled || formData?.Status == "Rework"}
+                                      isDisabled={InputDisabled || formData?.Status == "Rework" || IsRecorddisabled}
                                     />
                                   </div>
 
@@ -4366,7 +4696,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       onSelectDate={onDateChange}
                                       maxDate={new Date()}
                                       minDate={new Date()}
-                                      disabled={InputDisabled && formData?.Status !== "Rework"}
+                                      disabled={InputDisabled && formData?.Status !== "Rework" || IsRecorddisabled}
                                       formatDate={(date) => moment(date).format('DD/MMM/YYYY')}
                                     />
                                   </div>
@@ -4390,7 +4720,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       className={`${(!ValidDraft && requesttypeerr) ? "border-on-error" : ""} ${(!ValidSubmit && requesttypeerr) ? "border-on-error" : ""}`}
                                       onChange={(selectedOption: any) => onSelectReq(selectedOption)}
                                       placeholder="Search Request Type"
-                                      isDisabled={InputDisabled || formData?.Status == "Rework"}
+                                      isDisabled={InputDisabled || formData?.Status == "Rework" || IsRecorddisabled}
                                     />
                                   </div>
 
@@ -4425,7 +4755,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         placeholder={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.requestcode == "New")
                                           || InputDisabled ? "" : "Search Document Code"}
                                         isDisabled={selectedOptionReq == null || (selectedOptionReq != null && selectedOptionReq?.requestcode == "New")
-                                          || InputDisabled
+                                          || InputDisabled || IsRecorddisabled
                                         }
                                       />
                                     </div>
@@ -4474,7 +4804,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       className={` ${(!ValidSubmit && documenttypeerr) ? "border-on-error" : ""}`}
                                       onChange={(selectedOption: any) => onSelectDocumentType(selectedOption)}
                                       placeholder="Search Document Type"
-                                      isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.requestcode != "New") || formData?.Status == "Rework"}
+                                      isDisabled={InputDisabled || IsRecorddisabled || (selectedOptionReq != null && selectedOptionReq?.requestcode != "New") || formData?.Status == "Rework"}
                                     />
                                   </div>
 
@@ -4498,7 +4828,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       className={` ${(!ValidSubmit && locationerr) ? "border-on-error" : ""}`}
                                       onChange={(selectedOption: any) => onSelectLocation(selectedOption)}
                                       placeholder="Search Location"
-                                      isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.requestcode != "New") || formData?.Status == "Rework"}
+                                      isDisabled={InputDisabled || IsRecorddisabled || (selectedOptionReq != null && selectedOptionReq?.requestcode != "New") || formData?.Status == "Rework"}
                                     />
                                   </div>
 
@@ -4522,7 +4852,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       className={` ${(!ValidSubmit && custodianerr) ? "border-on-error" : ""}`}
                                       onChange={(selectedOption: any) => onSelectCustodian(selectedOption)}
                                       placeholder="Search Custodian"
-                                      isDisabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.requestcode != "New") || formData?.Status == "Rework"}
+                                      isDisabled={InputDisabled || IsRecorddisabled || (selectedOptionReq != null && selectedOptionReq?.requestcode != "New") || formData?.Status == "Rework"}
                                     />
                                   </div>
 
@@ -4545,7 +4875,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       name="Amendment Type"
                                       className={`${(!ValidSubmit && amendmenterr) ? "border-on-error" : ""}`}
                                       onChange={(selectedOption: any) => onSelectAmend(selectedOption)}
-                                      placeholder="Search" isDisabled={InputDisabled && formData?.Status != "Rework"}
+                                      placeholder="Search" isDisabled={(InputDisabled && formData?.Status != "Rework") || IsRecorddisabled}
                                     />
                                   </div>
 
@@ -4568,7 +4898,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       name="Classification"
                                       className={`${(!ValidSubmit && classificationerr) ? "border-on-error" : ""}`}
                                       onChange={(selectedOption: any) => onSelectClassification(selectedOption)}
-                                      placeholder="Search Classification" isDisabled={InputDisabled && formData?.Status != "Rework"}
+                                      placeholder="Search Classification" isDisabled={(InputDisabled && formData?.Status != "Rework") || IsRecorddisabled}
                                     />
                                   </div>
 
@@ -4592,7 +4922,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       className={`${(!ValidSubmit && templatetypeerr) ? "border-on-error" : ""}`}
                                       onChange={(selectedOption: any) => onSelectTemplatetype(selectedOption)}
                                       placeholder="Search Template type"
-                                      isDisabled={InputDisabled || !enableTemplatetype}
+                                      isDisabled={InputDisabled || !enableTemplatetype || IsRecorddisabled}
                                     />
                                   </div>
 
@@ -4613,7 +4943,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       className={`form-control ${(!ValidDraft && filenameerr) ? "border-on-error" : ""} ${(!ValidSubmit && filenameerr) ? "border-on-error" : ""}`}
                                       //className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                       onChange={(e) => onChangefilename("filename", e.target.value)}
-                                      disabled={InputDisabled || (selectedOptionReq != null && selectedOptionReq?.requestcode != "New") || formData?.Status == "Rework"}
+                                      disabled={InputDisabled || IsRecorddisabled || (selectedOptionReq != null && selectedOptionReq?.requestcode != "New") || formData?.Status == "Rework"}
                                       placeholder="Document name"
                                       value={formData.filename} />
                                   </div>
@@ -4663,7 +4993,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       type="file"
                                       id="attachment"
                                       name="attachment"
-                                      disabled={InputDisabled && formData?.Status != "Rework"}
+                                      disabled={(InputDisabled && formData?.Status != "Rework") || IsRecorddisabled}
                                       //disabled={handleSectionState('requestedBySection')}
                                       accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
                                       className={`form-control ${(!ValidSubmit && attachmenterr) ? "border-on-error" : ""}`}
@@ -4710,7 +5040,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       // onChange={(selectedOption: any) => onSelect(selectedOption)}
                                       onChange={(selectedOptions: any) => onSelectsharewith(selectedOptions)}
                                       placeholder="Enter Prepared By"
-                                      isDisabled={InputDisabled && formData?.Status != "Rework"}
+                                      isDisabled={(InputDisabled && formData?.Status != "Rework") || IsRecorddisabled}
                                     />
                                   </div>
                                 </div>
@@ -4740,12 +5070,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                 <h3 className="text-dark font-16 fw-bold mb-3">Description</h3>
 
                               </div>
-                              {console.log("formData?.Status ", InputDisabled, formData)}
+                              {console.log("formData?.Status ", InputDisabled, IsRecorddisabled, formData)}
                               <div className='col-sm-4'>
                                 <div style={{ textAlign: "right" }} className="mt-2 float-end text-right">
                                   {/* <i style={{ cursor: "pointer" }} onClick={addField}  className="fe-plus-circle  font-20 text-warning"></i> */}
                                   {/* <i style={{ cursor: "pointer" }} className="fe-plus-circle  font-20 text-warning"></i> */}
-                                  {(modeValue === "" || modeValue === "edit" || InputDisabled != true || (modeValue == "approve" && formData?.Status == "Rework")) &&
+                                  {(modeValue === "" || modeValue === "edit" || InputDisabled != true || (modeValue == "approve" && formData?.Status == "Rework")) && !IsRecorddisabled &&
                                     // {(InputDisabled != true && (formData?.Status == "Rework" || formData?.Status == "" || formData?.Status == "Save as draft")) && 
                                     <img style={{ width: '30px', cursor: 'pointer', marginTop: '-7px' }}
                                       src={require("../assets/plus.png")} onClick={addCancelReason} className=''></img>}
@@ -4766,7 +5096,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     <th style={{ minWidth: "40px", maxWidth: "40px" }}>S.No</th>
                                     <th>Change Description<span className="text-danger1">*</span></th>
                                     <th>Reason for Change<span className="text-danger1">*</span></th>
-                                    {(modeValue === "" || modeValue === "edit" || InputDisabled != true || (modeValue == "approve" && formData?.Status == "Rework")) &&
+                                    {(modeValue === "" || modeValue === "edit" || InputDisabled != true || (modeValue == "approve" && formData?.Status == "Rework")) && !IsRecorddisabled &&
                                       <th style={{ minWidth: "30px", maxWidth: "30px" }}>Action</th>
                                     }
                                   </tr>
@@ -4792,7 +5122,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           <textarea
                                             //onKeyDown={handleKeyDowntextarea}
                                             id="simpleinput"
-                                            disabled={InputDisabled && formData?.Status !== "Rework"}
+                                            disabled={(InputDisabled && formData?.Status !== "Rework") || IsRecorddisabled}
                                             value={row.description}
                                             className={`form-control mb-0 ${rowErrors[index]?.descriptionError ? "border-on-error" : ""}`}
                                             onChange={(e) => {
@@ -4807,7 +5137,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           <textarea
                                             //onKeyDown={handleKeyDowntextarea}
                                             id="simpleinput"
-                                            disabled={InputDisabled && formData?.Status !== "Rework"}
+                                            disabled={(InputDisabled && formData?.Status !== "Rework") || IsRecorddisabled}
                                             className={`form-control mb-0 ${rowErrors[index]?.reasonError ? "border-on-error" : ""}`}
                                             value={row.reason}
                                             onChange={(e) => {
@@ -4818,7 +5148,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           />
                                         </td>
 
-                                        {(modeValue === "" || modeValue === "edit" || InputDisabled !== true || (modeValue === "approve" && formData?.Status === "Rework")) && (
+                                        {(modeValue === "" || modeValue === "edit" || InputDisabled !== true || (modeValue === "approve" && formData?.Status === "Rework")) && !IsRecorddisabled && (
                                           <td style={{ minWidth: "30px", maxWidth: "30px", textAlign: "center" }}>
                                             <img src={require("../assets/del.png")} onClick={() => deleteLocalFile(index, cancellReason)} />
                                           </td>
@@ -4839,7 +5169,28 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
 
                         </div>
+                        {(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.IsRework == "Yes" && editID.CurrentUserRole === "Initiator")
+                          &&
+                          <div className="col-lg-12">
 
+                            <div className="mb-0" >
+
+                              <label htmlFor="example-textarea" className="form-label text-dark font-14">Remarks: <span className="text-danger1"> *</span></label>
+
+                              <textarea style={{ height: '80px' }} className={`form-control ${(!ValidRemark) ? "border-on-error" : ""}`}
+                                id="example-textarea"
+                                rows={5}
+                                name="Remark"
+                                value={formData.Remark}
+
+                                onChange={(e) => setFormData({ ...formData, Remark: e.target.value })}>
+
+                              </textarea>
+
+                            </div>
+
+                          </div>
+                        }
                         {console.log("editiiiiifhifassignmentt", editID, modeValue, InputDisabled, ApprovalTypeOptions, MainEditItem,
                           (modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES"),
                           (MainEditItem !== null && MainEditItem.length != 0 && MainEditItem.Status != "Save as draft" && MainEditItem.Status != "Rework" && modeValue !== "view"))}
@@ -4896,7 +5247,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         >
                                           {index + 1}</div></td>
                                         <td
-                                          title={row.role != 0 && UserRoles.filter((role: any) => role.value == row.role)[0].label}
+                                          title={row.role != 0 && UserRoles.filter((role: any) => role.value == row.role)[0]?.label}
                                           style={{ overflow: 'inherit', minWidth: '60px', maxWidth: '60px' }}
                                           className="ng-binding">
                                           <select
@@ -4930,13 +5281,15 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                               value={row.Responsibility}
                                               onChange={(e) => handleChangeResp(e, row.level)}
                                               className={`form-select ${row.responsibilityerror ? "border-on-error" : ""}`}
-                                              disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}
+                                              disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES") || row.IsPreparedBy == true || row.Responsibility === "Preparer"}
                                               title={row.Responsibility ? row.Responsibility : "Select"}
                                             >
                                               <option value="">Select </option>
-                                              <option value="Signer">Signer</option>
+                                              <option value="Preparer" disabled>Preparer</option>
                                               <option value="Reviewer">Reviewer</option>
                                               <option value="Endorser">Endorser</option>
+                                              <option value="Signer">Signer</option>
+
 
                                             </select>
 
@@ -4949,7 +5302,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                             <input
                                               type="checkbox"
                                               checked={row.IsSignatureRequired}
-                                              disabled={row.Responsibility === "Signer" || row.Responsibility === "Endorser" || row.Responsibility === "" || (!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES"))}
+                                              disabled={row.Responsibility === "Signer" || row.Responsibility === "Endorser" || row.Responsibility === "Preparer" || row.Responsibility === "" || (!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES"))}
                                               style={{ marginLeft: '17px', width: "15px" }}
 
                                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -4980,11 +5333,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                             // onChange={(selectedOption: any) => onSelect(selectedOption)}
                                             onChange={(selectedOptions: any) => onSelectApprovers(selectedOptions, row.level)}
                                             placeholder="Enter Approver Name"
-                                            isDisabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}
+                                            isDisabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES") || row.IsPreparedBy == true || row.Responsibility === "Preparer"}
                                           />
-
-
-
                                         </td>
                                         <td
                                           //title={ApprovalTypeOptions.filter(x => x.value = row.leveltype)[0].label}
@@ -5006,7 +5356,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           </select> */}
                                           <select id="approvalType" value={row.leveltype} onChange={(e) => onSelectApprovalType(e, row.level)}
                                             className={`form-select ${row.typeError ? "border-on-error" : ""}`}
-                                            disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}
+                                            disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES") || row.IsPreparedBy == true || row.Responsibility === "Preparer"}
                                             title={row.leveltype === "One" ? "Anyone" : row.leveltype === "All" ? "Everyone" : "Select Approval Type"}>
                                             <option value="">Select </option>
                                             <option value="One">Anyone</option>
@@ -5015,7 +5365,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         </td>
                                         <td style={{ minWidth: '45px', maxWidth: '45px', overflow: 'inherit' }}>
                                           {/* <i className="fe-trash-2 text-danger"></i> */}
-                                          {editID.CurrentUserRole === "OES" ? <img src={require("../assets/del.png")} onClick={() => handleDeleteRow(index)} /> :
+                                          {editID.CurrentUserRole === "OES" && row.Responsibility !== "Preparer" && !IsRecorddisabled ? <img src={require("../assets/del.png")} onClick={() => handleDeleteRow(index)} /> :
                                             <img src={require("../assets/recycle-bin.png")} className='sidebariconsmall' />}
                                           {/* <img src={require("../assets/del.png")} onClick={() => handleDeleteRow(index)} className='sidebariconsmall' /> */}
 

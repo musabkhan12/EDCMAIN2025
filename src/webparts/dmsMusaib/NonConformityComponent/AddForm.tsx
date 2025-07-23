@@ -788,7 +788,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     const sp = spfi().using(SPFx(this.props.context));
     try {
       // const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items();
-      const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items.orderBy("Title", true)();
+      const deptItems = await sp.web.lists.getByTitle("ProcessDepartmentMasterList").items.orderBy("Title", true)();
       const options = deptItems.map((item: {
         DepartmentCode: any; Title: string; Id: number, ADDepartmentName: string
       }) => ({

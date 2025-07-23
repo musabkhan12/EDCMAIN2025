@@ -71,6 +71,9 @@ interface ForwardTo {
     level: number;
     approvers: any[]; // Or a more specific type like `string[]` or `SPUser[]`
     approvalType: string;
+    Responsibility?: string;
+    IsSignatureRequired?: boolean;
+    responsibilityerror?: boolean;
 }
 interface ncNumber {
     Id: number,
@@ -118,7 +121,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [ValidAudit, setValidAudit] = React.useState(true);
     const [ValidSubmit, setValidSubmit] = React.useState(true);
     const [ValidCancelReason, setValidCancelReason] = React.useState(true);
-    const [forwardToValidationErrors, setForwardToValidationErrors] = React.useState<{ [level: number]: { role: boolean; approvers: boolean; approvalType: boolean } }>({});
+    const [forwardToValidationErrors, setForwardToValidationErrors] = React.useState<{ [level: number]: { role: boolean; approvers: boolean; approvalType: boolean, responsibility: boolean } }>({});
     const [ValidForwardTo, setValidForwardTo] = React.useState(true);
     const [RequesterRoleId, setRequesterRoleId] = React.useState(null);
     const [RequestTypeId, setRequestTypeId] = React.useState(null);
@@ -616,7 +619,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
 
     const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
-        { id: 0, role: 0, level: 1, approvers: [], approvalType: "One" } // Default row
+        {
+            id: 0, role: 0, level: 1, approvers: [], approvalType: "One", Responsibility: "Signer", IsSignatureRequired: true,
+            responsibilityerror: false,
+        } // Default row
     ]);
 
     const Breadcrumb = [
@@ -1031,6 +1037,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         role: item.ApproverRole?.Id || 0, // Assuming role comes from ApproverRole
                         level: item.Level || 1, // Default to 1 if missing
                         approvalType: item.LevelType,
+                        Responsibility: item.Responsibility || "",
+                        IsSignatureRequired: item.IsSignatureRequired == "Yes" ? true : false,
                         approvers: item.Approvers?.map((approver: any) => ({
                             value: approver.Id,
                             label: approver.Title,
@@ -1160,10 +1168,19 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const handleAddRow = () => {
         setForwardToArr((prev) => [
             ...prev,
-            { id: 0, role: 0, level: prev.length + 1, approvers: [], approvalType: "One" }
+            { id: 0, role: 0, level: prev.length + 1, approvers: [], approvalType: "One", Responsibility: "Signer", IsSignatureRequired: true }
         ]);
     };
+    const handleChangeResp = (event: React.ChangeEvent<HTMLSelectElement>, lvl: number) => {
+        event.preventDefault();
+        const updatedArr = forwardToArr.map(row =>
+            // row.level === lvl ? { ...row, Responsibility: event.target.value} : row
 
+            row.level === lvl ? { ...row, Responsibility: event.target.value, IsSignatureRequired: true } : row
+        );
+        //   setApprovalType(event.target.value);
+        setForwardToArr(updatedArr);
+    };
     const handleDeleteRow = (index: number) => {
         const updatedRows = forwardToArr
             .filter((_, i) => i !== index) // Remove selected row
@@ -1420,7 +1437,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
             attachment,
             attachmentIds,
             attachmentJson } = formData;
-        const validationErrors: { [level: number]: { role: boolean; approvers: boolean; approvalType: boolean } } = {};
+        const validationErrors: { [level: number]: { role: boolean; approvers: boolean; approvalType: boolean, responsibility: boolean } } = {};
         // const { description } = richTextValues;
         console.log("formdataaaaa", formData);
         let valid = true;
@@ -1564,10 +1581,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 const errors = {
                     role: row.role === null || row.role === 0,
                     approvers: !row.approvers || row.approvers.length === 0,
-                    approvalType: row.approvalType.trim() === ""
+                    approvalType: row.approvalType.trim() === "",
+                    responsibility: row.Responsibility.trim() === ""
                 };
 
-                if (errors.role || errors.approvers || errors.approvalType) {
+                if (errors.role || errors.approvers || errors.approvalType || errors.responsibility) {
                     validationErrors[row.level] = errors;
                     isValidfor = false;
                 }
@@ -1918,7 +1936,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                         if (forwardToArr.length) {
                             isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
-                                row.approvalType.trim() !== "");
+                                row.approvalType.trim() !== "" && row.Responsibility.trim() !== "");
 
                             // if (!isValid) {
                             //     // alert("Each row must have a role selected and at least one approver.");
@@ -1970,6 +1988,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     ProcessName: "IMS Audit Report and Checklist",
                                     FormNameId: FormNameId,
                                     ApprovalType: "Approval",
+                                    Responsibility: item.Responsibility || "",
+                                    IsSignatureRequired: item.IsSignatureRequired ? "Yes" : "No",
                                     // IsApprovalGenerated: "No"
                                     // RedirectionLink:,
 
@@ -2268,7 +2288,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                         if (forwardToArr.length) {
                             isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
-                                row.approvalType.trim() !== "");
+                                row.approvalType.trim() !== "" && row.Responsibility.trim() !== "");
 
                             // if (!isValid) {
                             //     // alert("Each row must have a role selected and at least one approver.");
@@ -2309,7 +2329,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     LevelType: item.approvalType,
                                     SubmitStatus: "Yes",
                                     Maxlevel: item.approvers?.length,
-
+                                    Responsibility: item.Responsibility || "",
+                                    IsSignatureRequired: item.IsSignatureRequired ? "Yes" : "No",
                                     // MainListID: String(editItemID),
                                     MainListID: String(postId),
                                     // RequestId: selectedOption.DocumentCode,
@@ -2620,7 +2641,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 LevelType: item.approvalType,
                                 SubmitStatus: "No",
                                 Maxlevel: item.approvers?.length,
-
+                                Responsibility: item.Responsibility || "",
+                                IsSignatureRequired: item.IsSignatureRequired ? "Yes" : "No",
                                 // MainListID: String(editItemID),
                                 MainListID: String(editItemID),
                                 // RequestId: selectedOption.DocumentCode,
@@ -2644,7 +2666,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             }
                             else {
                                 if (forwardToArr.every(row => row.role == 0 && row.approvers.length == 0 &&
-                                    row.approvalType.trim() == "") == false) {
+                                    row.approvalType.trim() == "" && row.Responsibility.trim() == "") == false) {
                                     const postResult2 = await addAllProcessItem(arr2, sp);
                                     const postId2 = postResult2?.data?.ID;
                                 }
@@ -2921,7 +2943,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                         if (forwardToArr.length) {
                             isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
-                                row.approvalType.trim() !== "");
+                                row.approvalType.trim() !== "" && row.Responsibility.trim()!== "");
                         }
 
                         // if (isValid) {
@@ -2947,6 +2969,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     ApproverRoleId: item.role ? item.role : 0,
                                     Level: Number(item.level),
                                     ApproversId: approversIds || [],
+                                    Responsibility: item.Responsibility || "",
+                                    IsSignatureRequired: item.IsSignatureRequired ? "Yes" : "No",
                                     // LevelType: "One",
                                     LevelType: item.approvalType,
                                     SubmitStatus: "No",
@@ -4348,6 +4372,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                     <tr>
                                                                         <th style={{ minWidth: "30px", maxWidth: "30px" }}>S.No</th>
                                                                         <th style={{ borderBottomLeftRadius: "0px", minWidth: '80px', maxWidth: '80px', }}>Role<span className="text-danger1"> *</span></th>
+                                                                        <th style={{ borderBottomLeftRadius: "0px", minWidth: '86px', maxWidth: '86px' }}>Responsibility<span className="text-danger1"> *</span></th>
+                                                                        <th style={{ minWidth: "46px", maxWidth: "46px" }} title="Use your electronic digital signature to sign this document digitally">E-Sign?</th>
                                                                         <th style={{ minWidth: '40px', maxWidth: '40px' }} >Level</th>
                                                                         <th>Approver name<span className="text-danger1"> *</span></th>
                                                                         <th style={{ minWidth: '70px', maxWidth: '70px' }} >Approval criteria<span className="text-danger1"> *</span></th>
@@ -4384,6 +4410,48 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                                                 </select>
 
+                                                                            </td>
+                                                                            <td style={{ overflow: 'inherit', minWidth: '86px', maxWidth: '86px' }}>
+                                                                                <div
+                                                                                //  style={{ display: "flex", alignItems: 'center', gap: '8px' }}
+                                                                                >
+                                                                                    <select
+                                                                                        id="responsibleId"
+                                                                                        value={row.Responsibility}
+                                                                                        onChange={(e) => handleChangeResp(e, row.level)}
+                                                                                        className={`form-select newse ${forwardToValidationErrors[row.level]?.role ? "border-on-error" : ""}`}
+                                                                                        disabled={InputDisabled}
+                                                                                        title={row.Responsibility ? row.Responsibility : "Select"}
+                                                                                    >
+                                                                                        <option value="">Select </option>
+                                                                                        <option value="Signer">Signer</option>
+                                                                                        <option value="Reviewer">Reviewer</option>
+
+
+                                                                                    </select>
+
+                                                                                </div>
+                                                                            </td>
+                                                                            <td style={{ minWidth: "46px", maxWidth: "46px", overflow: 'inherit' }}>
+                                                                                <div
+                                                                                //  style={{ display: "flex", alignItems: 'center', gap: '8px' }}
+                                                                                >
+                                                                                    <input
+                                                                                        type="checkbox"
+                                                                                        checked={row.IsSignatureRequired}
+                                                                                        disabled={row.Responsibility === "Signer" || row.Responsibility === "" || InputDisabled}
+                                                                                        style={{ marginLeft: '17px', width: "15px" }}
+
+                                                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                                                            const isChecked = e.target.checked;
+                                                                                            const updatedArr = forwardToArr.map(row1 =>
+                                                                                                row1.level === row.level ? { ...row1, IsSignatureRequired: isChecked } : row1
+                                                                                            );
+                                                                                            setForwardToArr(updatedArr);
+                                                                                        }}
+                                                                                    />
+
+                                                                                </div>
                                                                             </td>
                                                                             <td style={{ minWidth: '40px', maxWidth: '40px', overflow: 'inherit' }}>Level {index + 1}</td>
                                                                             <td title={row.approvers.map(user => user.label).join(', ') || "Select Approvers"} style={{ overflow: 'inherit' }}>
@@ -4734,8 +4802,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 <td style={{ minWidth: '50px', maxWidth: '50px', textAlign: 'center' }} title={"Preview Document"}>
                                                                                     <span onClick={() => OpenFile(TemplateDocAudit && TemplateDocAudit[0], "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                                                                         <FontAwesomeIcon title='Preview file' icon={faEye} /></span>
-                                                                                     <span onClick={() => OpenFile(TemplateDocAudit && TemplateDocAudit[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
-                                                                                    <FontAwesomeIcon icon={faDownload} /></span> 
+                                                                                    <span onClick={() => OpenFile(TemplateDocAudit && TemplateDocAudit[0], "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                        <FontAwesomeIcon icon={faDownload} /></span>
                                                                                 </td>
                                                                                 {/* {!InputDisabled && <td style={{ textAlign: 'center' }}> <img src={require("../assets/del.png")} style={{ cursor: "pointer" }} onClick={() => handleDelete(index)} /></td>} */}
 

@@ -404,7 +404,16 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 // }
             }
 
-            setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_DocumentCancel))
+            // setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_DocumentCancel))
+            let ProcessApprovalItem = await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_DocumentCancel);
+
+            setDraftApprovalItem(ProcessApprovalItem);
+            setFormData(prevData => ({
+                ...prevData,
+
+                Remark: ProcessApprovalItem[0]?.Remark || "",
+            }));
+
 
 
 
@@ -924,6 +933,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 //Swal.fire('Error', 'Entity is required!', 'error');
                 valid = false;
             }
+            
 
             setValidSubmit(valid);
             // setValidCancelReason(valid1);
@@ -1680,7 +1690,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                             let arr2 = {
                                 Title: currentUser.Title,
-                                ContentTitle: selectedOption.ReferenceNumber,
+                                // ContentTitle: selectedOption.ReferenceNumber,
+                                ContentTitle: formData.filename,
                                 MainListNameId: ListNameId,
                                 ApproverRoleId: item.role,
                                 Level: Number(item.level),
@@ -1841,8 +1852,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                 let arr2 = {
                                     Title: currentUser.Title,
-                                    ContentTitle: selectedOption.ReferenceNumber,
-
+                                    // ContentTitle: selectedOption.ReferenceNumber,
+                                    ContentTitle: formData.filename,
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role,
                                     Level: Number(item.level),
@@ -1946,6 +1957,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         // let valid = true;
         let actionMessage = "";
         let successMessage = "";
+        Array.from(document.getElementsByClassName("border-on-error")).forEach((element: Element) => {
+            element.classList.remove("border-on-error");
+        });
         switch (status) {
             case "Approved":
                 actionMessage = "Do you want to submit this request?";
@@ -1963,6 +1977,13 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
         if (status == "Approved") {
+            if (formData.Remark === "") {
+                //   setValidRemark(false);
+                document.getElementById("Remark-textarea2")?.classList.add("border-on-error");
+                Swal.fire('Please fill the mandatory fields', '', 'warning');
+                return;
+                // valid = false;
+            }
             if (await validateForm(FormSubmissionMode.SUBMIT)) {
 
                 //   if (valid) {
@@ -1988,6 +2009,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             // ActionTakenRoleId: formData.RequesterDesignation,
                             Status: "Approved",
                             // Remark: remark,
+                            Remark: formData.Remark,
 
                         }
                         const postResult = await updateApprovalItem(arr, sp, editID.Id);
@@ -2126,6 +2148,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             // Status: status,
                             // Remark: remark,
                             // Status: "Pending",
+                            Remark: formData.Remark,
 
                         }
                         const postResult = await updateApprovalItem(arr, sp, editID.Id);
@@ -2767,6 +2790,46 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
                                                 </div>
+                                                {/* //////&&&&& changes*/}
+                                                {(editID != null && editID.CurrentUserRole === "Initiator" && editID.IsInitiator == "Yes" && editID.Level == 0) && editID.Status === "Pending" && <div className="row mt-3">
+                                                    <div className="col-12 text-center">
+
+
+
+                                                        <div className="row">
+                                                            <div className="col-lg-12">
+
+                                                                <div className="mb-0" >
+
+                                                                    <label htmlFor="example-textarea" className="form-label text-dark font-14" style={{ textAlign: 'left' }}>Remarks <span className="text-danger1"> *</span></label>
+
+                                                                    <textarea
+                                                                        style={{ height: '80px' }}
+                                                                        className={`form-control `}
+                                                                        id="Remark-textarea2"
+                                                                        rows={5}
+                                                                        name="Remark"
+                                                                        value={formData.Remark}
+                                                                        onChange={(e) => setFormData({ ...formData, Remark: e.target.value })}
+                                                                    ></textarea>
+
+                                                                </div>
+
+                                                            </div>
+
+
+
+                                                        </div>
+
+
+
+
+                                                    </div>
+                                                </div>
+                                                }
+
+                                                {/* ////////&&&& */}
+
                                                 {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
 
                                                 {/* {modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES" && */}
@@ -2850,6 +2913,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                             <option value="Signer">Signer</option>
                                                                                             <option value="Reviewer">Reviewer</option>
                                                                                             <option value="Endorser">Endorser</option>
+                                                                                            <option value="Preparer">Preparer</option>
                                                                                         </select>
 
                                                                                     </div>
@@ -3080,6 +3144,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                             <option value="Signer">Signer</option>
                                                                                             <option value="Reviewer">Reviewer</option>
                                                                                             <option value="Endorser">Endorser</option>
+                                                                                            <option value="Preparer">Preparer</option>
                                                                                         </select>
 
                                                                                     </div>

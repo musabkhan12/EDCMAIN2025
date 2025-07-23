@@ -582,7 +582,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IViewStat
   public async getDepartment() {
     const sp = spfi().using(SPFx(this.props.context));
     try {
-      const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items();
+      const deptItems = await sp.web.lists.getByTitle("ProcessDepartmentMasterList").items();
       const options = deptItems.map((item: { Title: string; Id: number }) => ({
         key: item.Id,
         text: item.Title,

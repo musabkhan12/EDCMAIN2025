@@ -184,6 +184,8 @@ const MemoContext = ({ props }: any) => {
     RequesterName: "",
     RequestDate: null,
 
+    Remark: ""
+
   });
   const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
     { id: 0, role: 0, level: 1, approvers: [], approvalType: "One", Responsibility: "Signer", IsSignatureRequired: true } // Default row
@@ -612,7 +614,15 @@ const MemoContext = ({ props }: any) => {
 
       }
 
-      setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_Memo))
+      // setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_Memo))
+      let ProcessApprovalItem = await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_Memo);
+
+      setDraftApprovalItem(ProcessApprovalItem);
+      setFormData(prevData => ({
+        ...prevData,
+
+        Remark: ProcessApprovalItem[0]?.Remark || "",
+      }));
 
     }
     // formitemid =20;
@@ -1305,6 +1315,15 @@ const MemoContext = ({ props }: any) => {
   // #region  Submit Form
   const handleFormSubmit = async () => {
     if (await validateForm(FormSubmissionMode.SUBMIT)) {
+      if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
+        if (formData.Remark === "") {
+          //   setValidRemark(false);
+          document.getElementById("Remark-textarea2")?.classList.add("border-on-error");
+          Swal.fire('Please fill the mandatory fields', '', 'warning');
+          return;
+
+        }
+      }
 
 
       if (editForm) {
@@ -1567,6 +1586,7 @@ const MemoContext = ({ props }: any) => {
                 // ActionTakenRoleId: formData.RequesterDesignation,
                 Status: "Approved",
                 // Remark: remark,
+                Remark: formData.Remark,
 
               }
               const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
@@ -2255,6 +2275,7 @@ const MemoContext = ({ props }: any) => {
                 // // Remark: remark,
                 Title: formData.subject,
                 ContentTitle: formData.subject,
+                Remark: formData.Remark,
 
               }
               const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
@@ -3843,6 +3864,47 @@ const MemoContext = ({ props }: any) => {
                           </div>
                         </div> */}
 
+                        {/* //////&&&&& */}
+                        {(editID != null && editID.CurrentUserRole === "Initiator" && editID.IsInitiator == "Yes" && editID.Level == 0) && editID.Status === "Pending" && <div className="row mt-3">
+                          <div className="col-12 text-center">
+
+
+
+                            <div className="row">
+                              <div className="col-lg-12">
+
+                                <div className="mb-0" >
+
+                                  <label htmlFor="example-textarea" className="form-label text-dark font-14" style={{ textAlign: 'left' }}>Remarks <span className="text-danger1"> *</span></label>
+
+                                  <textarea
+                                    style={{ height: '80px' }}
+                                    className={`form-control `}
+                                    id="Remark-textarea2"
+                                    rows={5}
+                                    name="Remark"
+                                    value={formData.Remark}
+                                    onChange={(e) => setFormData({ ...formData, Remark: e.target.value })}
+                                  ></textarea>
+
+                                </div>
+
+                              </div>
+
+
+
+                            </div>
+
+
+
+
+                          </div>
+                        </div>
+                        }
+
+                        {/* ////////&&&& */}
+
+
 
 
                         {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
@@ -3916,7 +3978,7 @@ const MemoContext = ({ props }: any) => {
                                       <td style={{ overflow: 'inherit', minWidth: '80px', maxWidth: '80px' }}>
                                         <div
                                         //  style={{ display: "flex", alignItems: 'center', gap: '8px' }}
-                                         >
+                                        >
                                           <select
                                             id="responsibleId"
                                             value={row.Responsibility}
@@ -3941,7 +4003,7 @@ const MemoContext = ({ props }: any) => {
                                             checked={row.IsSignatureRequired}
                                             disabled={row.Responsibility === "Signer" || row.Responsibility === "" || InputDisabled}
                                             style={{ marginLeft: '17px', width: "15px" }}
-                                             title="Signature Required"
+                                            title="Signature Required"
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                               const isChecked = e.target.checked;
                                               const updatedArr = forwardToArr.map(row1 =>
