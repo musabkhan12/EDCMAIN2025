@@ -43,6 +43,7 @@ import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { getAuditProgShift } from '../EDCprocessComponent/FormComponent/FormService';
 import FileViewer from '../ChangerequestComponent/fileviewer';
+import { CheckIfAlreadyactionTaken } from '../ChangerequestComponent/DocumentCancellation';
 //SYnc time picker
 // import { TimePickerComponent } from '@syncfusion/ej2-react-calendars';
 
@@ -171,6 +172,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [TemplateDoc, setTemplateDoc] = React.useState<any>([]);
     const [TemplateDocAudit, setTemplateDocAudit] = React.useState<any>([]);
     const [sharewithusers, setSharewithusers] = React.useState([]);
+    const [ValidRemark, setValidRemark] = React.useState(true);
     const [checkboxValues, setCheckboxValues] = React.useState({
         ConformingPositiveFindings: false,
         FailureofIntentNonconformity: false,
@@ -193,6 +195,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const hiddenDivRef = React.useRef(null);
     //error end
     const [formData, setFormData] = React.useState({
+        RemarksInitiator: "",
         RequesterNameId: 0,
         RequesterName: "",
         RequesterDesignation: "",
@@ -214,6 +217,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         issueNo: "",
         revisionNo: "",
         Status: "",
+        submitStatus: "",
         revisionDate: null,
         issueDate: null,
         referenceNo: "",
@@ -909,6 +913,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     reportCode: setBannerById[0].ReportCode,
                     NCNo: setBannerById[0].NCNumber,
                     ObservationNo: setBannerById[0].ObservationNumber,
+                    RemarksInitiator: setBannerById[0].RemarksInitiator,
                     //ObservationSequence: setBannerById[0].ObservationSequence,
                     //NCSequence: setBannerById[0].NCSequence,
                     memoNumber: setBannerById[0].MemoNumber,
@@ -929,7 +934,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     AnnualAuditPlanDocumentLinkId: setBannerById[0].AnnualAuditPlanDocumentLinkId,
                     AuditplanDocId: setBannerById[0].AuditplanDocId,
                     SubmiitedDate: setBannerById[0].SubmiitedDate,
-                    submitstatus: setBannerById[0].SubmitStatus,
+                    submitStatus: setBannerById[0].SubmitStatus,
                     Status: setBannerById[0].Status,
                     documentname: setBannerById[0].DocumentName,
                     isrework: setBannerById[0].IsRework,
@@ -1231,6 +1236,14 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
         }
     }
+    const onChange = (name: string, value: string) => {
+        debugger
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: value,
+            RemarksInitiator: value
+        }));
+    };
     const OpenFileTemplate = (obj: any, sts: string) => {
         debugger
         setShowModalTemplateDoc(true);
@@ -1708,6 +1721,21 @@ const AnnualAuditReportContext = ({ props }: any) => {
     // };
     const handleFormSubmit = async () => {
         debugger
+        const IsactionTaken = await CheckIfAlreadyactionTaken(sp, editID.Id);
+        if (!IsactionTaken) {
+            Swal.fire("Action has already been taken for this record.");
+            return;
+        }
+        setValidRemark(true);
+        let postPayload = {};
+        let postPayload2 = {};
+        let postPayloadMemo = {};
+        let postPayload2AuditReport: {};
+        if (formData.Status === 'Rework' && formData.RemarksInitiator === "") {
+            setValidRemark(false);
+            Swal.fire('Please fill the mandatory fields', '', 'warning');
+            return;
+        }
         // Get max sequence/number from the updated array
         const maxNCSequence = Math.max(...NCNumberrows.map(r => r.ncsequenceNC || 0), 0);
         const maxObsSequence = Math.max(...NCNumberrows.map(r => r.observationsequenceObs || 0), 0);
@@ -1867,7 +1895,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             IsRework: "No",
                             SharewithId: sharewithIds,
                             AttachmentId: attachmentIds || [],
-                            AttachmentJson: JSON.stringify(bannerImageArray) || ""
+                            AttachmentJson: JSON.stringify(bannerImageArray) || "",
+                            RemarksInitiator: formData.RemarksInitiator,
 
 
                         }
@@ -2065,7 +2094,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 ActionTakenOn: new Date().toISOString(),
                                 // ActionTakenRoleId: formData.RequesterDesignation,
                                 Status: "Approved",
-                                // Remark: remark,
+                                Remark: formData.RemarksInitiator,
 
                             }
                             const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
@@ -2227,8 +2256,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             IsRework: "No",
                             AttachmentId: attachmentIds || [],
                             AttachmentJson: JSON.stringify(bannerImageArray) || "",
-                            SharewithId: sharewithIds
-
+                            SharewithId: sharewithIds,
+                            RemarksInitiator: formData.RemarksInitiator,
 
                         }
 
@@ -2532,7 +2561,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             IsRework: formData.Status == "Rework" ? "Yes" : "No",
                             AttachmentId: attachmentIds || [],
                             AttachmentJson: JSON.stringify(bannerImageArray) || "",
-                            SharewithId: sharewithIds
+                            SharewithId: sharewithIds,
+                            RemarksInitiator: formData.RemarksInitiator,
                         }
                         const postResult = await updateItem(arr, sp, editItemID);
                         const postId = postResult?.data?.ID;
@@ -2872,7 +2902,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             IsRework: formData.Status == "Rework" ? "Yes" : "No",
                             AttachmentId: attachmentIds || [],
                             AttachmentJson: JSON.stringify(bannerImageArray) || "",
-                            SharewithId: sharewithIds
+                            SharewithId: sharewithIds,
+                            RemarksInitiator: formData.RemarksInitiator,
 
                         }
                         // console.log(postPayload);
@@ -2943,7 +2974,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                         if (forwardToArr.length) {
                             isValid = forwardToArr.every(row => row.role !== 0 && row.approvers.length > 0 &&
-                                row.approvalType.trim() !== "" && row.Responsibility.trim()!== "");
+                                row.approvalType.trim() !== "" && row.Responsibility.trim() !== "");
                         }
 
                         // if (isValid) {
@@ -4529,8 +4560,30 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                     </div>
                                                 </div>
                                                 {/* // } */}
+                                                {formData.Status == "Rework" && formData.submitStatus == "No" && editID.CurrentUserRole == "Initiator" &&
+                                                    <div className="card">
 
+                                                        <div className="card-body">
 
+                                                            <div className="row">
+                                                                <div className="col-lg-12">
+
+                                                                    <div className="mb-0" >
+
+                                                                        <label htmlFor="example-textarea" className="form-label text-dark font-14">Remarks <span className="text-danger1"> *</span></label>
+
+                                                                        <textarea style={{ height: '80px' }} className={`form-control ${(!ValidRemark) ? "border-on-error" : ""}`} id="example-textarea" rows={5} name="RemarksInitiator" value={formData.RemarksInitiator}
+
+                                                                            onChange={(e) => onChange(e.target.name, e.target.value)}></textarea>
+
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+                                                    </div>
+                                                }
 
                                                 {/* ////////////Approval card */}
 

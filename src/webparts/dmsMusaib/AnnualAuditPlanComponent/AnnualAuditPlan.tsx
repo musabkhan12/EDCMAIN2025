@@ -4717,46 +4717,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                 {/* ........ */}
 
-                                                {/* //////&&&&& */}
-                                                {(editID != null && editID.CurrentUserRole === "Initiator" && editID.IsInitiator == "Yes" && editID.Level == 0) && editID.Status === "Pending" && <div className="row mt-3">
-                                                    <div className="col-12 text-center">
-
-
-
-                                                        <div className="row">
-                                                            <div className="col-lg-12">
-
-                                                                <div className="mb-0" >
-
-                                                                    <label htmlFor="example-textarea" className="form-label text-dark font-14" style={{ textAlign: 'left' }}>Remarks <span className="text-danger1"> *</span></label>
-
-                                                                    <textarea
-                                                                        style={{ height: '80px' }}
-                                                                        className={`form-control `}
-                                                                        id="Remark-textarea2"
-                                                                        rows={5}
-                                                                        name="Remark"
-                                                                        value={formData.Remark}
-                                                                        onChange={(e) => setFormData({ ...formData, Remark: e.target.value })}
-                                                                    ></textarea>
-
-                                                                </div>
-
-                                                            </div>
-
-
-
-                                                        </div>
-
-
-
-
-                                                    </div>
-                                                </div>
-                                                }
-
-                                                {/* ////////&&&& */}
-
+                                               
 
                                                 {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
 
@@ -4939,6 +4900,48 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                     </div>
                                                 </div>
                                                 {/* // } */}
+
+                                                 {/* //////&&&&& */}
+                                                 {(editID != null && editID.CurrentUserRole === "Initiator" && editID.IsInitiator == "Yes" && editID.Level == 0) && editID.Status === "Pending" && 
+                                                <div className="card mt-3">
+                                                    <div className="col-12 text-center card-body">
+
+
+
+                                                        <div className="row">
+                                                            <div className="col-lg-12">
+
+                                                                <div className="mb-0" >
+
+                                                                    <label htmlFor="example-textarea" className="form-label text-dark font-14" style={{ textAlign: 'left' }}>Remarks <span className="text-danger1"> *</span></label>
+
+                                                                    <textarea
+                                                                        style={{ height: '80px' }}
+                                                                        className={`form-control `}
+                                                                        id="Remark-textarea2"
+                                                                        rows={5}
+                                                                        name="Remark"
+                                                                        value={formData.Remark}
+                                                                        onChange={(e) => setFormData({ ...formData, Remark: e.target.value })}
+                                                                    ></textarea>
+
+                                                                </div>
+
+                                                            </div>
+
+
+
+                                                        </div>
+
+
+
+
+                                                    </div>
+                                                </div>
+                                                }
+
+                                                {/* ////////&&&& */}
+
 
 
 

@@ -55,6 +55,7 @@ let forwardisdisabled: boolean = false;
 let Approveclicked: boolean = false;
 let Rejectclicked: boolean = false;
 let Reworkclicked: boolean = false;
+let resubmitclicked: boolean = false;
 let editforwardrecord: boolean = false;
 let Showfile: boolean = false;
 const datePickerErrorStyles: Partial<IDatePickerStyles> = {
@@ -884,10 +885,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     // alert("Edit Type:"+ editType)
     // alert("ID:"+ id)
     this.setState({ Loading: true });
+    setloading = true;
 
-    setTimeout(() => {
-      this.setState({ Loading: false });
-    }, 5000); // 5000ms = 5 seconds
     debugger
     if (id) {
       this.setState({ mainItemId: id }, async () => {
@@ -901,6 +900,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     if (editType) {
       this.setState({ edType: editType })
     }
+    setTimeout(() => {
+      this.setState({ Loading: false });
+      setloading = false;
+    }, 7000); // 5000ms = 5 seconds
     // await this.getListData();
     await this.getnctypeoptions();
     await this.getDepartment();
@@ -910,6 +913,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     await this.getRequestorRole();
     await this.getFormName();
     debugger
+
     if (editType === "edit") {
       this.setState({ showApprove: false });
       this.setState({ showSubmit: true });
@@ -1189,7 +1193,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             this.state.mainItemId +
             "' and ProcessName eq 'Non Conformity'"
           )
-          .orderBy("Id", false)();
+          .orderBy("Id", true)();
         debugger
         let url = window.location.href;
         let parts = url.split("#/")[1].split("/");
@@ -1744,7 +1748,12 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   //< ------- Start Submit Validation -------->
   public handleSubmit = (formsubmode: string) => {
     Reworkclicked = false;
-    if (this.validateFormSubmit()) {
+    //resubmitclicked = false;
+    if (this.state.editCurrentUserRole == "FirstInitiator" && this.state.editStatus == "Rework" && this.state.editFirstInitiatorSubmitStatus == "No") {
+      resubmitclicked = true
+    }
+
+    if (resubmitclicked ? (this.validateReworkRemark() && this.validateFormSubmit()) : this.validateFormSubmit()) {
       this._updateSubmitData(formsubmode);
     }
     else {
@@ -1755,7 +1764,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     let editErrors: { [key: string]: string } = {};
     if (this.state.editSubmitStatus == "No") {
       if (!this.state.editncType) editErrors.editncType = "editncType is required";
-      if (this.state.departmentselected.length == 0) editErrors.editDepartment = "Department is required";
+      //if (this.state.departmentselected.length == 0) editErrors.editDepartment = "Department is required";
       if (this.state.ApprovedAuditSelected.length == 0) editErrors.editApprovedAuditReport = "Report code is required";
       if (this.state.NCNumberselected.length == 0) editErrors.editNCNumber = "NCR number is required";
       if (!this.state.editCriteria) editErrors.editCriteria = "Criteria is required";
@@ -1987,6 +1996,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
   //< ------- Start Draft Validation -------->
   public handleDraft = (formsubmode: string) => {
+    resubmitclicked = false;
     if (this.validateFormDraft()) {
       this._updateSubmitData(formsubmode);
       console.log("Form Data:", this.state);
@@ -1997,13 +2007,13 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   };
   public validateFormDraft = (): boolean => {
     let editErrors: { [key: string]: string } = {};
-
-    if (this.state.departmentselected.length == 0) {
-      editErrors.editDepartment = "Department is required";
-      this.setState({ editErrors });
-      Swal.fire('Please select a department.');
-      return false;
-    }
+    debugger
+    // if (this.state.departmentselected.length == 0) {
+    //   editErrors.editDepartment = "Department is required";
+    //   this.setState({ editErrors });
+    //   Swal.fire('Please select a department.');
+    //   return false;
+    // }
     if (this.state.ApprovedAuditSelected.length == 0) {
       editErrors.editApprovedAuditReport = "Memo number is required";
       this.setState({ editErrors });
@@ -2069,7 +2079,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   };
   public validateReworkRemark = (): boolean => {
     let editErrors: { [key: string]: string } = {};
-    if (!this.state.reworkremarks) editErrors.reworkremarks = "Remarks is required";
+    if (!this.state.reworkremarks && !this.state.remarks) editErrors.remarks = "Remarks is required";
     this.setState({ editErrors });
     return Object.keys(editErrors).length === 0;
   };
@@ -2147,7 +2157,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     let test1 = this.state.correctionApplicable ? "Yes" : "No";
     let test2 = this.state.notEffective ? "Yes" : "No";
     let test3 = this.state.effectiveClosed ? "Yes" : "No";
-    let ncStatus = (_editsubmitStatus == "Rework" || this.state.editStatus == "Rework") && this.state.editCurrentUserRole != "FirstInitiator"
+    let ncStatus = (_editsubmitStatus == "Rework" || this.state.editStatus == "Rework") && this.state.editCurrentUserRole != "FirstInitiator" || (this.state.editStatus == "Rework" && _editsubmitStatus == "draft" && this.state.editCurrentUserRole == "FirstInitiator")
       //(_editsubmitStatus == "submit" && this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator")
       ? "Rework" : "Pending";
 
@@ -2159,13 +2169,13 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       } else {
         observationStatus1 = "Pending"
       };
-    observationStatus = _editsubmitStatus == "Rework" || this.state.editStatus == "Rework" ? "Rework" : observationStatus1;
+    observationStatus = _editsubmitStatus == "Rework" || (this.state.editStatus == "Rework" && _editsubmitStatus == "draft") ? "Rework" : observationStatus1;
     // let submitstatus: string = "";
     // submitstatus = ((_editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "FirstAssignedTo")
     //   || (_editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "DelegateTo")
     //   || (_editsubmitStatus == "draft")) ?
     //   "No" : "Yes";
-    _editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "FirstAssignedTo"
+    //_editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "FirstAssignedTo"
     await sp.web.lists.getByTitle("NonConformityList").items.getById(this.state.mainItemId).update({
       NCNumber: this.state.editNCNumber,
       NCNumberID: this.state.editNCNumberID,
@@ -2199,8 +2209,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       ReviewedById: this.state.editReviewedById || null,
       CorrectiveActionImplementedOn: this.state.editCorrectiveActionImplementedOn,
       SubmiitedDate: new Date(),
-     // SubmitStatus: _editsubmitStatus == "draft" || this.state.editStatus == "Rework" || (_editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "FirstAssignedTo") ? "No" : "Yes",
-      SubmitStatus: _editsubmitStatus == "draft"  ? "No" : "Yes",
+      // SubmitStatus: _editsubmitStatus == "draft" || this.state.editStatus == "Rework" || (_editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "FirstAssignedTo") ? "No" : "Yes",
+      SubmitStatus: _editsubmitStatus == "draft" ? "No" : "Yes",
       SubmiitedById: this.props.currentUserID || null,
       CurrentUserRole: currentUserRole,
       FirstInitiatorSubmitStatus: firstInitiatorSubmitStatus,
@@ -2221,7 +2231,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       RiskOpportunitiesUpdated: this.state.riskandopportunitiesUpdated,
       LocationOthers: this.state.LocationOthers,
       SubCategoryOthers: this.state.SubCategoryOthers,
-      CategoryOthers: this.state.CategoryOthers
+      CategoryOthers: this.state.CategoryOthers,
+      ReworkRemarks: _editsubmitStatus == "draft" ? this.state.remarks : "",
     })
   }
 
@@ -2480,14 +2491,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 Status: "Approved",
                 ActionTakenById: currentUserID,
                 ActionTakenOn: new Date(),
-                Remark: editProblemDescription,
+                Remark: (this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator")||
+                (this.state.editStatus == "Pending" && this.state.editCurrentUserRole == "FirstAssignedTo" && this.state.reworkremarks!=="") ? this.state.reworkremarks : editProblemDescription,
               });
             } else {
               sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
                 Status: "Approved",
                 ActionTakenById: currentUserID,
                 ActionTakenOn: new Date(),
-                Remark: editProblemDescription,
+                Remark: (this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator")||
+                (this.state.editStatus == "Pending" && this.state.editCurrentUserRole == "FirstAssignedTo" && this.state.reworkremarks!=="")? this.state.reworkremarks : editProblemDescription,
               });
             }
 
@@ -2498,14 +2511,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 Status: "Approved",
                 ActionTakenById: currentUserID,
                 ActionTakenOn: new Date(),
-                Remark: editProblemDescription,
+                Remark: (this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator") ||
+                (this.state.editStatus == "Pending" && this.state.editCurrentUserRole == "FirstAssignedTo" && this.state.reworkremarks!=="") ? this.state.reworkremarks : editProblemDescription,
               });
             } else {
               sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
                 Status: "Approved",
                 ActionTakenById: currentUserID,
                 ActionTakenOn: new Date(),
-                Remark: editProblemDescription,
+                Remark: ( this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator") ||
+                (this.state.editStatus == "Pending" && this.state.editCurrentUserRole == "FirstAssignedTo" && this.state.reworkremarks!=="") ? this.state.reworkremarks :editProblemDescription,
               });
             }
             if (this.state.fileDeleteId.length > 0) {
@@ -3426,14 +3441,15 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             {/* <td>
             <TextField value={(i + 1).toString()} disabled={true} className={styles.width} ></TextField>
           </td> */}
-            <td style={{ minWidth: "30px", maxWidth: "30px" }}>
+            <td style={{ minWidth: "40px", maxWidth: "40px" }}>
               <div
                 style={{ marginLeft: "0px", overflow: 'inherit' }}
                 className="indexdesign"
               >
                 {i + 1}</div>
             </td>
-            <td title={this.state.optionsRole.find(opt => opt.key === this.state.approvers[i].Role)?.text || "Select role"} style={{ overflow: 'inherit' }} className="ng-binding">
+            <td title={this.state.optionsRole.find(opt => opt.key === this.state.approvers[i].Role)?.text || "Select role"}
+              style={{ overflow: 'inherit', minWidth: "110px", maxWidth: "110px" }} className="ng-binding">
               <Dropdown disabled={this.state.forwarDisable || forwardisdisabled} placeholder="Select options"
 
                 selectedKey={this.state.approvers[i].Role}
@@ -3447,7 +3463,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               />
             </td>
             <td title={optionsResponsibility.find(opt => opt.key === this.state.approvers[i].Responsibility)?.text || "Select"}
-              style={{ overflow: 'inherit' }} className="ng-binding">
+              style={{ overflow: 'inherit', minWidth: "85px", maxWidth: "85px"  }} className="ng-binding">
               <Dropdown
                 disabled={this.state.forwarDisable || forwardisdisabled}
                 placeholder="Select options"
@@ -3458,7 +3474,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               />
             </td>
 
-            <td style={{ minWidth: "50px", maxWidth: "50px", overflow: 'inherit' }}>
+            <td style={{ minWidth: "46px", maxWidth: "46px", overflow: 'inherit' }}>
               <div
               //  style={{ display: "flex", alignItems: 'center', gap: '8px' }}
               >
@@ -3484,7 +3500,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             <td title={this.state.approvers[i].appEx && this.state.approvers[i].appEx.length > 0
               ? this.state.approvers[i].appEx.map((user: any) => user).join(', ')
               : "Select approver"}
-              style={{ overflow: 'inherit' }} id={`approverpeoplepicker-${i}`}>
+              style={{ overflow: 'inherit', minWidth: '100px', maxWidth: '100px' }} id={`approverpeoplepicker-${i}`}>
 
               <PeoplePicker
                 context={peoplePickerContext}
@@ -3504,7 +3520,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 }}
               />
             </td>
-            <td title={optionsApp.find(opt => opt.key === this.state.approvers[i].Type)?.text || "Select Type"} style={{ overflow: 'inherit' }} className="ng-binding">
+            <td title={optionsApp.find(opt => opt.key === this.state.approvers[i].Type)?.text || "Select Type"}
+              style={{ overflow: 'inherit', minWidth: '100px', maxWidth: '100px' }} className="ng-binding">
               <Dropdown disabled={this.state.forwarDisable || forwardisdisabled} placeholder="Select options"
                 selectedKey={this.state.approvers[i].Type || 'One'}
                 options={optionsApp} onChange={(e, itm: IDropdownOption) => this.onTypeChange(e, itm, i)}
@@ -3651,9 +3668,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           <td style={{ minWidth: '70px', maxWidth: '70px', textAlign: 'center' }}>
             {i + 1}
           </td>
-          <td title={`Level ${total - i}`} style={{ minWidth: '70px', maxWidth: '70px', textAlign: 'center' }}>
+          <td title={`Level ${i + 1}`} style={{ minWidth: '70px', maxWidth: '70px', textAlign: 'center' }}>
             {/* {item.Level} */}
-            Level {total - i}  {/* Reverse Level */}
+            Level {i + 1}  {/* Reverse Level */}
           </td>
           <td title={item.AssignedTo} style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.AssignedTo}
@@ -4793,12 +4810,12 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                           <thead >
                             <tr>
                               <th style={{ minWidth: "40px", maxWidth: "40px" }}>S.No</th>
-                              <th style={{ borderBottomLeftRadius: "0px" }}>Role</th>
-                              <th style={{ borderBottomLeftRadius: "0px", minWidth: '86px', maxWidth: '86px' }}>Responsibility<span className="text-danger1"> *</span></th>
+                              <th style={{ borderBottomLeftRadius: "0px", minWidth: "110px", maxWidth: "110px" }}>Role</th>
+                              <th style={{ borderBottomLeftRadius: "0px", minWidth: '85px', maxWidth: '85px' }}>Responsibility<span className="text-danger1"> *</span></th>
                               <th style={{ minWidth: "46px", maxWidth: "46px" }} title="Use your electronic digital signature to sign this document digitally">E-Sign?</th>
                               <th style={{ minWidth: '70px', maxWidth: '70px' }} >Level</th>
-                              <th >Approver Name</th>
-                              <th >Approval Criteria</th>
+                              <th style={{ minWidth: '100px', maxWidth: '100px' }}>Approver Name</th>
+                              <th style={{ minWidth: '100px', maxWidth: '100px' }}>Approval Criteria</th>
                               <th style={{ minWidth: '70px', maxWidth: '70px' }}>Action</th>
                             </tr>
                           </thead>
@@ -4823,12 +4840,18 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               />
             </section>
           } */}
-
-          {(((this.state.showApprove === true || this.state.showReject === true || showreworkremarks || (showimsupdated && !isdisableims) || (showcorrectionappicable && !isdisablefinal))
-            && (!this.state.Loading || !setloading) && this.state.editCurrentUserRole != "FirstInitiator")
+          {console.log("ghghghgh", this.state.editCurrentUserRole == "FirstInitiator", this.state.editStatus == "Rework", this.state.editFirstInitiatorSubmitStatus == "No",
+            (!this.state.Loading || !setloading) && !this.state.showDraft, (this.state.edType !== "view" || (showimsupdated && !isdisableims) || showcorrectionappicable && !isdisablefinal)
+          )}
+          {(((this.state.showApprove === true || this.state.showReject === true || showreworkremarks || (showimsupdated && !isdisableims) ||
+            (showcorrectionappicable && !isdisablefinal)) && this.state.editCurrentUserRole != "FirstInitiator")
             ||
-            ((this.state.editReviewedBySubmitStatus == "Yes" && this.state.editDelegateToId == null && (!this.state.Loading || !setloading)) ||
-              (this.state.editLastAssignedToSubmitStatus == "Yes" && this.state.editDelegateToId != null && (!this.state.Loading || !setloading)))) && !this.state.showDraft
+            ((this.state.editReviewedBySubmitStatus == "Yes" && this.state.editDelegateToId == null) ||
+              (this.state.editLastAssignedToSubmitStatus == "Yes" && this.state.editDelegateToId != null)) ||
+            (this.state.editCurrentUserRole == "FirstInitiator" && this.state.editStatus == "Rework" && this.state.editFirstInitiatorSubmitStatus == "No"))
+            && (!this.state.Loading || !setloading)
+            //&& (!this.state.showDraft) 
+            && (this.state.edType !== "view" || (showimsupdated && !isdisableims) || showcorrectionappicable && !isdisablefinal)
             ?
             <section style={{ justifyContent: 'left', textAlign: 'left' }} id="approvalSection" className='card card-body'>
               {this.state.edType !== "view" &&
@@ -4837,9 +4860,11 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                   calloutProps={{ gapSpace: 0 }}
                   styles={{ root: { display: 'inline-block', width: '100%' } }}
                 >
-                  <TextField label="Remarks" required={(Approveclicked || Rejectclicked || Reworkclicked || this.state.showApprove === true || this.state.showReject === true) ? true : false}
+                  <TextField label="Remarks"
+                    required={(Approveclicked || Rejectclicked || Reworkclicked || resubmitclicked || this.state.showApprove === true ||
+                      this.state.showReject === true) ? true : false}
                     name="remarks"
-                    value={this.state.remarks}
+                    value={this.state.editCurrentUserRole == "FirstInitiator" && this.state.editStatus == "Rework" && this.state.editFirstInitiatorSubmitStatus == "No" ? this.state.reworkremarks : this.state.remarks}
                     multiline rows={3}
                     onChange={this.handleChange}
 
@@ -4957,7 +4982,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             </section> : null
           }
           {/* Vishnu Changes  */}
-
+          {console.log("bnbnbn", !this.state.Loading, !setloading)}
           {this.state.showSubmit && (!this.state.Loading || !setloading) && ((this.state.editSubmitStatus == "No" && RequesterEmail == CurrentuserEmail) ||
             (this.state.editSubmitStatus == "Yes" && this.state.edType == "edit" && this.state.editStatus !== "Rework" && this.state.editAssignToEmail == CurrentuserEmail && this.state.editCurrentUserRole != "DelegateTo") ||
             (this.state.editSubmitStatus == "Yes" && this.state.edType == "edit" && this.state.editStatus !== "Rework" && this.state.editDelegateToEmail == CurrentuserEmail && this.state.editCurrentUserRole == "DelegateTo") ||
@@ -4965,7 +4990,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             (this.state.edType == "edit" && this.state.editStatus == "Rework" && this.state.editAssignToEmail == CurrentuserEmail && this.state.editCurrentUserRole == "FirstAssignedTo") ||
             (this.state.edType == "edit" && this.state.editStatus == "Rework" && this.state.editDelegateToEmail == CurrentuserEmail && this.state.editCurrentUserRole == "DelegateTo")
 
-          ) &&
+          ) && (!this.state.Loading || !setloading) &&
 
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }} className='newnbu'>
 

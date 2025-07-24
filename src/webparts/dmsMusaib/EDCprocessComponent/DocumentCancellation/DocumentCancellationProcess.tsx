@@ -160,7 +160,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         filename: "",
         Remark: "",
         PreparedById: [],
-        PreparedBy:[],
+        PreparedBy: [],
 
 
 
@@ -190,7 +190,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         const updatedArr = forwardToArr.map(row =>
             // row.level === lvl ? { ...row, Responsibility: event.target.value} : row
 
-            row.level === lvl ? { ...row, Responsibility: event.target.value, IsSignatureRequired: event.target.value ===""?false:true } : row
+            row.level === lvl ? { ...row, Responsibility: event.target.value, IsSignatureRequired: event.target.value === "" ? false : true } : row
         );
         //   setApprovalType(event.target.value);
         setForwardToArr(updatedArr);
@@ -214,7 +214,28 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     const [forwardToArrEdit, setForwardToArrEdit] = React.useState<ForwardTo[]>([]);
     const [selectedUsers, setSelectedUsers] = React.useState<any[]>([]);
     // const [remark, setRemark] = React.useState("");
-
+    const getCustomStyles = (valueCount:any) => ({
+        control: (provided:any) => ({
+            ...provided,
+            minHeight: valueCount <= 1 ? '47px' : 'auto',
+            //fontSize: '14px',
+            flexWrap: 'wrap',
+        }),
+        valueContainer: (provided:any) => ({
+            ...provided,
+            padding: '2px 6px',
+        }),
+        multiValue: (provided:any) => ({
+            ...provided,
+            //fontSize: '12px',
+            margin: '2px',
+        }),
+        indicatorsContainer: (provided:any) => ({
+            ...provided,
+            height: '47px',
+        }),
+    });
+    
     // Function to handle People Picker selection
     const onPeoplePickerChange = (items: any[]) => {
         setSelectedUsers(items);
@@ -347,7 +368,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             filename: item?.FileName || "",
             PreparedById: item?.PreparedById || [],
 
-            PreparedBy:item?.PreparedBy||[],
+            PreparedBy: item?.PreparedBy || [],
 
 
         }));
@@ -570,8 +591,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                     filename: setBannerById[0]?.FileName || "",
                     Status: setBannerById[0].Status,
-                    PreparedById:setBannerById[0].PreparedById ||[],
-                    PreparedBy:setBannerById[0].PreparedBy||[],
+                    PreparedById: setBannerById[0].PreparedById || [],
+                    PreparedBy: setBannerById[0].PreparedBy || [],
 
                     // Format as YYYY-MM-DD
                 }));
@@ -680,7 +701,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                 filename: selectedList?.filename || "",
                 PreparedById: selectedList?.PreparedById || [],
-                PreparedBy:selectedList?.PreparedBy||[],
+                PreparedBy: selectedList?.PreparedBy || [],
             }));
         } else {
             setFormData(prevData => ({
@@ -715,8 +736,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 TemplateTypeId: null,
                 TemplateTypeValue: "",
                 filename: "",
-                PreparedById:  [],
-                PreparedBy:[],
+                PreparedById: [],
+                PreparedBy: [],
             }));
         }
         setSharewithusers(selectedList?.PreparedBy?.map((obj: any) => {
@@ -933,7 +954,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 //Swal.fire('Error', 'Entity is required!', 'error');
                 valid = false;
             }
-            
+
 
             setValidSubmit(valid);
             // setValidCancelReason(valid1);
@@ -1039,7 +1060,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             TemplateTypeId: selectedOption.TemplateTypeId,
 
                             FileName: formData.filename,
-                            PreparedById :formData.PreparedById,
+                            PreparedById: formData.PreparedById,
 
 
                         }
@@ -1196,7 +1217,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             CIssueDate: formData.CIssueDate,
 
                             FileName: formData.filename,
-                            PreparedById :formData.PreparedById,
+                            PreparedById: formData.PreparedById,
 
 
                         };
@@ -1309,7 +1330,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                 AttachmentDigitalSignatureId: selectedOption.AttachmentDigitalSignatureId,
                                 AttachmentJson: selectedOption.AttachmentJson,
                                 TemplateTypeId: selectedOption.TemplateTypeId,
-                                PreparedById :formData.PreparedById,
+                                PreparedById: formData.PreparedById,
 
 
                             }
@@ -1352,7 +1373,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                 TemplateTypeId: selectedOption.TemplateTypeId,
 
                                 FileName: formData.filename,
-                                PreparedById :formData.PreparedById,
+                                PreparedById: formData.PreparedById,
 
 
                             }
@@ -1508,7 +1529,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                             CIssueDate: formData.CIssueDate,
 
                             FileName: formData.filename,
-                            PreparedById :formData.PreparedById,
+                            PreparedById: formData.PreparedById,
 
 
                         };
@@ -2659,23 +2680,17 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                             value={sharewithusers}
                                                                             // value={formData.PreparedById}
                                                                             name="share with"
-                                                                            className={`form-control `}
+                                                                            //className={`form-control `}
                                                                             // onChange={(selectedOption: any) => onSelect(selectedOption)}
                                                                             // onChange={(selectedOptions: any) => onSelectsharewith(selectedOptions)}
                                                                             placeholder=""
+                                                                            //styles={getCustomStyles(sharewithusers.length)}
                                                                             isDisabled={true}
                                                                         />
                                                                     </div>
                                                                 </div>
                                                             </div>
-
-
-                                                            {/*  */}
-
-
-
-
-                                                        </div>
+                                                             </div>
                                                         {/* // } */}
                                                     </div>
 
@@ -2791,41 +2806,42 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                                                 </div>
                                                 {/* //////&&&&& changes*/}
-                                                {(editID != null && editID.CurrentUserRole === "Initiator" && editID.IsInitiator == "Yes" && editID.Level == 0) && editID.Status === "Pending" && <div className="row mt-3">
-                                                    <div className="col-12 text-center">
+                                                {(editID != null && editID.CurrentUserRole === "Initiator" && editID.IsInitiator == "Yes" && editID.Level == 0) && editID.Status === "Pending" &&
+                                                    <div className="card mt-3">
+                                                        <div className="col-12 text-center card-body">
 
 
 
-                                                        <div className="row">
-                                                            <div className="col-lg-12">
+                                                            <div className="row">
+                                                                <div className="col-lg-12">
 
-                                                                <div className="mb-0" >
+                                                                    <div className="mb-0" >
 
-                                                                    <label htmlFor="example-textarea" className="form-label text-dark font-14" style={{ textAlign: 'left' }}>Remarks <span className="text-danger1"> *</span></label>
+                                                                        <label htmlFor="example-textarea" className="form-label text-dark font-14" style={{ textAlign: 'left' }}>Remarks <span className="text-danger1"> *</span></label>
 
-                                                                    <textarea
-                                                                        style={{ height: '80px' }}
-                                                                        className={`form-control `}
-                                                                        id="Remark-textarea2"
-                                                                        rows={5}
-                                                                        name="Remark"
-                                                                        value={formData.Remark}
-                                                                        onChange={(e) => setFormData({ ...formData, Remark: e.target.value })}
-                                                                    ></textarea>
+                                                                        <textarea
+                                                                            style={{ height: '80px' }}
+                                                                            className={`form-control `}
+                                                                            id="Remark-textarea2"
+                                                                            rows={5}
+                                                                            name="Remark"
+                                                                            value={formData.Remark}
+                                                                            onChange={(e) => setFormData({ ...formData, Remark: e.target.value })}
+                                                                        ></textarea>
+
+                                                                    </div>
 
                                                                 </div>
+
+
 
                                                             </div>
 
 
 
+
                                                         </div>
-
-
-
-
                                                     </div>
-                                                </div>
                                                 }
 
                                                 {/* ////////&&&& */}
@@ -2928,7 +2944,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                             checked={row.IsSignatureRequired}
                                                                                             // disabled={!(editID.CurrentUserRole == "OES" && editID.Status == "Pending") && (row.Responsibility === "Signer" ||row.Responsibility === "Endorser" || row.Responsibility === "") }
                                                                                             // disabled={row.Responsibility !== "Endorser" || row.Responsibility === "" || InputDisabled}
-                                                                                            disabled={row.Responsibility !== "Reviewer" ||(!(editID.CurrentUserRole == "OES" && editID.Status == "Pending"))}
+                                                                                            disabled={row.Responsibility !== "Reviewer" || (!(editID.CurrentUserRole == "OES" && editID.Status == "Pending"))}
                                                                                             style={{ marginLeft: '17px', width: "15px" }}
                                                                                             title="Signature Required"
                                                                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {

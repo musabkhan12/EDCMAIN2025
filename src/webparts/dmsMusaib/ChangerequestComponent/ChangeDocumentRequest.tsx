@@ -401,7 +401,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     if (currentuserdepartment != "") {
       setSelectedOptionDepart(optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment));
     }
-
+    console.log("Current user department",currentuserdepartment,optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment))
     // let optionsfilterdepart = optionsDepartment.filter((user) => user.label === currentuserdepartment);
     // setSelectedOptionDepart(optionsDepartment.filter((user) => user.label === currentuserdepartment));
     setRows1(Selectedoptions);
@@ -5682,11 +5682,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                                 <FileViewer showfile={Showfile} docurl={redirecturl} cancelAction={cancelModalAction} />
                                 :
-                                <table className="mtbalenew" >
+                                <table className="mtbalenew" style={{ height: '400px', overflowY:'auto' }} >
                                   <thead style={{ background: '#eef6f7' }}>
                                     <tr>
                                       <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
-                                      <th style={{ minWidth: '140px', maxWidth: '1400px' }}>File Name</th>
+                                      <th style={{ minWidth: '140px', maxWidth: '1400px' ,textAlign:'left'}}>File Name</th>
                                       {/* {editForm && <th>File Link</th>} */}
                                       {/* <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th> */}
                                       {/* {!InputDisabled && <th className='text-center'>Action</th>} */}
@@ -5701,7 +5701,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           <tr key={index}>
                                             <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
 
-                                            <td style={{ minWidth: '140px', maxWidth: '140px', textAlign: 'center' }} title={row != null && `${cleanFileName(row?.FileLeafRef)}`}>{row != null && `${cleanFileName(row?.FileLeafRef)}`}</td>
+                                            <td style={{ minWidth: '140px', maxWidth: '140px', textAlign: 'left' }} title={row != null && `${cleanFileName(row?.FileLeafRef)}`}>{row != null && `${cleanFileName(row?.FileLeafRef)}`}</td>
 
                                             {/* <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center' title={row && moment(row?.Created).format("DD/MMM/YYYY")}>{row && moment(row?.Created).format("DD/MMM/YYYY")}</td> */}
 
