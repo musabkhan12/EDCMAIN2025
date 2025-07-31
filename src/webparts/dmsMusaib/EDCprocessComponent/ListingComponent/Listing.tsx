@@ -151,13 +151,64 @@ export class Listing extends React.Component<IListingProps, IListingState> {
         const { showform, items, currentPage, itemsPerPage, totalItems, visiblePageStart, sortColumn, sortDirection, searchValues } = this.state;
 
         // Filter items based on search values
+        // const filteredItems = items.filter(item => {
+        //     return Object.keys(searchValues).every(key => {
+        //         const columnValue = item[key]?.toString().toLowerCase();
+        //         const searchValue = searchValues[key].toLowerCase();
+        //         return columnValue?.includes(searchValue);
+        //     });
+        // });
+        const formatDateToDDMMYYYY = (date: string | Date): string => {
+            const d = new Date(date);
+            const day = String(d.getDate()).padStart(2, "0");
+            const month = String(d.getMonth() + 1).padStart(2, "0");
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        };
+        const isDateMatch = (itemDate: string | Date | null, filterDate: string) => {
+            if (!itemDate) return false;
+            if (!filterDate) return true;
+
+            const d = new Date(itemDate);
+            if (isNaN(d.getTime())) return false;
+
+            const day = String(d.getDate()).padStart(2, "0");
+            const month = String(d.getMonth() + 1).padStart(2, "0");
+            const year = d.getFullYear();
+
+            const shortMonth = d.toLocaleString("en-US", { month: "short" }); // e.g., "Jun"
+            const longMonth = d.toLocaleString("en-US", { month: "long" });   // e.g., "June"
+
+            const formats = [
+                `${day}/${month}/${year}`,       // 16/06/2025
+                `${day}/${shortMonth}/${year}`,  // 16/Jun/2025
+                `${day}-${shortMonth}-${year}`,  // 16-Jun-2025
+                `${day} ${shortMonth} ${year}`,  // 16 Jun 2025
+                `${day}/${shortMonth}`,          // 16/Jun
+                `${day}`,                        // 16
+            ];
+
+            const normalizedFilter = filterDate.toLowerCase();
+
+            return formats.some(f => f.toLowerCase().includes(normalizedFilter));
+        };
+
         const filteredItems = items.filter(item => {
             return Object.keys(searchValues).every(key => {
-                const columnValue = item[key]?.toString().toLowerCase();
-                const searchValue = searchValues[key].toLowerCase();
+                const searchValue = searchValues[key]?.toLowerCase();
+                const itemValue = item[key];
+
+                if (!searchValue) return true;
+
+                if (key === "ReqDt" || key === "ReqDt") {
+                    return isDateMatch(itemValue, searchValue);
+                }
+
+                const columnValue = itemValue?.toString().toLowerCase();
                 return columnValue?.includes(searchValue);
             });
         });
+
         let filitems = filteredItems.sort((a, b) => b.ReqDt - a.ReqDt)
         // Sort items based on the selected column and direction
         const sortedItems = filitems.sort((a, b) => {
@@ -235,6 +286,21 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                 let actionType = (item.Status === "Save As Draft" || item.Status === "Rework" || item.Status === "Save as draft") ? "edit" : "view";
                 path = `#/${item.ProcessName}/${actionType}/${item.MainListId}`;
             }
+            let displayName = "";
+
+            if (item?.ProcessName === "Change Request" && item?.ProcessNameNew === "Change Request (Existing)") {
+                displayName = `Change Request (Existing, Issue No:${item.IssueNumber}, Revision No:${item.RevisionNumber})`;
+            } else if (item?.ProcessName === "Change Request" && item?.ProcessNameNew === "Change Request (New)") {
+                displayName = `Change Request (New, Issue No:${item.IssueNumber}, Revision No:${item.RevisionNumber})`;
+            } else if (item?.ProcessName === "Annual Audit Plan") {
+                displayName = "IMS Audit Plan";
+            } else if (item?.ProcessName === "Annual Audit Program") {
+                displayName = "IMS Annual Audit Program";
+            } else if (item?.ProcessName === "Annual Audit Report") {
+                displayName = "IMS Audit Report and Checklist";
+            } else {
+                displayName = item?.ProcessName;
+            }
 
             return (
                 <tr key={i}>
@@ -245,20 +311,29 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                     </td>
                     <td title={item.ProcessName == "Non Conformity" ? item?.NCNumber : item?.RequestId} style={{ minWidth: '105px', maxWidth: '105px' }}>{item.ProcessName == "Non Conformity" ? item?.NCNumber : item?.RequestId}</td>
                     <td title={item.ProcessName == "Non Conformity" ? item?.ProblemDescription : item.Title} style={{ minWidth: '105px', maxWidth: '105px' }}>{item.ProcessName == "Non Conformity" ? item?.ProblemDescription : item.Title}</td>
-                    <td title={item?.ProcessName === "Annual Audit Plan"
-                        ? "IMS Audit Plan"
-                        : item?.ProcessName === "Annual Audit Program"
-                            ? "IMS Annual Audit Program"
-                            : item?.ProcessName === "Annual Audit Report"
-                                ? "IMS Audit Report and Checklist"
-                                : item?.ProcessName} style={{ minWidth: '105px', maxWidth: '105px' }}>
+                    <td title={
+                        // item?.ProcessName === "Annual Audit Plan"
+                        //     ? "IMS Audit Plan"
+                        //     : item?.ProcessName === "Annual Audit Program"
+                        //         ? "IMS Annual Audit Program"
+                        //         : item?.ProcessName === "Annual Audit Report"
+                        //             ? "IMS Audit Report and Checklist"
+                        //             : item?.ProcessNameNew === "Change Request (Existing)"
+                        //                 ? `Change Request (Existing, Issue No:${item.IssueNumber}, Revision No:${item.RevisionNumber})`
+                        //                 : item?.ProcessNameNew === "Change Request (New)"
+                        //                     ? `Change Request (New, Issue No:${item.IssueNumber}, Revision No:${item.RevisionNumber})`
+                        //                     : item?.ProcessName
+                        displayName
+                    } style={{ minWidth: '105px', maxWidth: '105px' }}>
                         {item?.ProcessName === "Annual Audit Plan"
                             ? "IMS Audit Plan"
                             : item?.ProcessName === "Annual Audit Program"
                                 ? "IMS Annual Audit Program"
                                 : item?.ProcessName === "Annual Audit Report"
                                     ? "IMS Audit Report and Checklist"
-                                    : item?.ProcessName}
+                                    : item?.ProcessName === "Change Request"
+                                        ? item?.ProcessNameNew
+                                        : item?.ProcessName}
                     </td>
                     <td title={item.ReqName} style={{ minWidth: '80px', maxWidth: '80px' }}>{item.ReqName}</td>
                     <td title={moment(item.ReqDt).format("DD/MMM/YYYY")} style={{ minWidth: '85px', maxWidth: '85px' }}>{moment(item.ReqDt).format("DD/MMM/YYYY")}</td>
@@ -749,7 +824,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
             }
         }
 
-        const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList").items.select('Id,FileName,ReferenceNumber,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,Created,FileName').expand('Author', 'RequesterName').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
+        const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList").items.select('Id,FileName,ReferenceNumber,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,Created,FileName,RequestType/ID,RequestType/RequestType,IssueNumber,RevisionNumber').expand('Author', 'RequesterName', 'RequestType').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
         debugger
         for (const item of ChangeRequestListItems) {
             if (item.Status === "Rework") {
@@ -761,13 +836,17 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                             //Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
                             Title: item.FileName == "" || item.FileName == null ? " " : item.FileName,
                             ProcessName: "Change Request",
+                            ProcessNameNew: item.RequestType?.RequestType == "Change in Existing Documented Information" ? "Change Request (Existing)" : "Change Request (New)",
                             ReqName: item.RequesterName?.Title || '',
                             ReqDt: new Date(item.Created),
                             Status: item.Status,
                             MainListId: item.Id,
                             Id: item.Id,
                             ProcessItemId: itm.Id,
-                            SubmitStatus: ''
+                            SubmitStatus: '',
+                            RequestType: item.RequestType?.RequestType || '',
+                            RevisionNumber: item.RevisionNumber,
+                            IssueNumber: item.IssueNumber
                         });
                     }
                 } else {
@@ -776,12 +855,16 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                         //Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
                         Title: item.FileName == "" || item.FileName == null ? " " : item.FileName,
                         ProcessName: "Change Request",
+                        ProcessNameNew: item.RequestType?.RequestType == "Change in Existing Documented Information" ? "Change Request (Existing)" : "Change Request (New)",
                         ReqName: item.RequesterName?.Title || '',
                         ReqDt: new Date(item.Created),
                         Status: item.Status,
                         MainListId: item.Id,
                         Id: item.Id,
-                        SubmitStatus: ''
+                        SubmitStatus: '',
+                        RequestType: item.RequestType?.RequestType || '',
+                        RevisionNumber: item.RevisionNumber,
+                        IssueNumber: item.IssueNumber
                     });
                 }
             } else {
@@ -790,13 +873,17 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                     //Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
                     Title: item.FileName == "" || item.FileName == null ? " " : item.FileName,
                     ProcessName: "Change Request",
+                    ProcessNameNew: item.RequestType?.RequestType == "Change in Existing Documented Information" ? "Change Request (Existing)" : "Change Request (New)",
                     ReqName: item.RequesterName?.Title || '',
                     ReqDt: new Date(item.Created),
                     // ? moment(item.RequestDate).format("DD-MMM-YYYY") : ''
                     Status: item.Status,
                     MainListId: item.Id,
                     Id: item.Id,
-                    SubmitStatus: ''
+                    SubmitStatus: '',
+                    RequestType: item.RequestType?.RequestType || '',
+                    RevisionNumber: item.RevisionNumber,
+                    IssueNumber: item.IssueNumber
                 });
             }
         }

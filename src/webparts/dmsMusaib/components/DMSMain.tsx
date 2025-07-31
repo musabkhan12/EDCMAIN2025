@@ -6364,11 +6364,52 @@ const ArgPoc = ({ props }: any) => {
 
       const menu = document.getElementById(`menu-${fileId}`);
       if (!menu) return;
+      if(filePermission === "Full Control"){
+        const secondItem = menu.children[0]?.children[0] as HTMLElement;
+        const secondItem1 = menu.children[0]?.children[1] as HTMLElement;
+        const secondItem2 = menu.children[0]?.children[2] as HTMLElement;
+        const secondItem3 = menu.children[0]?.children[3] as HTMLElement;
+        const secondItem4 = menu.children[0]?.children[4] as HTMLElement;
+        const secondItem5 = menu.children[0]?.children[5] as HTMLElement;
+        const secondItem6 = menu.children[0]?.children[6] as HTMLElement;
+        // const secondItem6 = menu.children[0]?.children[6] as HTMLElement;
+
+        if (secondItem6) {
+          secondItem6.style.display = ""; // Show the Download option
+          console.log("secondItem6:", secondItem6);
+          console.log("secondItem6.innerHTML:", secondItem6?.innerHTML);
+        }
+        console.log("secondItem:", secondItem);
+  console.log("secondItem.innerHTML:", secondItem?.innerHTML);
+
+  console.log("secondItem1:", secondItem1);
+  console.log("secondItem1.innerHTML:", secondItem1?.innerHTML);
+
+  console.log("secondItem2:", secondItem2);
+  console.log("secondItem2.innerHTML:", secondItem2?.innerHTML);
+
+  console.log("secondItem3:", secondItem3);
+  console.log("secondItem3.innerHTML:", secondItem3?.innerHTML);
+
+  console.log("secondItem4:", secondItem4);
+  console.log("secondItem4.innerHTML:", secondItem4?.innerHTML);
+
+  console.log("secondItem5:", secondItem5);
+  console.log("secondItem5.innerHTML:", secondItem5?.innerHTML);
+
+  console.log("secondItem6:", secondItem6);
+  console.log("secondItem6.innerHTML:", secondItem6?.innerHTML);
+      }
+      
+      const downloadItem = document.getElementById(`downloadOption`) as HTMLElement;
+
       if (filePermission === "Edit" || filePermission === "Contribute" || filePermission === "Read") {
         const firstItem = menu.children[0]?.children[0] as HTMLElement;
         const secondItem = menu.children[0]?.children[1] as HTMLElement;
         const secondItem3 = menu.children[0]?.children[3] as HTMLElement;
         const secondItem4 = menu.children[0]?.children[4] as HTMLElement;
+        // const downloadItem = menu.children[0]?.children[6] as HTMLElement; // Download Option
+        if (downloadItem) downloadItem.style.display = "none";
 
         if (firstItem && firstItem.style.display !== "none") {
           firstItem.style.display = "none";
@@ -6383,6 +6424,7 @@ const ArgPoc = ({ props }: any) => {
           secondItem4.style.display = "none";
         }
       }
+
 
       if (statusPermission === true) {
         const firstItem = menu.children[0]?.children[0] as HTMLElement;
@@ -6542,6 +6584,9 @@ const ArgPoc = ({ props }: any) => {
                     Version History
                </li>
               ` : ` `}
+                <li id="downloadOption" onclick="Download('${file.UniqueId}', '${siteID}')">
+        <img src=${downloadicon} alt="Download"/> Download File
+      </li>
         </ul>
       `;
     card.appendChild(menu);

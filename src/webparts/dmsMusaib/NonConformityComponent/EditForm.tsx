@@ -3713,7 +3713,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 day: '2-digit',
                 month: 'short',
                 year: 'numeric'
-              }).format(new Date(new Date(item?.ActionTakenOn).getTime() - 4 * 60 * 60 * 1000)).replace(/ /g, "/")} ${new Date(new Date(item?.ActionTakenOn).getTime() - 4 * 60 * 60 * 1000).toLocaleTimeString('en-GB', {
+              }).format(new Date(new Date(item?.ActionTakenOn).getTime() - 0 * 60 * 60 * 1000)).replace(/ /g, "/")} ${new Date(new Date(item?.ActionTakenOn).getTime() - 0 * 60 * 60 * 1000).toLocaleTimeString('en-GB', {
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: false
@@ -3726,7 +3726,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 day: '2-digit',
                 month: 'short',
                 year: 'numeric'
-              }).format(new Date(new Date(item?.ActionTakenOn).getTime() - 4 * 60 * 60 * 1000)).replace(/ /g, "/")} ${new Date(new Date(item?.ActionTakenOn).getTime() - 4 * 60 * 60 * 1000).toLocaleTimeString('en-GB', {
+              }).format(new Date(new Date(item?.ActionTakenOn).getTime() - 0 * 60 * 60 * 1000)).replace(/ /g, "/")} ${new Date(new Date(item?.ActionTakenOn).getTime() - 0 * 60 * 60 * 1000).toLocaleTimeString('en-GB', {
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: false

@@ -6,7 +6,7 @@ export const getAllDocumentCode = async (_sp) => {
     .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title,PreparedBy/ID,PreparedBy/Title")
     .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,PreparedBy")
     .filter("Status eq 'Approved'")
-    .orderBy("Modified", false).top(5000)() // Order by Modified descending to get latest first
+    .orderBy("ID", false).top(5000)() // Order by Modified descending to get latest first
     .then((res) => {
       console.log("eeee", res);
       debugger
@@ -1000,37 +1000,85 @@ export const getListNameID = async (_sp, formname) => {
   console.log(reqId, 'arr');
   return reqId;
 }
+export const getchangerequestnotes = async (_sp) => {
+  let arr = [];
 
-export const getDocumentLinkByID = async (_sp, itemId, listid) => {
-  debugger
-  var reqId;
-  await _sp.web.lists.getByTitle("ChangeRequestAttachDigitalSignedDocs").items
-    .select("*,FileRef, FileLeafRef")
-    .expand()
-    .filter(`ListItemIDId eq ${listid}`)
-    ()
-    .then(async (res) => {
-      console.log(res, ' let arrs=[] ghghgh');
+  await _sp.web.lists.getByTitle("ChangeRequestNotes").items
+    .select("*")
+    .expand("")
+    .filter("IsActive eq 'Yes'")
+    .orderBy("Modified", false).top(5000)() // Order by Modified descending to get latest first
+    .then((res) => {
+      console.log("eeee", res);
+      debugger
       if (res.length > 0) {
-        reqId = res[0]
-      } else {
-        await _sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(itemId)
-          .select("*,FileRef, FileLeafRef")()
-          .then((res) => {
-            console.log(res, ' let arrs=[] ccc');
-
-
-            //  arr =(res[0].Id)
-            // arr = res;
-            reqId = res
-          })
+        arr = res;
       }
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
     });
-  console.log(reqId, 'arr');
-  return reqId;
+  return arr;
+};
+export const getDocumentLinkByID = async (_sp, itemId, listid) => {
+  debugger
+  var reqId;
+  // await _sp.web.lists.getByTitle("ChangeRequestAttachDigitalSignedDocs").items
+  //   .select("*,FileRef, FileLeafRef")
+  //   .expand()
+  //   .filter(`ListItemIDId eq ${listid}`)
+  //   ()
+  //   .then(async (res) => {
+  //     console.log(res, ' let arrs=[] ghghgh');
+  //     if (res.length > 0) {
+  //       reqId = res[0]
+  //     } else {
+  //       await _sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(itemId)
+  //         .select("*,FileRef, FileLeafRef")()
+  //         .then((reschdoc) => {
+  //           console.log(reschdoc, ' let arrs=[] reschdoc');
+
+
+  //           //  arr =(res[0].Id)
+  //           // arr = res;
+  //           reqId = reschdoc
+  //         })
+  //     }
+  //   })
+  //   .catch((error) => {
+  //     console.log("Error fetching data: ", error);
+  //   });
+  // console.log(reqId, 'arr');
+  // return reqId;
+  let arrs = [];
+
+  try {
+    // 1. Get from ChangeRequestAttachDigitalSignedDocs
+    const signedDocs = await _sp.web.lists.getByTitle("ChangeRequestAttachDigitalSignedDocs").items
+      .select("*,FileRef,FileLeafRef")
+      .filter(`ListItemIDId eq ${listid}`)();
+
+    if (signedDocs && signedDocs.length > 0) {
+      arrs.push(...signedDocs); // Add all signed docs
+    }
+
+    // 2. Get from ChangeRequestDocs by itemId
+    const changeRequestDoc = await _sp.web.lists.getByTitle("ChangeRequestDocs").items
+      .getById(itemId)
+      .select("*,FileRef,FileLeafRef")();
+
+    if (changeRequestDoc) {
+      arrs.push(changeRequestDoc); // Add regular doc
+    }
+
+    console.log("Combined Documents:", arrs);
+  } catch (error) {
+    console.error("Error fetching documents:", error);
+  }
+
+  console.log(arrs, 'arrssss');
+  //return reqId;
+  return arrs;
 }
 export const getDocumentLinkByIDarr = async (_sp, itemId, listid) => {
 

@@ -353,7 +353,7 @@ export const getItemByID = async (_sp, id) => {
   let arrs = []
   let bannerimg = []
   await _sp.web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.getById(id)
-  .select("*,TemplateTypeId,Department/ID,Department/Department,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title,Location/Location,Custodian/Custodian,DocumentType/DocumentType,AmendmentType/AmendmentType,Classification/Classification,TemplateType/TemplateTypeName,PreparedBy/ID,PreparedBy/Title").expand("PreparedBy,TemplateType,Department,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")()
+  .select("*,TemplateTypeId,Department/ID,Department/Department,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title,Location/Location,Custodian/Custodian,DocumentType/DocumentType,AmendmentType/AmendmentType,Classification/Classification,TemplateType/TemplateTypeName,PreparedBy/ID,PreparedBy/Title,DocumentCancellationBy/Id,DocumentCancellationBy/Title,DocumentCancellationBy/EMail").expand("DocumentCancellationBy,PreparedBy,TemplateType,Department,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")()
     .then((res) => {
       console.log(res, ' let arrs=[]');      
 
@@ -743,6 +743,33 @@ export const getGeneratedTemplateDoc = async (_sp, itemId) => {
       results = res;
     } else {
       const res2 = await _sp.web.lists.getByTitle("DocumentCancellationGeneratedTemplateDoc").items
+        .select("*,FileRef, FileLeafRef")
+        .filter(`ListItemID/ID eq ${itemId}`)
+        .orderBy("ID", false)
+        .top(1)();
+
+      results = res2 && res2.length > 0 ? res2 : [];
+    }
+  } catch (error) {
+    console.log("Error fetching data: ", error);
+  }
+  console.log(results, 'results');
+  return results;
+};
+
+export const getGeneratedTemplateDoc2 = async (_sp, itemId) => {
+  let results = [];
+  try {
+    const res = await _sp.web.lists.getByTitle("DocumentCancellationDigitalSignedDocs").items
+      .select("*,FileRef, FileLeafRef")
+      .filter(`ListItemID/ID eq ${itemId}`)
+      .orderBy("ID", false)
+      .top(1)();
+
+    if (res && res.length > 0) {
+      results = res;
+    } else {
+      const res2 = await _sp.web.lists.getByTitle("DocumentCancellationDocs").items
         .select("*,FileRef, FileLeafRef")
         .filter(`ListItemID/ID eq ${itemId}`)
         .orderBy("ID", false)

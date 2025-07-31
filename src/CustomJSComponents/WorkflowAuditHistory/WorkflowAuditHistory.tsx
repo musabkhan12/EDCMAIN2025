@@ -12,6 +12,7 @@ import { getSP } from "../../webparts/dmsMusaib/loc/pnpjsConfig";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 
 import "bootstrap/dist/css/bootstrap.min.css";
+import { auditHistoryDelegationBgColor, auditHistoryDelegationTextColor } from "../../Shared/Constants";
 
 
 // import "../../../CustomCss/mainCustom.scss";
@@ -354,6 +355,8 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
 
                         <td title={row.Approver ? row.Approver.Title : row.AssignedTo.Title} style={{ minWidth: '80px', maxWidth: '80px' }}> {row.Approver ? row.Approver.Title : row.AssignedTo.Title}</td>
 
+                        
+
                         {(props.ContentType == "Document Cancellation" || props.ContentType == "Change Request" || props.ContentType == "Annual Audit Program" || props.ContentType == "IMS Annual Audit Program" || props.ContentType == "Annual Audit Plan" || props.ContentType == "IMS Audit Plan" || props.ContentType == "Annual Audit Report" || props.ContentType == "IMS Audit Report and Checklist" || props.ContentType == "Memorandum") &&
                           <td title={row.CurrentUserRole || row.ActionTakenRole.Role || ""} style={{ minWidth: '100px', maxWidth: '100px' }}>{row.CurrentUserRole || row.ActionTakenRole.Role || ""}</td>
                         }
@@ -421,7 +424,20 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                         </td>
 
                         {/* <td> {(row.Status != 'Pending') ? (row.Approver?.Title ? row.Approver.Title:(row.ActionTakenBy.Title?row.ActionTakenBy.Title:"")) : ""}</td> */}
-                        <td style={{ minWidth: '70px', maxWidth: '70px', cursor: 'pointer' }} title={row.Status !== "Pending"
+                        {/* <td style={{ minWidth: '70px', maxWidth: '70px', cursor: 'pointer' }} title={row.Status !== "Pending"
+                          ? row.Approver?.Title || row.ActionTakenBy?.Title || ""
+                          : ""}>
+                          {row.Status !== "Pending"
+                            ? row.Approver?.Title || row.ActionTakenBy?.Title || ""
+                            : ""}
+                        </td> */}
+                        <td style={{ minWidth: '70px', maxWidth: '70px', cursor: 'pointer' ,
+                            backgroundColor:row.AssignedTo?.Title && row.ActionTakenBy?.Title && row.AssignedTo.Title !== row.ActionTakenBy.Title && row.Status !== "Auto Approved"
+                                ? auditHistoryDelegationBgColor
+                                : undefined,
+                              color:row.AssignedTo?.Title && row.ActionTakenBy?.Title && row.AssignedTo.Title !== row.ActionTakenBy.Title && row.Status !== "Auto Approved"
+                                ? auditHistoryDelegationTextColor
+                                : undefined, }} title={row.Status !== "Pending"
                           ? row.Approver?.Title || row.ActionTakenBy?.Title || ""
                           : ""}>
                           {row.Status !== "Pending"

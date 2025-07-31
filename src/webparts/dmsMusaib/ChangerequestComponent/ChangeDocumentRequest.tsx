@@ -36,7 +36,8 @@ import {
   updateDigitalsign,
   getdigitalsignaturerequestbyIDYes,
   CheckIfAlreadyactionTaken,
-  getallProcessApprovalitemsLevel
+  getallProcessApprovalitemsLevel,
+  getchangerequestnotes
 } from './DocumentCancellation';
 import Select from "react-select";
 import Swal from 'sweetalert2';
@@ -49,7 +50,7 @@ import { WorkflowAuditHistory } from '../../../CustomJSComponents/WorkflowAuditH
 import { CONTENTTYPE_ChangeDocument, CONTENTTYPE_DocumentCancel, LIST_TITLE_ChangeRequest, Tenant_URL } from './Constants';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDownload, faEye, faPaperclip } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faEye, faPaperclip, faStickyNote } from '@fortawesome/free-solid-svg-icons';
 // import { uploadFile } from '../../../APISearvice/MediaService';
 import { Modal } from 'react-bootstrap';
 import { Link } from '@fluentui/react';
@@ -167,6 +168,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [rows, setRows] = React.useState<any>([]);
   const [doccoderows, setdoccoderows] = React.useState<any>([]);
   const [ReqType, setReqType] = React.useState<any>([]);
+  const [changereqNotes, setchangereqNotes] = React.useState<any>([]);
   const [Departopt, setDepartment] = React.useState<any>([]);
   const [TemplateTypeopt, setTemplateType] = React.useState<any>([]);
   const [Amendtype, setAmendtype] = React.useState<any>([]);
@@ -267,6 +269,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [showModal, setShowModal] = React.useState(false);
   const [showModaltemp, setShowModaltemp] = React.useState(false);
   const [ShowModalAtt, setShowModalAtt] = React.useState(false);
+  const [ShowModalNotes, setShowModalNotes] = React.useState(false);
+
   const [ShowModalTemplateDoc, setShowModalTemplateDoc] = React.useState(false);
 
   const [forwardToArr, setForwardToArr] = React.useState<ForwardTo[]>([
@@ -319,8 +323,17 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       setshowview(true);
     }
 
-    console.log("inpt diasba", InputDisabled, path1, path1.includes("/view/"))
+
     //setLoading(true);
+    var changerequestnotes = await getchangerequestnotes(sp);
+    const changerequestNotesCH = changerequestnotes.map((item: any) => ({
+      value: item.ID,
+      label: item.RequestType,
+      itemId: item.ID,
+      Notes: item.Notes
+    }));
+    setchangereqNotes(changerequestNotesCH);
+    console.log("changereqNote", InputDisabled, path1, path1.includes("/view/"), changerequestNotesCH)
     var ReqTypeArr = await getAllRequestType(sp);
     ReqTypeArr.sort((a, b) => a.RequestType.localeCompare(b.RequestType));
     const optionsreq = ReqTypeArr.map((item: any) => ({
@@ -401,7 +414,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     if (currentuserdepartment != "") {
       setSelectedOptionDepart(optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment));
     }
-    console.log("Current user department",currentuserdepartment,optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment))
+    console.log("Current user department", currentuserdepartment, optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment))
     // let optionsfilterdepart = optionsDepartment.filter((user) => user.label === currentuserdepartment);
     // setSelectedOptionDepart(optionsDepartment.filter((user) => user.label === currentuserdepartment));
     setRows1(Selectedoptions);
@@ -4587,10 +4600,32 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                           <div className="card-body">
 
                             <div className="previewIcon">
-                              <h4 style={{ textAlign: 'left' }} className="text-dark font-16 fw-bold mb-3">
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <h4 style={{ textAlign: 'left', marginBottom: 0 }} className="text-dark font-16 fw-bold">
+                                  Requested By
+                                </h4>
+                                {changereqNotes && changereqNotes.length > 0 &&
+                                  <a
+                                    style={{ fontSize: '0.875rem', marginLeft: '10px', color: '#333' }}
+                                    onClick={() => setShowModalNotes(true)}
+                                    title="View Notes"
+                                  >
+                                    <FontAwesomeIcon icon={faStickyNote} />
+                                  </a>}
+                              </div>
+                              {/* <h4 style={{ textAlign: 'left' }} className="text-dark font-16 fw-bold mb-3">
                                 Requested By
                               </h4>
+                              <div>
+                                <div>
 
+                                  <a style={{ fontSize: '0.875rem' }} onClick={() => setShowModalNotes(true)}>
+                                    <FontAwesomeIcon icon={faStickyNote} />
+                                  </a>
+
+
+                                </div>
+                              </div> */}
                               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                 {(formData.Status === "Approved" || formData.Status === "Rejected") && !hidedigisign && DigitalsignID != null && (
                                   <span
@@ -4943,7 +4978,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       className={`form-control ${(!ValidDraft && filenameerr) ? "border-on-error" : ""} ${(!ValidSubmit && filenameerr) ? "border-on-error" : ""}`}
                                       //className={`form-control ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                       onChange={(e) => onChangefilename("filename", e.target.value)}
-                                      disabled={InputDisabled || IsRecorddisabled || (selectedOptionReq != null && selectedOptionReq?.requestcode != "New") || formData?.Status == "Rework"}
+                                      //disabled={InputDisabled || IsRecorddisabled || (selectedOptionReq != null && selectedOptionReq?.requestcode != "New") || formData?.Status == "Rework"}
+                                      disabled={InputDisabled || formData?.Status == "Rework"}
                                       placeholder="Document name"
                                       value={formData.filename} />
                                   </div>
@@ -5017,7 +5053,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
 
                                     <div className="text-dark mt-0"> <span >
-                                      <a onClick={() => setShowModal(true)} ><FontAwesomeIcon icon={faPaperclip} />{DocumentLink && "1 file Attached"}</a>
+                                      <a onClick={() => setShowModal(true)} ><FontAwesomeIcon icon={faPaperclip} />{DocumentLink && DocumentLink.length == 1 ? "1 file Attached" : "2 files Attached"}</a>
 
                                     </span>
                                     </div>
@@ -5171,25 +5207,33 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                         </div>
                         {(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.IsRework == "Yes" && editID.CurrentUserRole === "Initiator")
                           &&
-                          <div className="col-lg-12">
+                          <div className="card mt-2">
+                            <div className="card-body">
+                              <div className='row'>
+                                <div className="col-lg-12">
 
-                            <div className="mb-0" >
+                                  <div className="mb-0" >
 
-                              <label htmlFor="example-textarea" className="form-label text-dark font-14">Remarks: <span className="text-danger1"> *</span></label>
+                                    <label htmlFor="example-textarea" className="form-label text-dark font-14">Remarks: <span className="text-danger1"> *</span></label>
 
-                              <textarea style={{ height: '80px' }} className={`form-control ${(!ValidRemark) ? "border-on-error" : ""}`}
-                                id="example-textarea"
-                                rows={5}
-                                name="Remark"
-                                value={formData.Remark}
+                                    <textarea style={{ height: '80px' }} className={`form-control ${(!ValidRemark) ? "border-on-error" : ""}`}
+                                      id="example-textarea"
+                                      rows={5}
+                                      name="Remark"
+                                      value={formData.Remark}
 
-                                onChange={(e) => setFormData({ ...formData, Remark: e.target.value })}>
+                                      onChange={(e) => setFormData({ ...formData, Remark: e.target.value })}>
 
-                              </textarea>
+                                    </textarea>
+
+                                  </div>
+
+                                </div>
+                              </div>
 
                             </div>
-
                           </div>
+
                         }
                         {console.log("editiiiiifhifassignmentt", editID, modeValue, InputDisabled, ApprovalTypeOptions, MainEditItem,
                           (modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES"),
@@ -5202,7 +5246,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                             <div className="card-body">
                               <div className='row'>
                                 <div className='col-sm-8'>
-                                  <h3 className="header-title text-dark font-16 fw-bold mb-3 ">Forward Approval To</h3>
+                                  <h3 className="header-title text-dark font-16 fw-bold mb-3 ">Forward Approval To (Preparer {'>'} Reviewer {'>'} Endorser {'>'} Signer\Approver)</h3>
                                   <label>Define the approval hierarchy to ensure requests are routed to the appropriate approvers.
                                   </label>
                                 </div>
@@ -5682,11 +5726,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                                 <FileViewer showfile={Showfile} docurl={redirecturl} cancelAction={cancelModalAction} />
                                 :
-                                <table className="mtbalenew" style={{ height: '400px', overflowY:'auto' }} >
+                                <table className="mtbalenew" style={{ height: '400px', overflowY: 'auto' }} >
                                   <thead style={{ background: '#eef6f7' }}>
                                     <tr>
                                       <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
-                                      <th style={{ minWidth: '140px', maxWidth: '1400px' ,textAlign:'left'}}>File Name</th>
+                                      <th style={{ minWidth: '140px', maxWidth: '1400px', textAlign: 'left' }}>File Name</th>
                                       {/* {editForm && <th>File Link</th>} */}
                                       {/* <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th> */}
                                       {/* {!InputDisabled && <th className='text-center'>Action</th>} */}
@@ -5740,17 +5784,17 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   <thead style={{ background: '#eef6f7' }}>
                                     <tr>
                                       <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
-                                      <th>File Name</th>
+                                      <th style={{ minWidth: '220px', maxWidth: '220px' }}>File Name</th>
 
-                                      <th className='text-center'>Upload date</th>
-                                      {(DocumentLink?.NDocumentCodePrinting == "Yes" || DocumentLink?.NDocumentCodePrinting == "No" || DocumentLink?.NDocumentCodePrinting == "" || DocumentLink?.NDocumentCodePrinting == undefined) && <th > Action </th>}
-                                      {/* <th > Action </th> */}
+                                      <th style={{ minWidth: '80px', maxWidth: '80px' }} className='text-center'>Upload date</th>
+                                      {/* {(DocumentLink?.NDocumentCodePrinting == "Yes" || DocumentLink?.NDocumentCodePrinting == "No" || DocumentLink?.NDocumentCodePrinting == "" || DocumentLink?.NDocumentCodePrinting == undefined) && <th > Action </th>} */}
+                                      <th style={{ minWidth: '60px', maxWidth: '60px' }}> Action </th>
                                     </tr>
                                   </thead>
 
                                   <tbody>
                                     {console.log("Attachmentarrnmnm doc link", DocumentLink, DocumentLink?.NDocumentCodePrinting, DocumentLink != null)}
-                                    <tr >
+                                    {/* <tr >
                                       <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
 
                                       <td title={DocumentLink != null && `${cleanFileName(DocumentLink?.FileLeafRef)}`}>{DocumentLink != null && `${cleanFileName(DocumentLink?.FileLeafRef)}`}</td>
@@ -5767,7 +5811,29 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       {/* <td style={{ minWidth: "60px", maxWidth: "60px", textAlign: 'center' }}>
                                       <img src={require("../assets/del.png")} className='' onClick={() => deleteLocalFileAttachment(0, Attachmentarr)}></img>
                                     </td> */}
-                                    </tr>
+                                    {/* </tr> */}
+                                    {DocumentLink && DocumentLink?.length > 0 && (
+                                      DocumentLink?.map((row: any, index: number) => {
+                                        return (
+                                          <tr key={index}>
+                                            {/* <tr > */}
+                                            <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index+1}</td>
+
+                                            <td style={{ minWidth: '220px', maxWidth: '220px' }}title={row != null && `${cleanFileName(row?.FileLeafRef)}`}>{row != null && `${cleanFileName(row?.FileLeafRef)}`}</td>
+                                            <td style={{ minWidth: '80px', maxWidth: '80px' }}className='text-center' title={row && moment(row?.Created).format("DD/MMM/YYYY")}>{row && moment(row?.Created).format("DD/MMM/YYYY")}</td>
+                                            {(row?.NDocumentCodePrinting == "Yes" || row?.NDocumentCodePrinting == "No" || row?.NDocumentCodePrinting == "" || row?.NDocumentCodePrinting == undefined) &&
+                                              <td style={{ textAlign: 'center',minWidth: '60px', maxWidth: '60px' }}>
+
+                                                <span title='Preview file' onClick={() => OpenFile(row != null && row, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                  <FontAwesomeIcon icon={faEye} /></span>
+                                                <span title='Download file' onClick={() => OpenFile(row != null && row, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                  <FontAwesomeIcon icon={faDownload} /></span>
+                                              </td>
+                                            }
+
+                                          </tr>
+                                        )
+                                      }))}
                                   </tbody>
 
                                 </table>
@@ -5858,6 +5924,33 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                   </tbody>
                                 </table>
                               }
+                            </>
+                          </Modal.Body>
+                        </Modal>
+                        <Modal show={ShowModalNotes} onHide={() => setShowModalNotes(false)} size={"xl"} className='newmobmodal'>
+                          <Modal.Header closeButton style={{ borderBottom: 'none' }} className="custom-modal-header">
+
+                            <Modal.Title> Change Request Notes <br></br>
+                              <p className='text-muted font-14 fw-400 mb-0'>Kindly refer to the notes below
+                              </p>
+
+                            </Modal.Title>
+                          </Modal.Header>
+                          <Modal.Body className="" id="style-5">
+                            <>
+
+                              {changereqNotes && changereqNotes.length > 0 && (
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '10px' }}>
+
+                                  <div
+                                    style={{ flex: 1 }}
+                                    dangerouslySetInnerHTML={{
+                                      __html: changereqNotes[0]?.Notes || '<p>No content available</p>'
+                                    }}
+                                  ></div>
+                                </div>
+                              )}
+
                             </>
                           </Modal.Body>
                         </Modal>

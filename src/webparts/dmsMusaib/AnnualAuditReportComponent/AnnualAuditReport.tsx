@@ -1181,7 +1181,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         const updatedArr = forwardToArr.map(row =>
             // row.level === lvl ? { ...row, Responsibility: event.target.value} : row
 
-            row.level === lvl ? { ...row, Responsibility: event.target.value, IsSignatureRequired: true } : row
+            row.level === lvl ? { ...row, Responsibility: event.target.value, IsSignatureRequired: event.target.value === "Signer" ? true : false} : row
         );
         //   setApprovalType(event.target.value);
         setForwardToArr(updatedArr);
@@ -1721,11 +1721,14 @@ const AnnualAuditReportContext = ({ props }: any) => {
     // };
     const handleFormSubmit = async () => {
         debugger
-        const IsactionTaken = await CheckIfAlreadyactionTaken(sp, editID.Id);
-        if (!IsactionTaken) {
-            Swal.fire("Action has already been taken for this record.");
-            return;
+        if (editID != null) {
+            const IsactionTaken = await CheckIfAlreadyactionTaken(sp, editID?.Id);
+            if (!IsactionTaken) {
+                Swal.fire("Action has already been taken for this record.");
+                return;
+            }
         }
+      
         setValidRemark(true);
         let postPayload = {};
         let postPayload2 = {};

@@ -367,7 +367,11 @@ textarea {
     border-radius: 8px;
     margin-bottom: 10px;
 }
-
+.btncloseheader {
+    transform: scale(0.75); /* Adjust to make it smaller */
+  margin-top: -15px;        /* Optional: push it slightly down */
+  margin-right: 5px; 
+}
 .image-preview img {
     width: 100px;
     height: auto;

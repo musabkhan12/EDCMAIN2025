@@ -9,7 +9,7 @@ export const getDataRoles = async (_sp) => {
       .then((res) => {
         console.log(res, ' let arrs=[]');
        
-  
+ 
         //  arr.push(res)
         arr = res;
       })
@@ -29,13 +29,13 @@ export const getDataRoles = async (_sp) => {
     await _sp.web.lists.getByTitle("AnnualAuditPlanList").items.getById(id)
     .select("*,RecommendationType/RecommendationTypeValue,Author/ID,Author/Title,AuditPlanType/AuditPlanType,AuditPlanType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Department,ToDepartments/DepartmentCode").expand("RecommendationType,ToDepartments,CCDepartments,Author,AuditPlanType,To,Cc,From")()
       .then((res) => {
-        
+       
         // const options = res.map((item: any) => ({
         //   value: item.DocumentCode,
         //   label: item.DocumentCode,
-        
+       
         // }));      
-  
+ 
          arr.push(res)
         // arr = res;
       })
@@ -76,7 +76,7 @@ export const getDataRoles = async (_sp) => {
    
       console.log('Item added successfully:', newItem);
       // Swal.fire('Item added successfully', '', 'success');
-  
+ 
       resultArr = newItem
       // Perform any necessary actions after successful addition
     } catch (error) {
@@ -87,12 +87,12 @@ export const getDataRoles = async (_sp) => {
     }
     return resultArr;
   };
-  
+ 
   export const UpdateAllProcessItem = async (itemData, _sp,id) => {
    
     let resultArr = []
     try {
-  
+ 
       const newItem = await _sp.web.lists.getByTitle('AllProcessApprovalLevelList').items.getById(id).update(itemData);
       // console.log('Item  successfully:', newItem);
       resultArr = newItem
@@ -144,7 +144,7 @@ export const getDataRoles = async (_sp) => {
          
       }));
        
-  
+ 
         //  arr.push(res)
         // arr = res;
       })
@@ -163,7 +163,7 @@ export const getDataRoles = async (_sp) => {
    
       // console.log('Item added successfully:', newItem);
       // Swal.fire('Item added successfully', '', 'success');
-  
+ 
       resultArr = newItem
       // Perform any necessary actions after successful addition
     } catch (error) {
@@ -235,7 +235,7 @@ export const getDataRoles = async (_sp) => {
          
       // }));
        
-  
+ 
          arr.push(res)
         arr = res;
       })
@@ -293,7 +293,7 @@ export const getDataRoles = async (_sp) => {
       .then((res) => {
         console.log(res, ' let arrs=[]');
        
-  
+ 
         //  arr =(res[0].Id)
         // arr = res;
         reqId=res[0].Id
@@ -313,7 +313,7 @@ export const getDataRoles = async (_sp) => {
       .then((res) => {
         console.log(res, ' let arrs=[]');
        
-  
+ 
         //  arr =(res[0].Id)
         // arr = res;
         reqId=res[0]
@@ -325,58 +325,181 @@ export const getDataRoles = async (_sp) => {
     return reqId;
   }
 
-  export const getApprovalByID = async (_sp, id,processName) => {
+  // export const getApprovalByID = async (_sp, id,processName) => {
  
-    let arr = []
-    let arrs = []
-    let bannerimg = []
-    const currentUser = await _sp.web.currentUser();
-    await _sp.web.lists.getByTitle("ProcessApprovalList").items.getById(id)
-    .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
-      .then((res) => {
-        console.log(res, ' let arrs=[]');
-        if(res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName ){
-          arr = res;
-        }
-        // .filter(`AssignedTo/Id eq ${currentUser.Id} and ProcessName eq ${processName}`)
-  
-        //  arr.push(res)
+  //   let arr = []
+  //   let arrs = []
+  //   let bannerimg = []
+  //   const currentUser = await _sp.web.currentUser();
+  //   await _sp.web.lists.getByTitle("ProcessApprovalList").items.getById(id)
+  //   .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
+  //     .then((res) => {
+  //       console.log(res, ' let arrs=[]');
+  //       if(res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName ){
+  //         arr = res;
+  //       }
+       
      
-      })
-      .catch((error) => {
-        console.log("Error fetching data: ", error);
-      });
-    console.log(arr, 'arr');
-    return arr;
-  }
+  //     })
+  //     .catch((error) => {
+  //       console.log("Error fetching data: ", error);
+  //     });
+  //   console.log(arr, 'arr');
+  //   return arr;
+  // }
+export const getApprovalByID = async (_sp, id, processName) => {
 
-  export const getApprovalByID2 = async (_sp, id,processName) => {
- 
-    let arr;
-    let arrs = []
-    let bannerimg = []
-    const currentUser = await _sp.web.currentUser();
-    await _sp.web.lists.getByTitle("ProcessApprovalList").items.getById(id)
+  let arr = []
+  let arrs = []
+  let bannerimg = []
+  const currentUser = await _sp.web.currentUser();
+  await _sp.web.lists.getByTitle("ProcessApprovalList").items.getById(id)
     .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
-      .then((res) => {
-        console.log(res, ' let arrs=[]');
-        if(res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 ){
-          arr = false;
-        }
-        else{
-          arr = true;
-        }
-        // .filter(`AssignedTo/Id eq ${currentUser.Id} and ProcessName eq ${processName}`)
-  
-        //  arr.push(res)
+    .then(async (res) => {
+      // console.log(res, ' let arrs=[]');
+      // if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName) {
+      //   arr = res;
+      // }
+
+
+
+
+
+      // working *********
+
+      // Check if the current user is the assigned user or a delegate
+      // Fetch the delegate list to see if the current user is acting as a delegate
+      const today = new Date().toISOString();
+      // const today = new Date().toISOString().split('T')[0];
+      await _sp.web.lists.getByTitle("ARGDelegateList")
+        .items
+        .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
+        .expand("Author,DelegateName,ActingFor")
+        .filter(`ActingFor/ID eq '${res.AssignedTo.Id}' and DelegateName/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .orderBy("Created", false).top(1)()
+        .then((result) => {
+          if (result.length > 0) {
+            // If the current user is a delegate, check if they are acting for the assigned user
+            // and if the process name matches
+            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].ActingForId) && res.ProcessName === processName) {
+              arr = res;
+            }
+            // if (res && (res.AssignedTo.Id == currentUser.Id || res.ActingFor.Id == currentUser.Id) && res.ProcessName === processName) {
+            //   arr = res;
+            // }
+
+
+          }
+          else {
+            if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName) {
+              arr = res;
+            }
+
+          }
+
+
+        })
+        .catch((error) => {
+          console.log("Error fetching data: ", error);
+        });
+
+      // working *********
+
+
+
+
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  console.log(arr, 'arr');
+  return arr;
+}
+
+  // export const getApprovalByID2 = async (_sp, id,processName) => {
+ 
+  //   let arr;
+  //   let arrs = []
+  //   let bannerimg = []
+  //   const currentUser = await _sp.web.currentUser();
+  //   await _sp.web.lists.getByTitle("ProcessApprovalList").items.getById(id)
+  //   .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
+  //     .then((res) => {
+  //       console.log(res, ' let arrs=[]');
+  //       if(res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 ){
+  //         arr = false;
+  //       }
+  //       else{
+  //         arr = true;
+  //       }
+  //       // .filter(`AssignedTo/Id eq ${currentUser.Id} and ProcessName eq ${processName}`)
+ 
+  //       //  arr.push(res)
      
-      })
-      .catch((error) => {
-        console.log("Error fetching data: ", error);
-      });
-    console.log(arr, 'arr');
-    return arr;
-  }
+  //     })
+  //     .catch((error) => {
+  //       console.log("Error fetching data: ", error);
+  //     });
+  //   console.log(arr, 'arr');
+  //   return arr;
+  // }
+ export const getApprovalByID2 = async (_sp, id, processName) => {
+
+  let arr = true;;
+  let arrs = []
+  let bannerimg = []
+  const currentUser = await _sp.web.currentUser();
+  await _sp.web.lists.getByTitle("ProcessApprovalList").items.getById(id)
+    .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
+    .then(async (res) => {
+      console.log(res, ' let arrs=[]');
+      // if(res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 ){
+      //   arr = false;
+      // }
+      // else{
+      //   arr = true;
+      // }
+      const today = new Date().toISOString();
+      // const today = new Date().toISOString().split('T')[0];
+      await _sp.web.lists.getByTitle("ARGDelegateList")
+        .items
+        .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
+        .expand("Author,DelegateName,ActingFor")
+        .filter(`ActingFor/ID eq '${res.AssignedTo.Id}' and  ActingFor/ID eq '${res.AssignedTo.Id}' and DelegateName/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .orderBy("Created", false).top(1)()
+        .then((result) => {
+          if (result.length > 0) {
+            // If the current user is a delegate, check if they are acting for the assigned user
+            // and if the process name matches
+            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].ActingForId) && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+              arr = false;
+            }
+            //  if (res && (res.AssignedTo.Id == currentUser.Id || res.ActingFor.Id == currentUser.Id) && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+            //   arr = false;
+            // }
+
+          }
+          else {
+            if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+              arr = false;
+            }
+
+          }
+
+
+        })
+        .catch((error) => {
+          console.log("Error fetching data: ", error);
+        });
+
+
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  console.log(arr, 'arr');
+  return arr;
+}
 
 
   export const getItemByID2 = async (sp, AuditID) => {
@@ -411,33 +534,143 @@ export const getDataRoles = async (_sp) => {
   }
 
 
-  export const getDraftApprovalByID = async (_sp, id,processName) => {
+//   export const getDraftApprovalByID = async (_sp, id,processName) => {
  
-  let arr =[];
+//   let arr =[];
+//   let val = "Yes"
+//   let Sts = "Save as draft";
+//   let sts ="Pending"
+//   const currentUser = await _sp.web.currentUser();
+//   await _sp.web.lists.getByTitle("ProcessApprovalList").items
+//   .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`ListItemId eq '${id}' and AssignedTo/ID  eq '${currentUser.Id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).top(1)()
+//     .then((res) => {
+//       console.log(res, ' let arrs=[]');
+//       // if(res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 && res.CurrentUserRole !=="OES" ){
+//       //   arr = false;
+//       // }
+//       // else{
+//       //   arr = true;
+//       // }
+//       // .filter(`AssignedTo/Id eq ${currentUser.Id} and ProcessName eq ${processName}`)
+
+//       //  arr.push(res)
+
+//       arr =res;
+   
+//     })
+//     .catch((error) => {
+//       console.log("Error fetching data: ", error);
+//     });
+//   console.log(arr, 'arr');
+//   return arr;
+// }
+export const getDraftApprovalByID = async (_sp, id, processName) => {
+
+  let arr = [];
   let val = "Yes"
   let Sts = "Save as draft";
   let sts ="Pending"
   const currentUser = await _sp.web.currentUser();
+  const today = new Date().toISOString();
+
+
   await _sp.web.lists.getByTitle("ProcessApprovalList").items
-  .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`ListItemId eq '${id}' and AssignedTo/ID  eq '${currentUser.Id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).top(1)()
-    .then((res) => {
+    // .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`ListItemId eq '${id}' and AssignedTo/ID  eq '${currentUser.Id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).orderBy("Created", false).top(1)()
+        .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`ListItemId eq '${id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).orderBy("Created", false).top(1)()
+
+    .then(async (res) => {
       console.log(res, ' let arrs=[]');
-      // if(res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 && res.CurrentUserRole !=="OES" ){
-      //   arr = false;
-      // }
-      // else{
-      //   arr = true;
-      // }
-      // .filter(`AssignedTo/Id eq ${currentUser.Id} and ProcessName eq ${processName}`)
 
-      //  arr.push(res)
+      arr = res;
 
-      arr =res;
-   
+      await _sp.web.lists.getByTitle("ARGDelegateList")
+        .items
+        .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
+        .expand("Author,DelegateName,ActingFor")
+        .filter(`ActingFor/ID eq '${res.AssignedTo.Id}' and DelegateName/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .orderBy("Created", false).top(1)()
+        .then(async (result) => {
+          if (result.length > 0) {
+
+            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].ActingForId) && res.ProcessName === processName && (res?.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+              arr = res;
+            }
+
+          }
+          else {
+
+            if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+              arr = res;
+            }
+
+
+          }
+
+
+        })
+        .catch((error) => {
+          console.log("Error fetching data: ", error);
+        });
+
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
     });
+
+
+  // // //// working *********
+  // // const today = new Date().toISOString().split('T')[0];
+  // await _sp.web.lists.getByTitle("ARGDelegateList")
+  //   .items
+  //   .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
+  //   .expand("Author,DelegateName,ActingFor")
+  //   .filter(`DelegateName/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+  //   .orderBy("Created", false).top(1)()
+  //   .then(async (result) => {
+  //     if (result.length > 0) {
+
+
+
+  //       await _sp.web.lists.getByTitle("ProcessApprovalList").items
+  //         .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`ListItemId eq '${id}' and (AssignedTo/ID  eq '${result[0].ActingForId}' or AssignedTo/ID  eq '${currentUser.Id}') and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).top(1)()
+  //         .then((res) => {
+  //           console.log(res, ' let arrs=[]');
+
+  //           arr = res;
+
+  //         })
+  //         .catch((error) => {
+  //           console.log("Error fetching data: ", error);
+  //         });
+
+
+  //     }
+  //     else {
+
+  //       await _sp.web.lists.getByTitle("ProcessApprovalList").items
+  //         .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`ListItemId eq '${id}' and AssignedTo/ID  eq '${currentUser.Id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).top(1)()
+  //         .then((res) => {
+  //           console.log(res, ' let arrs=[]');
+
+  //           arr = res;
+
+  //         })
+  //         .catch((error) => {
+  //           console.log("Error fetching data: ", error);
+  //         });
+
+
+  //     }
+
+
+  //   })
+  //   .catch((error) => {
+  //     console.log("Error fetching data: ", error);
+  //   });
+
+  // // //// working *********
+
+
   console.log(arr, 'arr');
   return arr;
 }
@@ -507,7 +740,7 @@ export const getDocumentLinkByID = async (_sp, AttachmentIds) => {
 }
 export const getLatestChangeRequestTemplateType= async (_sp,List) =>{
   let arr = [];
-  
+ 
   // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
   // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
   await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`TemplateType/TemplateTypeValue eq '${List}' and Status eq 'Approved'`).orderBy("ID", false).top(1)()
