@@ -298,7 +298,10 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                 displayName = "IMS Annual Audit Program";
             } else if (item?.ProcessName === "Annual Audit Report") {
                 displayName = "IMS Audit Report and Checklist";
-            } else {
+            } else if(item.ProcessName == "Document Cancellation"){
+                displayName =  `${item?.ProcessName} (Issue No:${item.IssueNumber}, Revision No:${item.RevisionNumber})`;
+            }
+            else {
                 displayName = item?.ProcessName;
             }
 
@@ -774,7 +777,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
 
         });
 
-        const ChangeRequestDocumentCancellationListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.select('FileName,Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,ReferenceNumber,Created').expand('Author', 'RequesterName').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
+        const ChangeRequestDocumentCancellationListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.select('FileName,Id,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,ReferenceNumber,Created,IssueNumber,RevisionNumber').expand('Author', 'RequesterName').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
         for (const item of ChangeRequestDocumentCancellationListItems) {
             if (item.Status === "Rework") {
                 const processItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and (Status eq 'Pending' or Status eq 'Save as draft') and ProcessName eq 'Document Cancellation' and ListItemId eq ${item.Id}`)();
@@ -791,7 +794,9 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                             MainListId: item.Id,
                             Id: item.Id,
                             ProcessItemId: itm.Id,
-                            SubmitStatus: ''
+                            SubmitStatus: '',
+                            RevisionNumber: item.RevisionNumber,
+                            IssueNumber: item.IssueNumber
                         });
                     }
                 } else {
@@ -805,7 +810,9 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                         Status: item.Status,
                         MainListId: item.Id,
                         Id: item.Id,
-                        SubmitStatus: ''
+                        SubmitStatus: '',
+                        RevisionNumber: item.RevisionNumber,
+                     IssueNumber: item.IssueNumber
                     });
                 }
             } else {
@@ -819,7 +826,9 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                     Status: item.Status,
                     MainListId: item.Id,
                     Id: item.Id,
-                    SubmitStatus: ''
+                    SubmitStatus: '',
+                    RevisionNumber: item.RevisionNumber,
+                   IssueNumber: item.IssueNumber
                 });
             }
         }

@@ -2762,11 +2762,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 ActionTakenOn: new Date().toISOString(),
                                 // ActionTakenRoleId: formData.RequesterDesignation,
                                 //Status: "Save as draft",
-                                // Remark: remark,
+                                 //Remark: formData.RemarksInitiator},
 
                             }
-                            const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
-                            const postId = postResult?.data?.ID;
+                            //const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
+                            //const postId = postResult?.data?.ID;
 
                         }
 

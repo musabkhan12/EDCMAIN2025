@@ -386,6 +386,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
         let formitemid;
+        let formMode = "";
         //#region getdataByID
         if (sessionStorage.getItem("DocumentCancelId") != undefined) {
             const iD = sessionStorage.getItem("DocumentCancelId")
@@ -409,6 +410,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             var EditID = null;
             if (paramIndex !== -1 && segments[paramIndex + 1]) {
                 setmode(segments[paramIndex])
+                formMode = segments[paramIndex];
                 // mode = segments[paramIndex]; // Will be "edit" or "view"
                 formitemid = segments[paramIndex + 1]; // Get the ID
                 if (segments[paramIndex + 2] !== undefined) {
@@ -515,6 +517,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
 
 
+                }
+                if(setBannerById[0].Status == "Pending" && formMode =="approve" && ApprowData.length == 0){
+                    handleAddRow();
                 }
                 // else if (
                 //     setBannerById[0].DocumentCancellationBy?.length > 0 && EditID != null && setBannerById[0].Status == "Pending" && (EditID as any)?.CurrentUserRole == "OES"
@@ -989,7 +994,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         } else if (sts == "Download") {
             const link = document.createElement("a");
             link.href = fileUrl;
-            link.setAttribute("download", obj.FileLeafRef.replace(/_\d+(\.\w+)$/, '$1')); // Suggests a filename for download
+            link.setAttribute("download", (obj.FileLeafRef?.replace(/_\d+(\.\w+)$/, '$1')||obj.FileLeafRef)); // Suggests a filename for download
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -3841,11 +3846,11 @@ return (
                                                 <div className="card mt-3" style={{ marginBottom: '17px' }}>
                                                     <div className="card-body">
                                                         <div className='row'>
-                                                            <div className='col-sm-8'>
-                                                                <h4 className="header-title text-dark font-16 fw-bold mb-3 ">Forward Approval To (Preparer (Cancellation Requested By) {'>'} Reviewer {'>'} Endorser {'>'} Signer\Approver)</h4>
+                                                            <div className='col-sm-11'>
+                                                                <h4 className="header-title text-dark font-16 fw-bold mb-3 ">Forward Approval To <span >(Preparer (Cancellation Requested By) {'>'} Reviewer {'>'} Endorser {'>'} Signer\Approver)</span></h4>
 
                                                             </div>
-                                                            <div className='col-sm-4'>
+                                                            <div className='col-sm-1'>
                                                                 <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
                                                                     {/* {editID.CurrentUserRole === "OES" && <img style={{ width: '34px' }} src={require("../assets/plus.png")} onClick={handleAddRow} className='' />} */}
                                                                     {(editID?.CurrentUserRole === "OES" && editID?.Status === "Pending") && <img style={{ width: '34px' }} src={require("../../assets/plus.png")} onClick={handleAddRow} className='' />}
@@ -4072,13 +4077,13 @@ return (
                                                 <div className="card mt-3" style={{ marginBottom: '17px' }}>
                                                     <div className="card-body">
                                                         <div className='row'>
-                                                            <div className='col-sm-8'>
-                                                                <h4 className="header-title text-dark font-16 fw-bold mb-3 ">Forward Approval To (Preparer (Cancellation Requested By) {'>'} Reviewer {'>'} Endorser {'>'} Signer\Approver)</h4>
+                                                            <div className='col-sm-11'>
+                                                                <h4 className="header-title text-dark font-16 fw-bold mb-3 ">Forward Approval To <span >(Preparer (Cancellation Requested By) {'>'} Reviewer {'>'} Endorser {'>'} Signer\Approver)</span></h4>
                                                                 <label>Define the approval hierarchy to ensure requests are routed to the appropriate approvers.
                                                                 </label>
 
                                                             </div>
-                                                            <div className='col-sm-4'>
+                                                            <div className='col-sm-1'>
                                                                 <div className="mt-0 mb-0 float-end text-right" style={{ textAlign: "right", paddingRight: "22px" }}>
                                                                     {/* {editID.CurrentUserRole === "OES" && <img style={{ width: '34px' }} src={require("../assets/plus.png")} onClick={handleAddRow} className='' />} */}
                                                                     {/* {(editID?.CurrentUserRole === "OES" ||MainEditItem?.Status == "Rework") && <img style={{ width: '34px' }} src={require("../../assets/plus.png")} onClick={handleAddRow} className='' />} */}
@@ -4364,7 +4369,12 @@ return (
                                                                             {DocumentLink != null && DocumentLink.length != 0 && (
                                                                                 <tr>
                                                                                     <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>1</td>
-                                                                                    <td title={DocumentLink?.FileLeafRef.replace(/_\d+(\.\w+)$/, '$1')}>{DocumentLink?.FileLeafRef.replace(/_\d+(\.\w+)$/, '$1')}</td>
+                                                                                    {/* <td title={DocumentLink?.FileLeafRef?.includes('_') && DocumentLink?.FileLeafRef?.includes('.') ? DocumentLink.FileLeafRef.replace(/_\d+(\.\w+)$/, '$1') : DocumentLink?.FileLeafRef}>
+                                                                                        {DocumentLink?.FileLeafRef?.includes('_') && DocumentLink?.FileLeafRef?.includes('.') ? DocumentLink.FileLeafRef.replace(/_\d+(\.\w+)$/, '$1') : DocumentLink?.FileLeafRef}
+                                                                                    </td> */}
+                                                                                       <td title={DocumentLink?.FileLeafRef?.replace(/_\d+(\.\w+)$/, '$1')||DocumentLink?.FileLeafRef}>{DocumentLink?.FileLeafRef?.replace(/_\d+(\.\w+)$/, '$1')|| DocumentLink?.FileLeafRef}</td>
+
+                                                                                    {/* <td title={DocumentLink?.FileLeafRef.replace(/_\d+(\.\w+)$/, '$1')}>{DocumentLink?.FileLeafRef.replace(/_\d+(\.\w+)$/, '$1')}</td> */}
                                                                                     <td style={{ textAlign: 'center', minWidth: '50px', maxWidth: '50px' }} >
                                                                                         <span onClick={() => OpenFile(DocumentLink, "Open")} title='preview file' style={{ color: "blue", cursor: "pointer", margin: "10px" }}><FontAwesomeIcon icon={faEye} /></span>
 

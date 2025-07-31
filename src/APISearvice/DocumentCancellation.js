@@ -758,7 +758,7 @@ export const getGeneratedTemplateDoc = async (_sp, itemId) => {
 };
 
 export const getGeneratedTemplateDoc2 = async (_sp, itemId) => {
-  let results = [];
+  let results = null;
   try {
     const res = await _sp.web.lists.getByTitle("DocumentCancellationDigitalSignedDocs").items
       .select("*,FileRef, FileLeafRef")
@@ -767,7 +767,7 @@ export const getGeneratedTemplateDoc2 = async (_sp, itemId) => {
       .top(1)();
 
     if (res && res.length > 0) {
-      results = res;
+      results = res[0];
     } else {
       const res2 = await _sp.web.lists.getByTitle("DocumentCancellationDocs").items
         .select("*,FileRef, FileLeafRef")
@@ -775,7 +775,7 @@ export const getGeneratedTemplateDoc2 = async (_sp, itemId) => {
         .orderBy("ID", false)
         .top(1)();
 
-      results = res2 && res2.length > 0 ? res2 : [];
+      results = res2 && res2.length > 0 ? res2[0] : null;
     }
   } catch (error) {
     console.log("Error fetching data: ", error);
