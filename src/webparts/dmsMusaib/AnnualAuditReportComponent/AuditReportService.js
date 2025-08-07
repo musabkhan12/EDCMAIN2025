@@ -542,7 +542,111 @@ export const getApprovalByID = async (_sp, id, processName, processName1) => {
   console.log(arr, 'arr');
   return arr;
 }
+// export const getApprovalByID = async (_sp, id, processName, processName1) => {
 
+//   let arr = []
+//   let arrs = []
+//   let bannerimg = []
+//   const currentUser = await _sp.web.currentUser();
+//   await _sp.web.lists.getByTitle("ProcessApprovalList").items.getById(id)
+//     .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
+//     .then(async (res) => {
+//       // console.log(res, ' let arrs=[]');
+//       // if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName) {
+//       //   arr = res;
+//       // }
+//       // working *********
+//       // Check if the current user is the assigned user or a delegate
+//       // Fetch the delegate list to see if the current user is acting as a delegate
+//       const today = new Date().toISOString();
+//       // const today = new Date().toISOString().split('T')[0];
+//       await _sp.web.lists.getByTitle("ARGDelegateList")
+//         .items
+//         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
+//         .expand("Author,DelegateName,ActingFor")
+//         .filter(`ActingFor/ID eq '${res.AssignedTo.Id}' and DelegateName/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+//         .orderBy("Created", false).top(1)()
+//         .then((result) => {
+//           if (result.length > 0) {
+//             // If the current user is a delegate, check if they are acting for the assigned user
+//             // and if the process name matches
+//             if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].ActingForId) && (res.ProcessName === processName || res.ProcessName === processName1)) {
+//               arr = res;
+//             }
+//           }
+//           else {
+//             if (res && res.AssignedTo.Id == currentUser.Id && (res.ProcessName === processName || res.ProcessName === processName1)) {
+//               arr = res;
+//             }
+//           }
+//         })
+//         .catch((error) => {
+//           console.log("Error fetching data: ", error);
+//         });
+//       // working *********
+//     })
+//     .catch((error) => {
+//       console.log("Error fetching data: ", error);
+//     });
+//   console.log(arr, 'arr');
+//   return arr;
+// }
+// export const getApprovalByID2 = async (_sp, id, processName, processname1) => {
+
+//   let arr = true;;
+//   let arrs = []
+//   let bannerimg = []
+//   const currentUser = await _sp.web.currentUser();
+//   await _sp.web.lists.getByTitle("ProcessApprovalList").items.getById(id)
+//     .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
+//     .then(async (res) => {
+//       console.log(res, ' let arrs=[]');
+//       // if(res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 ){
+//       //   arr = false;
+//       // }
+//       // else{
+//       //   arr = true;
+//       // }
+//       const today = new Date().toISOString();
+//       // const today = new Date().toISOString().split('T')[0];
+//       await _sp.web.lists.getByTitle("ARGDelegateList")
+//         .items
+//         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
+//         .expand("Author,DelegateName,ActingFor")
+//         .filter(`ActingFor/ID eq '${res.AssignedTo.Id}' and  ActingFor/ID eq '${res.AssignedTo.Id}' and DelegateName/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+//         .orderBy("Created", false).top(1)()
+//         .then((result) => {
+//           if (result.length > 0) {
+//             // If the current user is a delegate, check if they are acting for the assigned user
+//             // and if the process name matches
+//             if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].ActingForId) && (res.ProcessName === processName || res.ProcessName === processName1) && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+//               arr = false;
+//             }
+//             //  if (res && (res.AssignedTo.Id == currentUser.Id || res.ActingFor.Id == currentUser.Id) && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+//             //   arr = false;
+//             // }
+
+//           }
+//           else {
+//             if (res && res.AssignedTo.Id == currentUser.Id && (res.ProcessName === processName || res.ProcessName === processName1) && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+//               arr = false;
+//             }
+
+//           }
+
+
+//         })
+//         .catch((error) => {
+//           console.log("Error fetching data: ", error);
+//         });
+
+//     })
+//     .catch((error) => {
+//       console.log("Error fetching data: ", error);
+//     });
+//   console.log(arr, 'arr');
+//   return arr;
+// }
 export const getApprovalByID2 = async (_sp, id, processName, processname1) => {
 
   let arr;

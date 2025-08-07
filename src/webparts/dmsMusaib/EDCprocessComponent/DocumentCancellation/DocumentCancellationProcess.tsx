@@ -468,7 +468,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                 setMainEditItem(setBannerById[0]);
                 // setCategoryData(await getCategory(sp, Number(setBannerById[0]?.TypeMaster))) // Category
                 if(setBannerById[0].Status == "Approved"){
-                    setDocumentLink(await getGeneratedTemplateDoc2(sp, Number(formitemid)))
+                    setDocumentLink(await getGeneratedTemplateDoc2(sp, Number(formitemid),setBannerById[0].ChangeRequestIDId))
                 }
                 else{
                     if (setBannerById[0].AttachmentId.length) {

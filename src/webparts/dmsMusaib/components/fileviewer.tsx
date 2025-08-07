@@ -326,7 +326,7 @@ export class FileViewer extends React.Component<IfileviewerProps, IfileviewerSta
                                 fontSize: '16px',
                             }}
                         >
-                            Close
+                            Close Preview
                         </button>
                         <div
                             style={{

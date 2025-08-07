@@ -1,5 +1,5 @@
 import Swal from 'sweetalert2';
-export const getAllDocumentCode = async (_sp,dept) => {
+export const getAllDocumentCode = async (_sp, dept) => {
   let arr = [];
   let sts = "Approved";
 
@@ -8,9 +8,9 @@ export const getAllDocumentCode = async (_sp,dept) => {
   //   .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department")
   //   .orderBy("ID", false)()
   await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`Status eq '${sts}'`)
-  .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId,PreparedBy/ID,PreparedBy/Title")
-  .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department,PreparedBy")
-  .orderBy("ID", false)()
+    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId,PreparedBy/ID,PreparedBy/Title")
+    .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department,PreparedBy")
+    .orderBy("ID", false)()
     .then(async (res) => {
       console.log(res);
 
@@ -74,13 +74,13 @@ export const getAllDocumentCode = async (_sp,dept) => {
 //   return acc;
 // }, {});
 
-      // const filterCondition = documentIds.map(id => `ListItemID/ID eq ${id}`).join(" or ");
-      // const digitalSignedDocs = await _sp.web.lists.getByTitle("ChangeRequestAttachDigitalSignedDocs").items
-      //   .filter(filterCondition)
-      //   .select("ID, ListItemID/ID")
-      //   .expand("ListItemID")
-      //   .top(4999)
-      //   .getAll();
+// const filterCondition = documentIds.map(id => `ListItemID/ID eq ${id}`).join(" or ");
+// const digitalSignedDocs = await _sp.web.lists.getByTitle("ChangeRequestAttachDigitalSignedDocs").items
+//   .filter(filterCondition)
+//   .select("ID, ListItemID/ID")
+//   .expand("ListItemID")
+//   .top(4999)
+//   .getAll();
 export const getAllRequestType = async (_sp) => {
   let arr = [];
 
@@ -158,11 +158,11 @@ export const getAllClassificationMaster = async (_sp) => {
 };
 
 export const addItem = async (itemData, _sp) => {
- 
+
   let resultArr = []
   try {
     const newItem = await _sp.web.lists.getByTitle('ChangeRequestDocumentCancellationList').items.add(itemData);
- 
+
     console.log('Item added successfully:', newItem);
     // Swal.fire('Item added successfully', '', 'success');
 
@@ -196,11 +196,11 @@ export const addItemChangeRequestList = async (itemData, _sp) => {
   return resultArr;
 };
 export const addItem2 = async (itemData, _sp) => {
- 
+
   let resultArr = []
   try {
     const newItem = await _sp.web.lists.getByTitle('ChangeRequestReasonDocumentCancellationList').items.add(itemData);
- 
+
     console.log('Item added successfully:', newItem);
     // Swal.fire('Item added successfully', '', 'success');
 
@@ -242,7 +242,7 @@ export const updateItem = async (itemData, _sp, id) => {
   }
   return resultArr;
 };
-export const updateItemMainList = async (itemData, _sp, id,listName) => {
+export const updateItemMainList = async (itemData, _sp, id, listName) => {
   let resultArr = []
   try {
     const newItem = await _sp.web.lists.getByTitle(listName).items.getById(id).update(itemData);
@@ -257,11 +257,11 @@ export const updateItemMainList = async (itemData, _sp, id,listName) => {
   return resultArr;
 };
 export const addItemChangeRequestReasonlist = async (itemData, _sp) => {
- 
+
   let resultArr = []
   try {
     const newItem = await _sp.web.lists.getByTitle('ChangeRequestReasonList').items.add(itemData);
- 
+
     console.log('Item added successfully:', newItem);
     // Swal.fire('Item added successfully', '', 'success');
 
@@ -348,16 +348,16 @@ export const updateApprovalItem = async (itemData, _sp, id) => {
 };
 
 export const getItemByID = async (_sp, id) => {
- 
+
   let arr = []
   let arrs = []
   let bannerimg = []
   await _sp.web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.getById(id)
-  .select("*,TemplateTypeId,Department/ID,Department/Department,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title,Location/Location,Custodian/Custodian,DocumentType/DocumentType,AmendmentType/AmendmentType,Classification/Classification,TemplateType/TemplateTypeName,PreparedBy/ID,PreparedBy/Title,DocumentCancellationBy/Id,DocumentCancellationBy/Title,DocumentCancellationBy/EMail").expand("DocumentCancellationBy,PreparedBy,TemplateType,Department,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")()
+    .select("*,TemplateTypeId,Department/ID,Department/Department,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title,Location/Location,Custodian/Custodian,DocumentType/DocumentType,AmendmentType/AmendmentType,Classification/Classification,TemplateType/TemplateTypeName,PreparedBy/ID,PreparedBy/Title,DocumentCancellationBy/Id,DocumentCancellationBy/Title,DocumentCancellationBy/EMail").expand("DocumentCancellationBy,PreparedBy,TemplateType,Department,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author")()
     .then((res) => {
-      console.log(res, ' let arrs=[]');      
+      console.log(res, ' let arrs=[]');
 
-       arr.push(res)
+      arr.push(res)
       // arr = res;
     })
     .catch((error) => {
@@ -411,23 +411,23 @@ export const getItemByIDChangeRequest = async (sp, ChangeRequestID) => {
 export const GetQueryString = (string) =>
   new URLSearchParams(window.location.search).get(string);
 
-export const getApprovalByID = async (_sp, id,processName) => {
- 
+export const getApprovalByID = async (_sp, id, processName) => {
+
   let arr = []
   let arrs = []
   let bannerimg = []
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("ProcessApprovalList").items.getById(id)
-  .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
+    .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
     .then((res) => {
       console.log(res, ' let arrs=[]');
-      if(res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName ){
+      if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName) {
         arr = res;
       }
       // .filter(`AssignedTo/Id eq ${currentUser.Id} and ProcessName eq ${processName}`)
 
       //  arr.push(res)
-   
+
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
@@ -435,26 +435,26 @@ export const getApprovalByID = async (_sp, id,processName) => {
   console.log(arr, 'arr');
   return arr;
 }
-export const getApprovalByID2 = async (_sp, id,processName) => {
- 
+export const getApprovalByID2 = async (_sp, id, processName) => {
+
   let arr;
   let arrs = []
   let bannerimg = []
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("ProcessApprovalList").items.getById(id)
-  .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
+    .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
     .then((res) => {
       console.log(res, ' let arrs=[]');
-      if(res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 && res.CurrentUserRole !=="OES" ){
+      if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 && res.CurrentUserRole !== "OES") {
         arr = false;
       }
-      else{
+      else {
         arr = true;
       }
       // .filter(`AssignedTo/Id eq ${currentUser.Id} and ProcessName eq ${processName}`)
 
       //  arr.push(res)
-   
+
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
@@ -463,15 +463,15 @@ export const getApprovalByID2 = async (_sp, id,processName) => {
   return arr;
 }
 
-export const getDraftApprovalByID = async (_sp, id,processName) => {
- 
-  let arr =[];
+export const getDraftApprovalByID = async (_sp, id, processName) => {
+
+  let arr = [];
   let val = "Yes"
   let Sts = "Save as draft";
-  let sts ="Pending"
+  let sts = "Pending"
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("ProcessApprovalList").items
-  .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`ListItemId eq '${id}' and AssignedTo/ID  eq '${currentUser.Id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).top(1)()
+    .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`ListItemId eq '${id}' and AssignedTo/ID  eq '${currentUser.Id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).top(1)()
     .then((res) => {
       console.log(res, ' let arrs=[]');
       // if(res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 && res.CurrentUserRole !=="OES" ){
@@ -484,8 +484,8 @@ export const getDraftApprovalByID = async (_sp, id,processName) => {
 
       //  arr.push(res)
 
-      arr =res;
-   
+      arr = res;
+
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
@@ -495,15 +495,15 @@ export const getDraftApprovalByID = async (_sp, id,processName) => {
 }
 
 export const getDataRoles = async (_sp) => {
- 
+
   let arr = []
   let arrs = []
   let bannerimg = []
   await _sp.web.lists.getByTitle("ApproverRoleMaster").items
-  .select("*")()
+    .select("*")()
     .then((res) => {
       console.log(res, ' let arrs=[]');
-     
+
 
       //  arr.push(res)
       arr = res;
@@ -516,11 +516,11 @@ export const getDataRoles = async (_sp) => {
 }
 
 export const addApprovalItem = async (itemData, _sp) => {
- 
+
   let resultArr = []
   try {
     const newItem = await _sp.web.lists.getByTitle('ProcessApprovalList').items.add(itemData);
- 
+
     console.log('Item added successfully:', newItem);
     // Swal.fire('Item added successfully', '', 'success');
 
@@ -536,11 +536,11 @@ export const addApprovalItem = async (itemData, _sp) => {
 };
 
 export const addAllProcessItem = async (itemData, _sp) => {
- 
+
   let resultArr = []
   try {
     const newItem = await _sp.web.lists.getByTitle('AllProcessApprovalLevelList').items.add(itemData);
- 
+
     console.log('Item added successfully:', newItem);
     // Swal.fire('Item added successfully', '', 'success');
 
@@ -555,15 +555,15 @@ export const addAllProcessItem = async (itemData, _sp) => {
   return resultArr;
 };
 
-export const UpdateAllProcessItem = async (itemData, _sp,id) => {
- 
+export const UpdateAllProcessItem = async (itemData, _sp, id) => {
+
   let resultArr = []
   try {
 
     const newItem = await _sp.web.lists.getByTitle('AllProcessApprovalLevelList').items.getById(id).update(itemData);
     // console.log('Item  successfully:', newItem);
     resultArr = newItem
-   
+
   } catch (error) {
     console.log('Error adding item:', error);
     // Handle errors appropriately
@@ -573,19 +573,19 @@ export const UpdateAllProcessItem = async (itemData, _sp,id) => {
   return resultArr;
 };
 
-export const getAllProcessData = async (_sp, MainId,processName,docCode) => {
- 
+export const getAllProcessData = async (_sp, MainId, processName, docCode) => {
+
   let arr;
- 
+
   // const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("AllProcessApprovalLevelList").items
-  .select("*,Author/ID,Author/Title,Approvers/Id,Approvers/Title,ApproverRole/Id").expand("Author,Approvers,ApproverRole").filter(`MainListID eq '${MainId}' and ProcessName eq '${processName}' and RequestId eq '${docCode}'`)()
+    .select("*,Author/ID,Author/Title,Approvers/Id,Approvers/Title,ApproverRole/Id").expand("Author,Approvers,ApproverRole").filter(`MainListID eq '${MainId}' and ProcessName eq '${processName}' and RequestId eq '${docCode}'`)()
     .then((res) => {
-    //   res.map((item) => ({
-       
-    // }));
-    arr = res;
-   
+      //   res.map((item) => ({
+
+      // }));
+      arr = res;
+
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
@@ -596,17 +596,17 @@ export const getAllProcessData = async (_sp, MainId,processName,docCode) => {
 
 
 export const getRequesterID = async (_sp) => {
- 
+
   var reqId;
   await _sp.web.lists.getByTitle("RequesterRoleMaster").items
-  .select("*").filter("Role eq 'Initiator' and IsActive eq 'Yes'")()
+    .select("*").filter("Role eq 'Initiator' and IsActive eq 'Yes'")()
     .then((res) => {
       console.log(res, ' let arrs=[]');
-     
+
 
       //  arr =(res[0].Id)
       // arr = res;
-      reqId=res[0].Id
+      reqId = res[0].Id
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
@@ -616,17 +616,17 @@ export const getRequesterID = async (_sp) => {
 }
 
 export const getRequestTypeID = async (_sp) => {
- 
+
   var reqId;
   await _sp.web.lists.getByTitle("RequestTypeMaster").items
-  .select("*").filter("FormName eq 'Document Cancellation' and IsActive eq 'Yes'")()
+    .select("*").filter("FormName eq 'Document Cancellation' and IsActive eq 'Yes'")()
     .then((res) => {
       console.log(res, ' let arrs=[]');
-     
+
 
       //  arr =(res[0].Id)
       // arr = res;
-      reqId=res[0].Id
+      reqId = res[0].Id
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
@@ -635,18 +635,18 @@ export const getRequestTypeID = async (_sp) => {
   return reqId;
 }
 
-export const getFormNameID = async (_sp,formname) => {
- 
+export const getFormNameID = async (_sp, formname) => {
+
   var reqId;
   await _sp.web.lists.getByTitle("FormNameMaster").items
-  .select("*").filter("FormName eq '"+formname+"'").top(1)()
+    .select("*").filter("FormName eq '" + formname + "'").top(1)()
     .then((res) => {
       console.log(res, ' let arrs=[]');
-     
+
 
       //  arr =(res[0].Id)
       // arr = res;
-      reqId=res[0].Id
+      reqId = res[0].Id
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
@@ -654,18 +654,18 @@ export const getFormNameID = async (_sp,formname) => {
   console.log(reqId, 'arr');
   return reqId;
 }
-export const getListNameID = async (_sp,formname) => {
- 
+export const getListNameID = async (_sp, formname) => {
+
   var reqId;
   await _sp.web.lists.getByTitle("ListNameMaster").items
-  .select("*").filter("ListName eq '"+formname+"'").top(1)()
+    .select("*").filter("ListName eq '" + formname + "'").top(1)()
     .then((res) => {
       console.log(res, ' let arrs=[]');
-     
+
 
       //  arr =(res[0].Id)
       // arr = res;
-      reqId=res[0].Id
+      reqId = res[0].Id
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
@@ -674,18 +674,18 @@ export const getListNameID = async (_sp,formname) => {
   return reqId;
 }
 
-export const getDocumentLinkByID = async (_sp,itemId) => {
- 
+export const getDocumentLinkByID = async (_sp, itemId) => {
+
   var reqId;
   await _sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(itemId)
-  .select("*,FileRef, FileLeafRef")()
+    .select("*,FileRef, FileLeafRef")()
     .then((res) => {
       console.log(res, ' let arrs=[]');
-     
+
 
       //  arr =(res[0].Id)
       // arr = res;
-      reqId=res
+      reqId = res
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
@@ -693,18 +693,18 @@ export const getDocumentLinkByID = async (_sp,itemId) => {
   console.log(reqId, 'arr');
   return reqId;
 }
-export const getDocumentLinkByIDSigned = async (_sp,itemId) => {
- 
+export const getDocumentLinkByIDSigned = async (_sp, itemId) => {
+
   var reqId;
   await _sp.web.lists.getByTitle("ChangeRequestAttachDigitalSignedDocs").items.getById(itemId)
-  .select("*,FileRef, FileLeafRef")()
+    .select("*,FileRef, FileLeafRef")()
     .then((res) => {
       console.log(res, ' let arrs=[]');
-     
+
 
       //  arr =(res[0].Id)
       // arr = res;
-      reqId=res
+      reqId = res
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
@@ -730,7 +730,7 @@ export const getDocumentLinkByIDSigned = async (_sp,itemId) => {
 //   return results;
 // }
 
-export const getGeneratedTemplateDoc = async (_sp, itemId) => {
+export const getGeneratedTemplateDoc = async (_sp, itemId, DocCode) => {
   let results = [];
   try {
     const res = await _sp.web.lists.getByTitle("DocumentCancellationDigitalSignedDocs").items
@@ -749,6 +749,7 @@ export const getGeneratedTemplateDoc = async (_sp, itemId) => {
         .top(1)();
 
       results = res2 && res2.length > 0 ? res2 : [];
+
     }
   } catch (error) {
     console.log("Error fetching data: ", error);
@@ -757,10 +758,10 @@ export const getGeneratedTemplateDoc = async (_sp, itemId) => {
   return results;
 };
 
-export const getGeneratedTemplateDoc2 = async (_sp, itemId) => {
+export const getGeneratedTemplateDoc2 = async (_sp, itemId, ChangeReqID) => {
   let results = null;
   try {
-    const res = await _sp.web.lists.getByTitle("DocumentCancellationDigitalSignedDocs").items
+    const res = await _sp.web.lists.getByTitle("DocumentCancellationAttachDigitalSignedDocs").items
       .select("*,FileRef, FileLeafRef")
       .filter(`ListItemID/ID eq ${itemId}`)
       .orderBy("ID", false)
@@ -768,6 +769,7 @@ export const getGeneratedTemplateDoc2 = async (_sp, itemId) => {
 
     if (res && res.length > 0) {
       results = res[0];
+      console.log(results, res, 'results res1');
     } else {
       const res2 = await _sp.web.lists.getByTitle("DocumentCancellationDocs").items
         .select("*,FileRef, FileLeafRef")
@@ -775,7 +777,93 @@ export const getGeneratedTemplateDoc2 = async (_sp, itemId) => {
         .orderBy("ID", false)
         .top(1)();
 
-      results = res2 && res2.length > 0 ? res2[0] : null;
+
+      if (res2 && res2.length > 0) {
+        results = res2 && res2.length > 0 ? res2[0] : null;
+        console.log(results, res2, 'results res2');
+      }
+      // ///////
+      else if (res2.length == 0) {
+        try {
+          const res3 = await _sp.web.lists.getByTitle("ChangeRequestAttachDigitalSignedDocs").items
+            .select("*,FileRef, FileLeafRef")
+            .filter(`ListItemID/ID eq ${ChangeReqID}`)
+            .orderBy("ID", false)
+            .top(1)();
+
+          if (res3 && res3.length > 0) {
+            results = res3[0];
+            console.log(results, res3, 'results res3');
+          }
+          else {
+
+
+
+            // const latestApprovedItem = await _sp.web.lists.getByTitle("ChangeRequestList").items
+            //   .filter(`Status eq 'Approved' and DocumentCode eq '${DocumentCode}'`)
+            //   .orderBy("ID", false)
+            //   .top(1)()
+            const latestApprovedItem = await _sp.web.lists.getByTitle("ChangeRequestList").items
+            .getById(ChangeReqID).select("*")()   
+  
+              .then(async (res) => {
+                if (res) {
+                  // return res[0];
+                  console.log(results, res, 'results res4');
+                  // if (res && res.length > 0) { // when change req item is fetched
+                  // results = res[0];
+                  var AttachmentID = res?.AttachmentId[0];
+                  if (AttachmentID) {
+                    console.log(AttachmentID, 'AttachmentID');
+                    await _sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(AttachmentID)
+                      .select("*,FileRef, FileLeafRef")()
+                      .then((resp) => {
+                        console.log(resp, ' let arrs=[]');
+                        results = resp;
+
+                        console.log(results, 'results res4');
+
+                      })
+                      .catch((error) => {
+                        console.log("Error fetching data: ", error);
+                      });
+
+                  }
+                  else {
+                    results = null;
+                    console.log(results, 'results res4');
+
+                  }
+
+
+                  // }
+                } else {
+                  // return null;
+                  results = null;
+                }
+              })
+              .catch((error) => {
+                console.log("Error fetching latest approved item: ", error);
+                // return null;
+                results = null;
+              });
+
+
+            // const res4 = await _sp.web.lists.getByTitle("DocumentCancellationDocs").items
+            //   .select("*,FileRef, FileLeafRef")
+            //   .filter(`ListItemID/ID eq ${itemId}`)
+            //   .orderBy("ID", false)
+            //   .top(1)();
+
+            // results = res4 && res4.length > 0 ? res4[0] : null;
+
+          }
+        } catch (error) {
+          console.log("Error fetching data: ", error);
+        }
+
+      }
+      // ///////
     }
   } catch (error) {
     console.log("Error fetching data: ", error);
@@ -796,12 +884,12 @@ export const updateDigitalsign = async (listname, _sp, id) => {
     const postPayload2 = {
       DocSignedStatus: "Yes"
     }
- 
+
     const newItem = await _sp.web.lists.getByTitle('DigitalSignatureRequestList').items.getById(id).update(postPayload2);
     console.log('Item added successfully:', newItem);
- 
- 
- 
+
+
+
     resultArr = newItem
     // Perform any necessary actions after successful addition
   } catch (error) {
@@ -811,7 +899,7 @@ export const updateDigitalsign = async (listname, _sp, id) => {
   }
   return resultArr;
 };
- 
+
 export const getdigitalsignaturerequestbyID = async (listname, _sp, id) => {
   let arr = []
   try {
@@ -822,7 +910,7 @@ export const getdigitalsignaturerequestbyID = async (listname, _sp, id) => {
       ()
       .then((res) => {
         console.log(res, ' let arrs=[]');
- 
+
         arr = res
         // arr = res;
       })
@@ -835,17 +923,17 @@ export const getdigitalsignaturerequestbyID = async (listname, _sp, id) => {
   return arr;
 };
 
-export const getUserDepartment = async (_sp,dept) => {
- 
- 
+export const getUserDepartment = async (_sp, dept) => {
+
+
   let deptName = "";
   await _sp.web.lists.getByTitle("DepartmentMasterList").items
-  .select("*,ToUsers/Title,CCUsers/Title").expand("ToUsers,CCUsers").filter(`Active eq 'Yes' and ADDepartmentName eq '${dept}'`)()
+    .select("*,ToUsers/Title,CCUsers/Title").expand("ToUsers,CCUsers").filter(`Active eq 'Yes' and ADDepartmentName eq '${dept}'`)()
     .then((res) => {
-     
-     if(res && res.length > 0){
-      deptName = res[0].Department;
-     }
+
+      if (res && res.length > 0) {
+        deptName = res[0].Department;
+      }
 
     })
     .catch((error) => {
@@ -856,9 +944,9 @@ export const getUserDepartment = async (_sp,dept) => {
 }
 
 
-export const getLatestChangeRequestTemplateType= async (_sp,List) =>{
+export const getLatestChangeRequestTemplateType = async (_sp, List) => {
   let arr = [];
- 
+
   // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
   // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
   await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`(TemplateType/TemplateTypeValue eq '${List}') and Status eq 'Approved'`).orderBy("ID", false).top(1)()

@@ -4250,9 +4250,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   //     // Optional: do something when Enter is pressed (like submit or blur)
   //   }
   // };
-  const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>, libraryName: string, docLib: string) => {
+  const onFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    libraryName: string,
+    docLib: string
+  ) => {
     event.preventDefault();
-    setAttachmentarr([]);
+
+
     setshowviewdownload(false);
     debugger
     //setDocumentLink(null);
@@ -4298,6 +4303,28 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           });
           return;        // Stop further execution
         }
+        const result = await Swal.fire({
+          title: 'Please ensure that the document alignment and formatting are correct, or refer to the change request notes before attaching and submitting.',
+          showConfirmButton: true,
+          showCancelButton: true,
+          confirmButtonText: "Yes",
+          cancelButtonText: "No",
+          //icon: 'warning',
+          customClass: {
+            title: 'swal-small-title'
+            //icon: 'swal-small-icon'
+          }
+        });
+
+        // If user cancels, exit early
+        if (!result.isConfirmed) {
+          const input = event.target as HTMLInputElement;
+          const files = Array.from(input.files || []);
+          input.value = '';
+
+          return;
+        }
+        setAttachmentarr([]);
         var arr = {};
         arr = {
           files: files,
@@ -4312,54 +4339,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             month: "short",
             year: "numeric"
           }).replace(/ /g, "/"),
-          //FileRef: previewUrl,
           FileLeafRef: files[0].name,
-          //fileUrl: previewUrl,
-          //fileType: fileType,
-          //previewUrl: previewUrl
         };
         uloadBannerImageFiles.push(arr);
         setAttachmentarr(uloadBannerImageFiles);
-        // const fileType = file.type.split("/")[0]; // Extract file type (image, pdf, etc.)
-        // const folder = sp.web.getFolderByServerRelativePath('Socialfeedimages');
-        // const uploadResult = await folder.files.addChunked(file.name, file);
-        // console.log("File uploaded successfully", uploadResult);
-        // let previewUrl: any;
-        // // Generate the preview URL dynamically
-        // if (uploadResult) {
-        //   previewUrl = uploadResult.data.ServerRelativeUrl;
-        // }
 
-        // //await generatePreviewUrl(uploadResult.data.ServerRelativeUrl);
-
-        // //previewFile(previewUrl);
-        // const preview = URL.createObjectURL(file);
-
-        // newfilepreview = preview
-        // setPreviewUrl(preview);
-        // setFileType(fileType);
-        // var arr = {};
-        // arr = {
-        //   files: files,
-        //   libraryName: libraryName,
-        //   docLib: docLib,
-        //   name: files[0].name,
-        //   fileName: files[0].name,
-        //   FileName: files[0].name,
-        //   fileSize: files[0].size,
-        //   date: new Date().toLocaleDateString("en-GB", {
-        //     day: "2-digit",
-        //     month: "short",
-        //     year: "numeric"
-        //   }).replace(/ /g, "/"),
-        //   FileRef: previewUrl,
-        //   FileLeafRef: files[0].name,
-        //   fileUrl: previewUrl,
-        //   fileType: fileType,
-        //   previewUrl: previewUrl
-        // };
-        // uloadBannerImageFiles.push(arr);
-        // setAttachmentarr(uloadBannerImageFiles);
       } else {
         Swal.fire("upload a document")
       }
@@ -5817,12 +5801,12 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                         return (
                                           <tr key={index}>
                                             {/* <tr > */}
-                                            <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index+1}</td>
+                                            <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
 
-                                            <td style={{ minWidth: '220px', maxWidth: '220px' }}title={row != null && `${cleanFileName(row?.FileLeafRef)}`}>{row != null && `${cleanFileName(row?.FileLeafRef)}`}</td>
-                                            <td style={{ minWidth: '80px', maxWidth: '80px' }}className='text-center' title={row && moment(row?.Created).format("DD/MMM/YYYY")}>{row && moment(row?.Created).format("DD/MMM/YYYY")}</td>
+                                            <td style={{ minWidth: '220px', maxWidth: '220px' }} title={row != null && `${cleanFileName(row?.FileLeafRef)}`}>{row != null && `${cleanFileName(row?.FileLeafRef)}`}</td>
+                                            <td style={{ minWidth: '80px', maxWidth: '80px' }} className='text-center' title={row && moment(row?.Created).format("DD/MMM/YYYY")}>{row && moment(row?.Created).format("DD/MMM/YYYY")}</td>
                                             {(row?.NDocumentCodePrinting == "Yes" || row?.NDocumentCodePrinting == "No" || row?.NDocumentCodePrinting == "" || row?.NDocumentCodePrinting == undefined) &&
-                                              <td style={{ textAlign: 'center',minWidth: '60px', maxWidth: '60px' }}>
+                                              <td style={{ textAlign: 'center', minWidth: '60px', maxWidth: '60px' }}>
 
                                                 <span title='Preview file' onClick={() => OpenFile(row != null && row, "Open")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
                                                   <FontAwesomeIcon icon={faEye} /></span>

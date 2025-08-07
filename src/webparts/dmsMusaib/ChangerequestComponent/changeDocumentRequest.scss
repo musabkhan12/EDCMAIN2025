@@ -367,11 +367,32 @@ textarea {
     border-radius: 8px;
     margin-bottom: 10px;
 }
-.btncloseheader {
-    transform: scale(0.75); /* Adjust to make it smaller */
-  margin-top: -15px;        /* Optional: push it slightly down */
-  margin-right: 5px; 
+
+.swal-small-title {
+    font-size: 16px;
+    /* adjust as needed */
+    line-height: 1.4;
 }
+
+.swal-small-icon {
+    width: 40px !important;
+    height: 40px !important;
+    margin: 0 auto 10px auto;
+    margin-top: 10px !important;
+}
+
+.swal-small-icon .swal2-icon-content {
+    font-size: 24px !important;
+}
+
+.btncloseheader {
+    transform: scale(0.75);
+    /* Adjust to make it smaller */
+    margin-top: -15px;
+    /* Optional: push it slightly down */
+    margin-right: 5px;
+}
+
 .image-preview img {
     width: 100px;
     height: auto;
@@ -629,7 +650,11 @@ textarea:focus {
     border-radius: 20px !important;
     margin: 10px auto !important;
 }
-.cui-statusbar{display: none !important;}
+
+.cui-statusbar {
+    display: none !important;
+}
+
 .modal-content {
     min-width: 80% !important;
     border-radius: 20px !important;
