@@ -181,7 +181,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         RequesterDesignation: "",
         RequesterName: "",
         RequestDate: null,
-        Remark:""
+        Remark: "",
+
+        DeptRepId: [],
+        DeptRepValue:[]
 
 
     });
@@ -717,6 +720,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         const setRolesValue = AllUserRoles.map((item: any) => ({
             value: item.Id,
             label: item.Role,
+            ToUsersTitle: item.ToUsers || [],
+            ToUsers: item.ToUsersId || [],
 
         }));
 
@@ -884,6 +889,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     from: setBannerById[0].FromId,
                     fromEmail: setBannerById[0].From?.EMail,
                     to: setBannerById[0].ToId || [],
+                    DeptRepId: setBannerById[0].ToId || [],
+                    DeptRepValue:  setBannerById[0].To?.map((approver: any) => ({
+                        value: approver.ID,
+                        label: approver.Title,
+                    })) || [],
                     subject: setBannerById[0].Subject,
                     // attachment: null,
                     date: new Date(setBannerById[0].Date).toLocaleDateString("en-CA"),
@@ -940,20 +950,34 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 }) || []);
 
                 setselectUserDeptTo(setBannerById[0].ToDepartments?.map((obj: any) => {
-                    const filteredDept = setAllDept1.find((dept: any) => dept.value === obj.ID);
+                    const filteredDept = setRolesValue.find((dept: any) => dept.value === obj.ID);
                     if (filteredDept) {
                         filteredDeptArrayTo.push(filteredDept);
                     }
                     return {
                         value: obj.ID,
-                        label: obj.Department,
-                        Department: obj.Department,
-                        DepartmentCode: obj.DepartmentCode,
+                        label: obj.Role,
+                        // Department: obj.Department,
+                        // DepartmentCode: obj.DepartmentCode,
                         ToUsers: filteredDept?.ToUsers || [],
-                        CCUsers: filteredDept?.CCUsers || [],
+                        // CCUsers: filteredDept?.CCUsers || [],
                         ToUsersTitle: filteredDept?.ToUsersTitle || [],
-                        CCUsersTitle: filteredDept?.CCUsersTitle || [],
+                        // CCUsersTitle: filteredDept?.CCUsersTitle || [],
                     };
+                    // const filteredDept = setAllDept1.find((dept: any) => dept.value === obj.ID);
+                    // if (filteredDept) {
+                    //     filteredDeptArrayTo.push(filteredDept);
+                    // }
+                    // return {
+                    //     value: obj.ID,
+                    //     label: obj.Department,
+                    //     Department: obj.Department,
+                    //     DepartmentCode: obj.DepartmentCode,
+                    //     ToUsers: filteredDept?.ToUsers || [],
+                    //     CCUsers: filteredDept?.CCUsers || [],
+                    //     ToUsersTitle: filteredDept?.ToUsersTitle || [],
+                    //     CCUsersTitle: filteredDept?.CCUsersTitle || [],
+                    // };
                 }) || []);
                 if (setBannerById[0].AttachmentId) {
                     // setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId[0]));
@@ -1226,7 +1250,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             RevisionNo,
             IssueNo,
             classificationValue,
-            classificationId
+            classificationId,
+            DeptRepId,
+            DeptRepValue
         } = formData;
         // const { description } = richTextValues;
         let valid = true;
@@ -1274,6 +1300,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             }
             if (!ToDepartments.length) {
                 document.getElementById("ToDept")?.classList.add("border-on-error");
+                valid = false;
+            }
+            if(!DeptRepId.length){
+                document.getElementById("DeptRep")?.classList.add("border-on-error");
                 valid = false;
             }
             if (!CCDepartments.length) {
@@ -1612,7 +1642,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         document.getElementById("Remark-textarea2")?.classList.add("border-on-error");
                         Swal.fire('Please fill the mandatory fields', '', 'warning');
                         return;
-                       
+
                     }
                 }
                 Swal.fire({
@@ -1683,7 +1713,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             // RevisionNumber:,
                             AuditPlanTypeId: formData.auditPlanTypeId,
                             FromId: formData.from,
-                            ToId: formData.to,
+                            // ToId: formData.to,
+                            ToId: formData.DeptRepId,
                             CcId: formData.CC,
                             Subject: formData.subject,
                             Date: formData.date ? formData.date : null,
@@ -2105,7 +2136,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             // RevisionNumber:,
                             AuditPlanTypeId: formData.auditPlanTypeId,
                             FromId: formData.from,
-                            ToId: formData.to,
+                            // ToId: formData.to,
+                            ToId: formData.DeptRepId,
                             CcId: formData.CC,
                             Subject: formData.subject,
                             Date: formData.date || null,
@@ -2335,7 +2367,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     const handleSaveAsDraft = async () => {
         if (await validateForm(FormSubmissionMode.DRAFT)) {
             if (editForm) {
-               
+
                 Swal.fire({
                     title: 'Do you want to save this request?',
                     showConfirmButton: true,
@@ -2406,7 +2438,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 // RevisionNumber:,
                                 AuditPlanTypeId: formData.auditPlanTypeId,
                                 FromId: formData.from,
-                                ToId: formData.to,
+                                // ToId: formData.to,
+                                ToId: formData.DeptRepId,
                                 CcId: formData.CC,
                                 Subject: formData.subject,
                                 Date: formData.date || null,
@@ -2469,7 +2502,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 // RevisionNumber:,
                                 AuditPlanTypeId: formData.auditPlanTypeId,
                                 FromId: formData.from,
-                                ToId: formData.to,
+                                // ToId: formData.to,
+                                ToId: formData.DeptRepId,
                                 CcId: formData.CC,
                                 Subject: formData.subject,
                                 Date: formData.date || null,
@@ -2681,7 +2715,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 else {
 
                                     if ((cov.ProcessActivity.trim() == ""
-                                        // && cov.StandardClauses.trim() == "" 
+                                        // && cov.StandardClauses.trim() == ""
                                         && cov.date.trim() == "" && cov.startTime.trim() == "" && (cov.auditor == null || cov.auditor.length == 0) && (cov.Location == null || cov.Location.length == 0)) == false) {
 
 
@@ -2835,7 +2869,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             // RevisionNumber:,
                             AuditPlanTypeId: formData.auditPlanTypeId,
                             FromId: formData.from,
-                            ToId: formData.to,
+                            // ToId: formData.to,
+                            ToId: formData.DeptRepId,
                             CcId: formData.CC,
                             Subject: formData.subject,
                             Date: formData.date || null,
@@ -2983,7 +3018,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         for (const cov of coverageAuditCriteria) {
 
                             if ((cov.ProcessActivity.trim() == ""
-                                // && cov.StandardClauses.trim() == "" 
+                                // && cov.StandardClauses.trim() == ""
                                 && cov.date.trim() == "" && cov.startTime.trim() == "" && (cov.auditor == null || cov.auditor.length == 0) && (cov.Location == null || cov.Location.length == 0)) == false) {
 
                                 const postPayload2 = {
@@ -3214,16 +3249,17 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     <thead>
                     <tr style="background-color: #f2f2f2;">
                         <th style="border: 1px solid #ddd; padding: 8px;">S.No</th>
-                        <th style="border: 1px solid #ddd; padding: 8px;">Department</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Designation</th>
                         <th style="border: 1px solid #ddd; padding: 8px;">Users</th>
-                        
+                       
                     </tr>
     </thead>`;
 
         // Generate table rows from AllDept data
         const tableRows = deptArr.map((item: any, index: number) => {
             // Extract and format data
-            const department = item.Department || '';
+            // const department = item.Department || '';
+            const department = item.label || '';
             const toUsers = item.ToUsersTitle?.map((user: any) => user.Title).join(", ") || '';
             // const ccUsers = item.CCUsersTitle?.map((user: any) => user.Title).join(", ") || '';
 
@@ -3813,8 +3849,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                         <div className="" title={selectUserDeptTo?.map((dept: any) => dept.label).join(", ") || "Select Department"}
                                                                         >
                                                                             <Select
-                                                                                // options={AllDept}
-                                                                                options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                                                                options={UserRoles.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                                                                // options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
 
                                                                                 isDisabled={InputDisabled}
                                                                                 value={selectUserDeptTo}
@@ -3824,6 +3860,42 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""}`}
 
                                                                                 onChange={(selectedOptions: any) => handleDepartmentChangeTo(selectedOptions)}
+                                                                                placeholder="Select"
+
+                                                                            />
+
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label style={{ display: 'flex' }} htmlFor="to" className="col-form-label">Share With
+
+
+                                                                          <span className="text-danger1"> *</span></label>
+                                                                        <div className="" title={formData?.DeptRepValue?.map((approver: any) => approver.label).join(", ") || "Select"}
+                                                                        >
+                                                                            <Select
+                                                                                // options={UserRoles.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                                                                // options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                                                                options={rows1}
+
+                                                                                isDisabled={InputDisabled}
+                                                                                value={formData.DeptRepValue}
+                                                                                isMulti
+                                                                                name="DeptRep"
+                                                                                id="DeptRep"
+                                                                                className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""}`}
+
+                                                                                // onChange={(selectedOptions: any) => handleDepartmentChangeTo(selectedOptions)}
+                                                                                onChange={(selectedOptions: any) => {
+                                                                                    setFormData({
+                                                                                        ...formData,
+                                                                                        DeptRepValue: selectedOptions,
+                                                                                        DeptRepId: selectedOptions.map((option: any) => option.value),
+                                                                                    });
+                                                                                }}
                                                                                 placeholder="Select"
 
                                                                             />
@@ -4615,7 +4687,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
 
 
-                                                                                // 
+                                                                                //
 
                                                                                 // onKeyDown={handleKeyDown}
                                                                                 // onMenuOpen={() => setMenuIsOpen(true)}
@@ -4717,7 +4789,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                                                 {/* ........ */}
 
-                                               
+
 
                                                 {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
 
@@ -4901,43 +4973,43 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                 </div>
                                                 {/* // } */}
 
-                                                 {/* //////&&&&& */}
-                                                 {(editID != null && editID.CurrentUserRole === "Initiator" && editID.IsInitiator == "Yes" && editID.Level == 0) && editID.Status === "Pending" && 
-                                                <div className="card mt-3">
-                                                    <div className="col-12 text-center card-body">
+                                                {/* //////&&&&& */}
+                                                {(editID != null && editID.CurrentUserRole === "Initiator" && editID.IsInitiator == "Yes" && editID.Level == 0) && editID.Status === "Pending" &&
+                                                    <div className="card mt-3">
+                                                        <div className="col-12 text-center card-body">
 
 
 
-                                                        <div className="row">
-                                                            <div className="col-lg-12">
+                                                            <div className="row">
+                                                                <div className="col-lg-12">
 
-                                                                <div className="mb-0" >
+                                                                    <div className="mb-0" >
 
-                                                                    <label htmlFor="example-textarea" className="form-label text-dark font-14" style={{ textAlign: 'left' }}>Remarks <span className="text-danger1"> *</span></label>
+                                                                        <label htmlFor="example-textarea" className="form-label text-dark font-14" style={{ textAlign: 'left' }}>Remarks <span className="text-danger1"> *</span></label>
 
-                                                                    <textarea
-                                                                        style={{ height: '80px' }}
-                                                                        className={`form-control `}
-                                                                        id="Remark-textarea2"
-                                                                        rows={5}
-                                                                        name="Remark"
-                                                                        value={formData.Remark}
-                                                                        onChange={(e) => setFormData({ ...formData, Remark: e.target.value })}
-                                                                    ></textarea>
+                                                                        <textarea
+                                                                            style={{ height: '80px' }}
+                                                                            className={`form-control `}
+                                                                            id="Remark-textarea2"
+                                                                            rows={5}
+                                                                            name="Remark"
+                                                                            value={formData.Remark}
+                                                                            onChange={(e) => setFormData({ ...formData, Remark: e.target.value })}
+                                                                        ></textarea>
+
+                                                                    </div>
 
                                                                 </div>
+
+
 
                                                             </div>
 
 
 
+
                                                         </div>
-
-
-
-
                                                     </div>
-                                                </div>
                                                 }
 
                                                 {/* ////////&&&& */}
@@ -4999,7 +5071,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                         }
 
 
-                                                        {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.ApprovalType !== "Approval")) &&
+                                                        {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && (editID.ApprovalType !== "Approval" || editID.IsInitiator == "Yes" || editID.Status != "Pending"))) &&
                                                             <div className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                                                 className='me-1' alt="x" /> Cancel</div>
                                                         }

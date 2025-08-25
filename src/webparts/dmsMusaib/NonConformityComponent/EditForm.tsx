@@ -24,6 +24,7 @@ import { Checkbox } from '@fluentui/react';
 import Swal from 'sweetalert2';
 import Select from "react-select";
 import moment from 'moment';
+import { auditHistoryDelegationBgColor, auditHistoryDelegationTextColor } from "../../../Shared/Constants";
 import CustomBreadcrumb from '../ChangerequestComponent/CustomBreadcrumb/CustomBreadcrumb';
 import { icon } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -34,8 +35,18 @@ import { getMemoNumberAuditReport, getNCNumbers } from '../AnnualAuditReportComp
 import { Modal } from 'react-bootstrap';
 import FileViewer from '../ChangerequestComponent/fileviewer';
 import { CONTENTTYPE_NonComformity } from '../ChangerequestComponent/Constants';
+let EditSubmitStatus: any;
+
+let EditStatus: any;
+let EditCurrentUserrole: any;
+let EditDelegateToSubmitStatus: any;
+let EditLastInitiatorSubmitStatus: any;
 let Approvallistitemid = 0;
 let ApproverEmail = "";
+let isRequesterDelegated: boolean = false;
+let isAssignedtoDelegated: boolean = false;
+let isDelegatedToDelegated: boolean = false;
+let isApproverDelegated: boolean = false;
 let IsAnalyzedBy: boolean = false;
 let showimsupdated: boolean = false;
 let showfinalapproval: boolean = false;
@@ -58,6 +69,7 @@ let Reworkclicked: boolean = false;
 let resubmitclicked: boolean = false;
 let editforwardrecord: boolean = false;
 let Showfile: boolean = false;
+let depart: any = "";
 const datePickerErrorStyles: Partial<IDatePickerStyles> = {
   root: {
     border: "1px solid #ffcccb", // Apply red border
@@ -213,9 +225,9 @@ export interface IEditState {
   ShowModalAtt: boolean;
 }
 const optionsApp: IDropdownOption[] = [
+  { key: 'One', text: 'Anyone' },
+  { key: 'All', text: 'Everyone' }
 
-  { key: 'All', text: 'Everyone' },
-  { key: 'One', text: 'Anyone' }
 
 ]
 const optionsResponsibility: IDropdownOption[] = [
@@ -666,7 +678,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     this.setState({ editDepartment: item.value, editdepartmentCode: item.data.departmentCode, departmentselected: selecteddepartment });
   };
   public async getUniqueBy(array: any[], key: string) {
-    debugger
+
     const seen: any[] = [];
     const result = [];
 
@@ -681,7 +693,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     return result;
   }
   public handleChangeCategoryOthers = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    debugger
+
     const { name, value } = event.target;
     this.setState((prevState) => ({
       ...prevState,
@@ -689,7 +701,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     }));
   };
   public handleChangeSubCategoryOthers = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    debugger
+
     const { name, value } = event.target;
     this.setState((prevState) => ({
       ...prevState,
@@ -697,7 +709,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     }));
   };
   public handleChangeLocationOthers = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    debugger
+
     const { name, value } = event.target;
     this.setState((prevState) => ({
       ...prevState,
@@ -705,7 +717,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     }));
   };
   public changeMemoNumber = async (item: any): Promise<void> => {
-    debugger
+
     const sp = spfi().using(SPFx(this.props.context));
     let nctypenew: string = this.state.editncType == "NC" ? "NC Number" : "Observation NUmber";
     //let NCNumberoptionnew = await getNCNumbers(sp, item.text, nctypenew);
@@ -755,7 +767,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       .orderBy("Modified", false)
       ()
       .then((res: any) => {
-        console.log(res, 'Memonumbers from audit report');
+        //console.log(res, 'Memonumbers from audit report');
 
         //arr.push(res)
         arr = res;
@@ -787,7 +799,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   };
 
   public handleChangeobsdescription = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    debugger
+
     const { name, value } = event.target;
     this.setState((prevState) => ({
       ...prevState,
@@ -863,7 +875,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     this.setState({ edittypeoptions: dropdownOptions });
   };
   public async componentDidMount() {
-    debugger
+
     const _sp = spfi().using(SPFx(this.props.context));
     const currentUser = await _sp.web.currentUser();
     CurrentuserEmail = currentUser.Email;
@@ -877,7 +889,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     const programName = decodeURIComponent(parts[0]); // "Non Confirmity"
     const editType = parts[1]; // "edit"
     const id = parts[2]; // "165"
-
+    const sp = spfi().using(SPFx(this.props.context));
     console.log("Program Name:", programName);
     console.log("Edit Type:", editType);
     console.log("ID:", id);
@@ -886,25 +898,6 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     // alert("ID:"+ id)
     this.setState({ Loading: true });
     setloading = true;
-
-    debugger
-    if (id) {
-      this.setState({ mainItemId: id }, async () => {
-        // this.getAllapprovalitems(Number(id));
-        // This will run AFTER the state update is completed
-        // alert("Updated mainItemId: " + this.state.mainItemId);
-        await this.getListData(); // Fetch list data after updating state
-        await this.getGeneratedTemplateDocNC(Number(id))
-      });
-    }
-    if (editType) {
-      this.setState({ edType: editType })
-    }
-    setTimeout(() => {
-      this.setState({ Loading: false });
-      setloading = false;
-    }, 7000); // 5000ms = 5 seconds
-    // await this.getListData();
     await this.getnctypeoptions();
     await this.getDepartment();
     await this.getAuditreport();
@@ -912,83 +905,106 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     await this.getMainListName();
     await this.getRequestorRole();
     await this.getFormName();
-    debugger
-
-    if (editType === "edit") {
-      this.setState({ showApprove: false });
-      this.setState({ showSubmit: true });
-      this.setState({ showForward: false });
-      this.setState({ showReject: false });
-      this.setState({ forwarDisable: false });
-      if (this.state.editSubmitStatus === 'No' || (this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator")) {
-        this.setState({ showDraft: true });
-        this.setState({ isDisabled: false });
-      }
-      else {
-        this.setState({ deptSectionDisable: false });
-        this.setState({ showDelegate: false });
-        this.setState({ showDraft: false });
-        this.setState({ isDisabled: true });
-      }
-      if (this.state.editDelegateToSubmitStatus == "No" && this.state.editCurrentUserRole == "DelegateTo") {
-        this.setState({ showDelegate: true });
-      }
-    }
-    else if (editType === "view") {
-      this.setState({ isDisabled: true });
-      this.setState({ deptSectionDisable: true });
-      this.setState({ showDelegate: true });
-      this.setState({ forwarDisable: true });
-      this.setState({ showApprove: false });
-      this.setState({ showSubmit: false });
-      this.setState({ showDraft: false });
-      this.setState({ showForward: false });
-      this.setState({ showReject: false });
-    }
-    else if (editType === "approve") {
-      const approvalItemId = parts[3];
-      // console.log("approvalItemId",approvalItemId)
-      // alert("approvalItemId"+ approvalItemId)
-      // alert("approvalItemId"+ typeof(approvalItemId))
-      if (approvalItemId) {
-        Approvallistitemid = Number(approvalItemId);
-        this.setState({ approvalItemId: approvalItemId })
-        // alert('here is my state ' + this.state.approvalItemId)
-      }
-      this.setState({ isDisabled: true });
-      this.setState({ deptSectionDisable: true });
-      this.setState({ showDelegate: true });
-      this.setState({ showApprove: true });
-      this.setState({ showSubmit: false });
-      this.setState({ showDraft: false });
-      this.setState({ showReject: false });
-      if (this.state.editLastInitiatorSubmitStatus == "No" && this.state.editCurrentUserRole == "LastInitiator") {
-        this.setState({ showApprove: false });
-        this.setState({ showForward: true });
-      }
-      if (this.state.editLastInitiatorSubmitStatus == "Yes" && this.state.editCurrentUserRole == "LastInitiator") {
-        this.setState({ showApprove: false });
-        this.setState({ forwarDisable: true });
-        this.setState({ showForward: false });
-        // this.setState({ showReject: true });
-      }
-      if (this.state.editLastInitiatorSubmitStatus == "Yes") {
-        if (this.state.editCurrentUserRole == "Approverrole") {
+    if (id) {
+      this.setState({ mainItemId: id }, async () => {
+        // this.getAllapprovalitems(Number(id));
+        // This will run AFTER the state update is completed
+        // alert("Updated mainItemId: " + this.state.mainItemId);
+        await this.getListData(Number(id)); // Fetch list data after updating state
+        await this.getGeneratedTemplateDocNC(Number(id));
+        if (editType === "edit") {
           this.setState({ showApprove: false });
-          this.setState({ forwarDisable: true });
+          this.setState({ showSubmit: true });
           this.setState({ showForward: false });
-          this.setState({ showReject: true });
+          this.setState({ showReject: false });
+          this.setState({ forwarDisable: false });
+          if (EditSubmitStatus === 'No' || (EditStatus == "Rework" && EditCurrentUserrole == "FirstInitiator")) {
+            this.setState({ showDraft: true });
+            this.setState({ isDisabled: false });
+          }
+          else {
+            this.setState({ deptSectionDisable: false });
+            this.setState({ showDelegate: false });
+            this.setState({ showDraft: false });
+            this.setState({ isDisabled: true });
+          }
+          if (EditDelegateToSubmitStatus == "No" && EditCurrentUserrole == "DelegateTo") {
+            this.setState({ showDelegate: true });
+          }
         }
 
-        forwardisdisabled = true;
-      }
-      if (this.state.editStatus == "Approved" || this.state.editStatus == "Rejected") {
-        this.setState({ showReject: false });
-      }
+
+        else if (editType === "view") {
+          this.setState({ isDisabled: true });
+          this.setState({ deptSectionDisable: true });
+          this.setState({ showDelegate: true });
+          this.setState({ forwarDisable: true });
+          this.setState({ showApprove: false });
+          this.setState({ showSubmit: false });
+          this.setState({ showDraft: false });
+          this.setState({ showForward: false });
+          this.setState({ showReject: false });
+        }
+        else if (editType === "approve") {
+          const approvalItemId = parts[3];
+          // console.log("approvalItemId",approvalItemId)
+          // alert("approvalItemId"+ approvalItemId)
+          // alert("approvalItemId"+ typeof(approvalItemId))
+          if (approvalItemId) {
+            Approvallistitemid = Number(approvalItemId);
+            this.setState({ approvalItemId: approvalItemId })
+            // alert('here is my state ' + this.state.approvalItemId)
+          }
+          this.setState({ isDisabled: true });
+          this.setState({ deptSectionDisable: true });
+          this.setState({ showDelegate: true });
+          this.setState({ showApprove: true });
+          this.setState({ showSubmit: false });
+          this.setState({ showDraft: false });
+          this.setState({ showReject: false });
+          if (EditLastInitiatorSubmitStatus == "No" && EditCurrentUserrole == "LastInitiator") {
+            this.setState({ showApprove: false });
+            this.setState({ showForward: true });
+          }
+          if (EditLastInitiatorSubmitStatus == "Yes" && EditCurrentUserrole == "LastInitiator") {
+            this.setState({ showApprove: false });
+            this.setState({ forwarDisable: true });
+            this.setState({ showForward: false });
+            // this.setState({ showReject: true });
+          }
+          if (EditLastInitiatorSubmitStatus == "Yes") {
+            if (EditCurrentUserrole == "Approverrole") {
+              this.setState({ showApprove: false });
+              this.setState({ forwarDisable: true });
+              this.setState({ showForward: false });
+              this.setState({ showReject: true });
+            }
+
+            forwardisdisabled = true;
+          }
+
+          if (EditStatus == "Approved" || EditStatus == "Rejected") {
+            this.setState({ showReject: false });
+          }
+        }
+      });
     }
+    if (editType) {
+      this.setState({ edType: editType })
+    }
+
+    // await this.getListData();
+
+
+
+
+    setTimeout(() => {
+      this.setState({ Loading: false });
+      setloading = false;
+    }, 8000); // 5000ms = 5 seconds
   }
   public async getGeneratedTemplateDocNC(itemId: number) {
-    debugger
+
     const _sp = spfi().using(SPFx(this.props.context));
     let results: any = [];
     // for (let itemId of AttachmentIds) {
@@ -1007,7 +1023,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     return results;
   }
   public async CheckIfAlreadyactionTaken(id: number, processName: string) {
-    debugger
+
     const _sp = spfi().using(SPFx(this.props.context));
     try {
       const currentUser = await _sp.web.currentUser();
@@ -1035,19 +1051,83 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     }
   };
   public async getapprovalbyID(id: number, processName: string) {
-    debugger
+
     const _sp = spfi().using(SPFx(this.props.context));
     let arr: any[] = []
     let arrs = []
     let bannerimg = []
+    let val = "Yes"
+    let Sts = "Save as draft";
+    let sts = "Pending"
+    //const currentUser = await _sp.web.currentUser();
+    const today = new Date().toISOString();
     const currentUser = await _sp.web.currentUser();
+    // await _sp.web.lists.getByTitle("ProcessApprovalList").items.getById(id)
+    //   .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title,AssignedTo/EMail").expand("Author,RequesterName,AssignedTo")()
+    //   .then((res) => {
+    //     console.log(res, 'ghghghghgh let arrs=[]');
+    //     if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName) {
+    //       arr.push(res);
+    //     }
+    //   })
     await _sp.web.lists.getByTitle("ProcessApprovalList").items.getById(id)
       .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title,AssignedTo/EMail").expand("Author,RequesterName,AssignedTo")()
-      .then((res) => {
-        console.log(res, 'ghghghghgh let arrs=[]');
-        if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName) {
-          arr.push(res);
-        }
+      .then(async (res) => {
+        console.log(res, 'ghghghgh let arrs=[]');
+
+        //arr = res;
+
+        await _sp.web.lists.getByTitle("ARGDelegateList").items
+          .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
+          .expand("Author,DelegateName,ActingFor")
+          .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+          .orderBy("Created", false).top(5000)()
+          .then(async (result) => {
+            // if (result.length > 0) {
+
+            //   if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].ActingForId) && res.ProcessName === processName && (res?.Status == "Pending" || res?.Status === "Save as draft")
+            //     // && res.Level === 0
+            //     ) {
+            //     // arr = res;
+            //     arr.push(res);
+            //   }
+
+            // }
+            if (result.length > 0) {
+              const isAssignedToUserOrActingFor = result.some(r =>
+                res && (
+                  res.AssignedTo.Id === currentUser.Id ||
+                  res.AssignedTo.Id === r.DelegateNameId
+                )
+              );
+
+              if (
+                isAssignedToUserOrActingFor &&
+                res.ProcessName === processName &&
+                (res.Status === "Pending" || res.Status === "Save as draft")
+                // && res.Level === 0
+              ) {
+                arr.push(res);
+              }
+            }
+            else {
+
+              if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft")
+                //&& res.Level === 0
+              ) {
+                // arr = res;
+                arr.push(res);
+              }
+
+
+            }
+
+
+          })
+          .catch((error) => {
+            console.log("Error fetching data: ", error);
+          });
+
       })
       .catch((error) => {
         console.log("Error fetching data: ", error);
@@ -1055,210 +1135,236 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     console.log(arr, 'arr approval of current user');
     return arr;
   }
-  public async getListData() {
-    debugger
+  public async getListData(idNumber: any) {
+    this.setState({ Loading: true });
+    setloading = true;
     const sp = spfi().using(SPFx(this.props.context));
-    let memoopt = await this.getAuditreport().then(async (x) => {
-      let departopt = await this.getDepartment();
+    const currentUser = await sp.web.currentUser();
+    // let memoopt = await this.getAuditreport().then(async (x) => {
+    const auditData = await this.getAuditreport();
+    console.log("Audit Report Result", auditData);
+    console.log("nmnngfhjagfhjdagfjadfdhjmnm", this.state.editmemonumberOptions, optionsmemoNumbernewnc, editoptsmemoAllNC, editoptsmemoAllObs);
+    //let departopt = await this.getDepartment();
+    const deptItems = await sp.web.lists.getByTitle("ProcessDepartmentMasterList").items();
+    const optionsdept = deptItems.map((item: {
+      DepartmentCode: any; Title: string; Id: number, ADDepartmentName: string
+    }) => ({
+      value: item.Id,
+      label: item.Title,
+      adDepartmentName: item.ADDepartmentName,
+      data: { departmentCode: item.DepartmentCode },
+    }));
 
-      try {
-        const Items: any = await sp.web.lists.getByTitle("NonConformityList").items.getById(this.state.mainItemId)
-          .select("*, Category/Id, Category/Title, SubCategory/Id, Location/Id, Location/Title, SubCategory/Title, AssignedTo/Id, AssignedTo/Title,AssignedTo/EMail,DelegateTo/EMail, DelegateTo/Id, DelegateTo/Title, AnalyzedBy/Id, AnalyzedBy/Title, ReviewedBy/Id, ReviewedBy/Title, PersonAssigned/Id, PersonAssigned/Title,Author/Id,Author/Title,Author/EMail")
-          .expand("Category, SubCategory, Location, AssignedTo, DelegateTo, AnalyzedBy, ReviewedBy, PersonAssigned,Author")();
-        console.log("Itemsedit", Items);
-        this.setState({
-          ncItemId: Items.Id,
-          editDepartment: Items.DepartmentId,
-          editfromdepartment: Items.FromDepartmentId,
-          editncType: Items.NCType,
-          isIMSUpdated: Items.IMSUpdated,
-          riskandopportunitiesUpdated: Items.RiskOpportunitiesUpdated,
-          correctionApplicable: Items.Correctionapplicable == "Yes" ? true : false,
-          notEffective: Items.NotEffective == "Yes" ? true : false,
-          effectiveClosed: Items.EffectiveandProblemClosed == "Yes" ? true : false,
-          editMemoNumber: Items.ApprovedAuditReportMemoNumber,
-          editNCNumber: Items.NCNumber,
-          editApprovedAuditReport: Items.ApprovedAuditReportId,
-          editNCNumberID: Items.NCNumberID,
-          editCriteria: Items.Criteria,
-          editNCRNo: Items.NCRNo,
-          editReferenceNumber: Items.ReferenceNumber,
-          editDocumentCode: Items.DocumentCode,
-          editRevisionDate: Items.RevisionDate,
-          editIssueDate: Items.IssueDate,
-          editRevisionNo: Items.RevisionNumber,
-          editIssueNo: Items.IssueNumber,
-          CategoryOthers: Items.CategoryOthers,
-          LocationOthers: Items.LocationOthers,
-          SubCategoryOthers: Items.SubCategoryOthers,
-          editCloseOutStatus: Items.CloseOutStatus,
-          editCategoryValueIsCheck: Items.Category ? Items.Category.map((cat: any) => cat.Id) : [],
-          editSubCategoryValueIsCheck: Items.SubCategory ? Items.SubCategory.map((sub: any) => sub.Id) : [],
-          editLocationValueIsCheck: Items.Location ? Items.Location.map((loc: any) => loc.Id) : [],
-          editAssignToId: Items.AssignedTo ? Items.AssignedTo.Id : null,
-          editAssignTo: Items.AssignedTo ? Items.AssignedTo.Title : null,
-          editDelegateToEmail: Items.DelegateTo ? Items.DelegateTo.EMail : null,
-          editAssignToEmail: Items.AssignedTo ? Items.AssignedTo.EMail : null,
-          editProblemDescription: Items.ProblemDescription,
-          editDueDate: Items.DueDate ? new Date(Items.DueDate) : null,
-          editPersonAssignedId: Items.AssignedTo ? Items.AssignedTo.Id : null,
-          editPersonAssigned: Items.AssignedTo ? Items.AssignedTo.Title : null,
-          editDate: Items.Date ? new Date(Items.Date) : null,
-          editDeadlineCompletion: Items.DueDate ? new Date(Items.DueDate) : null,
-          editCorrection: Items.Correctionproblem,
-          editRootCause: Items.RootCause,
-          editCorrectiveAction: Items.CorrectiveAction,
-          editDelegateToId: Items.DelegateTo ? Items.DelegateTo.Id : null,
-          editDelegateTo: Items.DelegateTo ? Items.DelegateTo.Title : null,
-          editAnalyzedById: Items.AnalyzedBy ? Items.AnalyzedBy.Id : null,
-          editAnalyzedBy: Items.AnalyzedBy ? Items.AnalyzedBy.Title : null,
-          editReviewedById: Items.ReviewedBy ? Items.ReviewedBy.Id : null,
-          editReviewedBy: Items.ReviewedBy ? Items.ReviewedBy.Title : null,
-          editCorrectiveActionImplementedOn: Items.CorrectiveActionImplementedOn,
-          editSubmitStatus: Items.SubmitStatus,
-          editCurrentUserRole: Items.CurrentUserRole,
-          editFirstInitiatorSubmitStatus: Items.FirstInitiatorSubmitStatus,
-          editFirstAssignedToSubmitStatus: Items.FirstAssignedToSubmitStatus,
-          editDelegateToSubmitStatus: Items.DelegateToSubmitStatus,
-          editAnalyzedBySubmitStatus: Items.AnalyzedBySubmitStatus,
-          editReviewedBySubmitStatus: Items.ReviewedBySubmitStatus,
-          editLastAssignedToSubmitStatus: Items.LastAssignedToSubmitStatus,
-          editLastInitiatorSubmitStatus: Items.LastInitiatorSubmitStatus,
-          editStatus: Items.Status,
-          editAttachmentPreArray: [],
-          editAttachmentJson: [],
-          notUpdateDepartmentCode: Items.NCRNo,
-          notUpdateSerialNo: Items.SerialNumber,
-          Requester: Items.Author,
-          //remarks: Items.FinalRemarks,
-          reworkremarks: Items.ReworkRemarks
-        });
-        const showCategoryOthers = Items.Category?.some((cat: any) => cat.Title === "Others") || false;
-        const showSubCategoryOthers = Items.SubCategory?.some((sub: any) => sub.Title === "Others") || false;
-        const showLocationOthers = Items.Location?.some((loc: any) => loc.Title === "Others") || false;
-        this.setState({ showcategoryothers: showCategoryOthers, showlocationothers: showLocationOthers, showsubcategoryothers: showSubCategoryOthers });
-        const deptItems = await sp.web.lists.getByTitle("ProcessDepartmentMasterList").items();
-        const optionsdept = deptItems.map((item: {
-          DepartmentCode: any; Title: string; Id: number, ADDepartmentName: string
-        }) => ({
-          value: item.Id,
-          label: item.Title,
-          adDepartmentName: item.ADDepartmentName,
-          data: { departmentCode: item.DepartmentCode },
+    try {
+      const Items: any = await sp.web.lists.getByTitle("NonConformityList").items.getById(idNumber)
+        .select("*, Category/Id, Category/Title, SubCategory/Id, Location/Id, Location/Title, SubCategory/Title, AssignedTo/Id, AssignedTo/Title,AssignedTo/EMail,DelegateTo/EMail, DelegateTo/Id, DelegateTo/Title, AnalyzedBy/Id, AnalyzedBy/Title, ReviewedBy/Id, ReviewedBy/Title, PersonAssigned/Id, PersonAssigned/Title,Author/Id,Author/Title,Author/EMail")
+        .expand("Category, SubCategory, Location, AssignedTo, DelegateTo, AnalyzedBy, ReviewedBy, PersonAssigned,Author")();
+      console.log("Itemsedit", Items);
+      EditSubmitStatus = Items.SubmitStatus;
+
+      EditStatus = Items.Status;
+      EditCurrentUserrole = Items.CurrentUserRole;
+      EditDelegateToSubmitStatus = Items.DelegateToSubmitStatus;
+      EditLastInitiatorSubmitStatus = Items.LastInitiatorSubmitStatus;
+      let editmemonumberOptionsselect = Items?.NCType == "NC" ? editoptsmemoAllNC : editoptsmemoAllObs;
+      let approvedauditreportselected = editmemonumberOptionsselect.filter((x: any) => Number(x.value) == Number(Items.ApprovedAuditReportId));
+      let selecteddepartment = optionsdept.filter((x: any) => x.value == Items.DepartmentId);
+      let fromselecteddepartment = optionsdept.filter((x: any) => x.value == Items.FromDepartmentId);
+      const showCategoryOthers = Items.Category?.some((cat: any) => cat.Title === "Others") || false;
+      const showSubCategoryOthers = Items.SubCategory?.some((sub: any) => sub.Title === "Others") || false;
+      const showLocationOthers = Items.Location?.some((loc: any) => loc.Title === "Others") || false;
+      this.setState({
+        ApprovedAuditSelected: approvedauditreportselected,
+        departmentselected: selecteddepartment,
+        editfromdepartmentselected: fromselecteddepartment,
+        ncItemId: Items.Id,
+        editDepartment: Items.DepartmentId,
+        editfromdepartment: Items.FromDepartmentId,
+        editncType: Items.NCType,
+        isIMSUpdated: Items.IMSUpdated,
+        riskandopportunitiesUpdated: Items.RiskOpportunitiesUpdated,
+        correctionApplicable: Items.Correctionapplicable == "Yes" ? true : false,
+        notEffective: Items.NotEffective == "Yes" ? true : false,
+        effectiveClosed: Items.EffectiveandProblemClosed == "Yes" ? true : false,
+        editMemoNumber: Items.ApprovedAuditReportMemoNumber,
+        editNCNumber: Items.NCNumber,
+        editApprovedAuditReport: Items.ApprovedAuditReportId,
+        editNCNumberID: Items.NCNumberID,
+        editCriteria: Items.Criteria,
+        editNCRNo: Items.NCRNo,
+        editReferenceNumber: Items.ReferenceNumber,
+        editDocumentCode: Items.DocumentCode,
+        editRevisionDate: Items.RevisionDate,
+        editIssueDate: Items.IssueDate,
+        editRevisionNo: Items.RevisionNumber,
+        editIssueNo: Items.IssueNumber,
+        CategoryOthers: Items.CategoryOthers,
+        LocationOthers: Items.LocationOthers,
+        SubCategoryOthers: Items.SubCategoryOthers,
+        editCloseOutStatus: Items.CloseOutStatus,
+        editCategoryValueIsCheck: Items.Category ? Items.Category.map((cat: any) => cat.Id) : [],
+        editSubCategoryValueIsCheck: Items.SubCategory ? Items.SubCategory.map((sub: any) => sub.Id) : [],
+        editLocationValueIsCheck: Items.Location ? Items.Location.map((loc: any) => loc.Id) : [],
+        editAssignToId: Items.AssignedTo ? Items.AssignedTo.Id : null,
+        editAssignTo: Items.AssignedTo ? Items.AssignedTo.Title : null,
+        editDelegateToEmail: Items.DelegateTo ? Items.DelegateTo.EMail : null,
+        editAssignToEmail: Items.AssignedTo ? Items.AssignedTo.EMail : null,
+        editProblemDescription: Items.ProblemDescription,
+        editDueDate: Items.DueDate ? new Date(Items.DueDate) : null,
+        editPersonAssignedId: Items.AssignedTo ? Items.AssignedTo.Id : null,
+        editPersonAssigned: Items.AssignedTo ? Items.AssignedTo.Title : null,
+        editDate: Items.Date ? new Date(Items.Date) : null,
+        editDeadlineCompletion: Items.DueDate ? new Date(Items.DueDate) : null,
+        editCorrection: Items.Correctionproblem,
+        editRootCause: Items.RootCause,
+        editCorrectiveAction: Items.CorrectiveAction,
+        editDelegateToId: Items.DelegateTo ? Items.DelegateTo.Id : null,
+        editDelegateTo: Items.DelegateTo ? Items.DelegateTo.Title : null,
+        editAnalyzedById: Items.AnalyzedBy ? Items.AnalyzedBy.Id : null,
+        editAnalyzedBy: Items.AnalyzedBy ? Items.AnalyzedBy.Title : null,
+        editReviewedById: Items.ReviewedBy ? Items.ReviewedBy.Id : null,
+        editReviewedBy: Items.ReviewedBy ? Items.ReviewedBy.Title : null,
+        editCorrectiveActionImplementedOn: Items.CorrectiveActionImplementedOn,
+        editSubmitStatus: Items.SubmitStatus,
+        editCurrentUserRole: Items.CurrentUserRole,
+        editFirstInitiatorSubmitStatus: Items.FirstInitiatorSubmitStatus,
+        editFirstAssignedToSubmitStatus: Items.FirstAssignedToSubmitStatus,
+        editDelegateToSubmitStatus: Items.DelegateToSubmitStatus,
+        editAnalyzedBySubmitStatus: Items.AnalyzedBySubmitStatus,
+        editReviewedBySubmitStatus: Items.ReviewedBySubmitStatus,
+        editLastAssignedToSubmitStatus: Items.LastAssignedToSubmitStatus,
+        editLastInitiatorSubmitStatus: Items.LastInitiatorSubmitStatus,
+        editStatus: Items.Status,
+        editAttachmentPreArray: [],
+        editAttachmentJson: [],
+        notUpdateDepartmentCode: Items.NCRNo,
+        notUpdateSerialNo: Items.SerialNumber,
+        Requester: Items.Author,
+        //remarks: Items.FinalRemarks,
+        reworkremarks: Items.ReworkRemarks,
+        showcategoryothers: showCategoryOthers,
+        showlocationothers: showLocationOthers,
+        showsubcategoryothers: showSubCategoryOthers
+        //}, () => {
+
+        // this.setState({ showcategoryothers: showCategoryOthers, showlocationothers: showLocationOthers, showsubcategoryothers: showSubCategoryOthers });
+      });
+
+      // if (Items?.NCType) {
+      //   this.setState({
+      //     editncType: Items?.NCType,
+      //     editmemonumberOptions: Items?.NCType == "NC" ? auditData.optionsmemoNumbernewnc : auditData.optionsmemoNumbernewobs
+      //   });
+      // }
+      setTimeout(() => {
+        this.setState({ Loading: false });
+        setloading = false;
+      }, 7000);
+      let nctypenew: string = Items.NCType == "NC" ? "NC Number" : "Observation NUmber";
+      let NCNumberoptionnew = await getNCNumbers(sp, Items.ApprovedAuditReportMemoNumber, nctypenew);
+      let optionsNCNumber: any = [];
+      if (NCNumberoptionnew.length > 0) {
+        optionsNCNumber = NCNumberoptionnew[0].map((item: any) => ({
+          value: item.ID,
+          label: item.NCNumber,
+          ncNo: item.NCNumber,
+          reportcode: item.ReportCode,
+          nctype: item.NCType
         }));
-        if (Items?.NCType) {
-          this.setState({
-            editncType: Items?.NCType,
-            editmemonumberOptions: Items?.NCType == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs
-          });
-        }
-        let nctypenew: string = Items.NCType == "NC" ? "NC Number" : "Observation NUmber";
-        let NCNumberoptionnew = await getNCNumbers(sp, Items.ApprovedAuditReportMemoNumber, nctypenew);
-        let optionsNCNumber: any = [];
-        if (NCNumberoptionnew.length > 0) {
-          optionsNCNumber = NCNumberoptionnew[0].map((item: any) => ({
-            value: item.ID,
-            label: item.NCNumber,
-            ncNo: item.NCNumber,
-            reportcode: item.ReportCode,
-            nctype: item.NCType
-          }));
-        }
-        let optionsNCNumbernew: any[] = [];
-        debugger
-        console.log("nmnnmnm", this.state.editmemonumberOptions, optionsmemoNumbernewnc, editoptsmemoAllNC, editoptsmemoAllObs);
-        optionsNCNumbernew = optionsNCNumber.length > 0 && await this.getUniqueBy(optionsNCNumber, "ncNo");
-        let editmemonumberOptionsselect = Items?.NCType == "NC" ? editoptsmemoAllNC : editoptsmemoAllObs;
-        let approvedauditreportselected = editmemonumberOptionsselect.filter((x: any) => Number(x.value) == Number(Items.ApprovedAuditReportId));
-        let ncnumberselected = optionsNCNumbernew.filter((x: any) => x.value == Items.NCNumberID);
-        let selecteddepartment = optionsdept.filter((x: any) => x.value == Items.DepartmentId);
-        let fromselecteddepartment = optionsdept.filter((x: any) => x.value == Items.FromDepartmentId);
-        this.setState({
-          editNCNumberOptions: optionsNCNumbernew, NCNumberselected: ncnumberselected,
-          ApprovedAuditSelected: approvedauditreportselected,
-          departmentselected: selecteddepartment,
-          editfromdepartmentselected: fromselecteddepartment
-        })
-        //this.setState({ editApprovedAuditReport: item.key, editMemoNumber: item.memoNumber });
-        RequesterEmail = Items.Author.EMail;
-        const apprItems = await sp.web.lists
-          .getByTitle("ProcessApprovalList")
-          .items.select(
-            "*",
-            "AssignedTo/Title,AssignedTo/Id,AssignedTo/EMail,ActionTakenRole,ActionTakenRole/Role,RequesterName/Title,ActionTakenBy/Title"
-          )
-          .expand("AssignedTo,ActionTakenRole,RequesterName,ActionTakenBy")
-          .filter(
-            "ListItemId eq '" +
-            this.state.mainItemId +
-            "' and ProcessName eq 'Non Conformity'"
-          )
-          .orderBy("Id", true)();
-        debugger
-        let url = window.location.href;
-        let parts = url.split("#/")[1].split("/");
-        let editType = parts[1]; // "edit"
-        let id = parts[2];
-        let currentlevel: any;
-        let finallevel: any;
-        if (editType == "edit") {
-          // if (currentApprover.CurrentUserRole !== "LastInitiator") {
-          showreworkremarks = true;
-          // }
-        }
-        if (editType === "approve") {
+      }
+      let optionsNCNumbernew: any[] = [];
 
-          let approvalItemIdnew = parts[3];
-          let Approverdata = await this.getapprovalbyID(Number(approvalItemIdnew), "Non Conformity");
-          console.log("Approverdata", Approverdata, "Approverdata0", Approverdata && Approverdata[0], Approvallistitemid, approvalItemIdnew);
+      // console.log("nmnnmnm", this.state.editmemonumberOptions, optionsmemoNumbernewnc, editoptsmemoAllNC, editoptsmemoAllObs);
+      optionsNCNumbernew = optionsNCNumber.length > 0 && await this.getUniqueBy(optionsNCNumber, "ncNo");
 
-          if (Approverdata.length > 0) {
-            const currentApprover = Approverdata[0];
-            const isAnalyzedRole = currentApprover.CurrentUserRole === "AnalyzedBy";
-            const isFirstAssigned = currentApprover.CurrentUserRole === "FirstAssignedTo" || currentApprover.CurrentUserRole === "DelegateTo";
-            const isCurrentUser = (currentApprover.CurrentUserRole === "FirstAssignedTo" && currentApprover.AssignedTo?.EMail === CurrentuserEmail) ||
-              (currentApprover.CurrentUserRole === "DelegateTo" && currentApprover.DelegateTo?.EMail === CurrentuserEmail) ||
-              (currentApprover.CurrentUserRole === "AnalyzedBy" && currentApprover.AssignedTo?.EMail === CurrentuserEmail);
+      let ncnumberselected = optionsNCNumbernew.filter((x: any) => x.value == Items.NCNumberID);
 
-            const currentstatus = currentApprover.Status == "Approved";
-            const finalstatus = Items.Status == "Approved";
-            currentlevel = currentApprover.Level;
-            finallevel = currentApprover.Maxlevel;
-            ApproverEmail = currentApprover.AssignedTo?.EMail;
+      this.setState({
+        editNCNumberOptions: optionsNCNumbernew,
+        NCNumberselected: ncnumberselected,
+
+      })
+      //this.setState({ editApprovedAuditReport: item.key, editMemoNumber: item.memoNumber });
+      RequesterEmail = Items.Author.EMail;
+      isRequesterDelegated = await this.isUserDelegatedFor(Items.Author?.EMail, currentUser.Id);
+      isAssignedtoDelegated = await this.isUserDelegatedFor(Items.AssignedTo && Items.AssignedTo?.EMail, currentUser.Id);
+      isDelegatedToDelegated = await this.isUserDelegatedFor(Items.DelegateTo && Items.DelegateTo?.EMail, currentUser.Id);
+
+      const apprItems = await sp.web.lists
+        .getByTitle("ProcessApprovalList")
+        .items.select(
+          "*",
+          "AssignedTo/Title,AssignedTo/Id,AssignedTo/EMail,ActionTakenRole,ActionTakenRole/Role,RequesterName/Title,ActionTakenBy/Title"
+        )
+        .expand("AssignedTo,ActionTakenRole,RequesterName,ActionTakenBy")
+        .filter(
+          "ListItemId eq '" +
+          idNumber +
+          "' and ProcessName eq 'Non Conformity'"
+        )
+        .orderBy("Id", true)();
 
 
-            if (this.state.editLastInitiatorSubmitStatus == "No" && this.state.editCurrentUserRole == "LastInitiator" && currentApprover.AssignedTo?.EMail === CurrentuserEmail) {
-              forwardisdisabled = false
-            } else {
-              forwardisdisabled = true;
-            }
-            if (isAnalyzedRole && isCurrentUser) {
-              IsAnalyzedBy = true;
-              showimsupdated = true;
-              isdisableims = false;
-            }
-            if (currentApprover.CurrentUserRole !== "LastInitiator") {
-              showreworkremarks = true;
-            }
-            // This will override previous value only if role is "FirstAssignedTo"
-            if (!isFirstAssigned && Items.IMSUpdated != "" && Items.IMSUpdated != null && Items.RiskOpportunitiesUpdated != "" && Items.RiskOpportunitiesUpdated != null && !(isAnalyzedRole && isCurrentUser)) {
-              showimsupdated = true;
-              isdisableims = true;
-            }
+      let url = window.location.href;
+      let parts = url.split("#/")[1].split("/");
+      let editType = parts[1]; // "edit"
+      let id = parts[2];
+      let currentlevel: any;
+      let finallevel: any;
+      if (editType == "edit") {
+        // if (currentApprover.CurrentUserRole !== "LastInitiator") {
+        showreworkremarks = true;
+        // }
+      }
+      if (editType === "approve") {
 
-            if (Items.Status == "Approved") {
-              showcorrectionappicable = true;
-              isdisablefinal = true;
-            }
+        let approvalItemIdnew = parts[3];
+        let Approverdata = await this.getapprovalbyID(Number(approvalItemIdnew), "Non Conformity");
+        console.log("Approverdata", Approverdata, "Approverdata0", Approverdata && Approverdata[0], Approvallistitemid, approvalItemIdnew);
+        const today = new Date().toISOString();
 
-            // showfinalapproval = currentstatus;
-            // isdisablefinal = finalstatus;
+        let isCurrentuserdelagated: boolean = false;
+        if (Approverdata.length > 0) {
+          const currentApprover = Approverdata[0];
+          let delegateduser = await sp.web.lists.getByTitle("ARGDelegateList").items
+            .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
+            .expand("Author,DelegateName,ActingFor")
+            .filter(`DelegateName/EMail eq '${currentApprover.AssignedTo?.EMail}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+            .orderBy("Created", false).top(5000)()
+            .then(async (result) => {
+              console.log("resultresultresult", result);
+              if (result.length > 0) {
+                isCurrentuserdelagated = true;
+              }
+            });
+          const isAnalyzedRole = currentApprover.CurrentUserRole === "AnalyzedBy";
+          const isFirstAssigned = currentApprover.CurrentUserRole === "FirstAssignedTo" || currentApprover.CurrentUserRole === "DelegateTo";
+          const isCurrentUser = (currentApprover.CurrentUserRole === "FirstAssignedTo" && (currentApprover.AssignedTo?.EMail === CurrentuserEmail || isCurrentuserdelagated)) ||
+            (currentApprover.CurrentUserRole === "DelegateTo" && (currentApprover.DelegateTo?.EMail === CurrentuserEmail || isCurrentuserdelagated)) ||
+            (currentApprover.CurrentUserRole === "AnalyzedBy" && (currentApprover.AssignedTo?.EMail === CurrentuserEmail || isCurrentuserdelagated));
+
+          const currentstatus = currentApprover.Status == "Approved";
+          const finalstatus = Items.Status == "Approved";
+          currentlevel = currentApprover.Level;
+          finallevel = currentApprover.Maxlevel;
+          ApproverEmail = currentApprover.AssignedTo?.EMail;
+          isApproverDelegated = await this.isUserDelegatedFor(currentApprover.AssignedTo?.EMail, currentUser.Id);
+
+          if (this.state.editLastInitiatorSubmitStatus == "No" && this.state.editCurrentUserRole == "LastInitiator" && (currentApprover.AssignedTo?.EMail === CurrentuserEmail || isCurrentuserdelagated)) {
+            forwardisdisabled = false
+          } else {
+            forwardisdisabled = true;
           }
-
-        }
-        if (editType == "view") {
-
-          if (Items.IMSUpdated != "" && Items.IMSUpdated != null && Items.RiskOpportunitiesUpdated != "" && Items.RiskOpportunitiesUpdated != null) {
+          if (isAnalyzedRole && isCurrentUser) {
+            IsAnalyzedBy = true;
+            showimsupdated = true;
+            isdisableims = false;
+          }
+          if (currentApprover.CurrentUserRole !== "LastInitiator") {
+            showreworkremarks = true;
+          }
+          // This will override previous value only if role is "FirstAssignedTo"
+          if (!isFirstAssigned && Items.IMSUpdated != "" && Items.IMSUpdated != null && Items.RiskOpportunitiesUpdated != "" && Items.RiskOpportunitiesUpdated != null && !(isAnalyzedRole && isCurrentUser)) {
             showimsupdated = true;
             isdisableims = true;
           }
@@ -1267,181 +1373,228 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             showcorrectionappicable = true;
             isdisablefinal = true;
           }
-        }
-        var cnt: any = 0;
-        var appItems: any[] = [];
-        console.log("apprItems111", apprItems);
-        if (apprItems.length > 0) {
-          if (Items.SubmitStatus == "Yes" && (Items.CurrentUserRole == "FirstAssignedTo" || Items.CurrentUserRole == "DelegateTo")) {
-            //this.setState({ approvalItemId: apprItems[0].ID })
-            if (apprItems.length == 1) {
-              Approvallistitemid = apprItems[0].ID
-            } else if (apprItems.length > 1) {
-              let initatoritem = apprItems.filter((x) => (x.CurrentUserRole == "FirstAssignedTo" || x.CurrentUserRole == "DelegateTo") && x.Status == "Pending")
-              if (initatoritem.length > 0) {
-                Approvallistitemid = initatoritem[0].ID
-              }
-            }
 
-          }
-          if (Items.SubmitStatus == "Yes" && Items.Status == "Rework" && Items.CurrentUserRole == "FirstInitiator" && apprItems.length > 1) {
-            //this.setState({ approvalItemId: apprItems[0].ID })
-            let initatoritem = apprItems.filter((x) => x.CurrentUserRole == "FirstInitiator" && x.Status == "Pending")
+          // showfinalapproval = currentstatus;
+          // isdisablefinal = finalstatus;
+        }
+
+      }
+      if (editType == "view") {
+
+        if (Items.IMSUpdated != "" && Items.IMSUpdated != null && Items.RiskOpportunitiesUpdated != "" && Items.RiskOpportunitiesUpdated != null) {
+          showimsupdated = true;
+          isdisableims = true;
+        }
+
+        if (Items.Status == "Approved") {
+          showcorrectionappicable = true;
+          isdisablefinal = true;
+        }
+      }
+      var cnt: any = 0;
+      var appItems: any[] = [];
+      //  console.log("apprItems111", apprItems);
+      if (apprItems && apprItems.length > 0) {
+        if (Items.SubmitStatus == "Yes" && (Items.CurrentUserRole == "FirstAssignedTo" || Items.CurrentUserRole == "DelegateTo")) {
+          //this.setState({ approvalItemId: apprItems[0].ID })
+          if (apprItems.length == 1) {
+            Approvallistitemid = apprItems[0].ID
+          } else if (apprItems.length > 1) {
+            let initatoritem = apprItems.filter((x) => (x.CurrentUserRole == "FirstAssignedTo" || x.CurrentUserRole == "DelegateTo") && x.Status == "Pending")
             if (initatoritem.length > 0) {
               Approvallistitemid = initatoritem[0].ID
             }
-
-          }
-          apprItems.forEach(async function (itm: any) {
-            //Audit Report
-            var objToAdd: any = {};
-            objToAdd["Level"] = itm.Level;
-            objToAdd["AssignedTo"] = itm.AssignedTo.Title;
-            objToAdd["AssignedToEmail"] = itm.AssignedTo.EMail;
-            objToAdd["RequesterName"] = itm.RequesterName.Title;
-            objToAdd["ActionTakenRole"] = itm.ActionTakenRoleId == null ? itm.CurrentUserRole : itm.ActionTakenRole?.Role;
-            {
-              /* Divyansh Changes */
-            }
-            if (itm.RequestedDate == "" || itm.RequestedDate == null) {
-              objToAdd["RequestedDate"] = "";
-            } else {
-              objToAdd["RequestedDate"] = itm.RequestedDate;
-            }
-            if (itm.ActionTakenById != null) {
-              objToAdd["ActionTakenBy"] = itm.ActionTakenBy.Title;
-            }
-            else {
-              objToAdd["ActionTakenBy"] = "";
-            }
-
-            objToAdd["ActionTakenOn"] = itm.ActionTakenOn;
-            objToAdd["Remarks"] = itm.Remark;
-            objToAdd["Status"] = itm.Status;
-            objToAdd["Index"] = itm.Level;
-
-            appItems.push(objToAdd);
-            cnt = cnt + 1;
-          });
-          this.setState({ apprItems: appItems });
-        }
-        //Get Files
-        const upFiles = await sp.web.lists.getByTitle("NonConformityDocs").items.select("*", "File/Name,FileLeafRef,FileRef,EncodedAbsUrl").expand("File")
-          .filter("NonConformityId eq '" + this.state.mainItemId + "'")();
-        if (upFiles.length > 0) {
-          var obJFiles: any[] = [];
-          let fCount: number = 0;
-          upFiles.forEach(async function (item: any) {
-            obJFiles.push({
-              "Name": item?.File.Name,
-              "type": "old",
-              "Id": item.Id,
-              "FileRef": item.FileRef,
-              "FileLeafRef": item.FileLeafRef,
-              "Uploaded": item.Modified,
-              "Path": item.EncodedAbsUrl
-            })
-          })
-          fCount = upFiles.length;
-          this.setState({ exFiles: obJFiles, fileCount: fCount });
-        }
-        const upFilesauditee = await sp.web.lists.getByTitle("AuditeeAttachmentDocs").items.select("*", "File/Name,FileLeafRef,FileRef,EncodedAbsUrl").expand("File")
-          .filter("NonConformityId eq '" + this.state.mainItemId + "'")();
-        if (upFilesauditee.length > 0) {
-          var obJFiles: any[] = [];
-          let fCount: number = 0;
-          upFilesauditee.forEach(async function (item: any) {
-            obJFiles.push({
-              "Name": item?.File.Name,
-              "type": "old",
-              "Id": item.Id,
-              "FileRef": item.FileRef,
-              "FileLeafRef": item.FileLeafRef,
-              "Uploaded": item.Modified,
-              "Path": item.EncodedAbsUrl
-            })
-          })
-          fCount = upFilesauditee.length;
-          this.setState({ exFilesauditee: obJFiles, fileCountauditee: fCount });
-        }
-        if (Items.substatus == "No" || (Items.Status == "Rework" && Items.CurrentUserRole == "FirstAssignedTo")) {
-          this.setState({ ShowDeleteicon: true })
-        }
-        //AllProcessApproval Table data
-        debugger
-        const approvalItems = await sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.select("*", "Approvers/Name", "Approvers/EMail", "Approvers/ID").expand("Approvers")
-          .filter("MainListID eq '" + this.state.mainItemId + "'and ProcessName eq 'Non Conformity'")
-          .orderBy("Level", true)();
-        var allApp: any[] = [];
-        var cnt: any = 0;
-        const sorted = [...approvalItems].sort((a, b) => b.Level - a.Level);
-
-
-        debugger
-        if (approvalItems.length > 0) {
-          approvalItems.forEach(async function (itm: any) {
-            var objToAdd: any = {};
-            let approve: string[] = [];
-            itm.Approvers.forEach(function (it: any) {
-              approve.push(it.Name.split('|membership|')[1].toString());
-              // ids.push(it.Id);
-            })
-            objToAdd["Role"] = itm.ApproverRoleId;
-            objToAdd["Type"] = itm.LevelType;
-            objToAdd["Name"] = itm.ApproversId;
-            objToAdd["itemId"] = itm.Id;
-            objToAdd["Index"] = itm.Level;
-            objToAdd["appEx"] = approve;
-            objToAdd["Responsibility"] = itm.Responsibility || "";
-            objToAdd["IsSignatureRequired"] = itm.IsSignatureRequired == "Yes" ? true : false;
-            allApp.push(objToAdd);
-            cnt = cnt + 1;
-          });
-          editforwardrecord = true;
-          //const sorted = [...allApp].sort((a, b) => a.index - b.index);
-          //this.setState({ approvers: sorted });
-          this.setState({ approvers: allApp });
-          const approvers = sorted[0]?.Approvers || [];
-          const currentUserEmail = this.props.context.pageContext.user.email;
-
-          const finalApprover = approvers.map((user: any) => ({
-            id: user.ID,
-            email: user.EMail
-          }));
-          const isFinalApprover = finalApprover.some(
-            (approver: any) => approver.email?.toLowerCase() === currentUserEmail?.toLowerCase()
-          ) && Items.CurrentUserRole == "Approverrole";
-          console.log("finallevel", finallevel, currentlevel);
-          debugger
-          if (editType === "approve") {
-            if (Items.Status != "Approved" && isFinalApprover && finallevel == currentlevel && Items.CurrentUserRole == "Approverrole") {
-              showcorrectionappicable = true;
-              isdisablefinal = false;
-              this.setState({ IsFinalapprover: isFinalApprover });
-            }
           }
 
         }
+        if ((Items.SubmitStatus == "Yes" || Items.SubmitStatus == "No") && Items.Status == "Rework" && Items.CurrentUserRole == "FirstInitiator" && apprItems.length > 1) {
+          //this.setState({ approvalItemId: apprItems[0].ID })
+          let initatoritem = apprItems.filter((x) => x.CurrentUserRole == "FirstInitiator" && x.Status == "Pending")
+          if (initatoritem.length > 0) {
+            Approvallistitemid = initatoritem[0].ID
+          }
 
-        //Get latest last rec the NC list   
-        const latestItem = await sp.web.lists
-          .getByTitle("NonConformityList").items.select("Id", "SerialNumber", "Created", "SubmitStatus")
-          .orderBy("SerialNumber", false).top(1)();
-        if (latestItem.length > 0) {
-          var serialNo = latestItem[0].SerialNumber + 1;
-          if (serialNo < 999)
-            serialNo = ("0000" + serialNo).slice(-3);
-          this.setState({ editserialNo: serialNo })
         }
-        else {
-          var serialNo: any = "001";
-          this.setState({ editserialNo: serialNo })
-        }
+        apprItems.forEach(async function (itm: any) {
+          //Audit Report
+          var objToAdd: any = {};
+          objToAdd["Level"] = itm.Level;
+          objToAdd["AssignedTo"] = itm.AssignedTo.Title;
+          objToAdd["AssignedToEmail"] = itm.AssignedTo.EMail;
+          objToAdd["RequesterName"] = itm.RequesterName.Title;
+          objToAdd["ActionTakenRole"] = itm.ActionTakenRoleId == null ? itm.CurrentUserRole : itm.ActionTakenRole?.Role;
+          {
+            /* Divyansh Changes */
+          }
+          if (itm.RequestedDate == "" || itm.RequestedDate == null) {
+            objToAdd["RequestedDate"] = "";
+          } else {
+            objToAdd["RequestedDate"] = itm.RequestedDate;
+          }
+          if (itm.ActionTakenById != null) {
+            objToAdd["ActionTakenBy"] = itm.ActionTakenBy.Title;
+          }
+          else {
+            objToAdd["ActionTakenBy"] = "";
+          }
 
-      } catch (e) {
-        console.error(e);
+          objToAdd["ActionTakenOn"] = itm.ActionTakenOn;
+          objToAdd["Remarks"] = itm.Remark;
+          objToAdd["Status"] = itm.Status;
+          objToAdd["Index"] = itm.Level;
+
+          appItems.push(objToAdd);
+          cnt = cnt + 1;
+        });
+        this.setState({ apprItems: appItems });
       }
-    });
+      //Get Files
+      const upFiles = await sp.web.lists.getByTitle("NonConformityDocs").items.select("*", "File/Name,FileLeafRef,FileRef,EncodedAbsUrl").expand("File")
+        .filter("NonConformityId eq '" + idNumber + "'")();
+      if (upFiles.length > 0) {
+        var obJFiles: any[] = [];
+        let fCount: number = 0;
+        upFiles.forEach(async function (item: any) {
+          obJFiles.push({
+            "Name": item?.File.Name,
+            "type": "old",
+            "Id": item.Id,
+            "FileRef": item.FileRef,
+            "FileLeafRef": item.FileLeafRef,
+            "Uploaded": item.Modified,
+            "Path": item.EncodedAbsUrl
+          })
+        })
+        fCount = upFiles.length;
+        this.setState({ exFiles: obJFiles, fileCount: fCount });
+      }
+      const upFilesauditee = await sp.web.lists.getByTitle("AuditeeAttachmentDocs").items.select("*", "File/Name,FileLeafRef,FileRef,EncodedAbsUrl").expand("File")
+        .filter("NonConformityId eq '" + idNumber + "'")();
+      if (upFilesauditee.length > 0) {
+        var obJFiles: any[] = [];
+        let fCount: number = 0;
+        upFilesauditee.forEach(async function (item: any) {
+          obJFiles.push({
+            "Name": item?.File.Name,
+            "type": "old",
+            "Id": item.Id,
+            "FileRef": item.FileRef,
+            "FileLeafRef": item.FileLeafRef,
+            "Uploaded": item.Modified,
+            "Path": item.EncodedAbsUrl
+          })
+        })
+        fCount = upFilesauditee.length;
+        this.setState({ exFilesauditee: obJFiles, fileCountauditee: fCount });
+      }
+      if (Items.SubmitStatus == "No" || (Items.Status == "Rework" && Items.CurrentUserRole == "FirstAssignedTo")) {
+        this.setState({ ShowDeleteicon: true })
+      }
+      //AllProcessApproval Table data
+
+      const approvalItems = await sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.select("*", "Approvers/Name","Approvers/Title", "Approvers/EMail", "Approvers/ID").expand("Approvers")
+        .filter("MainListID eq '" + idNumber + "'and ProcessName eq 'Non Conformity'")
+        .orderBy("Level", true)();
+      var allApp: any[] = [];
+      var cnt: any = 0;
+      const sorted = [...approvalItems].sort((a, b) => b.Level - a.Level);
+
+
+
+      if (approvalItems.length > 0) {
+        approvalItems.forEach(async function (itm: any) {
+          var objToAdd: any = {};
+          let approve: string[] = [];
+          itm.Approvers.forEach(function (it: any) {
+            approve.push(it.Name.split('|membership|')[1].toString());
+            // ids.push(it.Id);
+          })
+          objToAdd["Role"] = itm.ApproverRoleId;
+          objToAdd["Type"] = itm.LevelType;
+          objToAdd["Name"] = itm.ApproversId;
+          objToAdd["AppName"] = itm.Approvers;
+          objToAdd["itemId"] = itm.Id;
+          objToAdd["Index"] = itm.Level;
+          objToAdd["appEx"] = approve;
+          objToAdd["Responsibility"] = itm.Responsibility || "";
+          objToAdd["IsSignatureRequired"] = itm.IsSignatureRequired == "Yes" ? true : false;
+          allApp.push(objToAdd);
+          cnt = cnt + 1;
+        });
+        editforwardrecord = true;
+        //const sorted = [...allApp].sort((a, b) => a.index - b.index);
+        //this.setState({ approvers: sorted });
+        this.setState({ approvers: allApp });
+        const approvers = sorted[0]?.Approvers || [];
+        const currentUserEmail = this.props.context.pageContext.user.email;
+
+        const finalApprover = approvers.map((user: any) => ({
+          id: user.ID,
+          email: user.EMail
+        }));
+        // const isFinalApprover = finalApprover.some(
+        //   (approver: any) => approver.email?.toLowerCase() === currentUserEmail?.toLowerCase() || isCurrentuserdelagated
+        // ) && Items.CurrentUserRole == "Approverrole";
+        const today = new Date().toISOString();
+        let isFinalApprover = false;
+
+        for (const approver of finalApprover) {
+          const approverEmail = approver.email?.toLowerCase();
+          const currentUserEmailLower = currentUserEmail?.toLowerCase();
+
+          // Direct match
+          if (approverEmail === currentUserEmailLower && Items.CurrentUserRole === "Approverrole") {
+            isFinalApprover = true;
+            break;
+          }
+
+          // Delegation check
+          const delegateResults = await sp.web.lists.getByTitle("ARGDelegateList").items
+            .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
+            .expand("Author,DelegateName,ActingFor")
+            .filter(`DelegateName/EMail eq '${approver.email}' and ActingFor/ID eq ${currentUser.Id} and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+            .top(1)(); // only need existence
+
+          if (delegateResults.length > 0 && Items.CurrentUserRole === "Approverrole") {
+            isFinalApprover = true;
+            break;
+          }
+        }
+
+        // Final check: must be final approver and have role
+        //const isUserFinalApproverWithRole = isFinalApprover && Items.CurrentUserRole === "Approverrole";
+
+        //console.log("finallevel", finallevel, currentlevel);
+
+        if (editType === "approve") {
+          if (Items.Status != "Approved" && isFinalApprover && finallevel == currentlevel && Items.CurrentUserRole == "Approverrole") {
+            showcorrectionappicable = true;
+            isdisablefinal = false;
+            this.setState({ IsFinalapprover: isFinalApprover });
+          }
+        }
+
+      }
+
+      //Get latest last rec the NC list   
+      const latestItem = await sp.web.lists
+        .getByTitle("NonConformityList").items.select("Id", "SerialNumber", "Created", "SubmitStatus")
+        .orderBy("SerialNumber", false).top(1)();
+      if (latestItem.length > 0) {
+        var serialNo = latestItem[0].SerialNumber + 1;
+        if (serialNo < 999)
+          serialNo = ("0000" + serialNo).slice(-3);
+        this.setState({ editserialNo: serialNo })
+      }
+      else {
+        var serialNo: any = "001";
+        this.setState({ editserialNo: serialNo })
+      }
+
+    } catch (e) {
+      console.error(e);
+    }
+
 
   }
   private async getDataRoles() {
@@ -1504,61 +1657,211 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     //   }
     // });
   }
-  public async getAuditreport() {
+  // public async getAuditreport() {
+  //   const sp = spfi().using(SPFx(this.props.context));
+  //   
+  //   try {
+  //     const memoItems = await getMemoNumberAuditReport(sp);
+  //     let optionsNCNumber: any = [];
+  //     let optionsObservationNumber: any = [];
+  //     if (memoItems.length > 0) {
+  //       const filteredItemsNC = memoItems[0].filter((item: any) => item.FailureofIntentNonconformity === "Yes");
+  //       const filteredItemsObs = memoItems[0].filter((item: any) => item.Observations === "Yes");
+  //       // if (filteredItemsNC.length > 0) {
+  //       //   optionsNCNumber = filteredItemsNC.map((item: any) => ({
+  //       //     value: item.ID,
+  //       //     label: item.ReportCode,
+  //       //     itemId: item.ID,
+  //       //     reportCode: item.ReportCode,
+  //       //     ncNo: item.NCNumber,
+  //       //     department: item.DepartmentAuditedId
+  //       //   }));
+  //       // }
+  //       // if (filteredItemsObs.length > 0) {
+  //       //   optionsObservationNumber = filteredItemsObs.map((item: any) => ({
+  //       //     value: item.ID,
+  //       //     label: item.ReportCode,
+  //       //     itemId: item.ID,
+  //       //     reportCode: item.ReportCode,
+  //       //     ncNo: item.NCNumber,
+  //       //     department: item.DepartmentAuditedId
+  //       //   }));
+  //       // }
+  //       const groupItemsByReportCode =async (items: any[]) => {
+  //         const result: { [reportCode: string]: Set<string> } = {};
+  //         items.forEach((item) => {
+  //           const reportCode = item.ReportCode?.trim();
+  //           const number = item.NCNumber?.toString().trim();
+
+  //           // Only proceed if both reportCode and NCNumber are non-empty
+  //           if (reportCode && number && number !== "") {
+  //             if (!result[reportCode]) {
+  //               result[reportCode] = new Set();
+  //             }
+  //             result[reportCode].add(number);
+  //           }
+  //         });
+  //         return result;
+  //       };
+
+  //       const reportCodeToExpectedNCs =await groupItemsByReportCode(filteredItemsNC);
+  //       const cleanedFilteredItemsObs = filteredItemsObs.filter((item: any) => {
+  //         const nc = item.NCNumber?.toString().trim();
+  //         return nc && nc !== "";
+  //       });
+  //       const reportCodeToExpectedObs =await groupItemsByReportCode(cleanedFilteredItemsObs);
+  //       // Process NC report codes
+  //       await Promise.all(Object.keys(reportCodeToExpectedNCs).map(async (reportCode) => {
+  //         const ncData = await this.getNCdata(reportCode);
+  //         const existingNumbers = new Set(ncData.map((item: any) => item.NCNumber));
+  //         const expectedNumbers = reportCodeToExpectedNCs[reportCode];
+
+  //         const allCreated = Array.from(expectedNumbers).every((num) => existingNumbers.has(num));
+
+  //         if (!allCreated) {
+  //           const exampleItem = filteredItemsNC.find((item: any) => item.ReportCode === reportCode);
+  //           if (exampleItem) {
+  //             optionsmemoNumbernewnc.push({
+  //               value: exampleItem.ID,
+  //               label: exampleItem.ReportCode,
+  //               itemId: exampleItem.ID,
+  //               reportCode: exampleItem.ReportCode,
+  //               ncNo: exampleItem.NCNumber,
+  //               department: exampleItem.DepartmentAuditedId
+  //             });
+  //           }
+  //         }
+  //       }));
+
+  //       // Process Observation report codes
+  //       await Promise.all(Object.keys(reportCodeToExpectedObs).map(async (reportCode) => {
+  //         const obsData = await this.getNCdata(reportCode); // Assuming same list for Observations
+  //         const existingNumbers = new Set(obsData.map((item: any) => item.NCNumber));
+  //         const expectedNumbers = reportCodeToExpectedObs[reportCode];
+
+  //         const allCreated = Array.from(expectedNumbers).every((num) => existingNumbers.has(num));
+
+  //         if (!allCreated) {
+  //           const exampleItem = filteredItemsObs.find((item: any) => item.ReportCode === reportCode);
+  //           if (exampleItem) {
+  //             optionsmemoNumbernewobs.push({
+  //               value: exampleItem.ID,
+  //               label: exampleItem.ReportCode,
+  //               itemId: exampleItem.ID,
+  //               reportCode: exampleItem.ReportCode,
+  //               ncNo: exampleItem.NCNumber,
+  //               department: exampleItem.DepartmentAuditedId
+  //             });
+  //           }
+  //         }
+  //       }));
+
+  //       // Sort options
+  //       optionsmemoNumbernewobs = await this.getUniqueBy(optionsmemoNumbernewobs, "reportCode");
+  //       optionsmemoNumbernewnc = await this.getUniqueBy(optionsmemoNumbernewnc, "reportCode");
+  //       optionsmemoNumbernewnc.sort((a, b) => a.label.localeCompare(b.label));
+  //       optionsmemoNumbernewobs.sort((a, b) => a.label.localeCompare(b.label));
+  //       const editoptsmemoAll1 = this.state.editncType === "NC" ? filteredItemsNC : filteredItemsObs;
+
+  //       const optionsallnc = filteredItemsNC.map((item: any) => ({
+  //         value: item.ID,
+  //         label: item.ReportCode,
+  //         itemId: item.ID,
+  //         reportCode: item.ReportCode,
+  //         ncNo: item.NCNumber,
+  //         department: item.DepartmentAuditedId
+  //       }));
+  //       const optionsallobs = filteredItemsObs.map((item: any) => ({
+  //         value: item.ID,
+  //         label: item.ReportCode,
+  //         itemId: item.ID,
+  //         reportCode: item.ReportCode,
+  //         ncNo: item.NCNumber,
+  //         department: item.DepartmentAuditedId
+  //       }));
+  //       editoptsmemoAllNC = optionsallnc;
+  //       editoptsmemoAllObs = optionsallobs;
+  //       this.setState({
+  //         editmemonumberOptions: this.state.editncType == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
+  //         editmemonumberOptionsall: this.state.editncType == "NC" ? optionsNCNumber : optionsObservationNumber
+  //       });
+  //     }
+
+  //     //this.state.ncType
+  //     //let optionsmemoNumbernewnc: any[] = [];
+  //     // optionsmemoNumbernewnc = await this.getUniqueBy(optionsNCNumber, "reportCode");
+  //     // optionsmemoNumbernewnc = [...optionsmemoNumbernewnc].sort((a, b) =>
+  //     //   a.label.localeCompare(b.label)
+  //     // );
+
+  //     // //let optionsmemoNumbernewobs: any[] = [];
+  //     // optionsmemoNumbernewobs = await this.getUniqueBy(optionsObservationNumber, "reportCode");
+  //     // optionsmemoNumbernewobs = [...optionsmemoNumbernewobs].sort((a, b) =>
+  //     //   a.label.localeCompare(b.label)
+  //     // );
+
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // }
+  public async getAuditreport(): Promise<{
+    optionsmemoNumbernewnc: any[],
+    optionsmemoNumbernewobs: any[],
+    editoptsmemoAllNC: any[],
+    editoptsmemoAllObs: any[]
+  }> {
     const sp = spfi().using(SPFx(this.props.context));
-    debugger
+
+    // Reset global or class-level variables (if needed)
+    let optionsmemoNumbernewncloc: any[] = [];
+    let optionsmemoNumbernewobsloc: any[] = [];
+
+    let optionsNCNumberloc: any[] = [];
+    let optionsObservationNumberloc: any[] = [];
+
     try {
       const memoItems = await getMemoNumberAuditReport(sp);
-      let optionsNCNumber: any = [];
-      let optionsObservationNumber: any = [];
-      if (memoItems.length > 0) {
-        const filteredItemsNC = memoItems[0].filter((item: any) => item.FailureofIntentNonconformity === "Yes");
-        const filteredItemsObs = memoItems[0].filter((item: any) => item.Observations === "Yes");
-        // if (filteredItemsNC.length > 0) {
-        //   optionsNCNumber = filteredItemsNC.map((item: any) => ({
-        //     value: item.ID,
-        //     label: item.ReportCode,
-        //     itemId: item.ID,
-        //     reportCode: item.ReportCode,
-        //     ncNo: item.NCNumber,
-        //     department: item.DepartmentAuditedId
-        //   }));
-        // }
-        // if (filteredItemsObs.length > 0) {
-        //   optionsObservationNumber = filteredItemsObs.map((item: any) => ({
-        //     value: item.ID,
-        //     label: item.ReportCode,
-        //     itemId: item.ID,
-        //     reportCode: item.ReportCode,
-        //     ncNo: item.NCNumber,
-        //     department: item.DepartmentAuditedId
-        //   }));
-        // }
-        const groupItemsByReportCode = (items: any[]) => {
-          const result: { [reportCode: string]: Set<string> } = {};
-          items.forEach((item) => {
-            const reportCode = item.ReportCode?.trim();
-            const number = item.NCNumber?.toString().trim();
+      // console.log("Fetched memoItems:", memoItems);
 
-            // Only proceed if both reportCode and NCNumber are non-empty
-            if (reportCode && number && number !== "") {
-              if (!result[reportCode]) {
-                result[reportCode] = new Set();
-              }
-              result[reportCode].add(number);
+      if (!Array.isArray(memoItems) || memoItems.length === 0) {
+        console.warn("No memo items returned or not an array");
+        return;
+      }
+
+      // Flatten if memoItems is nested: [ [ items ] ]
+      const flatMemoItems = Array.isArray(memoItems[0]) ? memoItems[0] : memoItems;
+
+      const filteredItemsNC = flatMemoItems.filter((item: any) => item.FailureofIntentNonconformity === "Yes");
+      const filteredItemsObs = flatMemoItems.filter((item: any) => item.Observations === "Yes");
+
+      const groupItemsByReportCode = async (items: any[]) => {
+        const result: { [reportCode: string]: Set<string> } = {};
+        items.forEach((item) => {
+          const reportCode = item.ReportCode?.trim();
+          const number = item.NCNumber?.toString().trim();
+
+          if (reportCode && number && number !== "") {
+            if (!result[reportCode]) {
+              result[reportCode] = new Set();
             }
-          });
-          return result;
-        };
-
-        const reportCodeToExpectedNCs = groupItemsByReportCode(filteredItemsNC);
-        const cleanedFilteredItemsObs = filteredItemsObs.filter((item: any) => {
-          const nc = item.NCNumber?.toString().trim();
-          return nc && nc !== "";
+            result[reportCode].add(number);
+          }
         });
-        const reportCodeToExpectedObs = groupItemsByReportCode(cleanedFilteredItemsObs);
-        // Process NC report codes
-        await Promise.all(Object.keys(reportCodeToExpectedNCs).map(async (reportCode) => {
+        return result;
+      };
+
+      const reportCodeToExpectedNCs = await groupItemsByReportCode(filteredItemsNC);
+
+      const cleanedFilteredItemsObs = filteredItemsObs.filter((item: any) => {
+        const nc = item.NCNumber?.toString().trim();
+        return nc && nc !== "";
+      });
+
+      const reportCodeToExpectedObs = await groupItemsByReportCode(cleanedFilteredItemsObs);
+
+      // Process NC report codes
+      await Promise.all(Object.keys(reportCodeToExpectedNCs).map(async (reportCode) => {
+        try {
           const ncData = await this.getNCdata(reportCode);
           const existingNumbers = new Set(ncData.map((item: any) => item.NCNumber));
           const expectedNumbers = reportCodeToExpectedNCs[reportCode];
@@ -1568,7 +1871,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           if (!allCreated) {
             const exampleItem = filteredItemsNC.find((item: any) => item.ReportCode === reportCode);
             if (exampleItem) {
-              optionsmemoNumbernewnc.push({
+              optionsmemoNumbernewncloc.push({
                 value: exampleItem.ID,
                 label: exampleItem.ReportCode,
                 itemId: exampleItem.ID,
@@ -1578,11 +1881,15 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               });
             }
           }
-        }));
+        } catch (error) {
+          console.error(`Error fetching NC data for reportCode ${reportCode}:`, error);
+        }
+      }));
 
-        // Process Observation report codes
-        await Promise.all(Object.keys(reportCodeToExpectedObs).map(async (reportCode) => {
-          const obsData = await this.getNCdata(reportCode); // Assuming same list for Observations
+      // Process Observation report codes
+      await Promise.all(Object.keys(reportCodeToExpectedObs).map(async (reportCode) => {
+        try {
+          const obsData = await this.getNCdata(reportCode);
           const existingNumbers = new Set(obsData.map((item: any) => item.NCNumber));
           const expectedNumbers = reportCodeToExpectedObs[reportCode];
 
@@ -1591,7 +1898,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           if (!allCreated) {
             const exampleItem = filteredItemsObs.find((item: any) => item.ReportCode === reportCode);
             if (exampleItem) {
-              optionsmemoNumbernewobs.push({
+              optionsmemoNumbernewobsloc.push({
                 value: exampleItem.ID,
                 label: exampleItem.ReportCode,
                 itemId: exampleItem.ID,
@@ -1601,58 +1908,67 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               });
             }
           }
-        }));
+        } catch (error) {
+          console.error(`Error fetching Obs data for reportCode ${reportCode}:`, error);
+        }
+      }));
 
-        // Sort options
-        optionsmemoNumbernewobs = await this.getUniqueBy(optionsmemoNumbernewobs, "reportCode");
-        optionsmemoNumbernewnc = await this.getUniqueBy(optionsmemoNumbernewnc, "reportCode");
-        optionsmemoNumbernewnc.sort((a, b) => a.label.localeCompare(b.label));
-        optionsmemoNumbernewobs.sort((a, b) => a.label.localeCompare(b.label));
-        const editoptsmemoAll1 = this.state.editncType === "NC" ? filteredItemsNC : filteredItemsObs;
+      // Sort and deduplicate
+      optionsmemoNumbernewnc = await this.getUniqueBy(optionsmemoNumbernewncloc, "reportCode");
+      optionsmemoNumbernewobs = await this.getUniqueBy(optionsmemoNumbernewobsloc, "reportCode");
 
-        const optionsallnc = filteredItemsNC.map((item: any) => ({
-          value: item.ID,
-          label: item.ReportCode,
-          itemId: item.ID,
-          reportCode: item.ReportCode,
-          ncNo: item.NCNumber,
-          department: item.DepartmentAuditedId
-        }));
-        const optionsallobs = filteredItemsObs.map((item: any) => ({
-          value: item.ID,
-          label: item.ReportCode,
-          itemId: item.ID,
-          reportCode: item.ReportCode,
-          ncNo: item.NCNumber,
-          department: item.DepartmentAuditedId
-        }));
-        editoptsmemoAllNC = optionsallnc;
-        editoptsmemoAllObs = optionsallobs;
-        this.setState({
-          editmemonumberOptions: this.state.editncType == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
-          editmemonumberOptionsall: this.state.editncType == "NC" ? optionsNCNumber : optionsObservationNumber
-        });
-      }
-      //this.state.ncType
-      //let optionsmemoNumbernewnc: any[] = [];
-      // optionsmemoNumbernewnc = await this.getUniqueBy(optionsNCNumber, "reportCode");
-      // optionsmemoNumbernewnc = [...optionsmemoNumbernewnc].sort((a, b) =>
-      //   a.label.localeCompare(b.label)
-      // );
+      optionsmemoNumbernewnc.sort((a, b) => a.label.localeCompare(b.label));
+      optionsmemoNumbernewobs.sort((a, b) => a.label.localeCompare(b.label));
 
-      // //let optionsmemoNumbernewobs: any[] = [];
-      // optionsmemoNumbernewobs = await this.getUniqueBy(optionsObservationNumber, "reportCode");
-      // optionsmemoNumbernewobs = [...optionsmemoNumbernewobs].sort((a, b) =>
-      //   a.label.localeCompare(b.label)
-      // );
+      const optionsallnc = filteredItemsNC.map((item: any) => ({
+        value: item.ID,
+        label: item.ReportCode,
+        itemId: item.ID,
+        reportCode: item.ReportCode,
+        ncNo: item.NCNumber,
+        department: item.DepartmentAuditedId
+      }));
 
+      const optionsallobs = filteredItemsObs.map((item: any) => ({
+        value: item.ID,
+        label: item.ReportCode,
+        itemId: item.ID,
+        reportCode: item.ReportCode,
+        ncNo: item.NCNumber,
+        department: item.DepartmentAuditedId
+      }));
+
+      editoptsmemoAllNC = optionsallnc;
+      editoptsmemoAllObs = optionsallobs;
+
+      this.setState({
+        editmemonumberOptions: this.state.editncType === "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
+        //editmemonumberOptionsall: this.state.editncType === "NC" ? optionsNCNumber : optionsObservationNumber
+      });
+
+      return {
+        optionsmemoNumbernewnc,
+        optionsmemoNumbernewobs,
+        editoptsmemoAllNC,
+        editoptsmemoAllObs
+      };
     } catch (e) {
       console.error(e);
+      return {
+        optionsmemoNumbernewnc: [],
+        optionsmemoNumbernewobs: [],
+        editoptsmemoAllNC: [],
+        editoptsmemoAllObs: []
+      };
+    } finally {
+      // Always stop the loader
+      // this.setState({ Loading: false });
     }
   }
+
   // public async getAuditreport() {
   //   const sp = spfi().using(SPFx(this.props.context));
-  //   debugger
+  //   
   //   try {
   //     const memoItems = await getMemoNumberAuditReport(sp);
   //     let optionsmemoNumber: any = [];
@@ -1696,6 +2012,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       }
 
       await this.getCategory();
+      return options;
     } catch (e) {
       console.error(e);
     }
@@ -1881,9 +2198,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
   //< ------- Start Forward Validation -------->
   public handleForward = (formsubmode: string) => {
+    console.log("aghghghghghghgh",this.state.approvers)
     if (this.validateFormForward()) {
       this.forwardRequest(formsubmode);
-      console.log("Form Data:", this.state);
+
     }
     else {
       Swal.fire('Please fill the mandatory fields.');
@@ -1897,7 +2215,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       const isNameEmpty = !row.Name || row.Name.length === 0;
       const isRoleEmpty = !row.Role || row.Role.toString().trim() === '';
       const isResponsibilityEmpty = !row.Responsibility || row.Responsibility.trim() === '' || row.Responsibility == "Select";
-      console.log("indexxxx", index);
+
       const peoplePickerElements = document.querySelectorAll(`#approverpeoplepicker-${index} .ms-BasePicker-text`);
 
       if (isNameEmpty) {
@@ -1999,7 +2317,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     resubmitclicked = false;
     if (this.validateFormDraft()) {
       this._updateSubmitData(formsubmode);
-      console.log("Form Data:", this.state);
+
     }
     else {
       Swal.fire('Please fill the mandatory fields.');
@@ -2007,7 +2325,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   };
   public validateFormDraft = (): boolean => {
     let editErrors: { [key: string]: string } = {};
-    debugger
+
     // if (this.state.departmentselected.length == 0) {
     //   editErrors.editDepartment = "Department is required";
     //   this.setState({ editErrors });
@@ -2034,7 +2352,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     Reworkclicked = false;
     if (this.validateFormRemark()) {
       this.approveRequest(formsubmode);
-      console.log("Form Data:", this.state);
+
     }
     else {
       Swal.fire('Please fill the mandatory fields.');
@@ -2045,7 +2363,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     Reworkclicked = false;
     if (this.validateFormRemark()) {
       this.rejectRequest(formsubmode);
-      console.log("Form Data:", this.state);
+
     }
     else {
       Swal.fire('Please fill the mandatory fields.');
@@ -2065,7 +2383,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
     if (this.validateFormRemark()) {
       this.reworkRequest(formsubmode);
-      console.log("Form Data:", this.state);
+
     }
     else {
       Swal.fire('Please fill the mandatory fields.');
@@ -2097,29 +2415,46 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   }
   private handleChangeResp(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption, i: number) {
     this.state.approvers[i].Responsibility = item.key;
+    this.state.approvers[i].IsSignatureRequired = item.key == "Signer" ? true : false;
     this.setState({ approvers: this.state.approvers });
   }
   // private handleChangeResp(item: any, i: number) {
   //   this.state.approvers[i].Responsibility = item.key;
   //   this.setState({ approvers: this.state.approvers });
   // }
-  private _getPeoplePickerItemsApp(items: any[], i: number) {
-    debugger
-    var arr: any[];
-    arr = [];
-    items.forEach(function (it) {
-      arr.push(it.id);
-    })
-    this.state.approvers.filter(function (it) {
-      if (it.Index == (editforwardrecord ? i + 1 : i)) {
-        it.Name = arr
-      }
-    });
-    this.setState({ approvers: this.state.approvers });
-  }
+  // private _getPeoplePickerItemsApp(items: any[], i: number) {
 
+  //   var arr: any[];
+  //   arr = [];
+  //   items.forEach(function (it) {
+  //     arr.push(it.id);
+  //   })
+  //   this.state.approvers.filter(function (it) {
+  //     if (it.Index == (editforwardrecord ? i + 1 : i)) {
+  //       it.Name = arr
+  //     }
+  //   });
+  //   this.setState({ approvers: this.state.approvers });
+  // }
+  private _getPeoplePickerItemsApp(items: any[], i: number) {
+    const selectedIds = items.map(it => it.id);
+    const selectedNames = items.map(it => it.text); // For display in tooltip or validation
+  
+    const updatedApprovers = [...this.state.approvers];
+  
+    if (updatedApprovers[i]) {
+      updatedApprovers[i] = {
+        ...updatedApprovers[i],
+        Name: selectedIds,
+        appEx: selectedNames
+      };
+  
+      this.setState({ approvers: updatedApprovers });
+    }
+  }
+  
   private addApprover() {
-    debugger
+
     var itm = this.state.indApp + 1;
     this.setState({ indApp: itm });
     this.state.approvers.push({
@@ -2150,7 +2485,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   }
 
   public async updateData(_editsubmitStatus: string, firstInitiatorSubmitStatus: string, firstAssignedToSubmitStatus: string, delegateToSubmitStatus: string, analyzedBySubmitStatus: string, reviewedBySubmitStatus: string, lastAssignedToSubmitStatus: string, lastInitiatorSubmitStatus: string, currentUserRole: string, reworkById: any, serialNumber: number, documentCode: string, ncrnumber: String) {
-    debugger
+
     const sp = spfi().using(SPFx(this.props.context));
     let observationStatus: string = "";
     let observationStatus1: string = "";
@@ -2257,7 +2592,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   };
   //Update Function
   private _updateSubmitData = async (_editsubmitStatus: string) => {
-    debugger
+
     let mText = "";
     let cText = "";
     //Start Flow condition
@@ -2421,7 +2756,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       cancelButtonText: "No"
     }).then(async (result) => {
       if (result.isConfirmed) {
-        debugger
+
         setloading = true;
         console.log("ApprovallistitemidApprovallistitemid", Approvallistitemid, approvalItemId, _editsubmitStatus)
         this.setState({ Loading: true });
@@ -2441,7 +2776,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             // 2. Upload new files
             if (this.state.copyFilauditee.length > 0) {
               const uploadPromises = this.state.copyFilauditee.map(async (file) => {
-                debugger
+
 
                 const currentUser = await sp.web.currentUser();
                 const userId = currentUser.Id; // Or however you get the current user ID
@@ -2491,16 +2826,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 Status: "Approved",
                 ActionTakenById: currentUserID,
                 ActionTakenOn: new Date(),
-                Remark: (this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator")||
-                (this.state.editStatus == "Pending" && this.state.editCurrentUserRole == "FirstAssignedTo" && this.state.reworkremarks!=="") ? this.state.reworkremarks : editProblemDescription,
+                Remark: (this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator") ||
+                  (this.state.editStatus == "Pending" && this.state.editCurrentUserRole == "FirstAssignedTo" && this.state.reworkremarks !== "") ? this.state.reworkremarks : editProblemDescription,
               });
             } else {
               sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
                 Status: "Approved",
                 ActionTakenById: currentUserID,
                 ActionTakenOn: new Date(),
-                Remark: (this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator")||
-                (this.state.editStatus == "Pending" && this.state.editCurrentUserRole == "FirstAssignedTo" && this.state.reworkremarks!=="")? this.state.reworkremarks : editProblemDescription,
+                Remark: (this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator") ||
+                  (this.state.editStatus == "Pending" && this.state.editCurrentUserRole == "FirstAssignedTo" && this.state.reworkremarks !== "") ? this.state.reworkremarks : editProblemDescription,
               });
             }
 
@@ -2512,15 +2847,15 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 ActionTakenById: currentUserID,
                 ActionTakenOn: new Date(),
                 Remark: (this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator") ||
-                (this.state.editStatus == "Pending" && this.state.editCurrentUserRole == "FirstAssignedTo" && this.state.reworkremarks!=="") ? this.state.reworkremarks : editProblemDescription,
+                  (this.state.editStatus == "Pending" && this.state.editCurrentUserRole == "FirstAssignedTo" && this.state.reworkremarks !== "") ? this.state.reworkremarks : editProblemDescription,
               });
             } else {
               sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
                 Status: "Approved",
                 ActionTakenById: currentUserID,
                 ActionTakenOn: new Date(),
-                Remark: ( this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator") ||
-                (this.state.editStatus == "Pending" && this.state.editCurrentUserRole == "FirstAssignedTo" && this.state.reworkremarks!=="") ? this.state.reworkremarks :editProblemDescription,
+                Remark: (this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator") ||
+                  (this.state.editStatus == "Pending" && this.state.editCurrentUserRole == "FirstAssignedTo" && this.state.reworkremarks !== "") ? this.state.reworkremarks : editProblemDescription,
               });
             }
             if (this.state.fileDeleteId.length > 0) {
@@ -2529,8 +2864,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               });
             }
             if (this.state.copyFil.length > 0) {
-              this.state.copyFil.forEach(async function (file) {
-                debugger
+              let uploadedIdsatt: number[] = [];
+              const uploadPromises = this.state.copyFil.map(async (file) => {
+
                 //const sp = spfi().using(SPFx(this.props.context));
                 const currentUser = await sp.web.currentUser();
                 const userId = currentUser.Id; // Or however you get the current user ID
@@ -2546,20 +2882,34 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                   date.getSeconds().toString().padStart(2, '0'),
                   date.getMilliseconds().toString().padStart(3, '0')
                 ];
+
                 //var fileNamePath = encodeURI(file.name);
                 let newfileNameNew: any = await this.cleanFileNameSave(file.name);
                 var fileNamePath = `${userId}_${components.join('')}_${newfileNameNew}`;
                 //return `${userId}_${components.join('')}_${file.name}`;
                 //var fileNamePath = encodeURI(file.name);
                 // var fileNamePath = await this.getNewFileName(file.name);
-                sp.web.getFolderByServerRelativePath("NonConformityDocs").files.addUsingPath(fileNamePath, file, { Overwrite: true }).then(function (response) {
-                  response.file.getItem().then(function (fileItem) {
-                    fileItem.update({
-                      NonConformityId: itemid
+                sp.web.getFolderByServerRelativePath("NonConformityDocs").files
+                  .addUsingPath(fileNamePath, file, { Overwrite: true })
+                  .then(async (response) => {
+                    return response.file.getItem().then((fileItem: any) => {
+                      uploadedIdsatt.push(fileItem.Id); // Store ID of uploaded file
+                      return fileItem.update({
+                        NonConformityId: itemid // Optional: link document to current item
+                      });
                     });
+
                   });
-                });
               })
+              Promise.all(uploadPromises).then(() => {
+                if (uploadedIdsatt.length > 0) {
+                  const lookupValues = uploadedIdsatt.map((id) => ({ Id: id }));
+
+                  // sp.web.lists.getByTitle("NonConformityList").items.getById(itemid).update({
+                  //   AuditeeAttachmentId: { results: lookupValues } // This field must be a multi-lookup pointing to AuditeeAttachmentDocs
+                  // });
+                }
+              });
             }
 
           }
@@ -2571,8 +2921,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             });
           }
           if (this.state.copyFil.length > 0) {
-            debugger
-            this.state.copyFil.forEach(async function (file) {
+            let uploadedIdsatt: number[] = [];
+            const uploadPromises = this.state.copyFil.map(async (file) => {
+
               //const sp = spfi().using(SPFx(this.props.context));
               const currentUser = await sp.web.currentUser();
               const userId = currentUser.Id; // Or however you get the current user ID
@@ -2588,32 +2939,55 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 date.getSeconds().toString().padStart(2, '0'),
                 date.getMilliseconds().toString().padStart(3, '0')
               ];
+
               //var fileNamePath = encodeURI(file.name);
               let newfileNameNew: any = await this.cleanFileNameSave(file.name);
               var fileNamePath = `${userId}_${components.join('')}_${newfileNameNew}`;
               //return `${userId}_${components.join('')}_${file.name}`;
-              sp.web.getFolderByServerRelativePath("NonConformityDocs").files.addUsingPath(fileNamePath, file, { Overwrite: true }).then(function (response) {
-                response.file.getItem().then(function (fileItem) {
-                  fileItem.update({
-                    NonConformityId: itemid
+              //var fileNamePath = encodeURI(file.name);
+              // var fileNamePath = await this.getNewFileName(file.name);
+              sp.web.getFolderByServerRelativePath("NonConformityDocs").files
+                .addUsingPath(fileNamePath, file, { Overwrite: true })
+                .then(async (response) => {
+                  return response.file.getItem().then((fileItem: any) => {
+                    uploadedIdsatt.push(fileItem.Id); // Store ID of uploaded file
+                    return fileItem.update({
+                      NonConformityId: itemid // Optional: link document to current item
+                    });
                   });
+
                 });
-              });
             })
+            Promise.all(uploadPromises).then(() => {
+              if (uploadedIdsatt.length > 0) {
+                const lookupValues = uploadedIdsatt.map((id) => ({ Id: id }));
+
+                // sp.web.lists.getByTitle("NonConformityList").items.getById(itemid).update({
+                //   AuditeeAttachmentId: { results: lookupValues } // This field must be a multi-lookup pointing to AuditeeAttachmentDocs
+                // });
+              }
+            });
           }
 
         }
         setloading = false;
-        this.setState({ Loading: false }, () => {
-          Swal.fire({
-            title: cText + " Successfully.",
-            icon: "success"
-          }).then(() => {
-            (this.state.editCurrentUserRole == "DelegateTo" || this.state.editCurrentUserRole == "FirstAssignedTo") ?
-              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx" :
-              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/EDCMAIN.aspx";
+        setTimeout(() => {
+          this.setState({ Loading: false }, () => {
+            Swal.fire({
+              title: cText + " Successfully.",
+              icon: "success"
+            }).then(() => {
+              const baseUrl = context.pageContext.web.absoluteUrl;
+              const redirectUrl =
+                this.state.editCurrentUserRole === "DelegateTo" || this.state.editCurrentUserRole === "FirstAssignedTo"
+                  ? `${baseUrl}/SitePages/MyApprovals.aspx`
+                  : `${baseUrl}/SitePages/EDCMAIN.aspx`;
+
+              window.location.href = redirectUrl;
+            });
           });
-        });
+        }, 2000); // Delay of 5000 milliseconds = 5 seconds
+
 
       }
     })
@@ -2623,7 +2997,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   }
   //Forward Call
   public forwardRequest = async (_editsubmitStatus: string) => {
-    debugger
+
     const IsactionTaken = Number(Approvallistitemid) > 0 ?
       await this.CheckIfAlreadyactionTaken(Number(Approvallistitemid), CONTENTTYPE_NonComformity) : true;
 
@@ -2693,7 +3067,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       //.then(async function (val) {
       .then(async (val) => {
         if (val.isConfirmed) {
-          debugger
+
           setloading = true;
           this.setState({ Loading: true });
           await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
@@ -2704,8 +3078,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             Remark: remarks,
           });
           //Forward Button
-          console.log("this.state.....", this.state.approvers)
-          debugger
+          console.log("this.state.....", this.state.approvers);
+          let depart: any = this.state.editDepartmentOption.filter((item: any) => item.value == this.state.editDepartment)[0]?.label;
+
           if (approvers.length > 0) {
             var maxLength = approvers.length;
             approvers.forEach(function (it: any, val: any) {
@@ -2719,7 +3094,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                   SubmitStatus: "Yes",
                   Maxlevel: maxLength,
                   ContentTitle: _self.state.editProblemDescription,
-                  RequestId: _self.state.editNCNumber,
+                  RequestId: _self.state.editNCNumber + " / " + _self.state.editncType + " / " + depart,
                   RequesterNameId: _self.props.currentUserID,
                   RequestedDate: new Date(),
                   ProcessName: "Non Conformity",
@@ -2744,7 +3119,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                   SubmitStatus: "Yes",
                   Maxlevel: maxLength,
                   ContentTitle: _self.state.editProblemDescription,
-                  RequestId: _self.state.editNCNumber,
+                  RequestId: _self.state.editNCNumber + " / " + _self.state.editncType + " / " + depart,
                   RequesterNameId: _self.props.currentUserID,
                   RequestedDate: new Date(),
                   ProcessName: "Non Conformity",
@@ -2768,14 +3143,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           }
           //End Forward Button
           setloading = false;
-          this.setState({ Loading: false }, () => {
-            Swal.fire({
-              title: "Forwarded Successfully.",
-              icon: "success"
-            }).then(() => {
-              window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+          setTimeout(() => {
+            this.setState({ Loading: false }, () => {
+              Swal.fire({
+                title: "Forwarded Successfully",
+                icon: "success"
+              }).then(() => {
+                window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+              });
             });
-          });
+          }, 2000); // Delay of 5000 milliseconds = 5 seconds
         }
       });
 
@@ -2783,7 +3160,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   //Approver call
   public approveRequest = async (_editsubmitStatus: string) => {
     //Start Flow condition
-    debugger
+
     let currentUserRole = "";
     let firstInitiatorSubmitStatus = "";
     let firstAssignedToSubmitStatus = "";
@@ -2889,7 +3266,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       //.then(async function (val) {
       .then(async (val) => {
         if (val.isConfirmed) {
-          debugger
+
           setloading = true;
           this.setState({ Loading: true });
           if (editLastInitiatorSubmitStatus != "Yes") {
@@ -2928,14 +3305,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               Remark: remarks,
             });
             setloading = false;
-            this.setState({ Loading: false }, () => {
-              Swal.fire({
-                title: "Approved Successfully.",
-                icon: "success"
-              }).then(() => {
-                window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+            setTimeout(() => {
+              this.setState({ Loading: false }, () => {
+                Swal.fire({
+                  title: "Approved Successfully",
+                  icon: "success"
+                }).then(() => {
+                  window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+                });
               });
-            });
+            }, 2000); // Delay of 5000 milliseconds = 5 seconds
 
           } else {
             sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
@@ -2946,14 +3325,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               Remark: remarks,
             });
             setloading = false;
-            this.setState({ Loading: false }, () => {
-              Swal.fire({
-                title: "Approved Successfully.",
-                icon: "success"
-              }).then(() => {
-                window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+            setTimeout(() => {
+              this.setState({ Loading: false }, () => {
+                Swal.fire({
+                  title: "Approved Successfully",
+                  icon: "success"
+                }).then(() => {
+                  window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+                });
               });
-            });
+            }, 2000); // Delay of 5000 milliseconds = 5 seconds
           }
 
         }
@@ -2993,14 +3374,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               Remark: remarks,
             });
             setloading = false;
-            this.setState({ Loading: false }, () => {
-              Swal.fire({
-                title: "Rejected Successfully.",
-                icon: "success"
-              }).then(() => {
-                window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+            setTimeout(() => {
+              this.setState({ Loading: false }, () => {
+                Swal.fire({
+                  title: "Rejected Successfully",
+                  icon: "success"
+                }).then(() => {
+                  window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+                });
               });
-            });
+            }, 1000); // Delay of 5000 milliseconds = 5 seconds
           } else {
             sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
               Status: "Rejected",
@@ -3009,14 +3392,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               Remark: remarks,
             });
             setloading = false;
-            this.setState({ Loading: false }, () => {
-              Swal.fire({
-                title: "Rejected Successfully",
-                icon: "success"
-              }).then(() => {
-                window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+            setTimeout(() => {
+              this.setState({ Loading: false }, () => {
+                Swal.fire({
+                  title: "Rejected Successfully",
+                  icon: "success"
+                }).then(() => {
+                  window.location.href = context.pageContext.web.absoluteUrl + "/SitePages/MyApprovals.aspx";
+                });
               });
-            });
+            }, 1000); // Delay of 5000 milliseconds = 5 seconds
 
           }
 
@@ -3025,14 +3410,14 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
   }
   private cancelModalAction = (refresh?: boolean,) => {
-    debugger
+
     this.setState({ redirecturl: window.location.href });
     //setShowfileNew(false);
     this.setState({ ShowModalTemplateDoc: false, redirecturl: "" });
     Showfile = false;
   }
   private OpenFileTemplate = (obj: any, sts: string) => {
-    debugger
+
     this.setState({ ShowModalTemplateDoc: true });
     if (sts == "Open") {
       Showfile = true;
@@ -3062,7 +3447,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
   }
   private OpenFile = (obj: any, sts: string) => {
-    debugger
+
     this.setState({ ShowModalAtt: true });
     if (sts == "Open") {
       Showfile = true;
@@ -3113,7 +3498,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   //Rework Call
   private reworkRequest = async (_editsubmitStatus: string) => {
     //Start Flow condition
-    debugger
+
     const IsactionTaken = Number(Approvallistitemid) > 0 ?
       await this.CheckIfAlreadyactionTaken(Number(Approvallistitemid), CONTENTTYPE_NonComformity) : true;
     let currentUserRole = "";
@@ -3395,7 +3780,86 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     }
 
   }
+
+  private async isUserDelegatedFor(actingForEmail: string, currentUserId: number): Promise<boolean> {
+    const today = new Date().toISOString();
+    const _sp = spfi().using(SPFx(this.props.context));
+    try {
+      const delegatedUsers = await _sp.web.lists.getByTitle("ARGDelegateList").items
+        .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
+        .expand("Author,DelegateName,ActingFor")
+        .filter(`DelegateName/EMail eq '${actingForEmail}' and ActingFor/ID eq ${currentUserId} and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .orderBy("Created", false)
+        .top(1)();
+
+      return delegatedUsers.length > 0;
+    } catch (error) {
+      console.error("Error checking delegation:", error);
+      return false;
+    }
+  }
+
   public render(): React.ReactElement<IAuditPlanProps> {
+    // Group 1: Action visibility conditions
+    const isApproveVisible = this.state.showApprove === true;
+    const isRejectVisible = this.state.showReject === true;
+    const isReworkVisible = showreworkremarks;
+    const isIMSVisible = showimsupdated && !isdisableims;
+    const isCorrectionVisible = showcorrectionappicable && !isdisablefinal;
+    const isNotFirstInitiator = this.state.editCurrentUserRole !== "FirstInitiator";
+
+    // Group 2: Delegation/submission status
+    const isReviewedBySubmit = this.state.editReviewedBySubmitStatus === "Yes" && this.state.editDelegateToId == null;
+    const isLastAssignedSubmit = this.state.editLastAssignedToSubmitStatus === "Yes" && this.state.editDelegateToId != null;
+
+    // Group 3: FirstInitiator in Rework status
+    const isFirstInitiatorRework =
+      this.state.editCurrentUserRole === "FirstInitiator" &&
+      this.state.editStatus === "Rework" &&
+      this.state.editFirstInitiatorSubmitStatus === "No";
+
+    // Group 4: Loading state
+    const isNotLoading = !this.state.Loading || !setloading;
+
+    // Group 5: Edit type or override condition
+    const isEditableType = this.state.edType !== "view";
+    const isIMSOverride = showimsupdated && !isdisableims;
+    const isCorrectionOverride = showcorrectionappicable && !isdisablefinal;
+
+    console.log("isApproveVisible:", isApproveVisible);
+    console.log("isRejectVisible:", isRejectVisible);
+    console.log("isReworkVisible:", isReworkVisible);
+    console.log("isIMSVisible:", isIMSVisible);
+    console.log("isCorrectionVisible:", isCorrectionVisible);
+    console.log("isNotFirstInitiator:", isNotFirstInitiator);
+
+    console.log("isReviewedBySubmit:", isReviewedBySubmit);
+    console.log("isLastAssignedSubmit:", isLastAssignedSubmit);
+
+    console.log("isFirstInitiatorRework:", isFirstInitiatorRework);
+
+    console.log("isNotLoading:", isNotLoading);
+
+    console.log("isEditableType:", isEditableType);
+    console.log("isIMSOverride:", isIMSOverride);
+    console.log("isCorrectionOverride:", isCorrectionOverride);
+
+    // Final condition
+    const finalCondition =
+      (
+        (
+          (isApproveVisible || isRejectVisible || isReworkVisible || isIMSVisible || isCorrectionVisible)
+          && isNotFirstInitiator
+        ) ||
+        isReviewedBySubmit ||
+        isLastAssignedSubmit ||
+        isFirstInitiatorRework
+      )
+      && isNotLoading
+      && (isEditableType || isIMSOverride || isCorrectionOverride);
+
+    console.log("FINAL CONDITION:", finalCondition);
+
     const peoplePickerContext: IPeoplePickerContext = {
       absoluteUrl: this.props.context.pageContext.web.absoluteUrl,
       msGraphClientFactory: this.props.context.msGraphClientFactory,
@@ -3434,6 +3898,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     }
     var approval =
       //let approvers = [...this.state.approvers].sort((a, b) => a.index - b.index);
+      
       this.state.approvers.map((item: any, i: number) => {
         console.log(this.state.approvers, "this.state.approvers", i)
         return (
@@ -3463,7 +3928,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               />
             </td>
             <td title={optionsResponsibility.find(opt => opt.key === this.state.approvers[i].Responsibility)?.text || "Select"}
-              style={{ overflow: 'inherit', minWidth: "85px", maxWidth: "85px"  }} className="ng-binding">
+              style={{ overflow: 'inherit', minWidth: "85px", maxWidth: "85px" }} className="ng-binding">
               <Dropdown
                 disabled={this.state.forwarDisable || forwardisdisabled}
                 placeholder="Select options"
@@ -3497,8 +3962,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             <td title={`Level ${(i + 1).toString()}` || "Level "} style={{ minWidth: '70px', maxWidth: '70px', overflow: 'inherit' }}>
               <TextField value={`Level ${(i + 1).toString()}`} disabled={true}></TextField>
             </td>
-            <td title={this.state.approvers[i].appEx && this.state.approvers[i].appEx.length > 0
-              ? this.state.approvers[i].appEx.map((user: any) => user).join(', ')
+            <td title={this.state.approvers[i].AppName && this.state.approvers[i].AppName.length > 0
+              ? this.state.approvers[i].AppName.map((user: any) => user.Title).join(', ')
               : "Select approver"}
               style={{ overflow: 'inherit', minWidth: '100px', maxWidth: '100px' }} id={`approverpeoplepicker-${i}`}>
 
@@ -3520,7 +3985,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                 }}
               />
             </td>
-            <td title={optionsApp.find(opt => opt.key === this.state.approvers[i].Type)?.text || "Select Type"}
+            <td title={optionsApp.find(opt => opt.key === this.state.approvers[i].Type)?.text || "AnyOne"}
               style={{ overflow: 'inherit', minWidth: '100px', maxWidth: '100px' }} className="ng-binding">
               <Dropdown disabled={this.state.forwarDisable || forwardisdisabled} placeholder="Select options"
                 selectedKey={this.state.approvers[i].Type || 'One'}
@@ -3704,7 +4169,15 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               hour12: false
             })}`}
           </td>
-          <td title={item.ActionTakenBy} style={{ minWidth: '90px', maxWidth: '90px' }}>
+          <td title={item.ActionTakenBy} style={{
+            minWidth: '90px', maxWidth: '90px',
+            backgroundColor: item.AssignedTo && item?.ActionTakenBy && item.AssignedTo !== item.ActionTakenBy && item.Status !== "Auto Approved"
+              ? auditHistoryDelegationBgColor
+              : undefined,
+            color: item.AssignedTo && item?.ActionTakenBy && item.AssignedTo !== item.ActionTakenBy && item.Status !== "Auto Approved"
+              ? auditHistoryDelegationTextColor
+              : undefined
+          }}>
             {item.ActionTakenBy}
           </td>
           <td title=
@@ -3753,6 +4226,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             </div>
 
           </div>
+          {console.log("this.state.Loading || setloading", this.state.Loading, setloading)}
           {this.state.Loading || setloading ?
 
             <div className="loadernewadd mt-10">
@@ -3816,7 +4290,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }}>Approved Report Code:<span className="text-danger1">*</span>
                       </label>
                       <TooltipHost
-                        content={this.state.editmemonumberOptions.length > 0 && this.state.editmemonumberOptions.filter((item: any) => item?.value == this.state.editApprovedAuditReport)[0]?.label || ""}
+                        content={this.state.editmemonumberOptions.length > 0 && this.state.editApprovedAuditReport && this.state.editmemonumberOptions.filter((item: any) => item?.value == this.state.editApprovedAuditReport)[0]?.label || ""}
                         calloutProps={{ gapSpace: 0 }}
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
                       >
@@ -3913,6 +4387,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                           isClearable={true}
                           isSearchable={true}
                           isDisabled
+                          disabled={this.state.isDisabled}
                           className={this.state.editErrors?.department ? 'border-on-error' : ''}
                           onChange={(selectedOption: any) => this.changeDepartment(selectedOption)}
                           placeholder={"Department"}
@@ -3968,9 +4443,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                         <Select
                           options={this.state.editDepartmentOption}
                           value={this.state.departmentselected}
-                          //isDisabled={this.state.isDisabled}
+                          // isDisabled={this.state.isDisabled}
                           name="Department"
                           isDisabled
+                          //disabled={this.state.isDisabled}
                           isClearable={true}
                           isSearchable={true}
                           className={this.state.editErrors?.editdepartment ? 'border-on-error' : ''}
@@ -4202,7 +4678,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                                 <tr>
                                   <th style={{ minWidth: '50px', maxWidth: '50px' }} className="text-center">S.No.</th>
                                   <th style={{ minWidth: '150px', maxWidth: '150px' }}>File Name</th>
-                                  <th style={{ minWidth: '50px', maxWidth: '50px' }} className="text-center">Upload Date</th>
+                                  <th style={{ minWidth: '80px', maxWidth: '80px' }} className="text-center">Upload Date</th>
                                   {(this.state.ShowDeleteicon || this.state.copyFil.length > 0 || this.state.exFiles.length > 0) && (
                                     <th className="text-center" style={{ minWidth: '60px', maxWidth: '60px' }}>Action</th>
                                   )}
@@ -4228,8 +4704,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                                   return (
                                     <tr key={index} style={{ display: 'table', width: '100%' }}>
                                       <td style={{ minWidth: '50px', maxWidth: '50px' }} className="text-center">{serial}</td>
-                                      <td title={fileName}>{fileName}</td>
-                                      <td style={{ minWidth: '50px', maxWidth: '50px' }} className="text-center">{uploadDate}</td>
+                                      <td style={{ minWidth: '150px', maxWidth: '150px' }} title={fileName}>{fileName}</td>
+                                      <td style={{ minWidth: '80px', maxWidth: '80px' }} className="text-center">{uploadDate}</td>
                                       <td style={{ minWidth: '60px', maxWidth: '60px' }} className="text-center">
                                         {isExistingFile ? (
                                           <>
@@ -4843,7 +5319,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           {console.log("ghghghgh", this.state.editCurrentUserRole == "FirstInitiator", this.state.editStatus == "Rework", this.state.editFirstInitiatorSubmitStatus == "No",
             (!this.state.Loading || !setloading) && !this.state.showDraft, (this.state.edType !== "view" || (showimsupdated && !isdisableims) || showcorrectionappicable && !isdisablefinal)
           )}
-          {(((this.state.showApprove === true || this.state.showReject === true || showreworkremarks || (showimsupdated && !isdisableims) ||
+          {(((this.state.showApprove === true || this.state.showReject === true || (showreworkremarks && this.state.editCurrentUserRole != null) || (showimsupdated && !isdisableims) ||
             (showcorrectionappicable && !isdisablefinal)) && this.state.editCurrentUserRole != "FirstInitiator")
             ||
             ((this.state.editReviewedBySubmitStatus == "Yes" && this.state.editDelegateToId == null) ||
@@ -4982,57 +5458,230 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             </section> : null
           }
           {/* Vishnu Changes  */}
-          {console.log("bnbnbn", !this.state.Loading, !setloading)}
-          {this.state.showSubmit && (!this.state.Loading || !setloading) && ((this.state.editSubmitStatus == "No" && RequesterEmail == CurrentuserEmail) ||
-            (this.state.editSubmitStatus == "Yes" && this.state.edType == "edit" && this.state.editStatus !== "Rework" && this.state.editAssignToEmail == CurrentuserEmail && this.state.editCurrentUserRole != "DelegateTo") ||
-            (this.state.editSubmitStatus == "Yes" && this.state.edType == "edit" && this.state.editStatus !== "Rework" && this.state.editDelegateToEmail == CurrentuserEmail && this.state.editCurrentUserRole == "DelegateTo") ||
-            (this.state.editStatus == "Rework" && RequesterEmail == CurrentuserEmail && this.state.editCurrentUserRole == "FirstInitiator") ||
-            (this.state.edType == "edit" && this.state.editStatus == "Rework" && this.state.editAssignToEmail == CurrentuserEmail && this.state.editCurrentUserRole == "FirstAssignedTo") ||
-            (this.state.edType == "edit" && this.state.editStatus == "Rework" && this.state.editDelegateToEmail == CurrentuserEmail && this.state.editCurrentUserRole == "DelegateTo")
+          {console.log("bnbnbn", !this.state.Loading, !setloading, this.state.showDraft, RequesterEmail, CurrentuserEmail, isRequesterDelegated)}
+          {this.state.showSubmit && (!this.state.Loading || !setloading) && ((this.state.editSubmitStatus == "No" && (RequesterEmail == CurrentuserEmail || isRequesterDelegated)) ||
+            (this.state.editSubmitStatus == "Yes" && this.state.edType == "edit" && this.state.editStatus !== "Rework" && (this.state.editAssignToEmail == CurrentuserEmail || isAssignedtoDelegated) && this.state.editCurrentUserRole != "DelegateTo") ||
+            (this.state.editSubmitStatus == "Yes" && this.state.edType == "edit" && this.state.editStatus !== "Rework" && (this.state.editDelegateToEmail == CurrentuserEmail || isDelegatedToDelegated) && this.state.editCurrentUserRole == "DelegateTo") ||
+            (this.state.editStatus == "Rework" && (RequesterEmail == CurrentuserEmail || isRequesterDelegated) && this.state.editCurrentUserRole == "FirstInitiator") ||
+            (this.state.edType == "edit" && this.state.editStatus == "Rework" && (this.state.editAssignToEmail == CurrentuserEmail || isAssignedtoDelegated) && this.state.editCurrentUserRole == "FirstAssignedTo") ||
+            (this.state.edType == "edit" && this.state.editStatus == "Rework" && (this.state.editDelegateToEmail == CurrentuserEmail || isDelegatedToDelegated) && this.state.editCurrentUserRole == "DelegateTo")
 
           ) && (!this.state.Loading || !setloading) &&
 
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }} className='newnbu'>
 
-              {this.state.showDraft && RequesterEmail == CurrentuserEmail &&
+              {this.state.showDraft && (RequesterEmail == CurrentuserEmail || isRequesterDelegated) &&
                 //this.state.editStatus != "Rework"&&
 
-                <PrimaryButton text="Save as Draft" onClick={() => this.handleDraft("draft")} />
+                // <PrimaryButton text="Save as Draft" onClick={() => this.handleDraft("draft")} />
+                <div
+                role="button"
+                tabIndex={0}
+                style={{ width: '145px' }}
+                className="btn btn-primary waves-effect waves-light m-1"
+                onClick={() => this.handleDraft("draft")}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.handleDraft("draft");
+                  }
+                }}
+              >
+                <img
+                  src={require('../../../Assets/ExtraImage/checkcircle.svg')}
+                  style={{ width: '1rem' }}
+                  className="me-1"
+                  alt="Check"
+                />
+                Save As Draft
+              </div>
 
               }
 
-              <PrimaryButton text="Submit" onClick={() => this.handleSubmit("submit")} />
+              {/* <PrimaryButton text="Submit" onClick={() => this.handleSubmit("submit")} /> */}
+              <div
+                role="button"
+                tabIndex={0}
+                style={{ width: '145px' }}
+                className="btn btn-primary waves-effect waves-light m-1"
+                onClick={() => this.handleSubmit("submit")}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.handleSubmit("submit");
+                  }
+                }}
+              >
+                <img
+                  src={require('../../../Assets/ExtraImage/checkcircle.svg')}
+                  style={{ width: '1rem' }}
+                  className="me-1"
+                  alt="Check"
+                />
+                Submit
+              </div>
               {(this.state.editCurrentUserRole === "FirstAssignedTo" || this.state.editCurrentUserRole === "DelegateTo") &&
-                <PrimaryButton text="Rework" onClick={() => this._reworkRequest("Rework")} />
+                // <PrimaryButton text="Rework" onClick={() => this._reworkRequest("Rework")} />
+                <a>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    className="btn btn-warning waves-effect waves-light m-1"
+                    onClick={(e) => this._reworkRequest("Rework")}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        this._reworkRequest("Rework");
+                      }
+                    }}
+                  >
+                    <i className="fe-corner-up-left me-1"></i> Rework
+                  </div>
+                </a>
               }
-              <DefaultButton text="Cancel" onClick={() => this.cancelRequest("Edcmain")} />
+              {/* <DefaultButton text="Cancel" onClick={() => this.cancelRequest("Edcmain")} /> */}
+
+              <div
+                role="button"
+                tabIndex={0}
+                className="btn cancel-btn waves-effect waves-light m-1"
+                onClick={() => this.cancelRequest("Edcmain")}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.cancelRequest("Edcmain");
+                  }
+                }}
+              >
+                <i className="fe-x me-1"></i> Cancel
+              </div>
+
 
             </div>
           }
           {console.log("ApproverEmailApproverEmail", ApproverEmail, CurrentuserEmail)}
           {this.state.showApprove && (!this.state.Loading || !setloading) &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
-              {ApproverEmail == CurrentuserEmail &&
+              {(ApproverEmail == CurrentuserEmail || isApproverDelegated) &&
                 <>
-                  <PrimaryButton text="Approve" onClick={() => this._approveRequest("Approve")} />
-                  <PrimaryButton text="Rework" onClick={() => this._reworkRequest("Rework")} />
+                  {/* <PrimaryButton text="Approve" onClick={() => this._approveRequest("Approve")} />
+                  <PrimaryButton text="Rework" onClick={() => this._reworkRequest("Rework")} /> */}
+                  <a>
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      className="btn btn-success waves-effect waves-light m-1"
+                      onClick={(e) => this._approveRequest("Approve")}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          this._approveRequest("Approve");
+                        }
+                      }}
+                    >
+                      <i className="fe-check-circle me-1"></i> Approve
+                    </div>
+                  </a>
+                  <a>
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      className="btn btn-warning waves-effect waves-light m-1"
+                      onClick={(e) => this._reworkRequest("Rework")}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          this._reworkRequest("Rework");
+                        }
+                      }}
+                    >
+                      <i className="fe-corner-up-left me-1"></i> Rework
+                    </div>
+                  </a>
                 </>
               }
 
-              <DefaultButton text="Cancel" onClick={() => this.cancelRequest("myapproval")} />
+              {/* <DefaultButton text="Cancel" onClick={() => this.cancelRequest("myapproval")} /> */}
+
+              <div
+                role="button"
+                tabIndex={0}
+                className="btn cancel-btn waves-effect waves-light m-1"
+                onClick={() => this.cancelRequest("myapproval")}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.cancelRequest("myapproval");
+                  }
+                }}
+              >
+                <i className="fe-x me-1"></i> Cancel
+              </div>
+
+
 
             </div>
           }
           {console.log("ApproverEmailforward", ApproverEmail, CurrentuserEmail)}
           {this.state.showForward && (!this.state.Loading || !setloading) &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
-              {RequesterEmail == CurrentuserEmail &&
+              {(RequesterEmail == CurrentuserEmail || isRequesterDelegated) &&
                 <>
-                  <PrimaryButton text="Forward" onClick={() => this.handleForward("Forward")} />
-                  <PrimaryButton text="Rework" onClick={() => this._reworkRequest("Rework")} />
+                  {/* <PrimaryButton text="Forward" onClick={() => this.handleForward("Forward")} />
+                  <PrimaryButton text="Rework" onClick={() => this._reworkRequest("Rework")} /> */}
+                  <a>
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      className="btn btn-primary waves-effect waves-light m-1"
+                      onClick={() => this.handleForward("Forward")}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          this.handleForward("Forward");
+                        }
+                      }}
+                    >
+                      <i className="fe-check-circle me-1"></i> Forward
+                    </div>
+                  </a>
+                  <a>
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      className="btn btn-warning waves-effect waves-light m-1"
+                      onClick={(e) => this._reworkRequest("Rework")}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          this._reworkRequest("Rework");
+                        }
+                      }}
+                    >
+                      <i className="fe-corner-up-left me-1"></i> Rework
+                    </div>
+                  </a>
                 </>
               }
-              <a href='#/form'> <DefaultButton onClick={() => this.cancelRequest("myapproval")}>Cancel</DefaultButton></a>
+              {/* <a href='#/form'>
+               {/* <DefaultButton onClick={() => this.cancelRequest("myapproval")}>Cancel</DefaultButton> 
+               </a>*/}
+
+              <div
+                role="button"
+                tabIndex={0}
+                className="btn cancel-btn waves-effect waves-light m-1"
+                onClick={() => this.cancelRequest("myapproval")}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.cancelRequest("myapproval");
+                  }
+                }}
+              >
+                <i className="fe-x me-1"></i> Cancel
+              </div>
+
 
             </div>
           }
@@ -5040,14 +5689,78 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           {this.state.showReject && (!this.state.Loading || !setloading) &&
 
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
-              {ApproverEmail == CurrentuserEmail &&
+              {(ApproverEmail == CurrentuserEmail || isApproverDelegated) &&
                 <>
-                  <PrimaryButton text="Approve" onClick={() => this._approveRequest("Approve")} />
+                  {/* <PrimaryButton text="Approve" onClick={() => this._approveRequest("Approve")} />
                   <PrimaryButton text="Reject" onClick={() => this._rejectRequest("Reject")} />
-                  <PrimaryButton text="Rework" onClick={() => this._reworkRequest("Rework")} />
+                  <PrimaryButton text="Rework" onClick={() => this._reworkRequest("Rework")} /> */}
+                  <a>
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      className="btn btn-success waves-effect waves-light m-1"
+                      onClick={(e) => this._approveRequest("Approve")}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          this._approveRequest("Approve");
+                        }
+                      }}
+                    >
+                      <i className="fe-check-circle me-1"></i> Approve
+                    </div>
+                  </a>
+                  <a>
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      className="btn btn-warning waves-effect waves-light m-1"
+                      onClick={(e) => this._reworkRequest("Rework")}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          this._reworkRequest("Rework");
+                        }
+                      }}
+                    >
+                      <i className="fe-corner-up-left me-1"></i> Rework
+                    </div>
+                  </a>
+                  <a>
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      className="btn btn-danger waves-effect waves-light m-1"
+                      onClick={(e) => this._rejectRequest("Reject")}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          this._rejectRequest("Reject");
+                        }
+                      }}
+                    >
+                      <i className="fe-x-circle me-1"></i> Reject
+                    </div>
+                  </a>
                 </>
               }
-              <DefaultButton text="Cancel" onClick={() => this.cancelRequest("myapproval")} />
+              {/* <DefaultButton text="Cancel" onClick={() => this.cancelRequest("myapproval")} /> */}
+
+              <div
+                role="button"
+                tabIndex={0}
+                className="btn cancel-btn waves-effect waves-light m-1"
+                onClick={() => this.cancelRequest("myapproval")}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.cancelRequest("myapproval");
+                  }
+                }}
+              >
+                <i className="fe-x me-1"></i> Cancel
+              </div>
+
 
             </div>
           }
@@ -5055,7 +5768,24 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
-              <DefaultButton text="Cancel" onClick={() => this.cancelRequest("Edcmain")} />
+              {/* <DefaultButton text="Cancel" onClick={() => this.cancelRequest("Edcmain")} /> */}
+
+              <div
+                role="button"
+                tabIndex={0}
+                className="btn cancel-btn waves-effect waves-light m-1"
+                onClick={() => this.cancelRequest("Edcmain")}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.cancelRequest("Edcmain");
+                  }
+                }}
+              >
+                <i className="fe-x me-1"></i> Cancel
+              </div>
+
+
 
             </div>
           }

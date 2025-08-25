@@ -1,317 +1,330 @@
 import Swal from 'sweetalert2';
 export const getDataRoles = async (_sp) => {
- 
-    let arr = []
-    let arrs = []
-    let bannerimg = []
-    await _sp.web.lists.getByTitle("ApproverRoleMaster").items
-    .select("*")()
-      .then((res) => {
-        console.log(res, ' let arrs=[]');
-       
- 
-        //  arr.push(res)
-        arr = res;
-      })
-      .catch((error) => {
-        console.log("Error fetching data: ", error);
-      });
-    console.log(arr, 'arr');
-    return arr;
-  }
 
-  export const getItemByID = async (_sp, id) => {
- 
-    let arr = []
-    let arrs = []
-    let bannerimg = []
-    const currentUser = await _sp.web.currentUser();
-    await _sp.web.lists.getByTitle("AnnualAuditProgram").items.getById(id)
-    .select("*,RecommendationType/RecommendationTypeValue,Author/ID,Author/Title,AuditType/Title,AuditType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Department,ToDepartments/DepartmentCode,AuditProgramType/Title,AuditProgramType/ID").expand("RecommendationType,AuditProgramType,ToDepartments,CCDepartments,Author,AuditType,To,Cc,From")()
-      .then((res) => {
-       
-        console.log(res, ' let arrs=[]');      
- 
-         arr.push(res)
-        // arr = res;
-      })
-      .catch((error) => {
-        console.log("Error fetching data: ", error);
-      });
-    console.log(arr, 'arr');
-    return arr;
-  }
+  let arr = []
+  let arrs = []
+  let bannerimg = []
+  await _sp.web.lists.getByTitle("ApproverRoleMaster").items
+    // .select("*,ToUsers")()
+    .select("*,ToUsers/Title").expand("ToUsers").filter("IsActive eq 'Yes'")()
+    .then((res) => {
+      // console.log(res, ' let arrs=[]');      
 
-  export const getAllProcessData = async (_sp, MainId,processName,docCode) => {
- 
-    let arr;
-    // .select("*,Author/ID,Author/Title,Approvers/Id,Approvers/Title,ApproverRole/Id").expand("Author,Approvers,ApproverRole").filter(`MainListID eq '${MainId}' and ProcessName eq '${processName}' and RequestId eq '${docCode}'`)()
+      // arr = res.map((item) => ({
+      //   value: item.Id,
+      //   label: item.Department,
+      //   Department: item.Department,
+      //   DepartmentCode: item.DepartmentCode,
+      //   ADDepartmentName: item.ADDepartmentName,
+      //   ToUsers: item.ToUsersId || [],
+      //   CCUsers: item.CCUsersId || [],
+      //   ToUsersTitle: item.ToUsers || [],
+      //   CCUsersTitle: item.CCUsers || [],
 
-    // const currentUser = await _sp.web.currentUser();
-    await _sp.web.lists.getByTitle("AllProcessApprovalLevelList").items
-    .select("*,Author/ID,Author/Title,Approvers/Id,Approvers/Title,ApproverRole/Id").expand("Author,Approvers,ApproverRole").filter(`MainListID eq '${MainId}' and ProcessName eq '${processName}'`)()
-      .then((res) => {
-      //   res.map((item) => ({
-         
       // }));
       arr = res;
-     
-      })
-      .catch((error) => {
-        console.log("Error fetching data: ", error);
-      });
-    console.log(arr, 'arr');
-    return arr;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  console.log(arr, 'arr');
+  return arr;
+}
+
+export const getItemByID = async (_sp, id) => {
+
+  let arr = []
+  let arrs = []
+  let bannerimg = []
+  const currentUser = await _sp.web.currentUser();
+  await _sp.web.lists.getByTitle("AnnualAuditProgram").items.getById(id)
+  .select("*,RecommendationType/RecommendationTypeValue,Author/ID,Author/Title,AuditType/Title,AuditType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Role,AuditProgramType/Title,AuditProgramType/ID").expand("RecommendationType,AuditProgramType,ToDepartments,CCDepartments,Author,AuditType,To,Cc,From")()
+
+   // .select("*,RecommendationType/RecommendationTypeValue,Author/ID,Author/Title,AuditType/Title,AuditType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Department,ToDepartments/DepartmentCode,AuditProgramType/Title,AuditProgramType/ID").expand("RecommendationType,AuditProgramType,ToDepartments,CCDepartments,Author,AuditType,To,Cc,From")()
+    .then((res) => {
+
+      console.log(res, ' let arrs=[]');
+
+      arr.push(res)
+      // arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  console.log(arr, 'arr');
+  return arr;
+}
+
+export const getAllProcessData = async (_sp, MainId, processName, docCode) => {
+
+  let arr;
+  // .select("*,Author/ID,Author/Title,Approvers/Id,Approvers/Title,ApproverRole/Id").expand("Author,Approvers,ApproverRole").filter(`MainListID eq '${MainId}' and ProcessName eq '${processName}' and RequestId eq '${docCode}'`)()
+
+  // const currentUser = await _sp.web.currentUser();
+  await _sp.web.lists.getByTitle("AllProcessApprovalLevelList").items
+    .select("*,Author/ID,Author/Title,Approvers/Id,Approvers/Title,ApproverRole/Id").expand("Author,Approvers,ApproverRole").filter(`MainListID eq '${MainId}' and ProcessName eq '${processName}'`)()
+    .then((res) => {
+      //   res.map((item) => ({
+
+      // }));
+      arr = res;
+
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  console.log(arr, 'arr');
+  return arr;
+}
+
+export const addAllProcessItem = async (itemData, _sp) => {
+
+  let resultArr = []
+  try {
+    const newItem = await _sp.web.lists.getByTitle('AllProcessApprovalLevelList').items.add(itemData);
+
+    console.log('Item added successfully:', newItem);
+    // Swal.fire('Item added successfully', '', 'success');
+
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+    Swal.fire(' Cancelled', '', 'error')
   }
+  return resultArr;
+};
 
-  export const addAllProcessItem = async (itemData, _sp) => {
-   
-    let resultArr = []
-    try {
-      const newItem = await _sp.web.lists.getByTitle('AllProcessApprovalLevelList').items.add(itemData);
-   
-      console.log('Item added successfully:', newItem);
-      // Swal.fire('Item added successfully', '', 'success');
- 
-      resultArr = newItem
-      // Perform any necessary actions after successful addition
-    } catch (error) {
-      console.log('Error adding item:', error);
-      // Handle errors appropriately
-      resultArr = null
-      Swal.fire(' Cancelled', '', 'error')
-    }
-    return resultArr;
-  };
- 
-  export const UpdateAllProcessItem = async (itemData, _sp,id) => {
-   
-    let resultArr = []
-    try {
- 
-      const newItem = await _sp.web.lists.getByTitle('AllProcessApprovalLevelList').items.getById(id).update(itemData);
-      // console.log('Item  successfully:', newItem);
-      resultArr = newItem
-     
-    } catch (error) {
-      console.log('Error adding item:', error);
-      // Handle errors appropriately
-      resultArr = null
-      Swal.fire(' Cancelled', '', 'error')
-    }
-    return resultArr;
-  };
+export const UpdateAllProcessItem = async (itemData, _sp, id) => {
 
-  export const updateApprovalItem = async (itemData, _sp, id) => {
-    let resultArr = []
-    try {
-      const newItem = await _sp.web.lists.getByTitle('ProcessApprovalList').items.getById(id).update(itemData);
-      console.log('Item added successfully:', newItem);
-      resultArr = newItem
-      // Perform any necessary actions after successful addition
-    } catch (error) {
-      console.log('Error adding item:', error);
-      // Handle errors appropriately
-      resultArr = null
-    }
-    return resultArr;
-  };
+  let resultArr = []
+  try {
+
+    const newItem = await _sp.web.lists.getByTitle('AllProcessApprovalLevelList').items.getById(id).update(itemData);
+    // console.log('Item  successfully:', newItem);
+    resultArr = newItem
+
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+    Swal.fire(' Cancelled', '', 'error')
+  }
+  return resultArr;
+};
+
+export const updateApprovalItem = async (itemData, _sp, id) => {
+  let resultArr = []
+  try {
+    const newItem = await _sp.web.lists.getByTitle('ProcessApprovalList').items.getById(id).update(itemData);
+    console.log('Item added successfully:', newItem);
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+  }
+  return resultArr;
+};
 
 
-  export const getAllDepartment = async (_sp) => {
- 
-    let arr = []
-    let arrs = []
-    let bannerimg = []
-    await _sp.web.lists.getByTitle("ProcessDepartmentMasterList").items
+export const getAllDepartment = async (_sp) => {
+
+  let arr = []
+  let arrs = []
+  let bannerimg = []
+  await _sp.web.lists.getByTitle("ProcessDepartmentMasterList").items
     .select("*,ToUsers/Title,CCUsers/Title").expand("ToUsers,CCUsers").filter("Active eq 'Yes'")()
-      .then((res) => {
-        // console.log(res, ' let arrs=[]');
-        arr = res.map((item) => ({
-            value: item.Id,
-            label: item.Department,
-            Department:item.Department,
-            DepartmentCode:item.DepartmentCode,
-            ADDepartmentName:item.ADDepartmentName,
-            ToUsers:item.ToUsersId||[],
-            CCUsers:item.CCUsersId||[],
-            ToUsersTitle:item.ToUsers||[],
-            CCUsersTitle:item.CCUsers||[],
-         
+    .then((res) => {
+      // console.log(res, ' let arrs=[]');
+      arr = res.map((item) => ({
+        value: item.Id,
+        label: item.Department,
+        Department: item.Department,
+        DepartmentCode: item.DepartmentCode,
+        ADDepartmentName: item.ADDepartmentName,
+        ToUsers: item.ToUsersId || [],
+        CCUsers: item.CCUsersId || [],
+        ToUsersTitle: item.ToUsers || [],
+        CCUsersTitle: item.CCUsers || [],
+
       }));
-       
- 
-        //  arr.push(res)
-        // arr = res;
-      })
-      .catch((error) => {
-        console.log("Error fetching data: ", error);
-      });
-    // console.log(arr, 'arr');
-    return arr;
+
+
+      //  arr.push(res)
+      // arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  // console.log(arr, 'arr');
+  return arr;
+}
+
+
+export const getAuditTypes = async (_sp) => {
+  let arr = []
+  // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
+  // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
+  await _sp.web.lists.getByTitle("AuditProgramTypeMaster").items.filter("IsActive eq 1")()
+    .then((res) => {
+      // console.log(res, ' let arrs=[]');
+      //     arr = res.map((item) => ({
+      //         value: item.Id,
+      //         label: item.Title,
+
+
+      //   }));
+
+
+      //  arr.push(res)
+      arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  // console.log(arr, 'arr');
+  return arr;
+}
+
+export const addItem = async (itemData, _sp) => {
+
+  let resultArr = []
+  try {
+    const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgram').items.add(itemData);
+
+    // console.log('Item added successfully:', newItem);
+    // Swal.fire('Item added successfully', '', 'success');
+
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+    Swal.fire(' Cancelled', '', 'error')
   }
+  return resultArr;
+};
 
-
-  export const getAuditTypes= async (_sp) =>{
-    let arr = []
-    // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
-    // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
-    await _sp.web.lists.getByTitle("AuditProgramTypeMaster").items.filter("IsActive eq 1")()
-      .then((res) => {
-        // console.log(res, ' let arrs=[]');
-    //     arr = res.map((item) => ({
-    //         value: item.Id,
-    //         label: item.Title,
-
-         
-    //   }));
-       
- 
-        //  arr.push(res)
-        arr = res;
-      })
-      .catch((error) => {
-        console.log("Error fetching data: ", error);
-      });
-    // console.log(arr, 'arr');
-    return arr;
+export const updateItem = async (itemData, _sp, id) => {
+  let resultArr = []
+  try {
+    const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgram').items.getById(id).update(itemData);
+    console.log('Item added successfully:', newItem);
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
   }
+  return resultArr;
+};
 
-  export const addItem = async (itemData, _sp) => {
-   
-    let resultArr = []
-    try {
-      const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgram').items.add(itemData);
-   
-      // console.log('Item added successfully:', newItem);
-      // Swal.fire('Item added successfully', '', 'success');
- 
-      resultArr = newItem
-      // Perform any necessary actions after successful addition
-    } catch (error) {
-      console.log('Error adding item:', error);
-      // Handle errors appropriately
-      resultArr = null
-      Swal.fire(' Cancelled', '', 'error')
-    }
-    return resultArr;
-  };
+export const updateItem2 = async (itemData, _sp, id) => {
+  let resultArr = []
+  try {
+    const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgramRecommendationList').items.getById(id).update(itemData);
+    console.log('Item added successfully:', newItem);
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+  }
+  return resultArr;
+};
 
-  export const updateItem = async (itemData, _sp, id) => {
-    let resultArr = []
-    try {
-      const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgram').items.getById(id).update(itemData);
-      console.log('Item added successfully:', newItem);
-      resultArr = newItem
-      // Perform any necessary actions after successful addition
-    } catch (error) {
-      console.log('Error adding item:', error);
-      // Handle errors appropriately
-      resultArr = null
-    }
-    return resultArr;
-  };
+export const getAllAuditType = async (_sp) => {
 
-  export const updateItem2 = async (itemData, _sp, id) => {
-    let resultArr = []
-    try {
-      const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgramRecommendationList').items.getById(id).update(itemData);
-      console.log('Item added successfully:', newItem);
-      resultArr = newItem
-      // Perform any necessary actions after successful addition
-    } catch (error) {
-      console.log('Error adding item:', error);
-      // Handle errors appropriately
-      resultArr = null
-    }
-    return resultArr;
-  };
-
-  export const getAllAuditType = async (_sp) => {
- 
-    let arr = []
-    let arrs = []
-    let bannerimg = []
-    await _sp.web.lists.getByTitle("AuditTypeMaster").items
+  let arr = []
+  let arrs = []
+  let bannerimg = []
+  await _sp.web.lists.getByTitle("AuditTypeMaster").items
     .select("*").filter("IsActive eq 1")()
-      .then((res) => {
-        // console.log(res, ' let arrs=[]');
+    .then((res) => {
+      // console.log(res, ' let arrs=[]');
       //   arr = res.map((item) => ({
       //       value: item.Id,
       //       label: item.Department,
       //       Department:item.Department,
-         
+
       // }));
-       
- 
-        //  arr.push(res)
-        arr = res;
-      })
-      .catch((error) => {
-        console.log("Error fetching data: ", error);
-      });
-    // console.log(arr, 'arr');
-    return arr;
-  }
 
-  export const addItem2 = async (itemData, _sp) => {
-   
-    let resultArr = []
-    try {
-      const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgramRecommendationList').items.add(itemData);
-   
-      console.log('Item added successfully:', newItem);
-      // Swal.fire('Item added successfully', '', 'success');
- 
-      resultArr = newItem
-      // Perform any necessary actions after successful addition
-    } catch (error) {
-      console.log('Error adding item:', error);
-      // Handle errors appropriately
-      resultArr = null
-      Swal.fire(' Cancelled', '', 'error')
-    }
-    return resultArr;
-  };
-  export const getListNameID = async (_sp,formname) => {
- 
-    var reqId;
-    await _sp.web.lists.getByTitle("ListNameMaster").items
-    .select("*").filter("ListName eq '"+formname+"'").top(1)()
-      .then((res) => {
-        console.log(res, ' let arrs=[]');
-       
- 
-        //  arr =(res[0].Id)
-        // arr = res;
-        reqId=res[0].Id
-      })
-      .catch((error) => {
-        console.log("Error fetching data: ", error);
-      });
-    console.log(reqId, 'arr');
-    return reqId;
-  }
 
-  export const getFormNameID = async (_sp,formname) => {
- 
-    var reqId;
-    await _sp.web.lists.getByTitle("FormNameMaster").items
-    .select("*").filter("FormName eq '"+formname+"'").top(1)()
-      .then((res) => {
-        console.log(res, ' let arrs=[]');
-       
- 
-        //  arr =(res[0].Id)
-        // arr = res;
-        reqId=res[0]
-      })
-      .catch((error) => {
-        console.log("Error fetching data: ", error);
-      });
-    console.log(reqId, 'arr');
-    return reqId;
+      //  arr.push(res)
+      arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  // console.log(arr, 'arr');
+  return arr;
+}
+
+export const addItem2 = async (itemData, _sp) => {
+
+  let resultArr = []
+  try {
+    const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgramRecommendationList').items.add(itemData);
+
+    console.log('Item added successfully:', newItem);
+    // Swal.fire('Item added successfully', '', 'success');
+
+    resultArr = newItem
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+    Swal.fire(' Cancelled', '', 'error')
   }
+  return resultArr;
+};
+export const getListNameID = async (_sp, formname) => {
+
+  var reqId;
+  await _sp.web.lists.getByTitle("ListNameMaster").items
+    .select("*").filter("ListName eq '" + formname + "'").top(1)()
+    .then((res) => {
+      console.log(res, ' let arrs=[]');
+
+
+      //  arr =(res[0].Id)
+      // arr = res;
+      reqId = res[0].Id
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  console.log(reqId, 'arr');
+  return reqId;
+}
+
+export const getFormNameID = async (_sp, formname) => {
+
+  var reqId;
+  await _sp.web.lists.getByTitle("FormNameMaster").items
+    .select("*").filter("FormName eq '" + formname + "'").top(1)()
+    .then((res) => {
+      console.log(res, ' let arrs=[]');
+
+
+      //  arr =(res[0].Id)
+      // arr = res;
+      reqId = res[0]
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  console.log(reqId, 'arr');
+  return reqId;
+}
 
 // export const getApprovalByID = async (_sp, id,processName) => {
 
@@ -365,13 +378,13 @@ export const getApprovalByID = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`ActingFor/ID eq '${res.AssignedTo.Id}' and DelegateName/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then((result) => {
           if (result.length > 0) {
             // If the current user is a delegate, check if they are acting for the assigned user
             // and if the process name matches
-            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].ActingForId) && res.ProcessName === processName) {
+            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].DelegateNameId) && res.ProcessName === processName) {
               arr = res;
             }
             // if (res && (res.AssignedTo.Id == currentUser.Id || res.ActingFor.Id == currentUser.Id) && res.ProcessName === processName) {
@@ -455,13 +468,13 @@ export const getApprovalByID2 = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`ActingFor/ID eq '${res.AssignedTo.Id}' and  ActingFor/ID eq '${res.AssignedTo.Id}' and DelegateName/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then((result) => {
           if (result.length > 0) {
             // If the current user is a delegate, check if they are acting for the assigned user
             // and if the process name matches
-            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].ActingForId) && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].DelegateNameId) && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
               arr = false;
             }
             //  if (res && (res.AssignedTo.Id == currentUser.Id || res.ActingFor.Id == currentUser.Id) && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
@@ -492,20 +505,20 @@ export const getApprovalByID2 = async (_sp, id, processName) => {
 }
 
 
-  export const getItemByID2 = async (sp, AuditID) => {
-    debugger
-    let arr = []
-    //  var listname = "AnnualAuditPlanRecommendationList";
-    //  var listname = "MemorandumRecommendationList"
-    //  arr = await sp.web.lists.getByTitle(`${listname}`).items.select("*,Memorandum/ID,Auditor/ID,Auditor/Title").expand("Memorandum,Auditor").filter(`Memorandum/ID eq ${AuditID}`).getAll();
- 
-    arr = await sp.web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.select("*,AnnualAuditProgram/ID,Auditor/ID,Auditor/Title,Auditors/ID,Auditors/Role").expand("AnnualAuditProgram,Auditor,Auditors").filter(`AnnualAuditProgram/ID eq ${AuditID}`).getAll();
-    // .then((res) => {
-    //   arr = res
-    //   console.log(arr, 'arr');
-    // })
-    return arr
-  }
+export const getItemByID2 = async (sp, AuditID) => {
+  debugger
+  let arr = []
+  //  var listname = "AnnualAuditPlanRecommendationList";
+  //  var listname = "MemorandumRecommendationList"
+  //  arr = await sp.web.lists.getByTitle(`${listname}`).items.select("*,Memorandum/ID,Auditor/ID,Auditor/Title").expand("Memorandum,Auditor").filter(`Memorandum/ID eq ${AuditID}`).getAll();
+
+  arr = await sp.web.lists.getByTitle("AnnualAuditProgramRecommendationList").items.select("*,AnnualAuditProgram/ID,Auditor/ID,Auditor/Title,Auditors/ID,Auditors/Role").expand("AnnualAuditProgram,Auditor,Auditors").filter(`AnnualAuditProgram/ID eq ${AuditID}`).getAll();
+  // .then((res) => {
+  //   arr = res
+  //   console.log(arr, 'arr');
+  // })
+  return arr
+}
 
 
 //   export const getDraftApprovalByID = async (_sp, id,processName) => {
@@ -550,7 +563,7 @@ export const getDraftApprovalByID = async (_sp, id, processName) => {
 
   await _sp.web.lists.getByTitle("ProcessApprovalList").items
     // .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`ListItemId eq '${id}' and AssignedTo/ID  eq '${currentUser.Id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).orderBy("Created", false).top(1)()
-        .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`ListItemId eq '${id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).orderBy("Created", false).top(1)()
+    .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`ListItemId eq '${id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).orderBy("Created", false).top(1)()
 
     .then(async (res) => {
       console.log(res, ' let arrs=[]');
@@ -561,12 +574,12 @@ export const getDraftApprovalByID = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`ActingFor/ID eq '${res.AssignedTo.Id}' and DelegateName/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then(async (result) => {
           if (result.length > 0) {
 
-            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].ActingForId) && res.ProcessName === processName && (res?.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].DelegateNameId) && res.ProcessName === processName && (res?.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
               arr = res;
             }
 
@@ -652,8 +665,8 @@ export const getDraftApprovalByID = async (_sp, id, processName) => {
 export const uploadAllFiles = async (files, sp, docLib) => {
   // Ensure files is an array
   const filesArray = Array.isArray(files) ? files : [files];
-   console.log(filesArray , "filesArray")
-   debugger
+  console.log(filesArray, "filesArray")
+  debugger
   //alert(`Files: ${JSON.stringify(filesArray)}`);
   console.log(filesArray, "Files Array");
 
@@ -688,7 +701,7 @@ export const uploadFileToLibrary = async (file, sp, docLib) => {
       fileName: file.name,
     }
     arrFIleData.push(arr);
-    console.log(arrFIleData , 'arrFIleData');
+    console.log(arrFIleData, 'arrFIleData');
     return arrFIleData;
   } catch (error) {
     console.log("Error uploading file:", error);
@@ -769,12 +782,12 @@ export const updateDigitalsign = async (listname, _sp, id) => {
     const postPayload2 = {
       DocSignedStatus: "Yes"
     }
- 
+
     const newItem = await _sp.web.lists.getByTitle('DigitalSignatureRequestList').items.getById(id).update(postPayload2);
     console.log('Item added successfully:', newItem);
- 
- 
- 
+
+
+
     resultArr = newItem
     // Perform any necessary actions after successful addition
   } catch (error) {
@@ -784,7 +797,7 @@ export const updateDigitalsign = async (listname, _sp, id) => {
   }
   return resultArr;
 };
- 
+
 export const getdigitalsignaturerequestbyID = async (listname, _sp, id) => {
   let arr = []
   try {
@@ -795,7 +808,7 @@ export const getdigitalsignaturerequestbyID = async (listname, _sp, id) => {
       ()
       .then((res) => {
         console.log(res, ' let arrs=[]');
- 
+
         arr = res
         // arr = res;
       })
@@ -809,13 +822,13 @@ export const getdigitalsignaturerequestbyID = async (listname, _sp, id) => {
 };
 
 
-export const getRecommendationTypes= async (_sp) =>{
+export const getRecommendationTypes = async (_sp) => {
   let arr = []
   // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
   // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
   await _sp.web.lists.getByTitle("RecommendationTypeMaster").items()
     .then((res) => {
-     
+
       arr = res;
     })
     .catch((error) => {
@@ -825,7 +838,7 @@ export const getRecommendationTypes= async (_sp) =>{
   return arr;
 }
 
-export const getLatestChangeRequestTemplateType= async (_sp,List) =>{
+export const getLatestChangeRequestTemplateType = async (_sp, List) => {
   let arr = [];
   // var List ="Annual Audit Program"
   // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
@@ -893,11 +906,11 @@ export const getAllClassificationMaster = async (_sp) => {
   return arr;
 };
 export const addMemoNumber = async (itemData, _sp) => {
-   
+
   let resultArr = []
   try {
     const newItem = await _sp.web.lists.getByTitle('MemoNumberLogic').items.add(itemData);
- 
+
     // console.log('Item added successfully:', newItem);
     // Swal.fire('Item added successfully', '', 'success');
 
@@ -914,11 +927,11 @@ export const addMemoNumber = async (itemData, _sp) => {
 
 
 export const addYearlyList = async (itemData, _sp) => {
-   
+
   let resultArr = []
   try {
     const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgramYearlyList').items.add(itemData);
- 
+
     console.log('Item added successfully:', newItem);
     // Swal.fire('Item added successfully', '', 'success');
 
@@ -933,15 +946,15 @@ export const addYearlyList = async (itemData, _sp) => {
   return resultArr;
 };
 
-export const UpdatYearlyList = async (itemData, _sp,id) => {
-   
+export const UpdatYearlyList = async (itemData, _sp, id) => {
+
   let resultArr = []
   try {
 
     const newItem = await _sp.web.lists.getByTitle('AnnualAuditProgramYearlyList').items.getById(id).update(itemData);
     // console.log('Item  successfully:', newItem);
     resultArr = newItem
-   
+
   } catch (error) {
     console.log('Error adding item:', error);
     // Handle errors appropriately
@@ -969,20 +982,20 @@ export const getYearlyItemByID = async (sp, AuditID) => {
 
 
 export const getAuditProgDepartment = async (_sp) => {
- 
+
   let arr = [];
   await _sp.web.lists.getByTitle("AuditProgramDepartmentMaster").items
-  .select("*,Department,Location")()
+    .select("*,Department,Location")()
     .then((res) => {
       // console.log(res, ' let arrs=[]');
       arr = res.map((item) => ({
-          value: item.Id,
-          label: item.Department,
-          Department:item.Department,
-          Location:item.Location,
-       
-    }));
-     
+        value: item.Id,
+        label: item.Department,
+        Department: item.Department,
+        Location: item.Location,
+
+      }));
+
 
       //  arr.push(res)
       // arr = res;
@@ -995,18 +1008,18 @@ export const getAuditProgDepartment = async (_sp) => {
 }
 
 export const getAuditProgCustodian = async (_sp) => {
- 
+
   let arr = [];
   await _sp.web.lists.getByTitle("AuditProgramCustodianMaster").items
-  .select("Custodian,ID,Id")()
+    .select("Custodian,ID,Id")()
     .then((res) => {
       // console.log(res, ' let arrs=[]');
       arr = res.map((item) => ({
-          value: item.Id,
-          label: item.Custodian,
-       
-    }));
-     
+        value: item.Id,
+        label: item.Custodian,
+
+      }));
+
 
       //  arr.push(res)
       // arr = res;
@@ -1019,18 +1032,18 @@ export const getAuditProgCustodian = async (_sp) => {
 }
 
 export const getAuditProgShift = async (_sp) => {
- 
+
   let arr = [];
   await _sp.web.lists.getByTitle("AuditProgramShiftMaster").items
-  .select("Shift,ID,Id")()
+    .select("Shift,ID,Id")()
     .then((res) => {
       // console.log(res, ' let arrs=[]');
       arr = res.map((item) => ({
-          value: item.Id,
-          label: item.Shift,
-       
-    }));
- 
+        value: item.Id,
+        label: item.Shift,
+
+      }));
+
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
@@ -1042,18 +1055,18 @@ export const getAuditProgShift = async (_sp) => {
 
 
 export const fetchLocations = async (_sp) => {
- 
+
   let arr = [];
   await _sp.web.lists.getByTitle("AuditProgramLocationMaster").items
-  .top(5000)()
+    .top(5000)()
     .then((res) => {
       res.sort((a, b) => a.Location.localeCompare(b.Location));
       arr = res.map((item) => ({
         label: item.Location,
         value: item.ID
-       
-    }));
- 
+
+      }));
+
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);

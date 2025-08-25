@@ -1126,3 +1126,42 @@ textarea .ms-TextField-field{
     width: 82.5% !important;
   }
 }
+// .pagination-container{clear: both;}
+// .pagination-container-buttons1{
+//   right: 169px !important;
+// }
+// .pagination-container span{
+//   position: absolute;
+//   top: 5px;
+//   right: 58px;
+// }
+.pagination-container{
+  left: 89% !important;
+position: sticky !important;
+top: 52% !important;
+width: 327px !important;
+}
+.pagination-container-buttons{
+display: flex !important;
+width: 159px !important;
+flex-direction: row !important;
+    gap: 16px !important;
+        right: 9px !important;
+         padding-top: 89px !important;
+}
+
+// next button
+.pagination-container-buttons2{
+ background-color: #f37421 !important;
+ color: #ffffff !important;
+}
+.pagination-container-buttons1{
+ background-color: #f37421 !important;
+ color: #ffffff !important;
+ margin-right:150px !important;
+}
+.pagination-container span{
+  position: absolute;
+    right: 68px;
+    top: 103%;
+}

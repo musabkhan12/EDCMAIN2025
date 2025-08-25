@@ -106,7 +106,7 @@ export class IState {
   fileDeleteId: any[];
   files: FileList;
   siteurl: any;
-  requesterDesignation:string;
+  requesterDesignation: string;
 }
 let optionsmemoNumbernewnc: any[] = [];
 let optionsmemoNumbernewobs: any[] = [];
@@ -172,7 +172,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       exFiles: [],
       fileDeleteId: [],
       files: {} as FileList,
-      requesterDesignation:"",
+      requesterDesignation: "",
       siteurl: this.props.context.pageContext.web.absoluteUrl,
     };
     this.handleFileChange = this.handleFileChange.bind(this);
@@ -197,9 +197,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     if (e.target.files) {
       const newFilesArray = Array.from(e.target.files); // Convert FileList to Array
       const existingFiles = _self.state.copyFil || []; // previously uploaded
-  
+
       const allFiles = [...existingFiles, ...newFilesArray];
-  
+
       _self.setState({
         fileCount: allFiles.length,
         files: e.target.files, // optional: might not represent all files now
@@ -276,9 +276,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       this.setState({
         ncType: option.key as string,
         memonumberOptions: option?.text == "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
-         NCNumber: "", NCNumberID: "", NCNumberselected: [], ApprovedAuditSelected: []
+        NCNumber: "", NCNumberID: "", NCNumberselected: [], ApprovedAuditSelected: []
       });
-      
+
     }
 
   };
@@ -477,7 +477,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
         console.log(res, 'Memonumbers from audit report');
 
         //arr.push(res)
-         arr = res;
+        arr = res;
       })
       .catch((error: any) => {
         console.log("Error fetching data: ", error);
@@ -623,7 +623,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
 
 
         const reportCodeToExpectedNCs = groupItemsByReportCode(filteredItemsNC);
-        const cleanedFilteredItemsObs = filteredItemsObs.filter((item:any) => {
+        const cleanedFilteredItemsObs = filteredItemsObs.filter((item: any) => {
           const nc = item.NCNumber?.toString().trim();
           return nc && nc !== "";
         });
@@ -676,7 +676,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
             }
           }
         }));
-        
+
         console.log("Expected Observation NCs:", reportCodeToExpectedObs);
         // Sort options
         optionsmemoNumbernewobs = await this.getUniqueBy(optionsmemoNumbernewobs, "reportCode");
@@ -686,7 +686,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
 
         // Set dropdown options based on selected type (NC or Observation)
         this.setState({
-         // memonumberOptions: this.state.ncType === "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
+          // memonumberOptions: this.state.ncType === "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
           memonumberOptionsall: memoItems.length > 0 ? memoItems : []
         });
       }
@@ -1335,11 +1335,11 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       return (
         <tr>
           <td style={{ minWidth: '50px', maxWidth: '50px' }}>{i + 1}</td>
-          <td>
+          <td style={{ minWidth: '150px', maxWidth: '150px' }} >
             {item.name}
           </td>
           {/* <td></td> */}
-          <td style={{ minWidth: '50px', maxWidth: '50px' }} title={moment(item.Uploaded).format("DD/MMM/YYYY")}>{moment(item.Uploaded).format("DD/MMM/YYYY")}</td>
+          <td style={{ minWidth: '80px', maxWidth: '80px' }} title={moment(item.Uploaded).format("DD/MMM/YYYY")}>{moment(item.Uploaded).format("DD/MMM/YYYY")}</td>
           <td style={{ minWidth: "50px", maxWidth: "50px", textAlign: 'center' }}>
             <img src={require("../assets/del.png")} className='' onClick={() => this.removeFiles(i)}></img>
           </td>
@@ -1356,10 +1356,10 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
           <td style={{ minWidth: '50px', maxWidth: '50px' }}>
             {item.Name}
           </td>
-          <td>
+          <td style={{ minWidth: '150px', maxWidth: '150px' }} >
             {<a href={item.Path} target="_blank">Link</a>}
           </td>
-          <td style={{ minWidth: '50px', maxWidth: '50px' }}>
+          <td style={{ minWidth: '80px', maxWidth: '80px' }}>
             {item.Uploaded}
           </td>
           <td style={{ minWidth: "50px", maxWidth: "50px", textAlign: 'center' }}>
@@ -1438,7 +1438,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                     /> */}
                   </TooltipHost>
                 </div>
-                {console.log("tyty",this.state.memonumberOptions,this.state.ApprovedAuditSelected)}
+                {console.log("tyty", this.state.memonumberOptions, this.state.ApprovedAuditSelected)}
                 <div className="form-group col-md-4 mb-3">
                   <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }} >Approved Report Code:<span className="text-danger1">*</span>
                   </label>
@@ -1512,8 +1512,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                 // }}
                 />
               </div> */}
-              {console.log("from departmennnn",this.state.departmentOption,this.state.fromdepartmentselected,
-                this.state.departmentOption.filter((x: any) => x.value == this.state.fromdepartment))}
+                {console.log("from departmennnn", this.state.departmentOption, this.state.fromdepartmentselected,
+                  this.state.departmentOption.filter((x: any) => x.value == this.state.fromdepartment))}
                 <div className="form-group col-md-4 mb-3">
                   <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }} >From Department:<span className="text-danger1">*</span>
                   </label>
@@ -1824,9 +1824,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                           <thead>
                             <tr>
                               <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
-                              <th>File Name</th>
+                              <th style={{ minWidth: '150px', maxWidth: '150px' }} >File Name</th>
                               {/* <th>File Link</th> */}
-                              <th style={{ minWidth: '50px', maxWidth: '50px' }} className="text-center">Upload Date</th>
+                              <th style={{ minWidth: '80px', maxWidth: '80px' }} className="text-center">Upload Date</th>
                               <th style={{ minWidth: '50px', maxWidth: '50px' }} className="text-center">Action</th>
                             </tr>
                           </thead>
@@ -1867,13 +1867,74 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
               {/* Button Section 4 */}
               <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 
-                <PrimaryButton text="Save as Draft" onClick={() => this.handleSubmitDraft("draft")} />
+                {/* <PrimaryButton text="Save as Draft" onClick={() => this.handleSubmitDraft("draft")} /> */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  style={{ width: '145px' }}
+                  className="btn btn-primary waves-effect waves-light m-1"
+                  onClick={() => this.handleSubmitDraft("draft")}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      this.handleSubmitDraft("draft");
+                    }
+                  }}
+                >
+                  <img
+                    src={require('../../../Assets/ExtraImage/checkcircle.svg')}
+                    style={{ width: '1rem' }}
+                    className="me-1"
+                    alt="Check"
+                  />
+                  Save As Draft
+                </div>
+                {/* <PrimaryButton text="Submit" onClick={() => this.handleSubmit("submit")} /> */}
 
-                <PrimaryButton text="Submit" onClick={() => this.handleSubmit("submit")} />
+                <div
+                  role="button"
+                  tabIndex={0}
+                  style={{ width: '145px' }}
+                  className="btn btn-primary waves-effect waves-light m-1"
+                  onClick={() => this.handleSubmit("submit")}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      this.handleSubmit("submit");
+                    }
+                  }}
+                >
+                  <img
+                    src={require('../../../Assets/ExtraImage/checkcircle.svg')}
+                    style={{ width: '1rem' }}
+                    className="me-1"
+                    alt="Check"
+                  />
+                  Submit
+                </div>
+                {/* <DefaultButton text="Cancel" onClick={() => this.cancelRequest()} /> */}
 
-
-                <DefaultButton text="Cancel" onClick={() => this.cancelRequest()} />
-
+                <div
+                  role="button"
+                  tabIndex={0}
+                  style={{ width: '145px' }}
+                  className="btn cancel-btn waves-effect waves-light m-1"
+                  onClick={() => this.cancelRequest()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      this.cancelRequest();;
+                    }
+                  }}
+                >
+                  <img
+                    src={require('../../../Assets/ExtraImage/xIcon.svg')}
+                    style={{ width: '1rem' }}
+                    className="me-1"
+                    alt="x"
+                  />
+                  Cancel
+                </div>
               </div>
             </form>
           }

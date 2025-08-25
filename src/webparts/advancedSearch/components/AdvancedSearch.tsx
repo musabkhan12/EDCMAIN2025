@@ -668,7 +668,7 @@ let resultsdoc: IDocumentDisplayFields[] = await Promise.all(searchres.map(async
                 <HorizontalNavbar _context={sp} siteUrl={props.siteUrl} context={props.context}  />
                 {
     window.location.href.includes('.aspx?Previewfile') 
-      ? <PreviewFile fileUrl={previewFileUrl}/> 
+      ? <PreviewFile /> 
       :  <div className="content" style={{ marginLeft: `${!useHide ? '80px' : '230px'}`, marginTop: '1.5rem' }}>
       <section className='container-fluid'>
           <div className='row'>
@@ -676,8 +676,38 @@ let resultsdoc: IDocumentDisplayFields[] = await Promise.all(searchres.map(async
                   {/* <h1 style={{fontSize:'20px', fontWeight:'600'}} className='text-dark'>Search</h1> */}
                   <form>
                       <div className="input-group">
-                          <input style={{ padding: '.75rem .75rem' }} type="text" className="form-control" placeholder="Search Files.." onChange={searchTextChangeHandler} onKeyDown={handleKeyPress} value={searchText}/>
-                          <button style={{ fontSize: '1rem' }} className="btn btn-primary" type="button" onClick={searchClickHandler}>Advance Search</button>
+                          <input style={{ padding: '.75rem .75rem' }} type="text" className="form-control" placeholder="Search Files.."
+                           onChange={searchTextChangeHandler} 
+                           
+                           onKeyDown={handleKeyPress} value={searchText}
+                          
+
+
+                          />
+                            {/* Clear button */}
+  {searchText && (
+    <span
+       onClick={(ev: React.MouseEvent) => {
+             setSearchText('')
+               runSearch('', getSearchFilter(), searchPath, searchQueryRefiners, getSearchRefineFiltersArray());
+         ; // If you need to keep this
+           // Clear the search text
+      }}
+      style={{
+        position: 'absolute',
+        right: '10.5rem',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        cursor: 'pointer',
+        fontSize: '1.2rem',
+        color: '#888'
+      }}
+    >
+      &times;
+    </span>
+  )}
+
+                          <button style={{ fontSize: '1rem' }} className="btn btn-primary" type="button" onClick={searchClickHandler}>Advance Search 1</button>
                       </div>
                   </form>
               </header>

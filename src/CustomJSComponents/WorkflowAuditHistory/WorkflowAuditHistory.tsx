@@ -432,10 +432,10 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                             : ""}
                         </td> */}
                         <td style={{ minWidth: '70px', maxWidth: '70px', cursor: 'pointer' ,
-                            backgroundColor:row.AssignedTo?.Title && row.ActionTakenBy?.Title && row.AssignedTo.Title !== row.ActionTakenBy.Title && row.Status !== "Auto Approved"
+                            backgroundColor:row.AssignedTo?.Title && row.ActionTakenBy?.Title && row.AssignedTo.Title !== row.ActionTakenBy.Title && row.Status !== "Auto Approved" &&row.Status !== "Auto Rework" &&row.Status !== "Auto Rejected"
                                 ? auditHistoryDelegationBgColor
                                 : undefined,
-                              color:row.AssignedTo?.Title && row.ActionTakenBy?.Title && row.AssignedTo.Title !== row.ActionTakenBy.Title && row.Status !== "Auto Approved"
+                              color:row.AssignedTo?.Title && row.ActionTakenBy?.Title && row.AssignedTo.Title !== row.ActionTakenBy.Title && row.Status !== "Auto Approved" && row.Status !== "Auto Rework" &&row.Status !== "Auto Rejected"
                                 ? auditHistoryDelegationTextColor
                                 : undefined, }} title={row.Status !== "Pending"
                           ? row.Approver?.Title || row.ActionTakenBy?.Title || ""

@@ -30,7 +30,7 @@ import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
-import { addAllProcessItem, addItem, addItem2, addItemNC, getAllApprovedAuditplan, getAllAuditType, getAllDepartment, getAllDepartment1, getAllProcessData, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDocumentLinkByIDPlan, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDocAuditplan, getGeneratedTemplateDocCR, getItemByID, getItemByID2, getItemfromChecklistMaster, getItemsAuditReportNC, getItemsAuditReportObs, getLatestChangeRequestTemplateType, getListNameID, getNCNumberbyID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, updateItemNC, uploadAllFiles } from './AuditReportService';
+import { addAllProcessItem, addItem, addItem2, addItemNC, getAllApprovedAuditplan, getAllAuditType, getAllDepartment, getAllDepartment1, getAllProcessData, getAllSubDepartment, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDocumentLinkByIDPlan, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDocAuditplan, getGeneratedTemplateDocCR, getItemByID, getItemByID2, getItemfromChecklistMaster, getItemsAuditReportNC, getItemsAuditReportObs, getLatestChangeRequestTemplateType, getListNameID, getNCNumberbyID, UpdateAllProcessItem, updateApprovalItem, updateDigitalsign, updateItem, updateItem2, updateItemNC, uploadAllFiles } from './AuditReportService';
 import { TextField } from '@fluentui/react';
 import { DatePicker, isMac } from 'office-ui-fabric-react';
 import moment from 'moment';
@@ -43,7 +43,7 @@ import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { getAuditProgShift } from '../EDCprocessComponent/FormComponent/FormService';
 import FileViewer from '../ChangerequestComponent/fileviewer';
-import { CheckIfAlreadyactionTaken } from '../ChangerequestComponent/DocumentCancellation';
+import { CheckIfAlreadyactionTaken, getdigitalsignaturerequestbyID, getdigitalsignaturerequestbyIDYes } from '../ChangerequestComponent/DocumentCancellation';
 //SYnc time picker
 // import { TimePickerComponent } from '@syncfusion/ej2-react-calendars';
 
@@ -133,6 +133,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [showviewdownload, setshowviewdownload] = React.useState(true);
     const [currentUserDept, setcurrentUserDept] = React.useState(null);
     const [selectUserDept, setselectUserDept] = React.useState(null);
+    const [selectUsersubDept, setselectUsersubDept] = React.useState(null);
     const [selectshift, setselectshift] = React.useState(null);
     const [isDepartmentReady, setIsDepartmentReady] = React.useState(false);
     const [reportCode, setreportCode] = React.useState("");
@@ -141,6 +142,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [doccode, setdoccode] = React.useState("");
     const [auditplandate, setauditplandate] = React.useState("");
     const [AllDept, setAllDept] = React.useState([]);
+    const [AllsubDepartment, setAllsubDepartment] = React.useState([]);
+    const [AllsubDept, setAllsubDept] = React.useState([]);
     const [RowErrors, setRowErrors] = React.useState<any[]>([]);
     const [DocumentLink, setDocumentLink] = React.useState(null);
     const [DraftApprovalItem, setDraftApprovalItem] = React.useState(null);
@@ -161,6 +164,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [dateerr, setdateerr] = React.useState(false);
     const [isoreferenceerr, setisoreferenceerr] = React.useState(false);
     const [departmenterr, setdepartmenterr] = React.useState(false);
+    const [subdepartmenterr, setsubdepartmenterr] = React.useState(false);
+
     const [fromdepartmenterr, setfromdepartmenterr] = React.useState(false);
     const [imsprocedureerr, setimsprocedureerr] = React.useState(false);
     const [inquirieserr, setinquirieserr] = React.useState(false);
@@ -181,6 +186,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
         OpportunitiesforImprovement: false,
         FailureofEffectiveness: false,
     });
+    const [showdigisign, setshowdigisign] = React.useState(false);
+    const [DigitalsignID, setDigitalsignID] = React.useState(null);
+    const [hidedigisign, sethidedigisign] = React.useState(false);
     //const [checkboxNumberValues, setCheckboxNumberValues] = React.useState<{ [key: string]: number }>({});
     const [checkboxNumberValues, setCheckboxNumberValues] = React.useState({
         ConformingPositiveFindingsN: 0,
@@ -205,10 +213,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
         NCNo: "",
         ObservationNo: "",
         description: "",
+        additionalDetails: "",
         reportCode: "",
         memoNumber: "",
         approvedauditplanId: 0,
         deptId: 0,
+        subdeptId: 0,
         shiftId: 0,
         fromdeptId: 0,
         date: "",
@@ -278,13 +288,26 @@ const AnnualAuditReportContext = ({ props }: any) => {
     };
     const handleDepartmentChange = async (selectedOption: any) => {
         debugger
+        setFormData({ ...formData, reportCode: "" });
+        setselectUsersubDept([]);
         setSequencesLoaded(false);
         setIsDepartmentReady(false); // Prevent effects during update
         skipNCUpdateRef.current = true;
         departmentChanged = true;
         EnableNC = true;
         setEnableNCObs(true);
-
+        const filteredSubDepartments = AllsubDepartment
+            .filter((x) => x.departmentId === selectedOption?.value)
+            .map((item) => ({
+                value: item.value,
+                label: item.subdepartment,
+                itemId: item.itemId,
+                department: item.department,
+                departmentcode: item.departmentCode,
+                subdepartment: item.subdepartment,
+                subdepartmentcode: item.subdepartmentcode
+            }));
+        setAllsubDept(filteredSubDepartments);
         const setAuditreportNC = await getItemsAuditReportNC(sp, selectedOption?.value);
         const setAuditreportObs = await getItemsAuditReportObs(sp, selectedOption?.value);
         if (setAuditreportNC.length > 0 || setAuditreportObs.length > 0) {
@@ -325,7 +348,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 updatedValues[fieldKeyN] = 0;
             }
 
-            if (checkbox.value === 'Failure of Intent / Nonconformity') {
+            if (checkbox.value === 'Failure of Effectiveness') {
                 updatedValues[fieldKeyN] = 0;
             }
         });
@@ -338,17 +361,47 @@ const AnnualAuditReportContext = ({ props }: any) => {
         setselectUserDept(selectedOption);
         debugger
         let reportcode: string = "";
-        if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
-            reportcode = selectedOption.departmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
+        if (filteredSubDepartments.length > 0) {
+            // if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
+            //     reportcode = selectedOption.departmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
+            // }
+            setreportCode("");
+            setFormData({ ...formData, reportCode: "" });
+        } else {
+            if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
+                reportcode = selectedOption.departmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
+            }
+            setreportCode(reportcode);
+            setFormData({ ...formData, reportCode: reportcode });
         }
-        setreportCode(reportcode);
-        setFormData({ ...formData, deptId: selectedOption?.value, reportCode: reportcode });
+        setFormData({ ...formData, deptId: selectedOption?.value });
         setTimeout(() => {
             if (hiddenDivRef.current) {
                 hiddenDivRef.current.click();
             }
             setIsDepartmentReady(true);
         }, 2000); // Let React batch state updates first
+    };
+    const handlesubDepartmentChange = async (selectedOption: any) => {
+        debugger
+        setselectUsersubDept(selectedOption);
+        debugger
+        // let reportcode: string = "";
+        // if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
+        //     reportcode = selectedOption.departmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
+        // }
+        // setreportCode(reportcode);
+        // setFormData({
+        //     ...formData,
+        //     subdeptId: selectedOption?.value,
+        //     //reportCode: reportcode 
+        // });
+        let reportcode: string = "";
+        if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
+            reportcode = selectedOption.subdepartmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
+        }
+        setreportCode(reportcode);
+        setFormData({ ...formData, subdeptId: selectedOption?.value, reportCode: reportcode });
     };
     const handleShiftChange = async (selectedOption: any) => {
         setselectshift(selectedOption);
@@ -361,10 +414,13 @@ const AnnualAuditReportContext = ({ props }: any) => {
         // if ((formData.date != "" || formData.date != null) && (formData.deptId != 0 || formData.deptId != null)) {
         //     reportcode = selectUserDept?.departmentcode + "/" + moment(new Date(e.target.value)).format("DD/MM/YYYY");
         // }
-        if ((date !== "" && date !== null) && (formData.deptId !== 0 && formData.deptId !== null && selectUserDept != null)) {
-            reportcode = (selectUserDept.length == 1 ? selectUserDept[0]?.departmentcode : selectUserDept?.departmentcode) + "/" + moment(new Date(date)).format("DD/MM/YYYY");
+        if ((date !== "" && date !== null) && (formData.subdeptId !== 0 && formData.subdeptId !== null && selectUsersubDept != null)) {
+            reportcode = (selectUsersubDept.length == 1 ? selectUsersubDept[0]?.subdepartmentcode : selectUsersubDept?.subdepartmentcode) + "/" + moment(new Date(date)).format("DD/MM/YYYY");
+        } else {
+            if ((date !== "" && date !== null) && (formData.deptId !== 0 && formData.deptId !== null && selectUserDept != null)) {
+                reportcode = (selectUserDept.length == 1 ? selectUserDept[0]?.departmentcode : selectUserDept?.departmentcode) + "/" + moment(new Date(date)).format("DD/MM/YYYY");
+            }
         }
-
         setreportCode(reportcode);
         //setFormData({ ...formData, date: new Date(date).toLocaleDateString("en-CA") });
         setFormData({ ...formData, date: new Date(date).toLocaleDateString("en-CA"), reportCode: reportcode })
@@ -688,6 +744,19 @@ const AnnualAuditReportContext = ({ props }: any) => {
             departmentcode: item.DepartmentCode
         }));
         setAllDept(optionsDepartment);
+        var SubDepartmentArr = await getAllSubDepartment(sp);
+        SubDepartmentArr.sort((a, b) => a.SubDepartment.localeCompare(b.SubDepartment));
+        const optionsSubDepartment = SubDepartmentArr.map((item: any) => ({
+            value: item.ID,
+            label: item.SubDepartment,
+            itemId: item.ID,
+            department: item.Department?.Department,
+            departmentcode: item.Department?.DepartmentCode,
+            subdepartment: item.SubDepartment,
+            subdepartmentcode: item.SubDepartmentCode,
+            departmentId: item.Department?.ID
+        }));
+        setAllsubDepartment(optionsSubDepartment);
         var setAllDept1 = await getAllDepartment1(sp);
 
         var DocCodeArr = await getAllApprovedAuditplan(sp);
@@ -897,7 +966,19 @@ const AnnualAuditReportContext = ({ props }: any) => {
             setEditItemID(Number(formitemid));
 
             const setBannerById = await getItemByID(sp, Number(formitemid))
+            const newItem1 = await getdigitalsignaturerequestbyID("AnnualAuditReportList", sp, Number(formitemid));
+            const isRecordExist = await getdigitalsignaturerequestbyIDYes("AnnualAuditReportList", sp, Number(formitemid));
+            console.log("newItem1newItem1", newItem1);
 
+            if (newItem1.length > 0) {
+                setDigitalsignID(newItem1[0].ID)
+            }
+
+            if (isRecordExist == "Yes" || isRecordExist == "NoRecord") {
+                setshowdigisign(false);
+            } else {
+                setshowdigisign(true);
+            }
             if (setBannerById.length > 0) {
                 debugger
                 setEditForm(true);
@@ -906,7 +987,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 console.log("setBannerById[0]..", setBannerById);
                 // const valuesOnly = selectedOptions.map((option: any) => option.value);
                 // setFormData({ ...formData, [fieldName]: valuesOnly });
-
+                setreportCode(setBannerById[0].ReportCode);
                 setFormData(prevData => ({
                     ...prevData,
                     // memoNo: "",
@@ -918,6 +999,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     //NCSequence: setBannerById[0].NCSequence,
                     memoNumber: setBannerById[0].MemoNumber,
                     description: setBannerById[0].Description,
+                    additionalDetails: setBannerById[0].AdditionalDetails,
+                    subdeptId: setBannerById[0].SubDepartmentId || 0, // Default to 0 if SubDepartmentId is null
                     deptId: setBannerById[0].DepartmentAuditedId,
                     shiftId: setBannerById[0].ShiftId, // Default to 0 if ShiftId is null
                     fromdeptId: setBannerById[0].DepartmentId,
@@ -973,6 +1056,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 setdoccode(setBannerById[0].Title);
                 debugger
                 setselectUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentAuditedId));
+                setselectUsersubDept(AllsubDepartment.filter(user => user.value === setBannerById[0].SubDepartmentId));
                 if (setBannerById[0].DepartmentAuditedId > 0) {
                     let departmentselected = setAllDept1.filter(user => user.value === setBannerById[0].DepartmentAuditedId)
                     // handleDepartmentChange(departmentselected);
@@ -1132,7 +1216,20 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
 
     };
+    const updatedigisignnew = async () => {
+        let items = await updateDigitalsign("AnnualAuditReportList", sp, DigitalsignID, editItemID);
+        if (items) {
+            sethidedigisign(true);
+            const isRecordExist = await getdigitalsignaturerequestbyIDYes("AnnualAuditReportList", sp, Number(editItemID));
+            if (isRecordExist == "Yes" || isRecordExist == "NoRecord") {
+                setshowdigisign(false);
+            } else {
+                setshowdigisign(true);
+            }
 
+        }
+    }
+    
     const onSelectsharewith = (selectedOptions: any) => {
         // const newSelections = selectedOptions || [];
         // const allOptions = [...sharewithusers, ...newSelections];
@@ -1181,7 +1278,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         const updatedArr = forwardToArr.map(row =>
             // row.level === lvl ? { ...row, Responsibility: event.target.value} : row
 
-            row.level === lvl ? { ...row, Responsibility: event.target.value, IsSignatureRequired: event.target.value === "Signer" ? true : false} : row
+            row.level === lvl ? { ...row, Responsibility: event.target.value, IsSignatureRequired: event.target.value === "Signer" ? true : false } : row
         );
         //   setApprovalType(event.target.value);
         setForwardToArr(updatedArr);
@@ -1355,6 +1452,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 //referenceNo: selectedList.ReferenceNumber != "" || selectedList.ReferenceNumber != null ? selectedList.ReferenceNumber : 0,
                 //revisionNo: selectedList.RevisionNumber != "" || selectedList.RevisionNumber != null ? selectedList.RevisionNumber : 0,
                 deptId: selectedList?.DepartmentId,
+                subdeptId: selectedList?.SubDepartmentId || 0, // Default to 0 if SubDepartmentId is null
                 AuditplanDocId: Number(selectedList?.value),
                 attachmentIds: selectedList?.AttachmentId,
                 attachmentJson: selectedList?.AttachmentJson,
@@ -1440,6 +1538,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         const {
             approvedauditplanId,
             deptId,
+            subdeptId,
             fromdeptId,
             date,
             documentCode,
@@ -1462,6 +1561,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         // let validatetitlelength = false;
         // let validateTitle = false;
         // setValidDraft(true);
+        setsubdepartmenterr(false);
         setdepartmenterr(false);
         setfromdepartmenterr(false);
         setdateerr(false);
@@ -1483,6 +1583,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
         if (fmode == FormSubmissionMode.SUBMIT) {
             if (!selectedOption) {
                 setapprovedauditplanerr(true);
+                valid = false;
+            }
+            if (!subdeptId && !selectUsersubDept) {
+                setsubdepartmenterr(true);
+                //Swal.fire('Error', 'Title is required!', 'error');
                 valid = false;
             }
             if (!deptId && !selectUserDept) {
@@ -1612,6 +1717,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
         }
         else {
+            setsubdepartmenterr(false);
             setdepartmenterr(false);
             setfromdepartmenterr(false);
             setdateerr(false);
@@ -1638,6 +1744,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
             if (!selectedOption) {
                 setapprovedauditplanerr(true);
                 validraft = false;
+            }
+            if (!subdeptId && !selectUsersubDept) {
+                setsubdepartmenterr(true);
+                //Swal.fire('Error', 'Title is required!', 'error');
+                valid = false;
             }
             if (!deptId && !selectUserDept) {
                 setdepartmenterr(true);
@@ -1728,13 +1839,13 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 return;
             }
         }
-      
+
         setValidRemark(true);
         let postPayload = {};
         let postPayload2 = {};
         let postPayloadMemo = {};
         let postPayload2AuditReport: {};
-        if (formData.Status === 'Rework' && formData.RemarksInitiator === "") {
+        if (formData.Status === 'Rework' && (formData.RemarksInitiator === "" || formData.RemarksInitiator === null || formData.RemarksInitiator === undefined)) {
             setValidRemark(false);
             Swal.fire('Please fill the mandatory fields', '', 'warning');
             return;
@@ -1879,6 +1990,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             DepartmentId: formData.fromdeptId,
                             ShiftId: formData.shiftId,
                             DepartmentAuditedId: formData.deptId,
+                            SubDepartmentId: formData.subdeptId, // Default to 0 if SubDepartmentId is null
                             Date: formData.date,
                             AuditPlanDate: auditplandate,
                             DocumentCode: formData.documentCode,
@@ -1891,6 +2003,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             AnnualAuditPlanDocumentLinkId: formData.attachmentIds != null ? formData.attachmentIds : [],
                             AuditplanDocId: selectedOption.value,
                             Description: formData.description,
+                            AdditionalDetails: formData.additionalDetails,
                             SubmiitedDate: new Date().toLocaleDateString("en-CA"),
                             SubmitStatus: "Yes",
                             Status: "Pending",
@@ -2240,6 +2353,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             DepartmentId: formData.fromdeptId,
                             ShiftId: formData.shiftId,
                             DepartmentAuditedId: formData.deptId,
+                            SubDepartmentId: formData.subdeptId, // Default to 0 if SubDepartmentId is null
                             Date: formData.date,
                             AuditPlanDate: auditplandate,
                             DocumentCode: formData.documentCode,
@@ -2252,6 +2366,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             AnnualAuditPlanDocumentLinkId: formData.attachmentIds != null ? formData.attachmentIds : [],
                             AuditplanDocId: selectedOption.value,
                             Description: formData.description,
+                            AdditionalDetails: formData.additionalDetails,
                             SubmiitedDate: new Date().toLocaleDateString("en-CA"),
                             SubmitStatus: "Yes",
                             Status: "Pending",
@@ -2432,7 +2547,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 ).length;
             }
 
-            if (checkbox.value === 'Failure of Intent / Nonconformity') {
+            if (checkbox.value === 'Failure of Effectiveness') {
                 updatedValues[fieldKeyN] = NCNumberrows.filter(
                     row => (row.ncnumberNC || row.observationnumberObs) && row.nctype === "NC Number"
                 ).length;
@@ -2543,6 +2658,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             DepartmentId: formData.fromdeptId,
                             ShiftId: formData.shiftId,
                             DepartmentAuditedId: formData.deptId,
+                            SubDepartmentId: formData.subdeptId, // Default to 0 if SubDepartmentId is null
                             Date: formData.date,
                             AuditPlanDate: auditplandate,
                             DocumentCode: formData.documentCode,
@@ -2557,6 +2673,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             AnnualAuditPlanDocumentLinkId: formData.attachmentIds != null ? formData.attachmentIds : [],
                             AuditplanDocId: selectedOption.value,
                             Description: formData.description,
+                            AdditionalDetails: formData.additionalDetails,
                             SubmiitedDate: new Date().toLocaleDateString("en-CA"),
                             SubmitStatus: "No",
                             Status: formData.Status == "Rework" ? "Rework" : "Save as draft",
@@ -2762,7 +2879,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 ActionTakenOn: new Date().toISOString(),
                                 // ActionTakenRoleId: formData.RequesterDesignation,
                                 //Status: "Save as draft",
-                                 //Remark: formData.RemarksInitiator},
+                                //Remark: formData.RemarksInitiator},
 
                             }
                             //const postResult = await updateApprovalItem(arr2, sp, DraftApprovalItem[0].Id);
@@ -2886,6 +3003,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             DepartmentId: formData.fromdeptId,
                             ShiftId: formData.shiftId,
                             DepartmentAuditedId: formData.deptId,
+                            SubDepartmentId: formData.subdeptId, // Default to 0 if SubDepartmentId is null
                             Date: formData.date,
                             AuditPlanDate: auditplandate,
                             DocumentCode: formData.documentCode,
@@ -2898,6 +3016,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             AnnualAuditPlanDocumentLinkId: formData.attachmentIds != null ? formData.attachmentIds : [],
                             AuditplanDocId: selectedOption.value,
                             Description: formData.description,
+                            AdditionalDetails: formData.additionalDetails,
                             SubmiitedDate: new Date().toLocaleDateString("en-CA"),
                             SubmitStatus: "No",
                             Status: formData.Status == "Rework" ? "Rework" : "Save as draft",
@@ -3075,6 +3194,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
     const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>, libraryName: string, docLib: string) => {
         event.preventDefault();
+        setFilesArr([]);
         setshowviewdownload(false);
         const allowedTypes = [
             "image/jpeg",
@@ -3117,7 +3237,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     const fileType = fn.type.split("/")[0]; // Extract file type (image, pdf, etc.)
                     const preview = URL.createObjectURL(fn);
                 }
-                setFilesArr([...FilesArr, ...files]);
+                //setFilesArr([...FilesArr, ...files]);
+                setFilesArr([...files]);
             } else {
                 Swal.fire("upload a document")
             }
@@ -3125,7 +3246,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     };
     const AuditFindingsOptions = [
         { value: 'Conforming & Positive Findings', label: 'Conforming & Positive Findings' },
-        { value: 'Failure of Intent / Nonconformity', label: 'Failure of Intent / Nonconformity' },
+        { value: 'Failure of Intent', label: 'Failure of Intent' },
         { value: 'Observations', label: 'Observations' },
         { value: 'Failure of Implementation', label: 'Failure of Implementation' },
         { value: 'Opportunities for Improvement', label: 'Opportunities for Improvement' },
@@ -3134,7 +3255,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     ] as const;
     const CheckboxFieldMap = {
         "Conforming & Positive Findings": "ConformingPositiveFindings",
-        "Failure of Intent / Nonconformity": "FailureofIntentNonconformity",
+        "Failure of Intent": "FailureofIntentNonconformity",
         "Observations": "Observations",
         "Failure of Implementation": "FailureofImplementation",
         "Opportunities for Improvement": "OpportunitiesforImprovement",
@@ -3142,7 +3263,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     } as const;
     const CheckboxFieldMapN = {
         "Conforming & Positive Findings": "ConformingPositiveFindingsN",
-        "Failure of Intent / Nonconformity": "FailureofIntentNonconformityN",
+        "Failure of Intent": "FailureofIntentNonconformityN",
         "Observations": "ObservationsN",
         "Failure of Implementation": "FailureofImplementationN",
         "Opportunities for Improvement": "OpportunitiesforImprovementN",
@@ -3192,7 +3313,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                         checkboxNumberValues[fieldKeyN] === 0 ? '' : checkboxNumberValues[fieldKeyN] ?? ''
                                     }
                                     onChange={(e) => handleNumberChange(fieldKeyN, Number(e.target.value))}
-                                    disabled={InputDisabled || checkbox.value === 'Observations' || checkbox.value === 'Failure of Intent / Nonconformity'}
+                                    disabled={InputDisabled || checkbox.value === 'Observations' || checkbox.value === 'Failure of Effectiveness'}
                                     placeholder="0"
                                 />
                             </div>
@@ -3761,8 +3882,38 @@ const AnnualAuditReportContext = ({ props }: any) => {
  */}
                                                         <div className="previewIcon">
                                                             <h4 style={{ textAlign: 'left' }} className="text-dark font-16 fw-bold mb-3">Requested By</h4>
-
-                                                            {TemplateDoc && TemplateDoc.length > 0 && (
+                                                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                                                {(formData.Status === "Approved" || formData.Status === "Rejected") && !hidedigisign && DigitalsignID != null && (
+                                                                    <span
+                                                                        onClick={() => updatedigisignnew()}
+                                                                        style={{ cursor: "pointer" }}
+                                                                    >
+                                                                        <div className="" title='Sync digital signed document from Signing Hub'>
+                                                                            <img
+                                                                                style={{ cursor: 'pointer', height: '40px' }}
+                                                                                className='mt-0'
+                                                                                src={require("../assets/digisign.png")}
+                                                                                alt="Signature Icon"
+                                                                            />
+                                                                        </div>
+                                                                    </span>
+                                                                )}
+                                                                {TemplateDoc && TemplateDoc.length > 0 && (
+                                                                    <span
+                                                                        onClick={() => OpenFileTemplate(TemplateDoc[0], "Open")}
+                                                                        style={{ color: "blue", cursor: "pointer" }}
+                                                                    >
+                                                                        <div className="btn btn-primary p-2" title='Preview document'>
+                                                                            <img
+                                                                                style={{ cursor: 'pointer', height: '24px' }}
+                                                                                className='mt-0'
+                                                                                src={showdigisign ? require("../assets/signicon.png") : require("../assets/noun-download-5006210.png")}
+                                                                                alt="Download Icon"
+                                                                            />
+                                                                        </div>
+                                                                    </span>
+                                                                )}
+                                                                {/* {TemplateDoc && TemplateDoc.length > 0 && (
                                                                 <span
                                                                     onClick={() => OpenFileTemplate(TemplateDoc[0], "Open")}
                                                                     style={{ color: "blue", cursor: "pointer", margin: "10px" }}
@@ -3770,7 +3921,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                     <div className="btn btn-primary">
                                                                         <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../assets/noun-download-5006210.png")} ></img></div>
                                                                 </span>
-                                                            )}
+                                                            )} */}
+                                                            </div>
                                                         </div>
 
                                                         <div style={{ clear: "both" }}></div>
@@ -3847,7 +3999,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                                                 // className="form-control"
                                                                                 id="documentCode"
-                                                                                value={formData.reportCode}
+                                                                                value={reportCode}
                                                                             //onChange={(e) => setFormData({ ...formData, documentCode: e.target.value })}
                                                                             />
                                                                         </div>
@@ -4044,6 +4196,33 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-lg-4">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="Department" className="col-form-label">Sub-Department<span className="text-danger1"> *</span></label>
+                                                                        <div >
+                                                                            <div
+                                                                                title={selectUsersubDept && selectUsersubDept[0]?.label || selectUsersubDept && selectUsersubDept?.label}
+                                                                                style={{ width: "100%" }}
+                                                                            >
+                                                                                <Select
+                                                                                    //onKeyDown={handleKeyDown}
+                                                                                    isClearable={true}
+                                                                                    options={AllsubDept}
+                                                                                    isDisabled={InputDisabled}
+                                                                                    value={selectUsersubDept}
+                                                                                    name="subdeptId"
+                                                                                    className={`newse  ${(!ValidSubmit && subdepartmenterr) ? "border-on-error" : ""} ${(!ValidDraft && subdepartmenterr) ? "border-on-error" : ""}`}
+                                                                                    // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
+                                                                                    // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
+                                                                                    // onChange={handleDepartmentChange}
+                                                                                    onChange={(selectedOptions: any) => handlesubDepartmentChange(selectedOptions)}
+                                                                                    placeholder="Select Sub-Department"
+                                                                                />
+                                                                            </div>
+
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="col-lg-4">
                                                                     <div className="row mb-3">
                                                                         <label htmlFor="date" className="col-form-label">Actual Audit Date<span className="text-danger1"> *</span></label>
                                                                         <div title={moment(formData?.date).format('DD/MMM/YYYY')}>
@@ -4070,7 +4249,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 className={`${(!ValidSubmit && dateerr) ? "textfield-error" : ""}${(!ValidDraft && dateerr) ? "textfield-error" : ""}`}
                                                                                 //className={`form-control ${(!ValidSubmit && dateerr) ? "textfield-error" : ""}${(!ValidDraft && dateerr) ? "textfield-error" : ""}`}
                                                                                 // maxDate={new Date()}
-                                                                                minDate={new Date()}
+                                                                                //minDate={new Date()}
                                                                                 disabled={InputDisabled}
                                                                                 formatDate={(date: any) => moment(date).format('DD/MMM/YYYY')}
                                                                             />
@@ -4102,7 +4281,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                             accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
                                                                             onChange={(e) => onFileChange(e, "Gallery", "AnnualAuditReportDocs")}
                                                                             disabled={InputDisabled}
-                                                                            multiple
+                                                                        //multiple
                                                                         />
                                                                     </div>
 
@@ -4376,6 +4555,23 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                             </table>
                                                         </div>
+                                                        <div className="col-lg-12">
+                                                            <div className="mb-3">
+                                                                <label htmlFor="additionalDetails" className="col-form-label">Additional Comments</label>
+                                                                <div>
+                                                                    <textarea
+                                                                        //onKeyDown={handleKeyDowntextarea}
+                                                                        title={formData.additionalDetails}
+                                                                        id="simpleinput"
+                                                                        disabled={InputDisabled}
+                                                                        value={formData.additionalDetails}
+                                                                        className={`form-control mb-0`}
+                                                                        onChange={(e) => setFormData({ ...formData, additionalDetails: e.target.value })}
+                                                                    />
+
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </fieldset>
                                                 </section>
 
@@ -4591,7 +4787,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                 {/* ////////////Approval card */}
 
                                                 {
-                                                    (InputDisabled && editID != null && modeValue === "approve" && editID.ApprovalType === "Approval" && editID.Status === "Pending") ? (
+                                                    (InputDisabled && editID != null && modeValue === "approve" && editID?.ApprovalType === "Approval" && editID?.Status === "Pending") ? (
                                                         <WorkflowAction currentItem={editID} ctx={props.context} ContentType={CONTENTTYPE_AuditReport}
                                                             DisableApproval={false} DisableCancel={false}
                                                         />

@@ -37,7 +37,11 @@ import {
   getdigitalsignaturerequestbyIDYes,
   CheckIfAlreadyactionTaken,
   getallProcessApprovalitemsLevel,
-  getchangerequestnotes
+   getDelegateduser,
+  getchangerequestnotes,
+  CheckifDocumentisApproved,
+  getChangeRequestTypeMaster
+  
 } from './DocumentCancellation';
 import Select from "react-select";
 import Swal from 'sweetalert2';
@@ -67,6 +71,7 @@ let locationPath: any;
 let enableTemplatetype: boolean = false;
 let Showfile: boolean = false;
 let IsRecorddisabled: boolean = false;
+let isCurrentuserDelegated: boolean = false;
 export enum FormSubmissionMode {
   DRAFT, SUBMIT
 }
@@ -285,6 +290,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [currentUserDept, setcurrentUserDept] = React.useState("");
   const [forwardToArrEdit, setForwardToArrEdit] = React.useState<ForwardTo[]>([]);
   const [changeRequestCheckboxes, setChangeRequestCheckboxes] = React.useState<ChangeRequestCheckbox[]>([]);
+  const [enabledCheckboxIds, setEnabledCheckboxIds] = React.useState<number[]>([]);
   const [employeeDetails, setemployeeDetails] = React.useState<IEmployeeDetails[] | null>([]);
   const [selectedCheckboxIds, setselectedCheckboxIds] = React.useState<number[]>([]);
   const [isCheckboxSectionHighlighted, setisCheckboxSectionHighlighted] = React.useState<boolean>(false);
@@ -323,7 +329,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       setshowview(true);
     }
 
-
+    console.log("inpt diasba", InputDisabled, path1, path1.includes("/view/"))
     //setLoading(true);
     var changerequestnotes = await getchangerequestnotes(sp);
     const changerequestNotesCH = changerequestnotes.map((item: any) => ({
@@ -511,8 +517,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
       ProcessItemId = await getApprovalByID(sp, Number(iDs), CONTENTTYPE_ChangeDocument);
       setInputDisabled(await getApprovalByID2(sp, Number(iDs), CONTENTTYPE_ChangeDocument));
-      let disablerecord = await CheckIfAlreadyactionTaken(sp, ProcessItemId?.Id, CONTENTTYPE_ChangeDocument);
+      let disablerecord = ProcessItemId && ProcessItemId?.Id > 0 && await CheckIfAlreadyactionTaken(sp, ProcessItemId?.Id, CONTENTTYPE_ChangeDocument);
       IsRecorddisabled = !disablerecord;
+      isCurrentuserDelegated = ProcessItemId && ProcessItemId?.AssignedToId > 0 && await getDelegateduser(sp, ProcessItemId?.AssignedToId)
     }
     else {
       const path = window.location.hash;
@@ -539,8 +546,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
           setEditID(await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_ChangeDocument));
           ProcessItemId = await getApprovalByID(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_ChangeDocument);
-          let disablerecord = await CheckIfAlreadyactionTaken(sp, ProcessItemId?.Id, CONTENTTYPE_ChangeDocument);
+          let disablerecord = ProcessItemId && ProcessItemId?.Id > 0 && await CheckIfAlreadyactionTaken(sp, ProcessItemId?.Id, CONTENTTYPE_ChangeDocument);
           IsRecorddisabled = !disablerecord;
+          isCurrentuserDelegated = ProcessItemId && ProcessItemId?.AssignedToId > 0 && await getDelegateduser(sp, ProcessItemId?.AssignedToId)
           setInputDisabled(await getApprovalByID2(sp, Number(segments[paramIndex + 2]), CONTENTTYPE_ChangeDocument));
         }
       }
@@ -1050,6 +1058,17 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const onSelectDocCode = async (selectedList: any) => {
     debugger
     setshowpreviousattachment(true);
+    let IsdoccodeAllowed = await CheckifDocumentisApproved(sp, selectedList.DocumentCode);
+    if (!IsdoccodeAllowed) {
+      // Show popup and return early if not approved
+      await Swal.fire({
+        //icon: 'warning',
+        //title: 'Document not approved',
+        text: `This document code "${selectedList.DocumentCode}" is already in progress, so you cannot raise a request against it.`,
+        confirmButtonText: 'OK'
+      });
+      return; // Stop further execution
+    }
     console.log(selectedList, "selectedList");
     if (selectedList != null) {
       setLoading(true);
@@ -1109,10 +1128,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       //setselectedCheckboxIds(selectedList.ChangeRequestTypeId);
       //setselectedCheckboxIds([])
       if (selectedList.AttachmentId.length > 0) {
-        let arrn = await getDocumentLinkByIDarr(sp, selectedList.AttachmentId[0]);
+        let arrn = await getDocumentLinkByIDarr(sp, selectedList.AttachmentId[0], selectedList.ID);
         //let arraynew: any[];
         //arraynew.push(arrn)
-        console.log("arrrrrrn56", arrn);
+        //console.log("arrrrrrn56", arrn);
         //setAttachmentarr(arrn);
         setDocumentLink(await getDocumentLinkByID(sp, selectedList.AttachmentId[0], selectedList.ID))
       }
@@ -1133,6 +1152,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   };
   const onSelectReq = (selectedList: any) => {
     setshowpreviousattachment(false);
+    setselectedCheckboxIds([]);
     setFormData(prevData => ({
       ...prevData,
       SerialNumber: "",
@@ -1527,13 +1547,27 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       }
 
     } else if (sts == "Download") {
-      const link = document.createElement("a");
-      link.href = fileUrl;
-      link.setAttribute("download", obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name)); // Suggests a filename for download
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // const link = document.createElement("a");
+      // link.href = fileUrl;
+      // link.setAttribute("download", obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name)); // Suggests a filename for download
+      // document.body.appendChild(link);
+      // link.click();
+      // document.body.removeChild(link);
+      // const serverRelativeUrl = obj.FileRef; // e.g. "/sites/test/Shared Documents/sample.docx"
+      // const fileUrls = `${SITE_URL}/_api/web/getfilebyserverrelativeurl('${encodeURIComponent(serverRelativeUrl)}')/$value`;
 
+      // const link = document.createElement("a");
+      // link.href = fileUrls;
+      // link.setAttribute("download", obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name)); // Suggests a filename for download
+      // document.body.appendChild(link);
+      // link.click();
+      // document.body.removeChild(link);
+      const serverRelativeUrl = obj?.FileRef || ""; // Ensure serverRelativeUrl is defined
+      const fileUrls = `${SITE_URL}${serverRelativeUrl}`;
+      downloadFile(serverRelativeUrl, obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name));
+      //directDownload(fileUrls);
+      //downloadFileNew(serverRelativeUrl, obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name));
+      //downloadWithPnP(serverRelativeUrl, obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name));
     }
     // if (obj.FileRef.endsWith(".docx")) {
     //     window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(fileUrl)}`, "_blank");
@@ -1550,6 +1584,103 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     //   window.open(fileUrl, "_blank"); // Open PDF and other files normally
     // }
   }
+  const downloadFile = async (serverRelativeUrl: string | number | boolean, fileName: string) => {
+
+    try {
+
+      const response = await fetch(
+
+        `${SITE_URL}/_api/web/getfilebyserverrelativeurl('${encodeURIComponent(serverRelativeUrl)}')/$value`,
+
+        {
+
+          method: "GET",
+
+          headers: {
+
+            "Accept": "application/octet-stream"
+
+          }
+
+        }
+
+      );
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      const blob = await response.blob();
+
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+
+      link.href = url;
+
+      link.download = fileName || "download";
+
+      document.body.appendChild(link);
+
+      link.click();
+
+      document.body.removeChild(link);
+
+      window.URL.revokeObjectURL(url);
+
+    } catch (err) {
+
+      console.error("File download failed:", err);
+
+    }
+
+  };
+  const directDownload = (filePath: any) => {
+    const link = document.createElement("a");
+    link.href = `${filePath}?download=1`;
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  const downloadFileNew = async (serverRelativeUrl: string | number | boolean, fileName: string) => {
+    const endpoint = `${SITE_URL}/_api/web/getfilebyserverrelativeurl('${encodeURIComponent(serverRelativeUrl)}')/$value`;
+
+    const response = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        "Accept": "application/octet-stream"
+      },
+      credentials: "include"
+    });
+
+    if (!response.ok) throw new Error(`Error fetching file: ${response.statusText}`);
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  };
+  const downloadWithPnP = async (serverRelativeUrl: any, fileName: string) => {
+    const fileItem = await (sp.web as any).getFileByServerRelativeUrl(serverRelativeUrl).getItem("ID", "AuthorId", "Modified");
+    console.log(fileItem, 'fileItem');
+    const file = await (sp.web as any).getFileByServerRelativeUrl(serverRelativeUrl).getBuffer();
+    const blob = new Blob([file]);
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+  // Usage example:
+
+
+
   const OpenFileTemplate = (obj: any, sts: string) => {
     debugger
     setShowModalTemplateDoc(true);
@@ -1570,12 +1701,30 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       }
 
     } else if (sts == "Download") {
-      const link = document.createElement("a");
-      link.href = fileUrl;
-      link.setAttribute("download", obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name)); // Suggests a filename for download
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // const serverRelativeUrl = obj?.FileRef || ""; // Ensure serverRelativeUrl is defined
+      // downloadFile(serverRelativeUrl, obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name));
+      const serverRelativeUrl = obj?.FileRef || ""; // Ensure serverRelativeUrl is defined
+      const fileUrls = `${SITE_URL}${serverRelativeUrl}`;
+      downloadFile(serverRelativeUrl, obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name));
+      // directDownload(fileUrls);
+      //downloadFileNew(serverRelativeUrl, obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name));
+      //downloadWithPnP(serverRelativeUrl, obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name));
+
+      // const serverRelativeUrl = obj.FileRef; // e.g. "/sites/test/Shared Documents/sample.docx"
+      // const fileUrls = `${SITE_URL}/_api/web/getfilebyserverrelativeurl('${encodeURIComponent(serverRelativeUrl)}')/$value`;
+
+      // const link = document.createElement("a");
+      // link.href = fileUrls;
+      // link.setAttribute("download", obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name)); // Suggests a filename for download
+      // document.body.appendChild(link);
+      // link.click();
+      // document.body.removeChild(link);
+      // const link = document.createElement("a");
+      // link.href = fileUrl;
+      // link.setAttribute("download", obj?.FileLeafRef != "" ? cleanFileName(obj.FileLeafRef) : cleanFileName(obj.name)); // Suggests a filename for download
+      // document.body.appendChild(link);
+      // link.click();
+      // document.body.removeChild(link);
 
     }
 
@@ -2747,6 +2896,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 const itemId = currentItemId.Id;
                 await currentItemId.update({
                   FileName: finalFileNameNewN, // Assuming FileName is the internal name of the column
+                  NFinalDocumentCodePrinting: "No"
                 });
 
                 // Save the document ID for the attachment field in ChangeRequestList
@@ -2945,6 +3095,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                 const itemId = currentItemId.Id;
                 await currentItemId.update({
                   FileName: finalFileNameNewN, // Assuming FileName is the internal name of the column
+                  NFinalDocumentCodePrinting: "No"
                 });
                 console.log("JSON.stringify(fileAddResult)", JSON.stringify(fileAddResult))
                 // Save the document ID for the attachment field in ChangeRequestList
@@ -3155,7 +3306,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     }
     switch (status) {
       case "Forward":
-        actionMessage = "Do you want to forward this request?";
+        actionMessage = "Have you verified that the approval hierarchy (Preparer > Reviewer > Endorser > Signer/Approver) has been followed before forwarding this request?";
         successMessage = "Request forwarded successfully.";
         break;
       case "Rejected":
@@ -3225,7 +3376,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           showCancelButton: true,
           confirmButtonText: "Yes",
           cancelButtonText: "No",
-          icon: 'warning'
+          icon: 'warning',
+          customClass: {
+            title: status == "Forward" ? 'swal-title-large' : ''
+          }
         }
         ).then(async (result) => {
           console.log(result)
@@ -3450,6 +3604,32 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       }
     }
   }
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    if (!/^[a-zA-Z0-9-]*$/.test(pastedText)) {
+      e.preventDefault();
+    }
+  };
+  const handleKeyDowntext = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const allowedKeys = [
+      'Backspace',
+      'ArrowLeft',
+      'ArrowRight',
+      'Delete',
+      'Tab',
+    ];
+
+    const isLetter = /^[a-zA-Z]$/.test(e.key);   // a-z or A-Z
+    const isNumber = /^[0-9]$/.test(e.key);      // 0-9
+    const isHyphen = e.key === '-';
+    const isSpace = e.key === ' ';
+    if (isLetter || isNumber || isHyphen || isSpace || allowedKeys.includes(e.key)) {
+      return; // ✅ allowed input
+    } else {
+      e.preventDefault(); // ❌ block everything else
+    }
+  };
+
 
   const onChangefilename = (name: string, value: string) => {
     debugger
@@ -4239,11 +4419,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       e.preventDefault(); // 🛑 Prevents page reload
     }
   };
-  const handleKeyDowntext = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-    }
-  };
+  // const handleKeyDowntext = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  //   if (e.key === 'Enter') {
+  //     e.preventDefault();
+  //   }
+  // };
   // const handleKeyDowntextarea = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
   //   if (e.key === 'Enter' && !e.shiftKey) {
   //     e.preventDefault(); // Prevent form submission or unwanted behavior
@@ -4388,6 +4568,32 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       }
     }
   };
+  React.useEffect(() => {
+    initializeCheckboxes();
+  }, [selectedOptionReq]);
+
+
+  const initializeCheckboxes = async () => {
+    const allCheckboxes = await fetchChangeRequestTypes(); // Full list with IDs and names
+    const filteredCheckboxes = await getChangeRequestTypeMaster(sp, selectedOptionReq?.label); // Only names match
+
+    const filteredNames = filteredCheckboxes.map((item) =>
+      item.name.trim().toLowerCase()
+    );
+
+    const enabledIds = allCheckboxes
+      .filter(
+        (checkbox) =>
+          filteredNames.includes(checkbox.name.trim().toLowerCase()) ||
+          checkbox.name.trim().toLowerCase() === "others" // Always include "Others"
+      )
+      .map((checkbox) => checkbox.id);
+
+    setEnabledCheckboxIds(enabledIds);
+  };
+
+
+
   const fetchChangeRequestTypes = async () => {
     try {
       const items = await sp.web.lists
@@ -4430,7 +4636,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     return changeRequestCheckboxes.map((checkbox) => (
       <div className="col-lg-3">
         <div key={checkbox.id} className="form-check mb-3" title={checkbox.name}>
-          <input
+          {/* <input
             //onKeyDown={handleKeyDowntext}
             type="checkbox"
             className={`form-check-input ${(!ValidSubmit && changerequesttypeerr) ? "border-on-error" : ""}`}
@@ -4438,7 +4644,26 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             disabled={(InputDisabled && formData?.Status !== "Rework") || IsRecorddisabled}
             checked={selectedCheckboxIds.indexOf(checkbox.id) !== -1}
             onChange={() => handleCheckboxChange(checkbox.id)}
-          />
+          /> */}
+          <input
+            type="checkbox"
+            className={`form-check-input ${!ValidSubmit && changerequesttypeerr ? "border-on-error" : ""
+              }`}
+            id={`checkbox-${checkbox.id}`}
+            disabled={
+              // ✅ Disable if not in enabled list AND not "Others"
+              !enabledCheckboxIds.includes(checkbox.id) ||
+              (InputDisabled && formData?.Status !== "Rework") ||
+              IsRecorddisabled
+            }
+            checked={selectedCheckboxIds.includes(checkbox.id)}
+            onChange={() => {
+              // ✅ Prevent selection if checkbox is disabled
+              if (!enabledCheckboxIds.includes(checkbox.id) && checkbox.name.trim().toLowerCase() !== "others") {
+                return;
+              }
+              handleCheckboxChange(checkbox.id);
+            }} />
           <label className="form-check-label" htmlFor={`checkbox-${checkbox.id}`}>
             {checkbox.name}
           </label>
@@ -4964,6 +5189,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       onChange={(e) => onChangefilename("filename", e.target.value)}
                                       //disabled={InputDisabled || IsRecorddisabled || (selectedOptionReq != null && selectedOptionReq?.requestcode != "New") || formData?.Status == "Rework"}
                                       disabled={InputDisabled || formData?.Status == "Rework"}
+                                      onPaste={(e) => { handlePaste(e) }}
+                                      onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyDowntext(e)}
                                       placeholder="Document name"
                                       value={formData.filename} />
                                   </div>
@@ -5077,6 +5304,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                               <div className='col-sm-12'>
                                 <h3 className="text-dark font-16 fw-bold mb-3">Change Request Type<span className="text-danger1">*</span></h3>
                                 {/* <label className="form-label text-muted font-16">Change Request Type</label> */}
+                                <p style={{ fontSize: '11px', color: '#6c757d', marginTop: '-12px', marginBottom: '8px' }}>
+                                  In case of "New Documented Information" choose the Addition in Preface, Chapters, Annexures, others and<br />
+                                  In case of "Change in Existing Documented Information" choose the Revision in Preface, Chapters, Annexures, others
+                                </p>
                                 <div className="row"> {renderCheckboxes()}</div>
                               </div>
                             </div>
@@ -5540,9 +5771,20 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                       {/* </a> */}
                         {/* </div>
                   </div>  */}
+                        {/* (((InputDisabled != true && editItemID == null && MainEditItem == null) ||
+                        (MainEditItem?.Status === "Save as draft" && editID == null &&
+                        (modeValue === "" || modeValue === "edit"))) ||
+                        (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) &&
+
+                        {((editID?.Status === "Pending" || editID?.Status === "Save as draft") &&
+                          (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) &&
+                          (modeValue === "approve") && */}
+
                         <div className="row mt-3">
                           <div className="col-12 text-center">
-                            {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) &&
+                            {(((InputDisabled != true && editItemID == null && MainEditItem == null) || 
+                            (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || 
+                              (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && (editID?.IsInitiator == "Yes" || editID == null) &&
                               // <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
                               //   <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
                               //   Save As Draft</button>
@@ -5570,7 +5812,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                             }
 
-                            {(((InputDisabled != true && editItemID == null && MainEditItem == null) || (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) &&
+                            {(((InputDisabled != true && editItemID == null && MainEditItem == null) || 
+                            (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || 
+                              (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && (editID?.IsInitiator == "Yes" || editID == null) &&
                               // <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
                               //   <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
                               //   Submit</button>
@@ -5623,7 +5867,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                               </div>
 
                             }
-                            {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") &&
+                            {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID?.IsInitiator == "Yes")) && (modeValue === "approve") &&
                               // <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" /> Submit</button>
                               <div
                                 role="button"
@@ -5650,7 +5894,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                             }
                             {((modeValue === "" || modeValue === "edit" || modeValue === "view") ||
                               (InputDisabled && editID != null && modeValue === "approve" && editID.Status === "Approved") ||
-                              (editID !== null && editID.IsInitiator == "Yes")) &&
+                              (editID !== null && (editID?.IsInitiator == "Yes" || editID?.IsInitiator == "No"))) &&
                               // <button style={{ width: '145px' }} type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                               //   className='me-1' alt="x" /> Cancel</button>
                               <div

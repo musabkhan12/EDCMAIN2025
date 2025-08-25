@@ -5,7 +5,8 @@ export const getDataRoles = async (_sp) => {
     let arrs = []
     let bannerimg = []
     await _sp.web.lists.getByTitle("ApproverRoleMaster").items
-    .select("*")()
+    // .select("*")()
+    .select("*,ToUsers/Title").expand("ToUsers").filter("IsActive eq 'Yes'")()
       .then((res) => {
         console.log(res, ' let arrs=[]');
        
@@ -27,7 +28,9 @@ export const getDataRoles = async (_sp) => {
     let bannerimg = []
     const currentUser = await _sp.web.currentUser();
     await _sp.web.lists.getByTitle("Memorandum").items.getById(id)
-    .select("*,RecommendationType/RecommendationTypeValue,Author/ID,Author/Title,AuditType/Title,AuditType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Department,ToDepartments/DepartmentCode,AuditProgramType/Title,AuditProgramType/ID").expand("RecommendationType,AuditProgramType,ToDepartments,CCDepartments,Author,AuditType,To,Cc,From")()
+    .select("*,RecommendationType/RecommendationTypeValue,Author/ID,Author/Title,AuditType/Title,AuditType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Role,AuditProgramType/Title,AuditProgramType/ID").expand("RecommendationType,AuditProgramType,ToDepartments,CCDepartments,Author,AuditType,To,Cc,From")()
+
+    // .select("*,RecommendationType/RecommendationTypeValue,Author/ID,Author/Title,AuditType/Title,AuditType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Department,ToDepartments/DepartmentCode,AuditProgramType/Title,AuditProgramType/ID").expand("RecommendationType,AuditProgramType,ToDepartments,CCDepartments,Author,AuditType,To,Cc,From")()
       .then((res) => {
        
         console.log(res, ' let arrs=[]');      
@@ -334,13 +337,13 @@ export const getApprovalByID = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`ActingFor/ID eq '${res.AssignedTo.Id}' and DelegateName/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then((result) => {
           if (result.length > 0) {
             // If the current user is a delegate, check if they are acting for the assigned user
             // and if the process name matches
-            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].ActingForId) && res.ProcessName === processName) {
+            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].DelegateNameId) && res.ProcessName === processName) {
               arr = res;
             }
 
@@ -388,13 +391,13 @@ export const getApprovalByID2 = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`ActingFor/ID eq '${res.AssignedTo.Id}' and DelegateName/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then((result) => {
           if (result.length > 0) {
             // If the current user is a delegate, check if they are acting for the assigned user
             // and if the process name matches
-            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].ActingForId) && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].DelegateNameId) && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
               arr = false;
             }
 
@@ -459,12 +462,12 @@ export const getDraftApprovalByID = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`ActingFor/ID eq '${res.AssignedTo.Id}' and DelegateName/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then(async (result) => {
           if (result.length > 0) {
 
-            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].ActingForId) && res.ProcessName === processName && (res?.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].DelegateNameId) && res.ProcessName === processName && (res?.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
               arr = res;
             }
 

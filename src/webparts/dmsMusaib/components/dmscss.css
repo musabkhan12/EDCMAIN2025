@@ -820,6 +820,19 @@ top: 0;
 .search-container input{padding: 10px 14px;
   background: #fff !important;
   border-radius: 0px;}
+  .clearimg{
+    background: black;
+    width: 22px;
+  }
+  .searcclear{
+    margin-right: 5px;
+background-color: black;
+position: absolute;
+/* left: 156px; */
+right: 34px;
+top: 12px;
+height: 23px;
+}
   .searchbutton{
     position: absolute;
     right: 15px;

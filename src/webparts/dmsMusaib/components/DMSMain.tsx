@@ -8087,6 +8087,40 @@ const ArgPoc = ({ props }: any) => {
     }
 
   }
+  const clearSearch = (e:any) => {
+    const searchInput = document.getElementById('searchinput') as HTMLInputElement;
+      setcurrentSearchText('');
+     searchInput.value = '';
+     console.log("clearSearch called");
+     console.log(currentSearchText, "routeToDiffSideBar in clearSearch");
+        console.log("routeToDiffSideBar", routeToDiffSideBar);
+        if (routeToDiffSideBar === "myRequest2") {
+          myRequest2(null, null, searchInput);
+        }
+      else if (routeToDiffSideBar === "documentLibrary") {
+        // console.log("Inside search => documentLibrary");
+        getdoclibdata(currentfolderpath, currentsiteID, currentDocumentLibrary);
+      }
+        else if (routeToDiffSideBar === "myFavourite") {
+
+          // console.log("myFavourite");
+          myFavorite(null, null, null);
+
+        }
+        else if (routeToDiffSideBar === "myFolder") {
+          // console.log("Inside search => myFolder");
+          mycreatedfolders(event, null);
+        }
+        else if (routeToDiffSideBar === "shareWithOthers") {
+          ShareWithOther(null, null);
+        }
+        else if (routeToDiffSideBar === "shareWithMe") {
+          ShareWithMe(null, null);
+        } else if (routeToDiffSideBar === "recyclebin") {
+          Recyclebin(null, null, null);
+        }
+      
+};
   const searchFiles = async (event: React.FormEvent) => {
     event.preventDefault();
     event.stopPropagation();
@@ -13452,36 +13486,331 @@ const ArgPoc = ({ props }: any) => {
 
   };
 
-  const myRequest2 = async (event: React.MouseEvent<HTMLButtonElement> = null, siteIdToUpdate: string = null, searchText: any = null) => {
-    // Pagination variables
-    const itemsPerPage = 12;
-    let currentPage = 1;
-    let allFilesData: any[] = [];
+  // const myRequest2 = async (event: React.MouseEvent<HTMLButtonElement> = null, siteIdToUpdate: string = null, searchText: any = null) => {
+  //   // Pagination variables
+  //   const itemsPerPage = 12;
+  //   let currentPage = 1;
+  //   let allFilesData: any[] = [];
   
-    // Loader setup
+  //   // Loader setup
+  //   const loader = document.getElementById('loader2');
+  //   if (loader) loader.style.display = 'block';
+  
+  //   // Existing setup code...
+  //   entityclicktext = '';
+  //   setdisplayuploadfileandcreatefolder(false);
+  //   ismyrequordoclibforfilepreview = "myRequest2";
+    
+  //   // Clean URL and hide buttons
+  //   if (!cleanUrlInMyRequest) {
+  //     const newUrl = `${window.location.origin}${window.location.pathname}`;
+  //     window.history.pushState(null, '', newUrl);
+  //   }
+  //   cleanUrlInMyRequest = false;
+  
+  //   const CreateFolder = document.getElementById("CreateFolder");
+  //   const createFileButton = document.getElementById("createFileButton");
+  //   const CreateRoot = document.getElementById("CreateFolder1");
+    
+  //   if (CreateFolder) CreateFolder.style.display = 'none';
+  //   if (createFileButton) createFileButton.style.display = 'none';
+  //   if (CreateRoot) CreateRoot.style.display = 'none';
+  
+  //   setTimeout(() => {
+  //     setlistorgriddata('');
+  //   }, 100);
+  
+  //   const wait = document.getElementById('files-container');
+  //   wait.classList.remove('hidemydatacards');
+  //   setShowMyrequButtons(true);
+  //   setShowMyfavButtons(false);
+  //   setMyreqormyfav('Myrequest');
+  
+  //   // UI setup...
+  //   if (event) {
+  //     event.preventDefault();
+  //     event.stopPropagation();
+  //   }
+  
+  //   const container = document.getElementById("files-container");
+  //   if (siteIdToUpdate === null) {
+  //     container.innerHTML = "";
+  //   }
+  
+  //   try {
+  //     const FilesItems = await sp.web.lists
+  //       .getByTitle("MasterSiteURL")
+  //       .items.select("Title", "SiteID", "FileMasterList", "Active")
+  //       .filter(`Active eq 'Yes'`)();
+  
+  //     // Clear existing data
+  //     allFilesData = [];
+  
+  //     for (const fileItem of FilesItems) {
+  //       if (fileItem.FileMasterList !== null) {
+  //         if (siteIdToUpdate && fileItem.SiteID !== siteIdToUpdate) {
+  //           continue;
+  //         }
+  
+  //         const filesData = await sp.web.lists
+  //           .getByTitle(`${fileItem.FileMasterList}`)
+  //           .items.select("ID", "FileName", "FileUID", "FileSize", "FileVersion", "Status", "SiteID", "CurrentFolderPath", "DocumentLibraryName", "SiteName", "FilePreviewURL", "IsDeleted", "MyRequest", "Modified")
+  //           .filter(`CurrentUser eq '${currentUserEmailRef.current}' and MyRequest eq 1`)
+  //           .orderBy("Modified", false)();
+  
+  //         allFilesData = [...allFilesData, ...filesData];
+  //       }
+  //     }
+  
+  //     // Apply search filter if searchText exists
+  //     let filteredData = allFilesData;
+  //     if (searchText?.value) {
+  //       filteredData = allFilesData.filter(file => 
+  //         file?.FileName?.toLowerCase().includes(searchText.value.toLowerCase())
+  //       );
+        
+  //       if (filteredData.length === 0) {
+  //         fileNotFound(`No files match ${searchText.value}`);
+  //       }
+  //     }
+  
+  //     displayPaginatedResults(filteredData, currentPage);
+  
+  //   } catch (error) {
+  //     console.error("Error loading files:", error);
+  //   } finally {
+  //     if (loader) loader.style.display = 'none';
+  //   }
+  
+  //   function displayPaginatedResults(data: any[], page: number) {
+  //     const container = document.getElementById("files-container");
+  //     if (!container) return;
+      
+  //     container.innerHTML = "";
+      
+  //     const startIndex = (page - 1) * itemsPerPage;
+  //     const endIndex = startIndex + itemsPerPage;
+  //     const paginatedItems = data.slice(startIndex, endIndex);
+  
+  //     if (paginatedItems.length === 0) {
+  //       const noFileMessage = document.createElement("p");
+  //       noFileMessage.textContent = "No files found.";
+  //       noFileMessage.style.color = "black";
+  //       noFileMessage.style.fontSize = "16px";
+  //       noFileMessage.style.textAlign = "center";
+  //       container.appendChild(noFileMessage);
+  //       return;
+  //     }
+  
+  //     // Create cards for each item in the current page
+  //     paginatedItems.forEach(file => {
+  //       if (file.IsDeleted === null) {
+  //         const card = document.createElement("div");
+  //         const extensionHtml = createFileExtensionHtml(file.FileName);
+          
+  //         card.className = "card";
+  //         card.innerHTML = ` 
+  //           <div class="row"> 
+  //             <div class="col-md-2 pe-0"> 
+  //               <div class="IMGContainer">        
+  //                 ${extensionHtml}
+  //               </div>
+  //             </div>
+  //             <div class="col-md-10"> 
+  //               <div class="CardTextContainer">
+  //                 <p class="p1st" style="cursor: pointer;" title="${file.FileName}" onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">${file.FileName}</p>
+  //                 <p class="p2nd" title="${file.CurrentFolderPath ? file.CurrentFolderPath.split('/').slice(3).join('/') : ''}">${file.DocumentLibraryName}</p>
+  //                 <p class="p3rd ">${((file.FileSize as unknown as number) / (1024 * 1024)).toFixed(2)}MB</p>
+  //                 <p class="filestatus myrequestp3rd"> ${file.Status ? file.Status : ''}  </p>
+  //               </div>
+  
+  //               <div class="three-dots" onclick="toggleMenu2('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}')">
+  //                 <span>...</span>
+  //               </div>
+  //             </div> 
+  //           </div>
+  //         `;
+  
+  //         const menu = document.createElement("div");
+  //         menu.id = `menu-${file.FileUID}`;
+  //         menu.className = "popup-menu";
+  //         menu.innerHTML = `
+  //           <ul>
+  //             <li onclick="auditHistory('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}')">
+  //               <img src=${editIcon} alt="Edit"/>
+  //               Audit History
+  //             </li>
+  //             <li onclick="shareFile('${file.FileUID}', '${file.SiteID}','${file.CurrentFolderPath}','${file.FileName}','MyRequest','${file.FileVersion}','${file.FileSize}','${file.Status}','${file.FilePreviewURL}','${file.DocumentLibraryName}')">
+  //               <img src=${ShareFile} alt="Share"/> Share
+  //             </li>
+  //             <li onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
+  //               <img src=${FilePreview} alt="Preview File"/> Preview File
+  //             </li>
+  //             <li onclick="Download('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
+  //               <img src=${downloadicon} alt="Download File"/> Download File
+  //             </li>
+  //             <li onclick="versionHistory('${file.FileName}', '${file.CurrentFolderPath}', '${file.SiteID}' ,'MyRequest','${file.FileUID}')">
+  //               <img src=${editIcon} alt="Version History"/> Version History
+  //             </li>
+  //             ${file.Status === "Rework" ? `
+  //             <li onclick="rework('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}','${file.CurrentFolderPath}/${file.FileName}')">
+  //               <img src=${editIcon} alt="Edit File"/> Edit File
+  //             </li>` : ''}
+  //           </ul>
+  //         `;
+  
+  //         card.appendChild(menu);
+          
+  //         // Status styling
+  //         const fileStatusElement = card.querySelector(".filestatus") as HTMLElement;
+  //         switch (file.Status) {
+  //           case "Approved":
+  //           case "Auto Approved":
+  //             fileStatusElement.style.backgroundColor = "#b5e7d3";
+  //             fileStatusElement.style.color = "#008751";
+  //             if (file.Status === "Auto Approved") {
+  //               fileStatusElement.style.width = "96px";
+  //             }
+  //             break;
+  //           case "Rejected":
+  //             fileStatusElement.style.backgroundColor = "rgba(241, 85, 108, 0.1)";
+  //             fileStatusElement.style.color = "#f1556c";
+  //             break;
+  //           case "Rework":
+  //             fileStatusElement.style.backgroundColor = "#ffecc4";
+  //             fileStatusElement.style.color = "rgba(247, 184, 75)";
+  //             break;
+  //           case "Pending":
+  //             fileStatusElement.style.backgroundColor = "rgb(91 156 187 / 25%)";
+  //             fileStatusElement.style.color = "#000b56";
+  //             break;
+  //           default:
+  //             fileStatusElement.style.backgroundColor = "none";
+  //             fileStatusElement.style.color = "none";
+  //             break;
+  //         }
+          
+  //         container.appendChild(card);
+  //       }
+  //     });
+  
+  //     // Add pagination controls
+  //     addPaginationControls(data.length, currentPage);
+  //   }
+  
+  //   function addPaginationControls(totalItems: number, currentPage: number) {
+  //     const totalPages = Math.ceil(totalItems / itemsPerPage);
+  //     if (totalPages <= 1) return;
+      
+  //     const container = document.getElementById("files-container");
+  //     const paginationDiv = document.createElement("div");
+  //     paginationDiv.className = "pagination-container";
+      
+  //     // Previous Button
+  //     const prevButton = document.createElement("button");
+  //     prevButton.textContent = "Previous";
+  //     prevButton.className = "pagination-container-buttons1";
+  //     prevButton.disabled = currentPage === 1;
+  
+  //     if (currentPage === 1) {
+  //       prevButton.style.opacity = "0.6";
+  //       prevButton.style.cursor = "not-allowed";
+  //       prevButton.onclick = null;
+  //     } else {
+  //       prevButton.onclick = () => {
+  //         currentPage--;
+  //         displayPaginatedResults(
+  //           searchText?.value 
+  //             ? allFilesData.filter(file => 
+  //                 file?.FileName?.toLowerCase().includes(searchText.value.toLowerCase())
+  //               )
+  //             : allFilesData,
+  //           currentPage
+  //         );
+  //       };
+  //     }
+      
+  //     // Next Button
+  //     const nextButton = document.createElement("button");
+  //     nextButton.textContent = "Next";
+  //     nextButton.className = "pagination-container-buttons2";
+  //     nextButton.disabled = currentPage === totalPages;
+  
+  //     if (currentPage === totalPages) {
+  //       nextButton.style.opacity = "0.6";
+  //       nextButton.style.cursor = "not-allowed";
+  //       nextButton.onclick = null;
+  //     } else {
+  //       nextButton.onclick = () => {
+  //         currentPage++;
+  //         displayPaginatedResults(
+  //           searchText?.value 
+  //             ? allFilesData.filter(file => 
+  //                 file?.FileName?.toLowerCase().includes(searchText.value.toLowerCase())
+  //               )
+  //             : allFilesData,
+  //           currentPage
+  //         );
+  //       };
+  //     }
+      
+  //     // Page Info
+  //     const pageInfo = document.createElement("span");
+  //     pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+  //     pageInfo.style.margin = "0px 30px 0px 0px";
+  //     pageInfo.style.lineHeight = "30px";
+      
+  //     // Create container for buttons
+  //     const buttonsDiv = document.createElement("div");
+  //     buttonsDiv.className = "pagination-container-buttons";
+  //     buttonsDiv.appendChild(prevButton);
+  //     buttonsDiv.appendChild(nextButton);
+      
+  //     paginationDiv.appendChild(buttonsDiv);
+  //     paginationDiv.appendChild(pageInfo);
+  //     container.appendChild(paginationDiv);
+  //   }
+  // };
+  // upated myrequest 2 with pagination button corrected css
+  const myRequest2 = async (
+    event: React.MouseEvent<HTMLButtonElement> = null,
+    siteIdToUpdate: string = null,
+    searchText: any = null
+  ) => {
+    showSearchInput = true;
+    // Initialize pagination variables
+    let currentPage = 1;
+    const itemsPerPage = 12;
+    let totalPages = 1;
+    let allFilesData: any[] = [];
+    let filteredFilesData: any[] = [];
+    routeToDiffSideBar = "myRequest2";
+  
+    // Show loader
     const loader = document.getElementById('loader2');
     if (loader) loader.style.display = 'block';
   
-    // Existing setup code...
+    // UI Initialization
     entityclicktext = '';
     setdisplayuploadfileandcreatefolder(false);
     ismyrequordoclibforfilepreview = "myRequest2";
-    
-    // Clean URL and hide buttons
+  
+    // Clean URL if needed
     if (!cleanUrlInMyRequest) {
       const newUrl = `${window.location.origin}${window.location.pathname}`;
       window.history.pushState(null, '', newUrl);
     }
     cleanUrlInMyRequest = false;
   
+    // Hide create folder/file buttons
     const CreateFolder = document.getElementById("CreateFolder");
     const createFileButton = document.getElementById("createFileButton");
     const CreateRoot = document.getElementById("CreateFolder1");
-    
     if (CreateFolder) CreateFolder.style.display = 'none';
     if (createFileButton) createFileButton.style.display = 'none';
     if (CreateRoot) CreateRoot.style.display = 'none';
   
+    // Reset view
     setTimeout(() => {
       setlistorgriddata('');
     }, 100);
@@ -13492,252 +13821,264 @@ const ArgPoc = ({ props }: any) => {
     setShowMyfavButtons(false);
     setMyreqormyfav('Myrequest');
   
-    // UI setup...
+    // Show/hide view buttons
+    const hidegidvewlistviewbutton = document.getElementById("hidegidvewlistviewbutton");
+    if (hidegidvewlistviewbutton) hidegidvewlistviewbutton.style.display = 'flex';
+    
+    const hidegidvewlistviewbutton2 = document.getElementById("hidegidvewlistviewbutton2");
+    if (hidegidvewlistviewbutton2) hidegidvewlistviewbutton2.style.display = 'none';
+  
+    // Prevent default behavior if event exists
     if (event) {
       event.preventDefault();
       event.stopPropagation();
     }
   
+    // Clear container if not updating specific site
     const container = document.getElementById("files-container");
     if (siteIdToUpdate === null) {
       container.innerHTML = "";
     }
   
+    // Function to render cards
+    const renderCards = (files: any[]) => {
+      container.innerHTML = ""; // Clear container first
+      
+      files.forEach((file) => {
+        const card = document.createElement("div");
+        const fileExtension = file.FileName?.split(".").pop().toLowerCase();
+        const extensionHtml = createFileExtensionHtml(file.FileName);
+        
+        card.className = "card";
+        card.innerHTML = ` 
+          <div class="row"> 
+            <div class="col-md-2 pe-0"> 
+              <div class="IMGContainer">        
+                ${extensionHtml}
+              </div>
+            </div>
+            <div class="col-md-10"> 
+              <div class="CardTextContainer">
+                <p class="p1st" style="cursor: pointer;" title="${file.FileName}" onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">${file.FileName}</p>
+                <p class="p2nd" title="${file.CurrentFolderPath ? file.CurrentFolderPath.split('/').slice(3).join('/') : ''}">${file.DocumentLibraryName}</p>
+                <p class="p3rd ">${((file.FileSize as unknown as number) / (1024 * 1024)).toFixed(2)}MB</p>
+                <p class="filestatus myrequestp3rd">${file.Status ? file.Status : ''}</p>
+              </div>
+              <div class="three-dots" onclick="toggleMenu2('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}')">
+                <span>...</span>
+              </div>
+            </div> 
+          </div>
+        `;
+  
+        // Create and append menu
+        const menu = document.createElement("div");
+        menu.id = `menu-${file.FileUID}`;
+        menu.className = "popup-menu";
+        menu.innerHTML = `
+          <ul>
+            <li onclick="auditHistory('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}')">
+              <img src=${editIcon} alt="Edit"/> Audit History
+            </li>
+            <li onclick="shareFile('${file.FileUID}', '${file.SiteID}','${file.CurrentFolderPath}','${file.FileName}','MyRequest','${file.FileVersion}','${file.FileSize}','${file.Status}','${file.FilePreviewURL}','${file.DocumentLibraryName}')">
+              <img src=${ShareFile} alt="Share"/> Share
+            </li>
+            <li onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
+              <img src=${FilePreview} alt="Preview File"/> Preview File
+            </li>
+            <li onclick="Download('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
+              <img src=${downloadicon} alt="Download File"/> Download File
+            </li>
+            <li onclick="versionHistory('${file.FileName}', '${file.CurrentFolderPath}', '${file.SiteID}' ,'MyRequest','${file.FileUID}')">
+              <img src=${editIcon} alt="Version History"/> Version History
+            </li>
+            ${file.Status === "Rework" ? `
+              <li onclick="rework('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}','${file.CurrentFolderPath}/${file.FileName}')">
+                <img src=${editIcon} alt="Edit File"/> Edit File
+              </li>` : ''}
+          </ul>
+        `;
+        
+        card.appendChild(menu);
+        
+        // Set status color
+        const fileStatusElement = card.querySelector(".filestatus") as HTMLElement;
+        switch (file.Status) {
+          case "Approved":
+            fileStatusElement.style.backgroundColor = "#b5e7d3";
+            fileStatusElement.style.color = "#008751";
+            break;
+          case "Auto Approved":
+            fileStatusElement.style.backgroundColor = "#b5e7d3";
+            fileStatusElement.style.color = "#008751";
+            fileStatusElement.style.width = "96px";
+            break;
+          case "Rejected":
+            fileStatusElement.style.backgroundColor = "rgba(241, 85, 108, 0.1)";
+            fileStatusElement.style.color = "#f1556c";
+            break;
+          case "Rework":
+            fileStatusElement.style.backgroundColor = "#ffecc4";
+            fileStatusElement.style.color = "rgba(247, 184, 75)";
+            break;
+          case "Pending":
+            fileStatusElement.style.backgroundColor = "rgb(91 156 187 / 25%)";
+            fileStatusElement.style.color = "#000b56";
+            break;
+          default:
+            break;
+        }
+        
+        container.appendChild(card);
+      });
+    };
+  
+    // Function to display paginated items
+    const displayItems = (page: number) => {
+      currentPage = page;
+      const startIndex = (page - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      
+      // Use filtered data if search exists, otherwise use all data
+      const dataToDisplay = searchText ? filteredFilesData : allFilesData;
+      const paginatedItems = dataToDisplay.slice(startIndex, endIndex);
+      
+      renderCards(paginatedItems);
+      addPaginationControls(dataToDisplay.length);
+    };
+  
+    // Function to add pagination controls
+    const addPaginationControls = (totalItems: number) => {
+      // Remove existing pagination if any
+      const existingPagination = container.querySelector(".pagination-container");
+      if (existingPagination) {
+        container.removeChild(existingPagination);
+      }
+  
+      totalPages = Math.ceil(totalItems / itemsPerPage);
+      if (totalPages <= 1) return; // Don't show pagination if only one page
+  
+      const paginationContainer = document.createElement("div");
+      paginationContainer.className = "pagination-container";
+      
+      const buttonsContainer = document.createElement("div");
+      buttonsContainer.className = "pagination-container-buttons";
+      
+      // Previous button
+      const prevButton = document.createElement("button");
+      prevButton.textContent = "Previous";
+      prevButton.className = "pagination-container-buttons1";
+      if(prevButton){
+        prevButton.style.marginRight = "64px !important";
+      }
+      prevButton.disabled = currentPage === 1;
+      prevButton.onclick = () => {
+        if (currentPage > 1) {
+          displayItems(currentPage - 1);
+        }
+      };
+  
+      // Next button
+      const nextButton = document.createElement("button");
+      nextButton.textContent = "Next";
+      nextButton.className = "pagination-container-buttons2";
+      nextButton.disabled = currentPage === totalPages;
+      nextButton.onclick = () => {
+        if (currentPage < totalPages) {
+          displayItems(currentPage + 1);
+        }
+      };
+  
+      // Page info
+      const pageInfo = document.createElement("span");
+      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+      pageInfo.style.margin = "0px 30px 0px 0px";
+      pageInfo.style.lineHeight = "30px";
+  
+      // Add elements to container
+      buttonsContainer.appendChild(prevButton);
+      buttonsContainer.appendChild(nextButton);
+      paginationContainer.appendChild(buttonsContainer);
+      paginationContainer.appendChild(pageInfo);
+  
+      // Style buttons
+      const styleButton = (button: HTMLButtonElement) => {
+        button.style.border = "1px solid #ddd";
+        button.style.backgroundColor = "#f8f9fa";
+        button.style.borderRadius = "4px";
+        button.style.fontSize = "14px";
+        button.style.padding = "5px 10px";
+        button.style.margin = "0 5px";
+        button.style.cursor = "pointer";
+      };
+  
+      styleButton(prevButton);
+      styleButton(nextButton);
+  
+      // Disabled button styles
+      prevButton.style.opacity = prevButton.disabled ? "0.6" : "1";
+      prevButton.style.cursor = prevButton.disabled ? "not-allowed" : "pointer";
+      nextButton.style.opacity = nextButton.disabled ? "0.6" : "1";
+      nextButton.style.cursor = nextButton.disabled ? "not-allowed" : "pointer";
+  
+      container.appendChild(paginationContainer);
+    };
+  
     try {
+      // 1. Get all active sites
       const FilesItems = await sp.web.lists
         .getByTitle("MasterSiteURL")
         .items.select("Title", "SiteID", "FileMasterList", "Active")
         .filter(`Active eq 'Yes'`)();
   
-      // Clear existing data
-      allFilesData = [];
-  
-      for (const fileItem of FilesItems) {
-        if (fileItem.FileMasterList !== null) {
-          if (siteIdToUpdate && fileItem.SiteID !== siteIdToUpdate) {
-            continue;
+      // 2. Process all sites in parallel
+      const filesDataPromises = FilesItems
+        .filter(fileItem => fileItem.FileMasterList !== null)
+        .filter(fileItem => !siteIdToUpdate || fileItem.SiteID === siteIdToUpdate)
+        .map(async (fileItem) => {
+          try {
+            return await sp.web.lists
+              .getByTitle(`${fileItem.FileMasterList}`)
+              .items.select(
+                "ID", "FileName", "FileUID", "FileSize", "FileVersion", 
+                "Status", "SiteID", "CurrentFolderPath", "DocumentLibraryName", 
+                "SiteName", "FilePreviewURL", "IsDeleted", "MyRequest", "Modified"
+              )
+              .filter(`CurrentUser eq '${currentUserEmailRef.current}' and MyRequest eq 1`)
+              .orderBy("Modified", false)();
+          } catch (error) {
+            console.error(`Error fetching files for ${fileItem.FileMasterList}:`, error);
+            return [];
           }
+        });
   
-          const filesData = await sp.web.lists
-            .getByTitle(`${fileItem.FileMasterList}`)
-            .items.select("ID", "FileName", "FileUID", "FileSize", "FileVersion", "Status", "SiteID", "CurrentFolderPath", "DocumentLibraryName", "SiteName", "FilePreviewURL", "IsDeleted", "MyRequest", "Modified")
-            .filter(`CurrentUser eq '${currentUserEmailRef.current}' and MyRequest eq 1`)
-            .orderBy("Modified", false)();
+      // 3. Wait for all data to load
+      const allFilesArrays = await Promise.all(filesDataPromises);
+      
+      // 4. Flatten and filter data
+      allFilesData = allFilesArrays.flat().filter(file => file.IsDeleted === null);
   
-          allFilesData = [...allFilesData, ...filesData];
-        }
-      }
-  
-      // Apply search filter if searchText exists
-      let filteredData = allFilesData;
-      if (searchText?.value) {
-        filteredData = allFilesData.filter(file => 
-          file?.FileName?.toLowerCase().includes(searchText.value.toLowerCase())
+      // 5. Apply search filter if provided
+      if (searchText) {
+        filteredFilesData = allFilesData.filter(file => 
+          file?.FileName?.toLowerCase().includes(searchText?.value?.toLowerCase())
         );
         
-        if (filteredData.length === 0) {
+        if (filteredFilesData.length === 0) {
           fileNotFound(`No files match ${searchText.value}`);
+          return;
         }
       }
   
-      displayPaginatedResults(filteredData, currentPage);
+      // 6. Display first page with complete data
+      displayItems(1);
   
     } catch (error) {
       console.error("Error loading files:", error);
     } finally {
       if (loader) loader.style.display = 'none';
     }
-  
-    function displayPaginatedResults(data: any[], page: number) {
-      const container = document.getElementById("files-container");
-      if (!container) return;
-      
-      container.innerHTML = "";
-      
-      const startIndex = (page - 1) * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage;
-      const paginatedItems = data.slice(startIndex, endIndex);
-  
-      if (paginatedItems.length === 0) {
-        const noFileMessage = document.createElement("p");
-        noFileMessage.textContent = "No files found.";
-        noFileMessage.style.color = "black";
-        noFileMessage.style.fontSize = "16px";
-        noFileMessage.style.textAlign = "center";
-        container.appendChild(noFileMessage);
-        return;
-      }
-  
-      // Create cards for each item in the current page
-      paginatedItems.forEach(file => {
-        if (file.IsDeleted === null) {
-          const card = document.createElement("div");
-          const extensionHtml = createFileExtensionHtml(file.FileName);
-          
-          card.className = "card";
-          card.innerHTML = ` 
-            <div class="row"> 
-              <div class="col-md-2 pe-0"> 
-                <div class="IMGContainer">        
-                  ${extensionHtml}
-                </div>
-              </div>
-              <div class="col-md-10"> 
-                <div class="CardTextContainer">
-                  <p class="p1st" style="cursor: pointer;" title="${file.FileName}" onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">${file.FileName}</p>
-                  <p class="p2nd" title="${file.CurrentFolderPath ? file.CurrentFolderPath.split('/').slice(3).join('/') : ''}">${file.DocumentLibraryName}</p>
-                  <p class="p3rd ">${((file.FileSize as unknown as number) / (1024 * 1024)).toFixed(2)}MB</p>
-                  <p class="filestatus myrequestp3rd"> ${file.Status ? file.Status : ''}  </p>
-                </div>
-  
-                <div class="three-dots" onclick="toggleMenu2('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}')">
-                  <span>...</span>
-                </div>
-              </div> 
-            </div>
-          `;
-  
-          const menu = document.createElement("div");
-          menu.id = `menu-${file.FileUID}`;
-          menu.className = "popup-menu";
-          menu.innerHTML = `
-            <ul>
-              <li onclick="auditHistory('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}')">
-                <img src=${editIcon} alt="Edit"/>
-                Audit History
-              </li>
-              <li onclick="shareFile('${file.FileUID}', '${file.SiteID}','${file.CurrentFolderPath}','${file.FileName}','MyRequest','${file.FileVersion}','${file.FileSize}','${file.Status}','${file.FilePreviewURL}','${file.DocumentLibraryName}')">
-                <img src=${ShareFile} alt="Share"/> Share
-              </li>
-              <li onclick="PreviewFile('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
-                <img src=${FilePreview} alt="Preview File"/> Preview File
-              </li>
-              <li onclick="Download('${file.FileUID}','${file.SiteID}','${file.ID}' , '${file.FileMasterList}', '${file.FilePreviewURL}')">
-                <img src=${downloadicon} alt="Download File"/> Download File
-              </li>
-              <li onclick="versionHistory('${file.FileName}', '${file.CurrentFolderPath}', '${file.SiteID}' ,'MyRequest','${file.FileUID}')">
-                <img src=${editIcon} alt="Version History"/> Version History
-              </li>
-              ${file.Status === "Rework" ? `
-              <li onclick="rework('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}','${file.CurrentFolderPath}/${file.FileName}')">
-                <img src=${editIcon} alt="Edit File"/> Edit File
-              </li>` : ''}
-            </ul>
-          `;
-  
-          card.appendChild(menu);
-          
-          // Status styling
-          const fileStatusElement = card.querySelector(".filestatus") as HTMLElement;
-          switch (file.Status) {
-            case "Approved":
-            case "Auto Approved":
-              fileStatusElement.style.backgroundColor = "#b5e7d3";
-              fileStatusElement.style.color = "#008751";
-              if (file.Status === "Auto Approved") {
-                fileStatusElement.style.width = "96px";
-              }
-              break;
-            case "Rejected":
-              fileStatusElement.style.backgroundColor = "rgba(241, 85, 108, 0.1)";
-              fileStatusElement.style.color = "#f1556c";
-              break;
-            case "Rework":
-              fileStatusElement.style.backgroundColor = "#ffecc4";
-              fileStatusElement.style.color = "rgba(247, 184, 75)";
-              break;
-            case "Pending":
-              fileStatusElement.style.backgroundColor = "rgb(91 156 187 / 25%)";
-              fileStatusElement.style.color = "#000b56";
-              break;
-            default:
-              fileStatusElement.style.backgroundColor = "none";
-              fileStatusElement.style.color = "none";
-              break;
-          }
-          
-          container.appendChild(card);
-        }
-      });
-  
-      // Add pagination controls
-      addPaginationControls(data.length, currentPage);
-    }
-  
-    function addPaginationControls(totalItems: number, currentPage: number) {
-      const totalPages = Math.ceil(totalItems / itemsPerPage);
-      if (totalPages <= 1) return;
-      
-      const container = document.getElementById("files-container");
-      const paginationDiv = document.createElement("div");
-      paginationDiv.className = "pagination-container";
-      
-      // Previous Button
-      const prevButton = document.createElement("button");
-      prevButton.textContent = "Previous";
-      prevButton.className = "pagination-container-buttons1";
-      prevButton.disabled = currentPage === 1;
-  
-      if (currentPage === 1) {
-        prevButton.style.opacity = "0.6";
-        prevButton.style.cursor = "not-allowed";
-        prevButton.onclick = null;
-      } else {
-        prevButton.onclick = () => {
-          currentPage--;
-          displayPaginatedResults(
-            searchText?.value 
-              ? allFilesData.filter(file => 
-                  file?.FileName?.toLowerCase().includes(searchText.value.toLowerCase())
-                )
-              : allFilesData,
-            currentPage
-          );
-        };
-      }
-      
-      // Next Button
-      const nextButton = document.createElement("button");
-      nextButton.textContent = "Next";
-      nextButton.className = "pagination-container-buttons2";
-      nextButton.disabled = currentPage === totalPages;
-  
-      if (currentPage === totalPages) {
-        nextButton.style.opacity = "0.6";
-        nextButton.style.cursor = "not-allowed";
-        nextButton.onclick = null;
-      } else {
-        nextButton.onclick = () => {
-          currentPage++;
-          displayPaginatedResults(
-            searchText?.value 
-              ? allFilesData.filter(file => 
-                  file?.FileName?.toLowerCase().includes(searchText.value.toLowerCase())
-                )
-              : allFilesData,
-            currentPage
-          );
-        };
-      }
-      
-      // Page Info
-      const pageInfo = document.createElement("span");
-      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-      pageInfo.style.margin = "0px 30px 0px 0px";
-      pageInfo.style.lineHeight = "30px";
-      
-      // Create container for buttons
-      const buttonsDiv = document.createElement("div");
-      buttonsDiv.className = "pagination-container-buttons";
-      buttonsDiv.appendChild(prevButton);
-      buttonsDiv.appendChild(nextButton);
-      
-      paginationDiv.appendChild(buttonsDiv);
-      paginationDiv.appendChild(pageInfo);
-      container.appendChild(paginationDiv);
-    }
   };
-
   // Show Error Message on file not Found start
   const fileNotFound = (fileName: any) => {
     Swal.fire(`No results found`, `${fileName}`, "warning");
@@ -17470,6 +17811,14 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
                           className="search-input"
                           placeholder="Search files..."
                         />
+                        <a className="searcclear" onClick={clearSearch} >
+          <img
+          className="clearimg"
+            src={require("../assets/cross.png")}
+            alt="Clear"
+            
+          />
+        </a>
                         {/* <a className="searchbutton" onClick={RemoveSSearchFile}>
                           <img
                             src={require("../assets/cross.png")}
@@ -17477,6 +17826,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
                             className="search-icon"
                           />
                         </a> */}
+                        
                         <a className="searchbutton" onClick={searchFiles}>
                           <img
                             src={require("../assets/searchicon.png")}

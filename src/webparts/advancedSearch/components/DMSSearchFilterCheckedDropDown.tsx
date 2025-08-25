@@ -172,7 +172,7 @@ export const DMSSearchFilterCheckedDropDown: React.FC<IDMSEntitySearchDropDownsP
         <label className="form-label">Select Departments</label>
         <div className="d-flex">
            {/* <CheckedFilterDropDown options={dropdown1.map(d=>({label:d.text,value:d.text }))} onChange={handleAddDropdown2} ></CheckedFilterDropDown>  */}
-           <CheckedFilterDropDown options={dropdown1.map(d=>({label:d.text,value:d.key }))} onChange={handleAddDropdown2} ></CheckedFilterDropDown> 
+           <CheckedFilterDropDown options={dropdown1.map(d=>({label:d.text,value:d.key }))} onChange={handleAddDropdown2} Index={1} ></CheckedFilterDropDown> 
         </div>
       </div>
 
@@ -180,14 +180,14 @@ export const DMSSearchFilterCheckedDropDown: React.FC<IDMSEntitySearchDropDownsP
       <div className="mb-2 border-bottom">
         <label className="form-label">Select Document Libraries</label>
         <div className="d-flex">
-          <CheckedFilterDropDown options={dropdown2.map(d=>({label:d.data.SiteTitle+" - "+d.text,value:d.key }))} onChange={handleAddDropdown3}></CheckedFilterDropDown>         </div>
+          <CheckedFilterDropDown options={dropdown2.map(d=>({label:d.data.SiteTitle+" - "+d.text,value:d.key }))} onChange={handleAddDropdown3} Index={2} ></CheckedFilterDropDown>         </div>
       </div>
 
       {/* Third Dropdown */}
       <div className="mb-2">
         <label className="form-label">Select Fields</label>
         <div className="d-flex">
-          <CheckedFilterDropDown options={dropdown3.map(d=>({label:d.data+" - "+d.text,value:d.key }))} onChange={handleFieldSelect}></CheckedFilterDropDown> 
+          <CheckedFilterDropDown options={dropdown3.map(d=>({label:d.data+" - "+d.text,value:d.key }))} onChange={handleFieldSelect} Index={3}></CheckedFilterDropDown> 
         </div>
       </div>
     </div>

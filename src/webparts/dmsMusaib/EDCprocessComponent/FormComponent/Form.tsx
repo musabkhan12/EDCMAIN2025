@@ -229,7 +229,7 @@ const FormContext = ({ props }: any) => {
 
   const handleDepartmentChange = async (selectedOption: any) => {
     setselectUserDept(selectedOption);
-    event.preventDefault();
+    // event.preventDefault();
     let memo: number = 0;
     let memoId: number = 0;
     let listItems = [];
@@ -308,7 +308,7 @@ const FormContext = ({ props }: any) => {
 
   const handleDepartmentChangeTo = (selectedOption: any) => {
     setselectUserDeptTo(selectedOption);
-    event.preventDefault();
+    // event.preventDefault();
     const valuesOnly = selectedOption.map((option: any) => option.value);
     const consolidatedToUsers = Array.from(new Set(selectedOption
       .flatMap((option: any) => option.ToUsers || []))); // Flatten, handle undefined ToUsers, and remove duplicates
@@ -572,6 +572,8 @@ const FormContext = ({ props }: any) => {
     const setRolesValue = AllUserRoles.map((item: any) => ({
       value: item.Id,
       label: item.Role,
+      ToUsersTitle: item.ToUsers || [],
+      ToUsers: item.ToUsersId || [],
 
     }));
 
@@ -800,20 +802,35 @@ const FormContext = ({ props }: any) => {
         }) || []);
 
         setselectUserDeptTo(setBannerById[0].ToDepartments?.map((obj: any) => {
-          const filteredDept = setAllDept1.find((dept: any) => dept.value === obj.ID);
+
+          const filteredDept = setRolesValue.find((dept: any) => dept.value === obj.ID);
           if (filteredDept) {
             filteredDeptArrayTo.push(filteredDept);
           }
           return {
             value: obj.ID,
-            label: obj.Department,
-            Department: obj.Department,
-            DepartmentCode: obj.DepartmentCode,
+            label: obj.Role,
+            // Department: obj.Department,
+            // DepartmentCode: obj.DepartmentCode,
             ToUsers: filteredDept?.ToUsers || [],
-            CCUsers: filteredDept?.CCUsers || [],
+            // CCUsers: filteredDept?.CCUsers || [],
             ToUsersTitle: filteredDept?.ToUsersTitle || [],
-            CCUsersTitle: filteredDept?.CCUsersTitle || [],
+            // CCUsersTitle: filteredDept?.CCUsersTitle || [],
           };
+          // const filteredDept = setAllDept1.find((dept: any) => dept.value === obj.ID);
+          // if (filteredDept) {
+          //   filteredDeptArrayTo.push(filteredDept);
+          // }
+          // return {
+          //   value: obj.ID,
+          //   label: obj.Department,
+          //   Department: obj.Department,
+          //   DepartmentCode: obj.DepartmentCode,
+          //   ToUsers: filteredDept?.ToUsers || [],
+          //   CCUsers: filteredDept?.CCUsers || [],
+          //   ToUsersTitle: filteredDept?.ToUsersTitle || [],
+          //   CCUsersTitle: filteredDept?.CCUsersTitle || [],
+          // };
         }) || []);
         if (setBannerById[0].AttachmentId) {
           // setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId[0]));
@@ -882,18 +899,18 @@ const FormContext = ({ props }: any) => {
             auditorIds: year.AuditorId || null,
             auditor: year.Auditor ? { label: year.Auditor?.Role, value: year.Auditor?.ID } : null, // Convert single object
 
-            Jan: year.Jan,
-            Feb: year.Feb,
-            Mar: year.Mar,
-            Apr: year.Apr,
-            May: year.May,
-            Jun: year.Jun,
-            Jul: year.Jul,
-            Aug: year.Aug,
-            Sep: year.Sep,
-            Oct: year.Oct,
-            Nov: year.Nov,
-            Dec: year.Dec,
+            Jan: year.Jan||"",
+            Feb: year.Feb||"",
+            Mar: year.Mar||"",
+            Apr: year.Apr||"",
+            May: year.May||"",
+            Jun: year.Jun||"",
+            Jul: year.Jul||"",
+            Aug: year.Aug||"",
+            Sep: year.Sep||"",
+            Oct: year.Oct||"",
+            Nov: year.Nov||"",
+            Dec: year.Dec||"",
 
 
             custodianId: year.CustodianId || 0,
@@ -1251,18 +1268,22 @@ const FormContext = ({ props }: any) => {
       }
 
       // if (YearlyList.length > 0 && YearlyList.every((row: any) => row.procedure.trim() !== ""  && row.deptId != null && row.auditor != null && row.auditor.length != 0 && row.Shift !=null && row.ShiftId !=0 && row.custodianId !=0 ) == false) {
-      if (YearlyList.length > 0 && YearlyList.every((row: any) => row.procedure.trim() !== "" && row.deptId != null && row.auditor != null && row.auditor.length != 0 && row.custodianId != 0) == false) {
+      if (YearlyList.length > 0 && YearlyList.every((row: any) =>(row.locationId !== null && row.locationId !== 0) && (row.ShiftId !== null && row.ShiftId !== 0) && row.procedure.trim() !== "" && row.deptId != null && row.auditor != null && row.auditor.length != 0 && row.custodianId != 0 &&
+      ( row.Jan !== "" && row.Feb !== ""&&row.Mar !== ""&&row.Apr !== ""&& row.May !== ""&& row.Jun !== ""&&row.Jul !== ""&& row.Aug !== ""&& row.Sep !== ""&& row.Oct !== ""&& row.Nov !== ""&& row.Dec !== "")) == false) {
 
         // document.getElementById("date")?.classList.add("border-on-error");
         validRec = false;
 
         Array.from(document.getElementsByClassName("YearlylistclsErr")).forEach((element: Element) => {
-          if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "Select Department" || element.textContent?.trim() === "Select Custodian" || element.textContent?.trim() === "")) {
+          if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "Select Department" || element.textContent?.trim() === "Select Custodian" || element.textContent?.trim() === "Select Shift"|| element.textContent?.trim() === "Select Location"|| element.textContent?.trim() === "")) {
 
             // if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "Select Department" || element.textContent?.trim() === "Select Custodian" || element.textContent?.trim() === "Select Location"|| element.textContent?.trim() === "Select Shift" || element.textContent?.trim() === "")) {
             element.classList.add("border-on-error");
           }
           else if (element.tagName === "INPUT" && (element as HTMLInputElement).value.trim() === "") {
+            element.classList.add("border-on-error");
+          }
+          else if (element.tagName == "SELECT" && (element as HTMLInputElement).value.trim() == '') {
             element.classList.add("border-on-error");
           }
 
@@ -1724,20 +1745,20 @@ const FormContext = ({ props }: any) => {
               else {
                 // if (forwardToArr.every(row => row.role == 0 && row.approvers.length == 0 &&
                 if (
-                  year.Jan !== "No" ||
-                  year.Feb !== "No" ||
-                  year.Mar !== "No" ||
-                  year.Apr !== "No" ||
-                  year.May !== "No" ||
-                  year.Jun !== "No" ||
-                  year.Jul !== "No" ||
-                  year.Aug !== "No" ||
-                  year.Sep !== "No" ||
-                  year.Oct !== "No" ||
-                  year.Nov !== "No" ||
-                  year.Dec !== "No" ||
+                  year.Jan !== "" ||
+                  year.Feb !== "" ||
+                  year.Mar !== "" ||
+                  year.Apr !== "" ||
+                  year.May !== "" ||
+                  year.Jun !== "" ||
+                  year.Jul !== "" ||
+                  year.Aug !== "" ||
+                  year.Sep !== "" ||
+                  year.Oct !== "" ||
+                  year.Nov !== "" ||
+                  year.Dec !== "" ||
                   // year.area.trim() !== "" ||
-                  year.procedure.trim() !== "" || (year.ShiftId !== null && year.ShiftId !== 0) || (year.custodianId !== null && year.custodianId !== 0) || (year.locationId !== null && year.locationId !== 0) ||
+                  year.procedure.trim() !== ""|| (year.custodianId !== null && year.custodianId !== 0) || (year.locationId !== null && year.locationId !== 0) || (year.ShiftId !== null && year.ShiftId !== 0)  ||
                   (year.deptId !== null && year.deptId !== 0) || (year.auditorIds !== null && year.auditorIds !== 0) ||
                   (year.auditor && year.auditor !== 0 && year.auditor.length > 0)
                 ) {
@@ -2163,18 +2184,18 @@ const FormContext = ({ props }: any) => {
 
               // if ((year.section.trim() == "" && year.date.trim() == "" && year.startTime.trim() == "" && (year.auditor == null || year.auditor.length == 0)) == false) {
               if (
-                year.Jan !== "No" ||
-                year.Feb !== "No" ||
-                year.Mar !== "No" ||
-                year.Apr !== "No" ||
-                year.May !== "No" ||
-                year.Jun !== "No" ||
-                year.Jul !== "No" ||
-                year.Aug !== "No" ||
-                year.Sep !== "No" ||
-                year.Oct !== "No" ||
-                year.Nov !== "No" ||
-                year.Dec !== "No" ||
+                year.Jan !== "" ||
+                year.Feb !== "" ||
+                year.Mar !== "" ||
+                year.Apr !== "" ||
+                year.May !== "" ||
+                year.Jun !== "" ||
+                year.Jul !== "" ||
+                year.Aug !== "" ||
+                year.Sep !== "" ||
+                year.Oct !== "" ||
+                year.Nov !== "" ||
+                year.Dec !== "" ||
                 // year.area.trim() !== "" ||
                 year.procedure.trim() !== "" || (year.ShiftId !== null && year.ShiftId !== 0) || (year.custodianId !== null && year.custodianId !== 0) || (year.locationId !== null && year.locationId !== 0) ||
                 (year.deptId !== null && year.deptId !== 0) || (year.auditorIds !== null && year.auditorIds !== 0) ||
@@ -2595,18 +2616,18 @@ const FormContext = ({ props }: any) => {
               }
               else {
                 if (
-                  year.Jan !== "No" ||
-                  year.Feb !== "No" ||
-                  year.Mar !== "No" ||
-                  year.Apr !== "No" ||
-                  year.May !== "No" ||
-                  year.Jun !== "No" ||
-                  year.Jul !== "No" ||
-                  year.Aug !== "No" ||
-                  year.Sep !== "No" ||
-                  year.Oct !== "No" ||
-                  year.Nov !== "No" ||
-                  year.Dec !== "No" ||
+                  year.Jan !== "" ||
+                  year.Feb !== "" ||
+                  year.Mar !== "" ||
+                  year.Apr !== "" ||
+                  year.May !== "" ||
+                  year.Jun !== "" ||
+                  year.Jul !== "" ||
+                  year.Aug !== "" ||
+                  year.Sep !== "" ||
+                  year.Oct !== "" ||
+                  year.Nov !== "" ||
+                  year.Dec !== "" ||
 
                   year.procedure.trim() !== "" || (year.ShiftId !== null && year.ShiftId !== 0) || (year.custodianId !== null && year.custodianId !== 0) || (year.locationId !== null && year.locationId !== 0) ||
                   (year.deptId !== null && year.deptId !== 0) || (year.auditorIds !== null && year.auditorIds !== 0) ||
@@ -2950,18 +2971,18 @@ const FormContext = ({ props }: any) => {
 
               // if ((year.section.trim() == "" && year.date.trim() == "" && year.startTime.trim() == "" && (year.auditor == null || year.auditor.length == 0)) == false) {
               if (
-                year.Jan !== "No" ||
-                year.Feb !== "No" ||
-                year.Mar !== "No" ||
-                year.Apr !== "No" ||
-                year.May !== "No" ||
-                year.Jun !== "No" ||
-                year.Jul !== "No" ||
-                year.Aug !== "No" ||
-                year.Sep !== "No" ||
-                year.Oct !== "No" ||
-                year.Nov !== "No" ||
-                year.Dec !== "No" ||
+                year.Jan !== "" ||
+                year.Feb !== "" ||
+                year.Mar !== "" ||
+                year.Apr !== "" ||
+                year.May !== "" ||
+                year.Jun !== "" ||
+                year.Jul !== "" ||
+                year.Aug !== "" ||
+                year.Sep !== "" ||
+                year.Oct !== "" ||
+                year.Nov !== "" ||
+                year.Dec !== "" ||
 
                 year.procedure.trim() !== "" || (year.ShiftId !== null && year.ShiftId !== 0) || (year.custodianId !== null && year.custodianId !== 0) || (year.locationId !== null && year.locationId !== 0) ||
                 (year.deptId !== null && year.deptId !== 0) || (year.auditorIds !== null && year.auditorIds !== 0) ||
@@ -3182,7 +3203,7 @@ const FormContext = ({ props }: any) => {
     <thead>
                     <tr style="background-color: #f2f2f2;">
                         <th style="border: 1px solid #ddd; padding: 8px;">S.No</th>
-                        <th style="border: 1px solid #ddd; padding: 8px;">Department</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Designation</th>
                         <th style="border: 1px solid #ddd; padding: 8px;">Users</th>
                        
                     </tr>
@@ -3191,7 +3212,8 @@ const FormContext = ({ props }: any) => {
     // Generate table rows from AllDept data
     const tableRows = deptArr.map((item: any, index: number) => {
       // Extract and format data
-      const department = item.Department || '';
+      // const department = item.Department || '';
+      const department = item.label || '';
       const toUsers = item.ToUsersTitle?.map((user: any) => user.Title).join(", ") || '';
       // const ccUsers = item.CCUsersTitle?.map((user: any) => user.Title).join(", ") || '';
 
@@ -3310,7 +3332,7 @@ const FormContext = ({ props }: any) => {
   // };
 
   const handleYearlylistrow = (index: number, field: string, value: any) => {
-    event.preventDefault();
+    // event.preventDefault();
     let updatedRows;
     if (field == "auditor") {
       // const valuesOnly = value.map((option: any) => option.value);
@@ -3321,8 +3343,11 @@ const FormContext = ({ props }: any) => {
     }
     else if (field == "departmentOption") {
       // const valuesOnly = value.map((option: any) => option.value);
+      // updatedRows = YearlyList.map((row, i) =>
+      //   i === index ? { ...row, [field]: value ? value : null, deptId: value ? value.value : null, location: value?.Location || "", OtherDetails: "" } : row
+      // );
       updatedRows = YearlyList.map((row, i) =>
-        i === index ? { ...row, [field]: value ? value : null, deptId: value ? value.value : null, location: value?.Location || "", OtherDetails: "" } : row
+        i === index ? { ...row, [field]: value ? value : null, deptId: value ? value.value : null } : row
       );
 
     }
@@ -3360,7 +3385,7 @@ const FormContext = ({ props }: any) => {
 
 
   const [YearlyList, setYearlyList] = React.useState([
-    { id: 0, ShiftId: 0, Shift: null, locationId: 0, location: null, OtherDetails: "", custodianId: 0, custodian: null, deptId: 0, departmentOption: null, procedure: "", auditor: null, auditorIds: null, Jan: "No", Feb: "No", Mar: "No", Apr: "No", May: "No", Jun: "No", Jul: "No", Aug: "No", Sep: "No", Oct: "No", Nov: "No", Dec: "No" }
+    { id: 0, ShiftId: 0, Shift: null, locationId: 0, location: null, OtherDetails: "", custodianId: 0, custodian: null, deptId: 0, departmentOption: null, procedure: "", auditor: null, auditorIds: null, Jan: "", Feb: "", Mar: "", Apr: "", May: "", Jun: "", Jul: "", Aug: "", Sep: "", Oct: "", Nov: "", Dec: "" }
   ]);
 
   const [YearlyListEdit, setYearlyListEdit] = React.useState([]);
@@ -3371,7 +3396,7 @@ const FormContext = ({ props }: any) => {
   };
 
   const handleAddYearlyRow = () => {
-    setYearlyList([...YearlyList, { id: 0, ShiftId: 0, Shift: null, locationId: 0, location: null, OtherDetails: "", custodianId: 0, custodian: null, deptId: 0, departmentOption: null, procedure: "", auditor: null, auditorIds: null, Jan: "No", Feb: "No", Mar: "No", Apr: "No", May: "No", Jun: "No", Jul: "No", Aug: "No", Sep: "No", Oct: "No", Nov: "No", Dec: "No" }
+    setYearlyList([...YearlyList, { id: 0, ShiftId: 0, Shift: null, locationId: 0, location: null, OtherDetails: "", custodianId: 0, custodian: null, deptId: 0, departmentOption: null, procedure: "", auditor: null, auditorIds: null, Jan: "", Feb: "", Mar: "", Apr: "", May: "", Jun: "", Jul: "", Aug: "", Sep: "", Oct: "", Nov: "", Dec: "" }
     ]);
   };
 
@@ -3748,8 +3773,8 @@ const FormContext = ({ props }: any) => {
                                     <div title={selectUserDeptTo?.map((option: any) => option.label).join(", ") || "Select"}
                                     >
                                       <Select
-                                        // options={AllDept}
-                                        options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                        options={UserRoles.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                        // options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
 
                                         isDisabled={InputDisabled}
                                         value={selectUserDeptTo}
@@ -4525,7 +4550,7 @@ const FormContext = ({ props }: any) => {
                                               value={row.location}
                                               name="location"
                                               id="DeptID2"
-                                              className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""} ${(!ValidDraft) ? "border-on-error" : ""}`}
+                                              className={`newse YearlylistclsErr ${(!ValidSubmit) ? "border-on-error" : ""} ${(!ValidDraft) ? "border-on-error" : ""}`}
                                               onChange={(selectedOptions: any) => handleYearlylistrow(index, 'location', selectedOptions)}
                                               placeholder="Select Location"
 
@@ -4577,7 +4602,7 @@ const FormContext = ({ props }: any) => {
                                               value={row.Shift}
                                               name="Shift"
                                               id="Shift"
-                                              className={`newse  ${(!ValidSubmit) ? "border-on-error" : ""} ${(!ValidDraft) ? "border-on-error" : ""}`}
+                                              className={`newse YearlylistclsErr ${(!ValidSubmit) ? "border-on-error" : ""} ${(!ValidDraft) ? "border-on-error" : ""}`}
                                               onChange={(selectedOptions: any) => handleYearlylistrow(index, 'Shift', selectedOptions)}
                                               placeholder="Select Shift"
 
@@ -4616,11 +4641,12 @@ const FormContext = ({ props }: any) => {
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
-                                              value={row.Jan || "No"}
+                                              value={row.Jan || ""}
 
                                               onChange={(e) => handleYearlylistrow(index, 'Jan', e.target.value)}
                                               disabled={InputDisabled}
                                             >
+                                              <option value="">Select</option>
                                               <option value="Yes">Yes</option>
                                               <option value="No">No</option>
                                             </select>
@@ -4628,11 +4654,12 @@ const FormContext = ({ props }: any) => {
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
-                                              value={row.Feb || "No"}
+                                              value={row.Feb || ""}
 
                                               onChange={(e) => handleYearlylistrow(index, 'Feb', e.target.value)}
                                               disabled={InputDisabled}
                                             >
+                                              <option value="">Select</option>
                                               <option value="Yes">Yes</option>
                                               <option value="No">No</option>
                                             </select>
@@ -4640,10 +4667,11 @@ const FormContext = ({ props }: any) => {
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
-                                              value={row.Mar || "No"}
+                                              value={row.Mar || ""}
                                               onChange={(e) => handleYearlylistrow(index, 'Mar', e.target.value)}
                                               disabled={InputDisabled}
                                             >
+                                              <option value="">Select</option>
                                               <option value="Yes">Yes</option>
                                               <option value="No">No</option>
                                             </select>
@@ -4651,21 +4679,23 @@ const FormContext = ({ props }: any) => {
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
-                                              value={row.Apr || "No"}
+                                              value={row.Apr || ""}
                                               onChange={(e) => handleYearlylistrow(index, 'Apr', e.target.value)}
                                               disabled={InputDisabled}
                                             >
+                                              <option value="">Select</option>
                                               <option value="Yes">Yes</option>
                                               <option value="No">No</option>
                                             </select>
                                           </td>
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
-                                              className="form-select "
-                                              value={row.May || "No"}
+                                              className="form-select YearlylistclsErr"
+                                              value={row.May || ""}
                                               onChange={(e) => handleYearlylistrow(index, 'May', e.target.value)}
                                               disabled={InputDisabled}
                                             >
+                                              <option value="">Select</option>
                                               <option value="Yes">Yes</option>
                                               <option value="No">No</option>
                                             </select>
@@ -4673,10 +4703,11 @@ const FormContext = ({ props }: any) => {
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
-                                              value={row.Jun || "No"}
+                                              value={row.Jun || ""}
                                               onChange={(e) => handleYearlylistrow(index, 'Jun', e.target.value)}
                                               disabled={InputDisabled}
                                             >
+                                              <option value="">Select</option>
                                               <option value="Yes">Yes</option>
                                               <option value="No">No</option>
                                             </select>
@@ -4684,32 +4715,35 @@ const FormContext = ({ props }: any) => {
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
-                                              value={row.Jul || "No"}
+                                              value={row.Jul || ""}
                                               onChange={(e) => handleYearlylistrow(index, 'Jul', e.target.value)}
                                               disabled={InputDisabled}
                                             >
+                                              <option value="">Select</option>
                                               <option value="Yes">Yes</option>
                                               <option value="No">No</option>
                                             </select>
                                           </td>
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
-                                              className="form-select "
-                                              value={row.Aug || "No"}
+                                              className="form-select YearlylistclsErr"
+                                              value={row.Aug || ""}
                                               onChange={(e) => handleYearlylistrow(index, 'Aug', e.target.value)}
                                               disabled={InputDisabled}
                                             >
+                                              <option value="">Select</option>
                                               <option value="Yes">Yes</option>
                                               <option value="No">No</option>
                                             </select>
                                           </td>
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
-                                              className="form-select "
-                                              value={row.Sep || "No"}
+                                              className="form-select YearlylistclsErr"
+                                              value={row.Sep || ""}
                                               onChange={(e) => handleYearlylistrow(index, 'Sep', e.target.value)}
                                               disabled={InputDisabled}
                                             >
+                                              <option value="">Select</option>
                                               <option value="Yes">Yes</option>
                                               <option value="No">No</option>
                                             </select>
@@ -4717,10 +4751,11 @@ const FormContext = ({ props }: any) => {
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
-                                              value={row.Oct || "No"}
+                                              value={row.Oct || ""}
                                               onChange={(e) => handleYearlylistrow(index, 'Oct', e.target.value)}
                                               disabled={InputDisabled}
                                             >
+                                              <option value="">Select</option>
                                               <option value="Yes">Yes</option>
                                               <option value="No">No</option>
                                             </select>
@@ -4728,10 +4763,11 @@ const FormContext = ({ props }: any) => {
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
-                                              value={row.Nov || "No"}
+                                              value={row.Nov || ""}
                                               onChange={(e) => handleYearlylistrow(index, 'Nov', e.target.value)}
                                               disabled={InputDisabled}
                                             >
+                                              <option value="">Select</option>
                                               <option value="Yes">Yes</option>
                                               <option value="No">No</option>
                                             </select>
@@ -4739,10 +4775,11 @@ const FormContext = ({ props }: any) => {
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
                                               className="form-select YearlylistclsErr"
-                                              value={row.Dec || "No"}
+                                              value={row.Dec || ""}
                                               onChange={(e) => handleYearlylistrow(index, 'Dec', e.target.value)}
                                               disabled={InputDisabled}
                                             >
+                                              <option value="">Select</option>
                                               <option value="Yes">Yes</option>
                                               <option value="No">No</option>
                                             </select>
@@ -5042,7 +5079,7 @@ const FormContext = ({ props }: any) => {
 
 
 
-                            {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && editID.ApprovalType !== "Approval")) &&
+                            {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && (editID.ApprovalType !== "Approval"|| editID.IsInitiator == "Yes" || editID.Status != "Pending"))) &&
                               <div className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                 className='me-1' alt="x" /> Cancel</div>
                             }

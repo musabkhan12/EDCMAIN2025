@@ -5,7 +5,7 @@ export const getAllDocumentCode = async (_sp) => {
   await _sp.web.lists.getByTitle("ChangeRequestList").items
     .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title,PreparedBy/ID,PreparedBy/Title")
     .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,PreparedBy")
-    .filter("Status eq 'Approved'")
+    .filter("Status eq 'Approved' and SignedDocs eq 'Yes'")
     .orderBy("ID", false).top(5000)() // Order by Modified descending to get latest first
     .then((res) => {
       console.log("eeee", res);
@@ -41,6 +41,50 @@ export const getAllDocumentCode = async (_sp) => {
 
       const uniqueLatestItems = Object.values(latestByDocumentCode);
       console.log("Filtered latest by DocumentCode: ", uniqueLatestItems);
+      console.log("arrarr fetching data: ", arr);
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  return arr;
+};
+// export const getchangerequestnotes = async (_sp) => {
+//   let arr = [];
+
+//   await _sp.web.lists.getByTitle("ChangeRequestNotes").items
+//     .select("*")
+//     .expand("")
+//     .filter("IsActive eq 'Yes'")
+//     .orderBy("Modified", false).top(5000)() // Order by Modified descending to get latest first
+//     .then((res) => {
+//       console.log("eeee", res);
+//       debugger
+//       if (res.length > 0) {
+//         arr = res;
+//       }
+//     })
+//     .catch((error) => {
+//       console.log("Error fetching data: ", error);
+//     });
+//   return arr;
+// };
+export const CheckifDocumentisApproved = async (_sp, DocCode) => {
+  let arr = true;
+  debugger
+  await _sp.web.lists.getByTitle("ChangeRequestList").items
+    .select("*,Author/ID,Author/Title,RequestType/ID,RequestType/RequestType")
+    .expand("Author,RequestType")
+    .filter(`DocumentCode eq '${DocCode}' and RequestType/RequestType eq 'Change in Existing Documented Information' and (Status eq 'Save as draft' or Status eq 'Pending' or Status eq 'Rework' or (Status eq 'Approved' and SignedDocs eq 'No'))`)
+    .orderBy("ID", false).top(5000)() // Order by Modified descending to get latest first
+    .then((res) => {
+      console.log("eeee", res);
+      debugger
+
+      if (res.length > 0) {
+        arr = false;
+      } else {
+        arr = true;
+      }
       console.log("arrarr fetching data: ", arr);
     })
     .catch((error) => {
@@ -86,6 +130,32 @@ export const getchangerequesttemp = async (_sp) => {
     });
   return arr;
 };
+export const getChangeRequestTypeMaster = async (_sp, RequestType) => {
+  let arr = [];
+
+  await _sp.web.lists.getByTitle("ChangeRequestTypeMaster").items
+    .select("*","ID", "ChangeRequestType", "RequestType/RequestType", "RequestType/ID")
+    .expand("RequestType")
+    .filter(`RequestType/RequestType eq '${RequestType}'`)
+    .orderBy("ID", false)
+    .top(5000)()
+    .then((res) => {
+      if (res.length > 0) {
+        arr = res.map((item) => ({
+          id: item.ID,
+          name: item.ChangeRequestType,
+          requestType: item.RequestType?.RequestType,
+        }));
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching data: ", error);
+    });
+
+  return arr;
+};
+
+
 export const getDocumentCodeselected = async (_sp, locId, custoId, doctypeId) => {
   let arr = [];
 
@@ -172,7 +242,7 @@ export const getDocumentCodeselectedApproved = async (_sp, doccode, locId, custo
 export const getAllDepartment = async (_sp) => {
   let arr = [];
 
-  await _sp.web.lists.getByTitle("DepartmentMasterList").items
+  await _sp.web.lists.getByTitle("ProcessDepartmentMasterList").items
     .select("*,Author/ID,Author/Title")
     .expand("Author")
     .orderBy("Modified", false)
@@ -655,6 +725,40 @@ export const getallProcessApprovalitemsLevel = async (_sp, id) => {
   }
   return resultArr;
 };
+//
+export const getDelegateduser = async (_sp, ApproverId) => {
+  debugger
+  let resultArr;
+  let newItem = "";
+  const todayISO = new Date().toISOString().split('T')[0];
+  const currentUser = await _sp.web.currentUser();
+  let isDelegated = false;
+  try {
+
+    const newitemnew = await _sp.web.lists.getByTitle('ARGDelegateList').items
+      .select("*,Author/ID,Author/Title,ActingFor/Id,ActingFor/Title,ActingFor/EMail,DelegateName/Id,DelegateName/Title,DelegateName/EMail")
+      .expand("Author,ActingFor,DelegateName")
+      .filter(`DelegateNameId eq ${ApproverId} and ActingForId eq ${currentUser.Id} and StartDate le datetime'${todayISO}T00:00:00Z' and EndDate ge datetime'${todayISO}T00:00:00Z'`)
+      ()
+      .then(delegates => {
+        if (delegates.length > 0) {
+          newItem = delegates[0]?.ActingFor;
+          isDelegated = true;
+          arr = res;
+        }
+      });
+    console.log("Actingforrr", newitemnew);
+
+    resultArr = newitemnew
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    resultArr = null
+  }
+  return isDelegated;
+};
+//////////
 export const updateApprovalItem = async (itemData, _sp, id) => {
   let resultArr = []
   try {
@@ -764,21 +868,32 @@ export const GetQueryString = (string) =>
 
 export const getApprovalByID = async (_sp, id, processName) => {
 
-  let arr = []
-  let arrs = []
-  let bannerimg = []
+  let arr = [];
+  let arrs = [];
+  let bannerimg = [];
+  let isDelegated = false;
+  const todayISO = new Date().toISOString().split('T')[0];
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("ProcessApprovalList").items.getById(id)
     .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
-    .then((res) => {
+    .then(async (res) => {
       console.log(res, 'ghghghghgh let arrs=[]');
       if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName) {
         arr = res;
+      } else {
+        const newitemnew = await _sp.web.lists.getByTitle('ARGDelegateList').items
+          .select("*,Author/ID,Author/Title,ActingFor/Id,ActingFor/Title,ActingFor/EMail,DelegateName/Id,DelegateName/Title,DelegateName/EMail")
+          .expand("Author,ActingFor,DelegateName")
+          .filter(`DelegateNameId eq ${res.AssignedTo.Id} and ActingForId eq ${currentUser.Id} and StartDate le datetime'${todayISO}T00:00:00Z' and EndDate ge datetime'${todayISO}T00:00:00Z'`)
+          ()
+          .then(delegates => {
+            if (delegates.length > 0) {
+              //newItem = delegates[0]?.ActingFor;
+              isDelegated = true;
+              arr = res;
+            }
+          });
       }
-      // .filter(`AssignedTo/Id eq ${currentUser.Id} and ProcessName eq ${processName}`)
-
-      //  arr.push(res)
-
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
@@ -817,17 +932,35 @@ export const getApprovalByID2 = async (_sp, id, processName) => {
 
   let arr;
   let arrs = []
-  let bannerimg = []
+  let bannerimg = [];
+  let isDelegated = false;
+  const todayISO = new Date().toISOString().split('T')[0];
   const currentUser = await _sp.web.currentUser();
   await _sp.web.lists.getByTitle("ProcessApprovalList").items.getById(id)
     .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
-    .then((res) => {
+    .then(async (res) => {
       console.log(res, ' let arrs=[]');
       if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 && res.CurrentUserRole !== "OES") {
         arr = false;
       }
       else {
-        arr = true;
+        const newitemnew = await _sp.web.lists.getByTitle('ARGDelegateList').items
+          .select("ActingFor/Id,ActingFor/Title,ActingFor/EMail,DelegateName/Id,DelegateName/Title,DelegateName/EMail,StartDate,EndDate")
+          .expand("ActingFor,DelegateName")
+          .filter(`DelegateNameId eq ${res.AssignedTo.Id} and ActingForId eq ${currentUser.Id} and StartDate le datetime'${todayISO}T00:00:00Z' and EndDate ge datetime'${todayISO}T00:00:00Z'`)
+          ()
+          .then(delegates => {
+            if (delegates.length > 0) {
+              // newItem = delegates[0]?.ActingFor;
+              isDelegated = true;
+            }
+          });
+        if (isDelegated) {
+          arr = false;
+        } else {
+          arr = true;
+        }
+
       }
       // .filter(`AssignedTo/Id eq ${currentUser.Id} and ProcessName eq ${processName}`)
 
@@ -1065,7 +1198,9 @@ export const getDocumentLinkByID = async (_sp, itemId, listid) => {
     // 2. Get from ChangeRequestDocs by itemId
     const changeRequestDoc = await _sp.web.lists.getByTitle("ChangeRequestDocs").items
       .getById(itemId)
-      .select("*,FileRef,FileLeafRef")();
+      //.select("*,FileRef,FileLeafRef")
+      .select("Title,FileName,Created,FileLeafRef,FileRef,ID")
+      ();
 
     if (changeRequestDoc) {
       arrs.push(changeRequestDoc); // Add regular doc
@@ -1098,7 +1233,9 @@ export const getDocumentLinkByIDarr = async (_sp, itemId, listid) => {
         reqId = res
       } else {
         await _sp.web.lists.getByTitle("ChangeRequestDocs").items.getById(itemId)
-          .select("*,FileRef, FileLeafRef")()
+          //.select("*,FileRef, FileLeafRef")
+          .select("*,Title,FileName,Created,FileLeafRef,FileRef,ID")
+          ()
           .then((res) => {
             console.log(res, 'file leatttttt arrs=[]');
 
@@ -1119,7 +1256,7 @@ export const getTemplatelink = async (_sp) => {
 
   let reqId = [];
   await _sp.web.lists.getByTitle("ChangeRequestTemplate").items
-    .select("*,FileRef, FileLeafRef")()
+    .select("*,FileRef, FileLeafRef").orderBy("SNo", true)()
     .then((res) => {
       console.log(res, 'file let arrs=[]');
 

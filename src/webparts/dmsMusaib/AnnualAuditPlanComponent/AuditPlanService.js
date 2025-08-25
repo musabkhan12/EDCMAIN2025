@@ -5,7 +5,8 @@ export const getDataRoles = async (_sp) => {
     let arrs = []
     let bannerimg = []
     await _sp.web.lists.getByTitle("ApproverRoleMaster").items
-    .select("*")()
+    // .select("*")()
+    .select("*,ToUsers/Title").expand("ToUsers").filter("IsActive eq 'Yes'")()
       .then((res) => {
         console.log(res, ' let arrs=[]');
        
@@ -27,7 +28,9 @@ export const getDataRoles = async (_sp) => {
     let bannerimg = []
     const currentUser = await _sp.web.currentUser();
     await _sp.web.lists.getByTitle("AnnualAuditPlanList").items.getById(id)
-    .select("*,RecommendationType/RecommendationTypeValue,Author/ID,Author/Title,AuditPlanType/AuditPlanType,AuditPlanType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Department,ToDepartments/DepartmentCode").expand("RecommendationType,ToDepartments,CCDepartments,Author,AuditPlanType,To,Cc,From")()
+    .select("*,RecommendationType/RecommendationTypeValue,Author/ID,Author/Title,AuditPlanType/AuditPlanType,AuditPlanType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Role").expand("RecommendationType,ToDepartments,CCDepartments,Author,AuditPlanType,To,Cc,From")()
+
+    // .select("*,RecommendationType/RecommendationTypeValue,Author/ID,Author/Title,AuditPlanType/AuditPlanType,AuditPlanType/ID,To/ID,To/Title,Cc/ID,Cc/Title,From/ID,From/Title,From/EMail,CCDepartments/ID,CCDepartments/Department,CCDepartments/DepartmentCode,ToDepartments/ID,ToDepartments/Department,ToDepartments/DepartmentCode").expand("RecommendationType,ToDepartments,CCDepartments,Author,AuditPlanType,To,Cc,From")()
       .then((res) => {
        
         // const options = res.map((item: any) => ({
@@ -375,13 +378,13 @@ export const getApprovalByID = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`ActingFor/ID eq '${res.AssignedTo.Id}' and DelegateName/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then((result) => {
           if (result.length > 0) {
             // If the current user is a delegate, check if they are acting for the assigned user
             // and if the process name matches
-            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].ActingForId) && res.ProcessName === processName) {
+            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].DelegateNameId) && res.ProcessName === processName) {
               arr = res;
             }
             // if (res && (res.AssignedTo.Id == currentUser.Id || res.ActingFor.Id == currentUser.Id) && res.ProcessName === processName) {
@@ -459,19 +462,22 @@ export const getApprovalByID = async (_sp, id, processName) => {
       // else{
       //   arr = true;
       // }
+
+
+      // *********************//////
       const today = new Date().toISOString();
       // const today = new Date().toISOString().split('T')[0];
       await _sp.web.lists.getByTitle("ARGDelegateList")
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`ActingFor/ID eq '${res.AssignedTo.Id}' and  ActingFor/ID eq '${res.AssignedTo.Id}' and DelegateName/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then((result) => {
           if (result.length > 0) {
             // If the current user is a delegate, check if they are acting for the assigned user
             // and if the process name matches
-            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].ActingForId) && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].DelegateNameId) && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
               arr = false;
             }
             //  if (res && (res.AssignedTo.Id == currentUser.Id || res.ActingFor.Id == currentUser.Id) && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
@@ -491,6 +497,8 @@ export const getApprovalByID = async (_sp, id, processName) => {
         .catch((error) => {
           console.log("Error fetching data: ", error);
         });
+
+        // *********************//////
 
 
     })
@@ -587,12 +595,12 @@ export const getDraftApprovalByID = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`ActingFor/ID eq '${res.AssignedTo.Id}' and DelegateName/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then(async (result) => {
           if (result.length > 0) {
 
-            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].ActingForId) && res.ProcessName === processName && (res?.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].DelegateNameId) && res.ProcessName === processName && (res?.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
               arr = res;
             }
 
