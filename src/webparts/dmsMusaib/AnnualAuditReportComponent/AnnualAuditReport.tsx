@@ -23,14 +23,14 @@ import { FormSubmissionMode } from '../../../Shared/Interfaces';
 import { decryptId } from '../../../APISearvice/CryptoService';
 import { WorkflowAction } from '../../../CustomJSComponents/WorkflowAction/WorkflowAction';
 import { WorkflowAuditHistory } from '../../../CustomJSComponents/WorkflowAuditHistory/WorkflowAuditHistory';
-import { CONTENTTYPE_AuditReport, CONTENTTYPE_AuditReportNew, CONTENTTYPE_AuditReportTemp, LIST_TITLE_AuditReport, SITE_URL, Tenant_URL } from '../../../Shared/Constants';
+import { CONTENTTYPE_AuditReport, CONTENTTYPE_AuditReportNew, CONTENTTYPE_AuditReportTemp, CONTENTTYPE_AuditReportTemplate, LIST_TITLE_AuditReport, SITE_URL, Tenant_URL } from '../../../Shared/Constants';
 import { PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
-import { addAllProcessItem, addItem, addItem2, addItemNC, getAllApprovedAuditplan, getAllAuditType, getAllDepartment, getAllDepartment1, getAllProcessData, getAllSubDepartment, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDocumentLinkByIDPlan, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDocAuditplan, getGeneratedTemplateDocCR, getItemByID, getItemByID2, getItemfromChecklistMaster, getItemsAuditReportNC, getItemsAuditReportObs, getLatestChangeRequestTemplateType, getListNameID, getNCNumberbyID, UpdateAllProcessItem, updateApprovalItem, updateDigitalsign, updateItem, updateItem2, updateItemNC, uploadAllFiles } from './AuditReportService';
+import { addAllProcessItem, addItem, addItem2, addItemNC, getAllApprovedAuditplan, getAllAuditType, getAllDepartment, getAllDepartment1, getAllProcessData, getAllSubDepartment, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDocumentLinkByIDPlan, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDocAuditplan, getGeneratedTemplateDocCR, getItemByID, getItemByID2, getItemfromChecklistMaster, getItemsAuditReportNC, getItemsAuditReportObs, getLatestChangeRequestTemplateType, getLatestChangeRequestTemplateTypeAuditReport, getListNameID, getNCNumberbyID, UpdateAllProcessItem, updateApprovalItem, updateDigitalsign, updateItem, updateItem2, updateItemNC, uploadAllFiles } from './AuditReportService';
 import { TextField } from '@fluentui/react';
 import { DatePicker, isMac } from 'office-ui-fabric-react';
 import moment from 'moment';
@@ -226,6 +226,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
         documentCode: "",
         issueNo: "",
         revisionNo: "",
+        ACDocumentCode: "",
+        ACIssueNumber: "",
+        ACRevisionNumber: "",
+        ACIssueDate: null,
+        ACRevisionDate: null,
         Status: "",
         submitStatus: "",
         revisionDate: null,
@@ -288,7 +293,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     };
     const handleDepartmentChange = async (selectedOption: any) => {
         debugger
-        setFormData({ ...formData, reportCode: "" });
+        setFormData({ ...formData, reportCode: "" ,subdeptId:0});
         setselectUsersubDept([]);
         setSequencesLoaded(false);
         setIsDepartmentReady(false); // Prevent effects during update
@@ -401,7 +406,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
             reportcode = selectedOption.subdepartmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
         }
         setreportCode(reportcode);
-        setFormData({ ...formData, subdeptId: selectedOption?.value, reportCode: reportcode });
+        setFormData({ ...formData, subdeptId: selectedOption != null ? selectedOption?.value : null, reportCode: reportcode });
     };
     const handleShiftChange = async (selectedOption: any) => {
         setselectshift(selectedOption);
@@ -877,15 +882,29 @@ const AnnualAuditReportContext = ({ props }: any) => {
             console.log("template", template);
             setFormData(prevData => ({
                 ...prevData,
-                documentCode: template.DocumentCode || "",
-                revisionNo: template.RevisionNumber,
-                issueNo: template.IssueNumber,
-                referenceNo: template.ReferenceNumber || "",
-                revisionDate: template.RevisionDate == null ? null : new Date(template.RevisionDate).toLocaleDateString("en-CA"),
-                issueDate: template.IssueDate == null ? null : new Date(template.IssueDate).toLocaleDateString("en-CA"),
+                ACDocumentCode: template.DocumentCode || "",
+                ACRevisionNumber: template.RevisionNumber,
+                ACIssueNumber: template.IssueNumber,
+                //referenceNo: template.ReferenceNumber || "",
+                ACRevisionDate: template.RevisionDate == null ? null : new Date(template.RevisionDate).toLocaleDateString("en-CA"),
+                ACIssueDate: template.IssueDate == null ? null : new Date(template.IssueDate).toLocaleDateString("en-CA"),
             }));
         }
-
+        let ChangeRequestTemplateTypeAuditReport = await getLatestChangeRequestTemplateTypeAuditReport(sp, CONTENTTYPE_AuditReportTemplate);
+        debugger
+        if (ChangeRequestTemplateTypeAuditReport.length > 0) {
+            const templateauditreport = ChangeRequestTemplateTypeAuditReport[0];
+            console.log("templateauditreport", templateauditreport);
+            setFormData(prevData => ({
+                ...prevData,
+                documentCode: templateauditreport.DocumentCode || "",
+                revisionNo: templateauditreport.RevisionNumber,
+                issueNo: templateauditreport.IssueNumber,
+                referenceNo: templateauditreport.ReferenceNumber || "",
+                revisionDate: templateauditreport.RevisionDate == null ? null : new Date(templateauditreport.RevisionDate).toLocaleDateString("en-CA"),
+                issueDate: templateauditreport.IssueDate == null ? null : new Date(templateauditreport.IssueDate).toLocaleDateString("en-CA"),
+            }));
+        }
         // const setAuditreportNC = await getItemsAuditReportNC(sp);
         // const setAuditreportObs = await getItemsAuditReportObs(sp);
 
@@ -1097,7 +1116,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 console.log(" setBannerById[0].AttachmentId if", setBannerById[0], selectedauditplan)
                 if (setBannerById[0].AttachmentId) {
                     // setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId));
-                    let arrn = await getDocumentLinkByID(sp, setBannerById[0].AttachmentId);
+                    let arrn = await getDocumentLinkByID(sp, setBannerById[0].AttachmentId, formitemid);
                     setFilesArr([...FilesArr, ...arrn]);
                     setFilesArr1([...FilesArr1, ...arrn]);
 
@@ -1229,7 +1248,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
         }
     }
-    
+
     const onSelectsharewith = (selectedOptions: any) => {
         // const newSelections = selectedOptions || [];
         // const allOptions = [...sharewithusers, ...newSelections];
@@ -1585,7 +1604,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 setapprovedauditplanerr(true);
                 valid = false;
             }
-            if (!subdeptId && !selectUsersubDept) {
+            if (AllsubDept.length > 0 && (!subdeptId || (selectUsersubDept && selectUsersubDept?.length == 0) || !selectUsersubDept)) {
                 setsubdepartmenterr(true);
                 //Swal.fire('Error', 'Title is required!', 'error');
                 valid = false;
@@ -1595,11 +1614,17 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 //Swal.fire('Error', 'Title is required!', 'error');
                 valid = false;
             }
-            if ((fromdeptId == 0 || fromdeptId == undefined) && (!currentUserDept || currentUserDept.length == 0)) {
+            if (!deptId || (selectUserDept && selectUserDept?.length == 0) || !selectUserDept) {
+                setdepartmenterr(true);
+                //Swal.fire('Error', 'Type is required!', 'error');
+                validraft = false;
+            }
+            if ((fromdeptId == 0 || fromdeptId == undefined) && (!currentUserDept || (currentUserDept && currentUserDept.length == 0))) {
                 setfromdepartmenterr(true);
                 //Swal.fire('Error', 'Title is required!', 'error');
                 valid = false;
             }
+
             if (!FilesArr.length) {
                 setattachmenterr(true);
                 //Swal.fire('Error', 'Category is required!', 'error');
@@ -1745,12 +1770,17 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 setapprovedauditplanerr(true);
                 validraft = false;
             }
-            if (!subdeptId && !selectUsersubDept) {
+            if (AllsubDept.length > 0 && (!subdeptId || (selectUsersubDept && selectUsersubDept?.length == 0) || !selectUsersubDept)) {
                 setsubdepartmenterr(true);
                 //Swal.fire('Error', 'Title is required!', 'error');
                 valid = false;
             }
             if (!deptId && !selectUserDept) {
+                setdepartmenterr(true);
+                //Swal.fire('Error', 'Type is required!', 'error');
+                validraft = false;
+            }
+            if (!deptId || (selectUserDept && selectUserDept?.length == 0) || !selectUserDept) {
                 setdepartmenterr(true);
                 //Swal.fire('Error', 'Type is required!', 'error');
                 validraft = false;
@@ -1865,7 +1895,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         //     NCNo: maxNCNo,
         //     ObservationNo: maxObsNo,
         // }));
-
+        console.log("ffformdatasubmit", formData);
         if (await validateForm(FormSubmissionMode.SUBMIT)) {
             if (editForm) {
                 Swal.fire({
@@ -1971,10 +2001,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             // MemoSerialNumber:,
                             // IssueNumber:,
                             // RevisionNumber:,
-                            RequesterNameId: formData.RequesterNameId,
+                            RequesterNameId: currentUser.Id,
                             RequesterDesignation: formData.RequesterDesignation,
                             RequestDate: formData.RequestDate != "" ? new Date(formData.RequestDate).toISOString() : new Date().toISOString(),
-                            ReportCode: formData.reportCode,
+                            ReportCode: reportCode,
                             NCNumber: checkboxValues["FailureofIntentNonconformity"] ||
                                 checkboxValues["FailureofImplementation"] ||
                                 checkboxValues["FailureofEffectiveness"] ? maxNCNo : "",
@@ -2000,6 +2030,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             RevisionDate: formData.revisionDate == null ? null : new Date(formData.revisionDate).toLocaleDateString("en-CA"),
                             IssueDate: formData.issueDate == null ? null : new Date(formData.issueDate).toLocaleDateString("en-CA"),
                             //DocumentLink: "",
+                            ACDocumentCode: formData.ACDocumentCode,
+                            ACIssueNumber: Number(formData.ACIssueNumber),
+                            ACRevisionNumber: Number(formData.ACRevisionNumber),
+                            ACRevisionDate: formData.ACRevisionDate == null ? null : new Date(formData.ACRevisionDate).toLocaleDateString("en-CA"),
+                            ACIssueDate: formData.ACIssueDate == null ? null : new Date(formData.ACIssueDate).toLocaleDateString("en-CA"),
+                            //
                             AnnualAuditPlanDocumentLinkId: formData.attachmentIds != null ? formData.attachmentIds : [],
                             AuditplanDocId: selectedOption.value,
                             Description: formData.description,
@@ -2028,7 +2064,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 AnnualAuditReportListId: editItemID, // Assuming "Title" column exists
                                 NCNumber: row.nctype == "NC Number" ? row.ncnumberNC : row.observationnumberObs,
                                 NCSequence: row.nctype == "NC Number" ? row.ncsequenceNC : row.observationsequenceObs,
-                                ReportCode: formData.reportCode,
+                                ReportCode: reportCode,
                                 NCType: row.nctype,
                                 Description: row.descriptionNC,
                                 DepartmentId: formData.deptId,
@@ -2337,7 +2373,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let arr = {
                             ...formattedData,
                             ...formattedDataNumber,
-                            ReportCode: formData.reportCode,
+                            ReportCode: reportCode,
                             NCNumber: checkboxValues["FailureofIntentNonconformity"] ||
                                 checkboxValues["FailureofImplementation"] ||
                                 checkboxValues["FailureofEffectiveness"] ? maxNCNo : "",
@@ -2346,7 +2382,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             NCSequence: maxNCSequence,
                             MemoNumber: doccode,
                             Title: doccode,
-                            RequesterNameId: formData.RequesterNameId,
+                            RequesterNameId: currentUser.Id,
                             RequesterDesignation: formData.RequesterDesignation,
                             RequestDate: formData.RequestDate != "" ? new Date(formData.RequestDate).toISOString() : new Date().toISOString(),
                             ApprovedAuditPlanId: selectAuditplan.ID,
@@ -2363,6 +2399,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             RevisionDate: formData.revisionDate == null ? null : new Date(formData.revisionDate).toLocaleDateString("en-CA"),
                             IssueDate: formData.issueDate == null ? null : new Date(formData.issueDate).toLocaleDateString("en-CA"),
                             //DocumentLink: "",
+                            ACDocumentCode: formData.ACDocumentCode,
+                            ACIssueNumber: Number(formData.ACIssueNumber),
+                            ACRevisionNumber: Number(formData.ACRevisionNumber),
+                            ACRevisionDate: formData.ACRevisionDate == null ? null : new Date(formData.ACRevisionDate).toLocaleDateString("en-CA"),
+                            ACIssueDate: formData.ACIssueDate == null ? null : new Date(formData.ACIssueDate).toLocaleDateString("en-CA"),
+                            //
                             AnnualAuditPlanDocumentLinkId: formData.attachmentIds != null ? formData.attachmentIds : [],
                             AuditplanDocId: selectedOption.value,
                             Description: formData.description,
@@ -2398,7 +2440,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 AnnualAuditReportListId: postId, // Assuming "Title" column exists
                                 NCNumber: row.nctype == "NC Number" ? row.ncnumberNC : row.observationnumberObs,
                                 NCSequence: row.nctype == "NC Number" ? row.ncsequenceNC : row.observationsequenceObs,
-                                ReportCode: formData.reportCode,
+                                ReportCode: reportCode,
                                 NCType: row.nctype,
                                 Description: row.descriptionNC,
                                 DepartmentId: formData.deptId,
@@ -2572,6 +2614,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         console.log("updatedArr", NCNumberrows);
         console.log("checkboxvalueee", checkboxValues);
         console.log("checkboxNumberValues", checkboxNumberValues);
+        console.log("ffformdatadraft", formData);
         if (await validateForm(FormSubmissionMode.DRAFT)) {
             if (editForm) {
                 Swal.fire({
@@ -2644,14 +2687,14 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let arr = {
                             ...formattedData,
                             ...formattedDataNumber,
-                            ReportCode: formData.reportCode,
+                            ReportCode: reportCode,
                             NCNumber: checkboxValues["FailureofIntentNonconformity"] ||
                                 checkboxValues["FailureofImplementation"] ||
                                 checkboxValues["FailureofEffectiveness"] ? maxNCNo : "",
                             ObservationNumber: checkboxValues["Observations"] ? maxObsNo : "",
                             ObservationSequence: maxObsSequence,
                             NCSequence: maxNCSequence,
-                            RequesterNameId: formData.RequesterNameId,
+                            RequesterNameId: currentUser.Id,
                             RequesterDesignation: formData.RequesterDesignation,
                             RequestDate: formData.RequestDate != "" && formData.RequestDate != null ? new Date(formData.RequestDate).toISOString() : new Date().toISOString(),
                             ApprovedAuditPlanId: selectAuditplan.ID,
@@ -2670,6 +2713,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             MemoNumber: doccode,
                             Title: doccode,
                             //DocumentLink: "",
+                            ACDocumentCode: formData.ACDocumentCode,
+                            ACIssueNumber: Number(formData.ACIssueNumber),
+                            ACRevisionNumber: Number(formData.ACRevisionNumber),
+                            ACRevisionDate: formData.ACRevisionDate == null ? null : new Date(formData.ACRevisionDate).toLocaleDateString("en-CA"),
+                            ACIssueDate: formData.ACIssueDate == null ? null : new Date(formData.ACIssueDate).toLocaleDateString("en-CA"),
+                            //
                             AnnualAuditPlanDocumentLinkId: formData.attachmentIds != null ? formData.attachmentIds : [],
                             AuditplanDocId: selectedOption.value,
                             Description: formData.description,
@@ -2699,7 +2748,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 AnnualAuditReportListId: editItemID, // Assuming "Title" column exists
                                 NCNumber: row.nctype == "NC Number" ? row.ncnumberNC : row.observationnumberObs,
                                 NCSequence: row.nctype == "NC Number" ? row.ncsequenceNC : row.observationsequenceObs,
-                                ReportCode: formData.reportCode,
+                                ReportCode: reportCode,
                                 NCType: row.nctype,
                                 Description: row.descriptionNC,
                                 DepartmentId: formData.deptId,
@@ -2991,12 +3040,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 checkboxValues["FailureofImplementation"] ||
                                 checkboxValues["FailureofEffectiveness"] ? maxNCNo : "",
                             ObservationNumber: checkboxValues["Observations"] ? maxObsNo : "",
-                            RequesterNameId: formData.RequesterNameId,
+                            RequesterNameId: currentUser.Id,
                             RequesterDesignation: formData.RequesterDesignation,
                             RequestDate: new Date().toISOString(),
                             ObservationSequence: maxObsSequence,
                             NCSequence: maxNCSequence,
-                            ReportCode: formData.reportCode,
+                            ReportCode: reportCode,
                             MemoNumber: doccode,
                             Title: doccode,
                             ApprovedAuditPlanId: selectAuditplan.ID,
@@ -3013,6 +3062,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             RevisionDate: formData.revisionDate == null ? null : new Date(formData.revisionDate).toLocaleDateString("en-CA"),
                             IssueDate: formData.issueDate == null ? null : new Date(formData.issueDate).toLocaleDateString("en-CA"),
                             //DocumentLink: "",
+                            ACDocumentCode: formData.ACDocumentCode,
+                            ACIssueNumber: Number(formData.ACIssueNumber),
+                            ACRevisionNumber: Number(formData.ACRevisionNumber),
+                            ACRevisionDate: formData.ACRevisionDate == null ? null : new Date(formData.ACRevisionDate).toLocaleDateString("en-CA"),
+                            ACIssueDate: formData.ACIssueDate == null ? null : new Date(formData.ACIssueDate).toLocaleDateString("en-CA"),
+                            //
                             AnnualAuditPlanDocumentLinkId: formData.attachmentIds != null ? formData.attachmentIds : [],
                             AuditplanDocId: selectedOption.value,
                             Description: formData.description,
@@ -3048,7 +3103,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 AnnualAuditReportListId: postId, // Assuming "Title" column exists
                                 NCNumber: row.nctype == "NC Number" ? row.ncnumberNC : row.observationnumberObs,
                                 NCSequence: row.nctype == "NC Number" ? row.ncsequenceNC : row.observationsequenceObs,
-                                ReportCode: formData.reportCode,
+                                ReportCode: reportCode,
                                 NCType: row.nctype,
                                 Description: row.descriptionNC,
                                 DepartmentId: formData.deptId,
@@ -3197,18 +3252,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
         setFilesArr([]);
         setshowviewdownload(false);
         const allowedTypes = [
-            "image/jpeg",
-            "image/png",
-            "image/gif",
-            "image/bmp",
-            "image/svg+xml",
-            "application/pdf",
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.ms-excel",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "application/vnd.ms-powerpoint",
-            "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         ];
 
         filechanged = true;
@@ -3230,8 +3275,27 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         Swal.fire({
                             icon: "error",
                             title: "Invalid File Type",
-                            text: "Only images and document files are allowed.",
+                            text: "Please upload .docx file only",
                         });
+                        return;
+                    }
+                    const result = await Swal.fire({
+                        title: 'Please ensure that the document alignment and formatting are correct as per IMS Audit Report Template before attaching and submitting.',
+                        showConfirmButton: true,
+                        showCancelButton: true,
+                        confirmButtonText: "Yes",
+                        cancelButtonText: "No",
+                        //icon: 'warning',
+                        customClass: {
+                            title: 'swal-small-title'
+                            //icon: 'swal-small-icon'
+                        }
+                    });
+                    if (!result.isConfirmed) {
+                        const input = event.target as HTMLInputElement;
+                        const files = Array.from(input.files || []);
+                        input.value = '';
+
                         return;
                     }
                     const fileType = fn.type.split("/")[0]; // Extract file type (image, pdf, etc.)
@@ -4197,7 +4261,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 </div>
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
-                                                                        <label htmlFor="Department" className="col-form-label">Sub-Department<span className="text-danger1"> *</span></label>
+                                                                        <label htmlFor="Department" className="col-form-label">Sub-Department<span className="text-danger1">{AllsubDept.length > 0 && "*"}</span></label>
                                                                         <div >
                                                                             <div
                                                                                 title={selectUsersubDept && selectUsersubDept[0]?.label || selectUsersubDept && selectUsersubDept?.label}
@@ -4278,7 +4342,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                             type="file"
                                                                             className={`form-control ${(!ValidSubmit && attachmenterr) ? "border-on-error" : ""}`}
                                                                             id="attachment"
-                                                                            accept=".jpg,.jpeg,.png,.gif,.bmp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                                                            accept=".docx"
                                                                             onChange={(e) => onFileChange(e, "Gallery", "AnnualAuditReportDocs")}
                                                                             disabled={InputDisabled}
                                                                         //multiple

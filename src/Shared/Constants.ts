@@ -15,8 +15,9 @@ export const LIST_TITLE_AuditPlan="AnnualAuditPlanList";
 export const LIST_AuditPlan ="Audit Plan";
 export const CONTENTTYPE_AuditReport = "Annual Audit Report";
 //export const CONTENTTYPE_AuditReportTemp  ="IMS Audit Report and Checklist";
-export const CONTENTTYPE_AuditReportTemp ="AuditChecklist";
+export const CONTENTTYPE_AuditReportTemp ="IMSAuditChecklist";
 export const LIST_TITLE_AuditReport = "AnnualAuditReportList";
+export const CONTENTTYPE_AuditReportTemplate = "IMSAuditReport";
 
 export const CONTENTTYPE_AuditProgramForm ="Annual Audit Program";
 export const CONTENTTYPE_AuditProgram ="IMS Annual Audit Program";

@@ -1368,7 +1368,13 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             showimsupdated = true;
             isdisableims = true;
           }
-
+          if (Items.Status != "Approved" && Items.CurrentUserRole == "LastInitiator") {
+            showcorrectionappicable = true;
+            isdisablefinal = false;
+            //this.setState({ IsFinalapprover: isFinalApprover });
+          } else {
+            isdisablefinal = true;
+          }
           if (Items.Status == "Approved") {
             showcorrectionappicable = true;
             isdisablefinal = true;
@@ -1419,9 +1425,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           //Audit Report
           var objToAdd: any = {};
           objToAdd["Level"] = itm.Level;
-          objToAdd["AssignedTo"] = itm.AssignedTo.Title;
-          objToAdd["AssignedToEmail"] = itm.AssignedTo.EMail;
-          objToAdd["RequesterName"] = itm.RequesterName.Title;
+          objToAdd["AssignedTo"] = itm.AssignedTo?.Title;
+          objToAdd["AssignedToEmail"] = itm.AssignedTo?.EMail;
+          objToAdd["RequesterName"] = itm.RequesterName?.Title;
           objToAdd["ActionTakenRole"] = itm.ActionTakenRoleId == null ? itm.CurrentUserRole : itm.ActionTakenRole?.Role;
           {
             /* Divyansh Changes */
@@ -1487,12 +1493,14 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         fCount = upFilesauditee.length;
         this.setState({ exFilesauditee: obJFiles, fileCountauditee: fCount });
       }
-      if (Items.SubmitStatus == "No" || (Items.Status == "Rework" && Items.CurrentUserRole == "FirstAssignedTo")) {
+      if (Items.SubmitStatus == "No" || (Items.Status == "Rework" && Items.CurrentUserRole == "FirstAssignedTo") ||
+        (Items.CurrentUserRole == "FirstAssignedTo" && (Items.FirstAssignedToSubmitStatus == "No" || Items.FirstAssignedToSubmitStatus == undefined)) ||
+        (Items.CurrentUserRole == "DelegateTo" && (Items.delegateToSubmitStatus == "No" || Items.delegateToSubmitStatus == undefined))) {
         this.setState({ ShowDeleteicon: true })
       }
       //AllProcessApproval Table data
 
-      const approvalItems = await sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.select("*", "Approvers/Name","Approvers/Title", "Approvers/EMail", "Approvers/ID").expand("Approvers")
+      const approvalItems = await sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.select("*", "Approvers/Name", "Approvers/Title", "Approvers/EMail", "Approvers/ID").expand("Approvers")
         .filter("MainListID eq '" + idNumber + "'and ProcessName eq 'Non Conformity'")
         .orderBy("Level", true)();
       var allApp: any[] = [];
@@ -1568,8 +1576,13 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
         if (editType === "approve") {
           if (Items.Status != "Approved" && isFinalApprover && finallevel == currentlevel && Items.CurrentUserRole == "Approverrole") {
+            //   showcorrectionappicable = true;
+            //   isdisablefinal = false;
+            this.setState({ IsFinalapprover: isFinalApprover });
+          }
+          if (Items.Status != "Approved" && Items.CurrentUserRole == "Approverrole") {
             showcorrectionappicable = true;
-            isdisablefinal = false;
+            isdisablefinal = true;
             this.setState({ IsFinalapprover: isFinalApprover });
           }
         }
@@ -2176,17 +2189,17 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         });
 
       }
-      if (!this.state.editReviewedBy) {
-        editErrors.editReviewedBy = "Reviewed By is required";
-        document.querySelectorAll("#reviewedBypeoplepicker .ms-BasePicker-text").forEach((el) => {
-          el.classList.add(styles.errCh);
-        });
-      } else {
-        document.querySelectorAll("#reviewedBypeoplepicker .ms-BasePicker-text").forEach((el) => {
-          el.classList.remove(styles.errCh);
-        });
-      }
-      if (!this.state.editCorrectiveActionImplementedOn) editErrors.editCorrectiveActionImplementedOn = "Corrective Action Implemented on is required";
+      // if (!this.state.editReviewedBy) {
+      //   editErrors.editReviewedBy = "Reviewed By is required";
+      //   document.querySelectorAll("#reviewedBypeoplepicker .ms-BasePicker-text").forEach((el) => {
+      //     el.classList.add(styles.errCh);
+      //   });
+      // } else {
+      //   document.querySelectorAll("#reviewedBypeoplepicker .ms-BasePicker-text").forEach((el) => {
+      //     el.classList.remove(styles.errCh);
+      //   });
+      // }
+      //if (!this.state.editCorrectiveActionImplementedOn) editErrors.editCorrectiveActionImplementedOn = "Corrective Action Implemented on is required";
     }
     else {
       console.log('No field require for any conditions');
@@ -2198,7 +2211,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
   //< ------- Start Forward Validation -------->
   public handleForward = (formsubmode: string) => {
-    console.log("aghghghghghghgh",this.state.approvers)
+    console.log("aghghghghghghgh", this.state.approvers)
     if (this.validateFormForward()) {
       this.forwardRequest(formsubmode);
 
@@ -2315,7 +2328,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   //< ------- Start Draft Validation -------->
   public handleDraft = (formsubmode: string) => {
     resubmitclicked = false;
-    if (this.validateFormDraft()) {
+
+    if (this.validateFormDraft() || (this.state.editCurrentUserRole === "FirstAssignedTo" || this.state.editCurrentUserRole === "DelegateTo")) {
       this._updateSubmitData(formsubmode);
 
     }
@@ -2439,20 +2453,20 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
   private _getPeoplePickerItemsApp(items: any[], i: number) {
     const selectedIds = items.map(it => it.id);
     const selectedNames = items.map(it => it.text); // For display in tooltip or validation
-  
+
     const updatedApprovers = [...this.state.approvers];
-  
+
     if (updatedApprovers[i]) {
       updatedApprovers[i] = {
         ...updatedApprovers[i],
         Name: selectedIds,
         appEx: selectedNames
       };
-  
+
       this.setState({ approvers: updatedApprovers });
     }
   }
-  
+
   private addApprover() {
 
     var itm = this.state.indApp + 1;
@@ -2484,7 +2498,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
   }
 
-  public async updateData(_editsubmitStatus: string, firstInitiatorSubmitStatus: string, firstAssignedToSubmitStatus: string, delegateToSubmitStatus: string, analyzedBySubmitStatus: string, reviewedBySubmitStatus: string, lastAssignedToSubmitStatus: string, lastInitiatorSubmitStatus: string, currentUserRole: string, reworkById: any, serialNumber: number, documentCode: string, ncrnumber: String) {
+  public async updateData(_editsubmitStatus: string, firstInitiatorSubmitStatus: string, firstAssignedToSubmitStatus: string, delegateToSubmitStatus: string, analyzedBySubmitStatus: string, reviewedBySubmitStatus: string, lastAssignedToSubmitStatus: string, lastInitiatorSubmitStatus: string, currentUserRole: string, reworkById: any, serialNumber: number, documentCode: string, ncrnumber: string, FirstAssignedToSavedStatus: string, FirstDelegateToSavedStatus: string) {
 
     const sp = spfi().using(SPFx(this.props.context));
     let observationStatus: string = "";
@@ -2499,7 +2513,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     if (this.state.editncType == "Observation" && this.state.editDelegateToId != null && this.state.editCurrentUserRole == "LastAssignedTo" && _editsubmitStatus != "Rework") {
       observationStatus1 = "Approved"
     } else
-      if (this.state.editncType == "Observation" && this.state.editDelegateToId == null && this.state.editCurrentUserRole == "ReviewedBy" && _editsubmitStatus != "Rework") {
+      if (this.state.editncType == "Observation" && this.state.editDelegateToId == null && this.state.editCurrentUserRole == "AnalyzedBy" && _editsubmitStatus != "Rework") {
         observationStatus1 = "Approved"
       } else {
         observationStatus1 = "Pending"
@@ -2545,12 +2559,14 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       CorrectiveActionImplementedOn: this.state.editCorrectiveActionImplementedOn,
       SubmiitedDate: new Date(),
       // SubmitStatus: _editsubmitStatus == "draft" || this.state.editStatus == "Rework" || (_editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "FirstAssignedTo") ? "No" : "Yes",
-      SubmitStatus: _editsubmitStatus == "draft" ? "No" : "Yes",
+      SubmitStatus: _editsubmitStatus == "draft" && (currentUserRole != "FirstAssignedTo" && currentUserRole != "DelegateTo") ? "No" : "Yes",
       SubmiitedById: this.props.currentUserID || null,
       CurrentUserRole: currentUserRole,
       FirstInitiatorSubmitStatus: firstInitiatorSubmitStatus,
       FirstAssignedToSubmitStatus: firstAssignedToSubmitStatus,
       DelegateToSubmitStatus: delegateToSubmitStatus,
+      FirstAssignedToSavedStatus: FirstAssignedToSavedStatus,
+      FirstDelegateToSavedStatus: FirstDelegateToSavedStatus,
       AnalyzedBySubmitStatus: analyzedBySubmitStatus,
       ReviewedBySubmitStatus: reviewedBySubmitStatus,
       LastAssignedToSubmitStatus: lastAssignedToSubmitStatus,
@@ -2562,12 +2578,15 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       SerialNumber: serialNumber,
       NCRNo: ncrnumber,
       DocumentCode: this.state.editDocumentCode,
-      IMSUpdated: this.state.isIMSUpdated,
-      RiskOpportunitiesUpdated: this.state.riskandopportunitiesUpdated,
+      IMSUpdated: this.state.isIMSUpdated ? "Yes" : "No",
+      RiskOpportunitiesUpdated: this.state.riskandopportunitiesUpdated ? "Yes" : "No",
       LocationOthers: this.state.LocationOthers,
       SubCategoryOthers: this.state.SubCategoryOthers,
       CategoryOthers: this.state.CategoryOthers,
-      ReworkRemarks: _editsubmitStatus == "draft" ? this.state.remarks : "",
+      ReworkRemarks: _editsubmitStatus == "draft" && (currentUserRole != "FirstAssignedTo" && currentUserRole != "DelegateTo") ? this.state.remarks : "",
+      Correctionapplicable: this.state.editCurrentUserRole == "LastInitiator" || this.state.editCurrentUserRole == "Approverrole" ? test1 : "",
+      NotEffective: this.state.editCurrentUserRole == "LastInitiator" || this.state.editCurrentUserRole == "Approverrole" ? test2 : "",
+      EffectiveandProblemClosed: this.state.editCurrentUserRole == "LastInitiator" || this.state.editCurrentUserRole == "Approverrole" ? test3 : ""
     })
   }
 
@@ -2598,6 +2617,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     //Start Flow condition
     let currentUserRole = "";
     let firstInitiatorSubmitStatus = "";
+    let FirstAssignedToSavedStatus = "";
+    let FirstDelegateToSavedStatus = "";
     let firstAssignedToSubmitStatus = "";
     let delegateToSubmitStatus = "";
     let analyzedBySubmitStatus = "";
@@ -2613,6 +2634,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     if (_editsubmitStatus == "draft" && this.state.editCurrentUserRole == null) {
       firstInitiatorSubmitStatus = "No"
       firstAssignedToSubmitStatus = "No";
+      FirstAssignedToSavedStatus = "No";
+      FirstDelegateToSavedStatus = "No";
       delegateToSubmitStatus = "No";
       analyzedBySubmitStatus = "No";
       reviewedBySubmitStatus = "No";
@@ -2627,6 +2650,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     else if (_editsubmitStatus == "submit" && this.state.editCurrentUserRole == null) {
       firstInitiatorSubmitStatus = "Yes";
       firstAssignedToSubmitStatus = "No";
+      FirstAssignedToSavedStatus = "No";
+      FirstDelegateToSavedStatus = "No";
       delegateToSubmitStatus = "No";
       analyzedBySubmitStatus = "No";
       reviewedBySubmitStatus = "No";
@@ -2641,6 +2666,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     else if (_editsubmitStatus == "submit" && this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator") {
       firstInitiatorSubmitStatus = "Yes";
       firstAssignedToSubmitStatus = "No";
+      FirstAssignedToSavedStatus = "No";
+      FirstDelegateToSavedStatus = "No";
       delegateToSubmitStatus = "No";
       analyzedBySubmitStatus = "No";
       reviewedBySubmitStatus = "No";
@@ -2655,6 +2682,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     else if (this.state.editStatus == "Rework" && _editsubmitStatus == "draft" && this.state.editCurrentUserRole == "FirstInitiator") {
       firstInitiatorSubmitStatus = "No"
       firstAssignedToSubmitStatus = "No";
+      FirstAssignedToSavedStatus = "No";
+      FirstDelegateToSavedStatus = "No";
       delegateToSubmitStatus = "No";
       analyzedBySubmitStatus = "No";
       reviewedBySubmitStatus = "No";
@@ -2668,6 +2697,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     else if (this.state.editStatus != "Rework" && this.state.editCurrentUserRole == "FirstInitiator") {
       firstInitiatorSubmitStatus = "Yes";
       firstAssignedToSubmitStatus = "No";
+      FirstAssignedToSavedStatus = "No";
+      FirstDelegateToSavedStatus = "No";
       delegateToSubmitStatus = "No";
       analyzedBySubmitStatus = "No";
       reviewedBySubmitStatus = "No";
@@ -2688,6 +2719,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       if (_editsubmitStatus == "submit" && this.state.editCurrentUserRole == "FirstAssignedTo") {
         firstInitiatorSubmitStatus = "Yes"
         firstAssignedToSubmitStatus = "Yes";
+        FirstAssignedToSavedStatus = "No";
+        FirstDelegateToSavedStatus = "No";
         delegateToSubmitStatus = "No";
         analyzedBySubmitStatus = "No";
         reviewedBySubmitStatus = "No";
@@ -2706,6 +2739,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       if (_editsubmitStatus == "submit" && this.state.editCurrentUserRole == "FirstAssignedTo") {
         firstInitiatorSubmitStatus = "Yes"
         firstAssignedToSubmitStatus = "Yes";
+        FirstAssignedToSavedStatus = "No";
+        FirstDelegateToSavedStatus = "No";
         delegateToSubmitStatus = "No";
         analyzedBySubmitStatus = "No";
         reviewedBySubmitStatus = "No";
@@ -2720,6 +2755,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         firstInitiatorSubmitStatus = "Yes"
         firstAssignedToSubmitStatus = "Yes";
         delegateToSubmitStatus = "Yes";
+        FirstAssignedToSavedStatus = "No";
+        FirstDelegateToSavedStatus = "No";
         analyzedBySubmitStatus = "No";
         reviewedBySubmitStatus = "No";
         lastAssignedToSubmitStatus = "No";
@@ -2729,6 +2766,38 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         serialNumber = this.state.notUpdateSerialNo;
         ncrnumber = this.state.notUpdateDepartmentCode;
       }
+    }
+    if (_editsubmitStatus == "draft" && this.state.editCurrentUserRole == "FirstAssignedTo") {
+      firstInitiatorSubmitStatus = "Yes"
+      firstAssignedToSubmitStatus = "No";
+      delegateToSubmitStatus = "No";
+      FirstAssignedToSavedStatus = "Yes";
+      FirstDelegateToSavedStatus = "No";
+      analyzedBySubmitStatus = "No";
+      reviewedBySubmitStatus = "No";
+      lastAssignedToSubmitStatus = "No";
+      lastInitiatorSubmitStatus = "No";
+      currentUserRole = "FirstAssignedTo";
+      reworkById = null;
+      // serialNumber = this.state.notUpdateSerialNo;
+      //ncrnumber = this.state.notUpdateDepartmentCode;
+      //documentCode = this.state.notUpdateDepartmentCode;
+    }
+    if (_editsubmitStatus == "draft" && this.state.editCurrentUserRole == "DelegateTo") {
+      firstInitiatorSubmitStatus = "Yes"
+      firstAssignedToSubmitStatus = "Yes";
+      FirstAssignedToSavedStatus = "No";
+      FirstDelegateToSavedStatus = "Yes";
+      delegateToSubmitStatus = "No";
+      analyzedBySubmitStatus = "No";
+      reviewedBySubmitStatus = "No";
+      lastAssignedToSubmitStatus = "No";
+      lastInitiatorSubmitStatus = "No";
+      currentUserRole = "DelegateTo";
+      reworkById = null;
+      // serialNumber = this.state.notUpdateSerialNo;
+      //ncrnumber = this.state.notUpdateDepartmentCode;
+      //documentCode = this.state.notUpdateDepartmentCode;
     }
     //<-------- End Case2 --------->
 
@@ -2760,7 +2829,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         setloading = true;
         console.log("ApprovallistitemidApprovallistitemid", Approvallistitemid, approvalItemId, _editsubmitStatus)
         this.setState({ Loading: true });
-        await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
+        await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber, FirstAssignedToSavedStatus, FirstDelegateToSavedStatus);
         if (_editsubmitStatus == "submit") {
           if (currentUserRole == "AnalyzedBy" || currentUserRole == "DelegateTo") {
             // alert("Approval Item ID" + approvalItemId)
@@ -2915,60 +2984,120 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           }
         }
         else if (_editsubmitStatus == "draft") {
-          if (this.state.fileDeleteId.length > 0) {
-            this.state.fileDeleteId.forEach(function (ids) {
-              sp.web.lists.getByTitle("NonConformityDocs").items.getById(ids).delete();
-            });
-          }
-          if (this.state.copyFil.length > 0) {
-            let uploadedIdsatt: number[] = [];
-            const uploadPromises = this.state.copyFil.map(async (file) => {
+          if (currentUserRole == "FirstAssignedTo" || currentUserRole == "DelegateTo") {
+            // alert("Approval Item ID" + approvalItemId)
+            let uploadedIds: number[] = [];
 
-              //const sp = spfi().using(SPFx(this.props.context));
-              const currentUser = await sp.web.currentUser();
-              const userId = currentUser.Id; // Or however you get the current user ID
-              const date = new Date();
-              const fileExtension = file.name.split('.').pop();
+            // 1. Delete removed files
+            if (this.state.fileDeleteIdauditee.length > 0) {
+              this.state.fileDeleteIdauditee.forEach(function (ids) {
+                sp.web.lists.getByTitle("AuditeeAttachmentDocs").items.getById(ids).delete();
+              });
+            }
 
-              const components = [
-                date.getFullYear(),
-                (date.getMonth() + 1).toString().padStart(2, '0'),
-                date.getDate().toString().padStart(2, '0'),
-                date.getHours().toString().padStart(2, '0'),
-                date.getMinutes().toString().padStart(2, '0'),
-                date.getSeconds().toString().padStart(2, '0'),
-                date.getMilliseconds().toString().padStart(3, '0')
-              ];
+            // 2. Upload new files
+            if (this.state.copyFilauditee.length > 0) {
+              const uploadPromises = this.state.copyFilauditee.map(async (file) => {
 
-              //var fileNamePath = encodeURI(file.name);
-              let newfileNameNew: any = await this.cleanFileNameSave(file.name);
-              var fileNamePath = `${userId}_${components.join('')}_${newfileNameNew}`;
-              //return `${userId}_${components.join('')}_${file.name}`;
-              //var fileNamePath = encodeURI(file.name);
-              // var fileNamePath = await this.getNewFileName(file.name);
-              sp.web.getFolderByServerRelativePath("NonConformityDocs").files
-                .addUsingPath(fileNamePath, file, { Overwrite: true })
-                .then(async (response) => {
-                  return response.file.getItem().then((fileItem: any) => {
-                    uploadedIdsatt.push(fileItem.Id); // Store ID of uploaded file
-                    return fileItem.update({
-                      NonConformityId: itemid // Optional: link document to current item
+
+                const currentUser = await sp.web.currentUser();
+                const userId = currentUser.Id; // Or however you get the current user ID
+                const date = new Date();
+                const fileExtension = file.name.split('.').pop();
+
+                const components = [
+                  date.getFullYear(),
+                  (date.getMonth() + 1).toString().padStart(2, '0'),
+                  date.getDate().toString().padStart(2, '0'),
+                  date.getHours().toString().padStart(2, '0'),
+                  date.getMinutes().toString().padStart(2, '0'),
+                  date.getSeconds().toString().padStart(2, '0'),
+                  date.getMilliseconds().toString().padStart(3, '0')
+                ];
+                //var fileNamePath = encodeURI(file.name);
+                let newfileNameNew: any = await this.cleanFileNameSave(file.name);
+                var fileNamePath = `${userId}_${components.join('')}_${newfileNameNew}`;
+                //return `${userId}_${components.join('')}_${file.name}`;
+                //const fileNamePath = encodeURI(file.name);
+                //const fileNamePath = await this.getNewFileName(file.name);
+                return sp.web.getFolderByServerRelativePath("AuditeeAttachmentDocs").files
+                  .addUsingPath(fileNamePath, file, { Overwrite: true })
+                  .then((response) => {
+                    return response.file.getItem().then((fileItem: any) => {
+                      uploadedIds.push(fileItem.Id); // Store ID of uploaded file
+                      return fileItem.update({
+                        NonConformityId: itemid // Optional: link document to current item
+                      });
                     });
                   });
+              });
 
-                });
-            })
-            Promise.all(uploadPromises).then(() => {
-              if (uploadedIdsatt.length > 0) {
-                const lookupValues = uploadedIdsatt.map((id) => ({ Id: id }));
+              // 3. Once all uploads are done, update multi-lookup
+              Promise.all(uploadPromises).then(() => {
+                if (uploadedIds.length > 0) {
+                  const lookupValues = uploadedIds.map((id) => ({ Id: id }));
 
-                // sp.web.lists.getByTitle("NonConformityList").items.getById(itemid).update({
-                //   AuditeeAttachmentId: { results: lookupValues } // This field must be a multi-lookup pointing to AuditeeAttachmentDocs
-                // });
-              }
-            });
+                  sp.web.lists.getByTitle("NonConformityList").items.getById(itemid).update({
+                    AuditeeAttachmentId: { results: lookupValues } // This field must be a multi-lookup pointing to AuditeeAttachmentDocs
+                  });
+                }
+              });
+            }
+          } else {
+            if (this.state.fileDeleteId.length > 0) {
+              this.state.fileDeleteId.forEach(function (ids) {
+                sp.web.lists.getByTitle("NonConformityDocs").items.getById(ids).delete();
+              });
+            }
+            if (this.state.copyFil.length > 0) {
+              let uploadedIdsatt: number[] = [];
+              const uploadPromises = this.state.copyFil.map(async (file) => {
+
+                //const sp = spfi().using(SPFx(this.props.context));
+                const currentUser = await sp.web.currentUser();
+                const userId = currentUser.Id; // Or however you get the current user ID
+                const date = new Date();
+                const fileExtension = file.name.split('.').pop();
+
+                const components = [
+                  date.getFullYear(),
+                  (date.getMonth() + 1).toString().padStart(2, '0'),
+                  date.getDate().toString().padStart(2, '0'),
+                  date.getHours().toString().padStart(2, '0'),
+                  date.getMinutes().toString().padStart(2, '0'),
+                  date.getSeconds().toString().padStart(2, '0'),
+                  date.getMilliseconds().toString().padStart(3, '0')
+                ];
+
+                //var fileNamePath = encodeURI(file.name);
+                let newfileNameNew: any = await this.cleanFileNameSave(file.name);
+                var fileNamePath = `${userId}_${components.join('')}_${newfileNameNew}`;
+                //return `${userId}_${components.join('')}_${file.name}`;
+                //var fileNamePath = encodeURI(file.name);
+                // var fileNamePath = await this.getNewFileName(file.name);
+                sp.web.getFolderByServerRelativePath("NonConformityDocs").files
+                  .addUsingPath(fileNamePath, file, { Overwrite: true })
+                  .then(async (response) => {
+                    return response.file.getItem().then((fileItem: any) => {
+                      uploadedIdsatt.push(fileItem.Id); // Store ID of uploaded file
+                      return fileItem.update({
+                        NonConformityId: itemid // Optional: link document to current item
+                      });
+                    });
+
+                  });
+              })
+              Promise.all(uploadPromises).then(() => {
+                if (uploadedIdsatt.length > 0) {
+                  const lookupValues = uploadedIdsatt.map((id) => ({ Id: id }));
+
+                  // sp.web.lists.getByTitle("NonConformityList").items.getById(itemid).update({
+                  //   AuditeeAttachmentId: { results: lookupValues } // This field must be a multi-lookup pointing to AuditeeAttachmentDocs
+                  // });
+                }
+              });
+            }
           }
-
         }
         setloading = false;
         setTimeout(() => {
@@ -3004,6 +3133,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     var _self = this;
     //Start Flow condition
     let currentUserRole = "";
+    let FirstAssignedToSavedStatus = "No";
+    let FirstDelegateToSavedStatus = "No";
     let firstInitiatorSubmitStatus = "";
     let firstAssignedToSubmitStatus = "";
     let delegateToSubmitStatus = "";
@@ -3070,7 +3201,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
           setloading = true;
           this.setState({ Loading: true });
-          await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
+          await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber, FirstAssignedToSavedStatus, FirstDelegateToSavedStatus);
           sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Number(Approvallistitemid)).update({
             Status: "Approved",
             ActionTakenById: currentUserID,
@@ -3089,7 +3220,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                   Title: "Title",
                   MainListNameId: _self.state.mainListId,
                   ApproverRoleId: it.Role,
-                  Level: it.Index + 1,
+                  Level: val + 1,
                   LevelType: it.Type || "One",
                   SubmitStatus: "Yes",
                   Maxlevel: maxLength,
@@ -3114,7 +3245,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                   Title: "Title",
                   MainListNameId: _self.state.mainListId,
                   ApproverRoleId: it.Role,
-                  Level: it.Index,
+                  Level: val + 1,
                   LevelType: it.Type || "One",
                   SubmitStatus: "Yes",
                   Maxlevel: maxLength,
@@ -3163,6 +3294,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
     let currentUserRole = "";
     let firstInitiatorSubmitStatus = "";
+    let FirstAssignedToSavedStatus = "No";
+    let FirstDelegateToSavedStatus = "No";
     let firstAssignedToSubmitStatus = "";
     let delegateToSubmitStatus = "";
     let analyzedBySubmitStatus = "";
@@ -3178,20 +3311,21 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
     //<-------- Start Case1 --------->
     if (this.state.editDelegateToId == null) {
+      // if (_editsubmitStatus == "Approve" && this.state.editCurrentUserRole == "AnalyzedBy") {
+      //   firstInitiatorSubmitStatus = "Yes"
+      //   firstAssignedToSubmitStatus = "Yes";
+      //   delegateToSubmitStatus = "No";
+      //   analyzedBySubmitStatus = "Yes";
+      //   reviewedBySubmitStatus = "No";
+      //   lastAssignedToSubmitStatus = "No";
+      //   lastInitiatorSubmitStatus = "No";
+      //   currentUserRole = "ReviewedBy";
+      //   reworkById = null;
+      //   serialNumber = this.state.notUpdateSerialNo;
+      //   ncrnumber = this.state.notUpdateDepartmentCode;
+      // }
+      //else
       if (_editsubmitStatus == "Approve" && this.state.editCurrentUserRole == "AnalyzedBy") {
-        firstInitiatorSubmitStatus = "Yes"
-        firstAssignedToSubmitStatus = "Yes";
-        delegateToSubmitStatus = "No";
-        analyzedBySubmitStatus = "Yes";
-        reviewedBySubmitStatus = "No";
-        lastAssignedToSubmitStatus = "No";
-        lastInitiatorSubmitStatus = "No";
-        currentUserRole = "ReviewedBy";
-        reworkById = null;
-        serialNumber = this.state.notUpdateSerialNo;
-        ncrnumber = this.state.notUpdateDepartmentCode;
-      }
-      else if (_editsubmitStatus == "Approve" && this.state.editCurrentUserRole == "ReviewedBy") {
         firstInitiatorSubmitStatus = "Yes"
         firstAssignedToSubmitStatus = "Yes";
         delegateToSubmitStatus = "No";
@@ -3208,20 +3342,21 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     //<-------- End Case1 --------->
     //<-------- Start Case2 --------->
     else {
+      // if (_editsubmitStatus == "Approve" && this.state.editCurrentUserRole == "AnalyzedBy") {
+      //   firstInitiatorSubmitStatus = "Yes"
+      //   firstAssignedToSubmitStatus = "Yes";
+      //   delegateToSubmitStatus = "Yes";
+      //   analyzedBySubmitStatus = "Yes";
+      //   reviewedBySubmitStatus = "No";
+      //   lastAssignedToSubmitStatus = "No";
+      //   lastInitiatorSubmitStatus = "No";
+      //   currentUserRole = "ReviewedBy";
+      //   reworkById = null;
+      //   serialNumber = this.state.notUpdateSerialNo;
+      //   ncrnumber = this.state.notUpdateDepartmentCode;
+      // }
+      // else 
       if (_editsubmitStatus == "Approve" && this.state.editCurrentUserRole == "AnalyzedBy") {
-        firstInitiatorSubmitStatus = "Yes"
-        firstAssignedToSubmitStatus = "Yes";
-        delegateToSubmitStatus = "Yes";
-        analyzedBySubmitStatus = "Yes";
-        reviewedBySubmitStatus = "No";
-        lastAssignedToSubmitStatus = "No";
-        lastInitiatorSubmitStatus = "No";
-        currentUserRole = "ReviewedBy";
-        reworkById = null;
-        serialNumber = this.state.notUpdateSerialNo;
-        ncrnumber = this.state.notUpdateDepartmentCode;
-      }
-      else if (_editsubmitStatus == "Approve" && this.state.editCurrentUserRole == "ReviewedBy") {
         firstInitiatorSubmitStatus = "Yes"
         firstAssignedToSubmitStatus = "Yes";
         delegateToSubmitStatus = "Yes";
@@ -3270,7 +3405,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           setloading = true;
           this.setState({ Loading: true });
           if (editLastInitiatorSubmitStatus != "Yes") {
-            await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
+            await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber, FirstAssignedToSavedStatus, FirstDelegateToSavedStatus);
           }
           const sp = spfi().using(SPFx(this.props.context));
           if (this.state.IsFinalapprover) {
@@ -3278,16 +3413,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
             let test2 = this.state.notEffective ? "Yes" : "No";
             let test3 = this.state.effectiveClosed ? "Yes" : "No";
             await sp.web.lists.getByTitle("NonConformityList").items.getById(this.state.mainItemId).update({
-              Correctionapplicable: this.state.IsFinalapprover
-                ? test1
-                : "",
+              // Correctionapplicable: this.state.IsFinalapprover
+              //   ? test1
+              //   : "",
               CloseOutStatus: this.state.IsFinalapprover ? "Completed" : "Open",
-              NotEffective: this.state.IsFinalapprover
-                ? test2
-                : "",
-              EffectiveandProblemClosed: this.state.IsFinalapprover
-                ? test3
-                : "",
+              // NotEffective: this.state.IsFinalapprover
+              //   ? test2
+              //   : "",
+              // EffectiveandProblemClosed: this.state.IsFinalapprover
+              //   ? test3
+              //   : "",
               FinalRemarks: this.state.IsFinalapprover
                 ? this.state.remarks : "",
             })
@@ -3502,6 +3637,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     const IsactionTaken = Number(Approvallistitemid) > 0 ?
       await this.CheckIfAlreadyactionTaken(Number(Approvallistitemid), CONTENTTYPE_NonComformity) : true;
     let currentUserRole = "";
+    let FirstAssignedToSavedStatus = "No";
+    let FirstDelegateToSavedStatus = "No";
     let firstInitiatorSubmitStatus = "";
     let firstAssignedToSubmitStatus = "";
     let delegateToSubmitStatus = "";
@@ -3541,19 +3678,19 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         serialNumber = this.state.notUpdateSerialNo;
         ncrnumber = this.state.notUpdateDepartmentCode;
       }
-      else if (_editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "ReviewedBy") {
-        firstInitiatorSubmitStatus = "Yes"
-        firstAssignedToSubmitStatus = "No";
-        delegateToSubmitStatus = "No";
-        analyzedBySubmitStatus = "No";
-        reviewedBySubmitStatus = "No";
-        lastAssignedToSubmitStatus = "No";
-        lastInitiatorSubmitStatus = "No";
-        currentUserRole = "FirstAssignedTo";
-        reworkById = this.state.editReviewedById || null;
-        serialNumber = this.state.notUpdateSerialNo;
-        ncrnumber = this.state.notUpdateDepartmentCode;
-      }
+      // else if (_editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "ReviewedBy") {
+      //   firstInitiatorSubmitStatus = "Yes"
+      //   firstAssignedToSubmitStatus = "No";
+      //   delegateToSubmitStatus = "No";
+      //   analyzedBySubmitStatus = "No";
+      //   reviewedBySubmitStatus = "No";
+      //   lastAssignedToSubmitStatus = "No";
+      //   lastInitiatorSubmitStatus = "No";
+      //   currentUserRole = "FirstAssignedTo";
+      //   reworkById = this.state.editReviewedById || null;
+      //   serialNumber = this.state.notUpdateSerialNo;
+      //   ncrnumber = this.state.notUpdateDepartmentCode;
+      // }
       else if (_editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "LastInitiator") {
         firstInitiatorSubmitStatus = "Yes"
         firstAssignedToSubmitStatus = "No";
@@ -3622,19 +3759,19 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         serialNumber = this.state.notUpdateSerialNo;
         ncrnumber = this.state.notUpdateDepartmentCode;
       }
-      else if (_editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "ReviewedBy") {
-        firstInitiatorSubmitStatus = "Yes"
-        firstAssignedToSubmitStatus = "Yes";
-        delegateToSubmitStatus = "No";
-        analyzedBySubmitStatus = "No";
-        reviewedBySubmitStatus = "No";
-        lastAssignedToSubmitStatus = "No";
-        lastInitiatorSubmitStatus = "No";
-        currentUserRole = "DelegateTo";
-        reworkById = this.state.editReviewedById || null;
-        serialNumber = this.state.notUpdateSerialNo;
-        ncrnumber = this.state.notUpdateDepartmentCode;
-      }
+      // else if (_editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "ReviewedBy") {
+      //   firstInitiatorSubmitStatus = "Yes"
+      //   firstAssignedToSubmitStatus = "Yes";
+      //   delegateToSubmitStatus = "No";
+      //   analyzedBySubmitStatus = "No";
+      //   reviewedBySubmitStatus = "No";
+      //   lastAssignedToSubmitStatus = "No";
+      //   lastInitiatorSubmitStatus = "No";
+      //   currentUserRole = "DelegateTo";
+      //   reworkById = this.state.editReviewedById || null;
+      //   serialNumber = this.state.notUpdateSerialNo;
+      //   ncrnumber = this.state.notUpdateDepartmentCode;
+      // }
       else if (_editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "LastAssignedTo") {
         firstInitiatorSubmitStatus = "Yes"
         firstAssignedToSubmitStatus = "Yes";
@@ -3697,7 +3834,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           // return;
           setloading = true;
           this.setState({ Loading: true });
-          await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber);
+          await updateData(_editsubmitStatus, firstInitiatorSubmitStatus, firstAssignedToSubmitStatus, delegateToSubmitStatus, analyzedBySubmitStatus, reviewedBySubmitStatus, lastAssignedToSubmitStatus, lastInitiatorSubmitStatus, currentUserRole, reworkById, serialNumber, documentCode, ncrnumber, FirstAssignedToSavedStatus, FirstDelegateToSavedStatus);
           if (approvalItemId == undefined || approvalItemId == null || approvalItemId == "") {
 
             sp.web.lists.getByTitle("ProcessApprovalList").items.getById(Approvallistitemid).update({
@@ -3898,7 +4035,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     }
     var approval =
       //let approvers = [...this.state.approvers].sort((a, b) => a.index - b.index);
-      
+
       this.state.approvers.map((item: any, i: number) => {
         console.log(this.state.approvers, "this.state.approvers", i)
         return (
@@ -4851,7 +4988,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                     </div>
                   </div>
                   <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
-                    <div className="form-group col-md-6">
+                    <div className="form-group col-md-12">
                       <TooltipHost
                         content={this.state.editCorrection}
                         calloutProps={{ gapSpace: 0 }}
@@ -4871,7 +5008,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                         />
                       </TooltipHost>
                     </div>
-                    <div className="form-group col-md-6">
+                    <div className="form-group col-md-12">
                       <TooltipHost
                         content={this.state.editRootCause}
                         calloutProps={{ gapSpace: 0 }}
@@ -4944,7 +5081,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                         <PeoplePicker
                           disabled={this.state.deptSectionDisable}
                           context={peoplePickerContext}
-                          titleText="Analyzed By:"
+                          titleText="Analyzed and Reviewed By:"
                           personSelectionLimit={1}
                           required={true}
                           onChange={this._handlePeoplePickerChange("editAnalyzedBy", "editAnalyzedById")}
@@ -4960,7 +5097,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                         />
                       </TooltipHost>
                     </div>
-                    <div className="form-group col-md-4" id='reviewedBypeoplepicker'>
+                    {/* <div className="form-group col-md-4" id='reviewedBypeoplepicker'>
                       <TooltipHost
                         content={this.state.editReviewedBy}
                         calloutProps={{ gapSpace: 0 }}
@@ -4984,7 +5121,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                           }}
                         />
                       </TooltipHost>
-                    </div>
+                    </div> */}
                     <div style={{ position: 'relative' }} className="col-lg-4 mt-1">
                       <label htmlFor="Attchments" style={{ marginRight: "10px" }}>Auditee Attachments </label>
 
@@ -5052,7 +5189,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                                   {[...this.state.exFilesauditee, ...this.state.copyFilauditee].map((item: any, index: number) => {
                                     const isExisting = index < this.state.exFilesauditee.length;
                                     const serial = index + 1;
-
+                                    console.log("isExisting", isExisting, this.state.ShowDeleteicon, index)
                                     const fileName = isExisting
                                       ? (item.Name.includes('_') ? item.Name.split('_')[2] : item.Name)
                                       : decodeURIComponent(item.name);
@@ -5114,34 +5251,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                       )}
                     </div>
                   </div>
-                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
-                    <div className="form-group col-md-12"><h3 style={{ textAlign: 'left' }} className='text-dark text-left font-16 fw-bold mb-0'>Non Conformity / Observation Close Out Details</h3></div>
-                  </div>
-                  <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
-                    <div className="form-group col-md-12">
-                      <TooltipHost
-                        content={this.state.editCorrectiveActionImplementedOn}
-                        calloutProps={{ gapSpace: 0 }}
-                        styles={{ root: { display: 'inline-block', width: '100%' } }}
-                      >
-                        <TextField label="Corrective Action Implemented On:"
-                          required
-                          name='editCorrectiveActionImplementedOn'
-                          value={this.state.editCorrectiveActionImplementedOn}
-                          disabled={this.state.deptSectionDisable}
-                          multiline rows={3} onChange={this.handleChange}
-                          className={this.state.editErrors?.editCorrectiveActionImplementedOn ? 'textfield-error' : ''}
-                        // styles={{
-                        //   fieldGroup: {
-                        //     backgroundColor: this.state.editErrors.editCorrectiveActionImplementedOn ? "#ffcccb" : "white", // Red tint for errors
-                        //   }
-                        // }}
-                        />
-                      </TooltipHost>
-                    </div>
-                  </div>
+
                   {(showimsupdated && isdisableims) &&
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', marginTop: '1rem' }}>
+                    <div style={{ textAlign: 'left', display: 'flex', justifyContent: 'space-between', gap: '2rem', marginTop: '1rem' }}>
 
                       {/* IMS Updated */}
                       <div style={{ flex: 1 }}>
@@ -5203,8 +5315,30 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
                     </div>
                   }
-                  {console.log("isFinalApprover", this.state.IsFinalapprover, IsAnalyzedBy, isdisablefinal)}
-                  {showcorrectionappicable && isdisablefinal &&
+                  {(this.state.editCurrentUserRole == "LastInitiator" || this.state.editCurrentUserRole == "Approverrole") &&
+                    <><div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
+                      <div className="form-group col-md-12"><h3 style={{ textAlign: 'left' }} className='text-dark text-left font-16 fw-bold mb-0'>Non Conformity / Observation Close Out Details</h3></div>
+                    </div><div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
+                        <div className="form-group col-md-12">
+                          <TooltipHost
+                            content={this.state.editCorrectiveActionImplementedOn}
+                            calloutProps={{ gapSpace: 0 }}
+                            styles={{ root: { display: 'inline-block', width: '100%' } }}
+                          >
+                            <TextField label="Corrective Action Implemented On:"
+                              required
+                              name='editCorrectiveActionImplementedOn'
+                              value={this.state.editCorrectiveActionImplementedOn}
+                              disabled={this.state.forwarDisable || forwardisdisabled}
+                              multiline rows={3} onChange={this.handleChange}
+                              className={this.state.editErrors?.editCorrectiveActionImplementedOn ? 'textfield-error' : ''} />
+                          </TooltipHost>
+                        </div>
+                      </div></>
+                  }
+                  {console.log("isFinalApprover 5332", this.state.IsFinalapprover, IsAnalyzedBy, isdisablefinal, showcorrectionappicable)}
+                  {showcorrectionappicable &&
+                    //!isdisablefinal &&
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginTop: '0.5rem' }}>
                       <label style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
                         <input
@@ -5348,7 +5482,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                   /></TooltipHost>
               }
               {(showimsupdated && !isdisableims) &&
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', marginTop: '1rem' }}>
+                <div style={{ textAlign: 'left', display: 'flex', justifyContent: 'space-between', gap: '2rem', marginTop: '1rem' }}>
 
                   {/* IMS Updated */}
                   <div style={{ flex: 1 }}>
@@ -5410,8 +5544,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
                 </div>
               }
-              {console.log("isFinalApprover", this.state.IsFinalapprover, IsAnalyzedBy, isdisablefinal)}
-              {showcorrectionappicable && !isdisablefinal &&
+              {console.log("isFinalApprover 5539", this.state.IsFinalapprover, IsAnalyzedBy, isdisablefinal, showcorrectionappicable)}
+              {/* {showcorrectionappicable && !isdisablefinal &&
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginTop: '0.5rem' }}>
                   <label style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
                     <input
@@ -5453,7 +5587,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                   </label>
                 </div>
 
-              }
+              } */}
 
             </section> : null
           }
@@ -5475,34 +5609,60 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
                 // <PrimaryButton text="Save as Draft" onClick={() => this.handleDraft("draft")} />
                 <div
-                role="button"
-                tabIndex={0}
-                style={{ width: '145px' }}
-                className="btn btn-primary waves-effect waves-light m-1"
-                onClick={() => this.handleDraft("draft")}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    this.handleDraft("draft");
-                  }
-                }}
-              >
-                <img
-                  src={require('../../../Assets/ExtraImage/checkcircle.svg')}
-                  style={{ width: '1rem' }}
-                  className="me-1"
-                  alt="Check"
-                />
-                Save As Draft
-              </div>
+                  role="button"
+                  tabIndex={0}
+                  //style={{ width: '145px' }}
+                  className="btn btn-primary waves-effect waves-light m-1"
+                  onClick={() => this.handleDraft("draft")}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      this.handleDraft("draft");
+                    }
+                  }}
+                >
+                  {/* <img
+                    src={require('../../../Assets/ExtraImage/checkcircle.svg')}
+                    style={{ width: '1rem' }}
+                    className="me-1"
+                    alt="Check"
+                  /> */}
+                  Save As Draft
+                </div>
 
               }
+              {(this.state.editCurrentUserRole === "FirstAssignedTo" || this.state.editCurrentUserRole === "DelegateTo") &&
+                //this.state.editStatus != "Rework"&&
 
+                // <PrimaryButton text="Save as Draft" onClick={() => this.handleDraft("draft")} />
+                <div
+                  role="button"
+                  tabIndex={0}
+                  //style={{ width: '145px' }}
+                  className="btn btn-primary waves-effect waves-light m-1"
+                  onClick={() => this.handleDraft("draft")}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      this.handleDraft("draft");
+                    }
+                  }}
+                >
+                  {/* <img
+                    src={require('../../../Assets/ExtraImage/checkcircle.svg')}
+                    style={{ width: '1rem' }}
+                    className="me-1"
+                    alt="Check"
+                  /> */}
+                  Save As Draft
+                </div>
+
+              }
               {/* <PrimaryButton text="Submit" onClick={() => this.handleSubmit("submit")} /> */}
               <div
                 role="button"
                 tabIndex={0}
-                style={{ width: '145px' }}
+                style={{ width: '105px' }}
                 className="btn btn-primary waves-effect waves-light m-1"
                 onClick={() => this.handleSubmit("submit")}
                 onKeyDown={(e) => {
@@ -5526,6 +5686,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                   <div
                     role="button"
                     tabIndex={0}
+                    style={{ width: '105px' }}
                     className="btn btn-warning waves-effect waves-light m-1"
                     onClick={(e) => this._reworkRequest("Rework")}
                     onKeyDown={(e) => {
@@ -5544,6 +5705,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
               <div
                 role="button"
                 tabIndex={0}
+                style={{ width: '105px' }}
                 className="btn cancel-btn waves-effect waves-light m-1"
                 onClick={() => this.cancelRequest("Edcmain")}
                 onKeyDown={(e) => {

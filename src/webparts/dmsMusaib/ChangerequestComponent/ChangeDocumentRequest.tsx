@@ -5519,9 +5519,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                             className={`form-select ${row.roleError ? "border-on-error" : ""}`}
                                           >
                                             <option value="" selected>Select Role</option>
-                                            {UserRoles.filter((role: any) =>
-                                              !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
-                                            ).map((role: any, index: number) => (
+                                            {UserRoles
+                                            //.filter((role: any) =>
+                                              //!forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
+                                            //)
+                                            .map((role: any, index: number) => (
                                               <option key={index} value={role.value}
 
                                               //disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}

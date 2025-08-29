@@ -614,6 +614,25 @@ export const getDocumentLinkByID = async (_sp, AttachmentIds) => {
   return results;
 }
 
+export const getAdditionalDocumentLinkByID = async (_sp, listItemID) => {
+  let results = [];
+  // for (let itemId of AttachmentIds) {
+     await _sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
+    // .getById(itemId)
+      .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${listItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Description'`)()
+      .then((res) => {
+        // console.log(res, ' let arrs=[]');
+        // results.push(res);
+        results = res;
+      })
+      .catch((error) => {
+        console.log("Error fetching data: ", error);
+      });
+  // }
+  console.log(results, 'results');
+  return results;
+}
+
 // export const getGeneratedTemplateDoc = async (_sp, itemId) => {
 //   let results = [];
 //   // for (let itemId of AttachmentIds) {
@@ -803,3 +822,25 @@ export const updateMemoNumber = async (itemData, _sp,id) => {
     }
     return resultArr;
 };
+
+// export const updateMemoAdditionalFile = async (listItemID, _sp,id,fileName) => {
+   
+//   // let resultArr = []
+//     try {
+//       let itemData = {
+//         ListItemIDId: listItemID
+//       }
+//       const folder2 = _sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Description');
+
+//       await folder2.files.getByName(fileName).listItemAllFields.update(itemData);
+//       //const newItem = await _sp.web.lists.getByTitle('MemorandumAdditionalDocs/De').items.getById(id).update(itemData);
+//       // console.log('Item added successfully:', newItem);
+//       // resultArr = newItem
+//       // Perform any necessary actions after successful addition
+//     } catch (error) {
+//       console.log('Error adding item:', error);
+//       // Handle errors appropriately
+//       // resultArr = null
+//     }
+//     // return resultArr;
+// };

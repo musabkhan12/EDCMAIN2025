@@ -5,7 +5,26 @@ export const getLatestChangeRequestTemplateType = async (_sp, List) => {
   // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
   // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
   await _sp.web.lists.getByTitle("ChangeRequestList").items
-    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId")
+    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId,TemplateType/TemplateTypeValue")
+    .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department")
+    .filter(`TemplateType/TemplateTypeValue eq '${List}' and Status eq 'Approved'`).orderBy("ID", false).top(1)()
+    .then((res) => {
+      debugger
+      arr = res;
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  // console.log(arr, 'arr');
+  return arr;
+}
+export const getLatestChangeRequestTemplateTypeAuditReport = async (_sp, List) => {
+  let arr = [];
+  // var List ="Annual Audit Program"
+  // const spCache = spfi(_self._sp).using(Caching({ store: "session" }));
+  // const listItems = await sp.web.lists.getByTitle("AuditProgramTypeMaster").items();
+  await _sp.web.lists.getByTitle("ChangeRequestList").items
+    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId,TemplateType/TemplateTypeValue")
     .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department")
     .filter(`TemplateType/TemplateTypeValue eq '${List}' and Status eq 'Approved'`).orderBy("ID", false).top(1)()
     .then((res) => {
@@ -63,6 +82,64 @@ export const getGeneratedTemplateDocAuditplan = async (_sp, itemId) => {
   console.log(results, 'results');
   return results;
 }
+export const getdigitalsignaturerequestbyID = async (listname, _sp, id) => {
+  let arr = []
+  try {
+    console.log("iddddd", id);
+    const newItem = await _sp.web.lists.getByTitle('DigitalSignatureRequestList').items
+      .filter(`ListName eq '${listname}' and ListItemID eq ${id} and DocSignedStatus eq 'No'`)
+      .top(100)
+      ()
+      .then((res) => {
+        console.log(res, ' let arrs=[]');
+
+        arr = res
+        // arr = res;
+      })
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    arr = null
+  }
+  return arr;
+};
+export const getdigitalsignaturerequestbyIDYes = async (listname, _sp, id) => {
+  let arr = [];
+  let Norecrodsexist = "No";
+  try {
+    console.log("iddddd", id);
+    const newItem = await _sp.web.lists.getByTitle('DigitalSignatureRequestList').items
+      .filter(`ListName eq '${listname}' and ListItemID eq ${id}`)
+      .top(100)
+      ()
+      .then((res) => {
+        console.log(res, ' let arrs=[]');
+        if (res.length > 0) {
+
+          for (let i = 0; i < res.length; i++) {
+            if (res[i].DocSignedStatus === "No" || res[i].DestinationIDUpdated === "No") {
+              Norecrodsexist = "Yes";
+              break; // Exit the loop early since we found a match
+            }
+          }
+
+          arr = res
+        } else {
+          Norecrodsexist = "NoRecord";
+        }
+
+        // arr = res;
+      })
+    // Perform any necessary actions after successful addition
+  } catch (error) {
+    console.log('Error adding item:', error);
+    // Handle errors appropriately
+    arr = null
+  }
+  console.log("NorecrodsexistNorecrodsexist", Norecrodsexist);
+  return Norecrodsexist;
+};
 export const updateDigitalsign = async (listname, _sp, id, formitemid) => {
   let resultArr = []
   try {
@@ -1000,14 +1077,32 @@ export const getAuditDocumentLinkByIDPlan = async (_sp, AttachmentIds) => {
   console.log(results, 'results');
   return results;
 }
-export const getDocumentLinkByID = async (_sp, AttachmentIds) => {
+export const getDocumentLinkByID = async (_sp, AttachmentIds, itemid) => {
+  debugger
   let results = [];
   for (let itemId of AttachmentIds) {
+    await _sp.web.lists.getByTitle("IMSAuditReportSignedDocs").items
+      .select("*,FileRef, FileLeafRef").filter(`ListItemIDId eq ${itemid}`)()
+      .then((res) => {
+        console.log(res, ' let arrs=[]');
+        if (res.length > 0) {
+          results = res;
+        } else {
+          results = [];
+        }
+
+      })
+      .catch((error) => {
+        console.log("Error fetching data: ", error);
+      });
+
     await _sp.web.lists.getByTitle("AnnualAuditReportDocs").items.getById(itemId)
       .select("*,FileRef, FileLeafRef")()
       .then((res) => {
         console.log(res, ' let arrs=[] report docs');
-        results.push(res);
+        if (results.length == 0) {
+          results.push(res);
+        }
       })
       .catch((error) => {
         console.log("Error fetching data: ", error);

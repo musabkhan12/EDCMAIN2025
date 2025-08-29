@@ -30,7 +30,7 @@ import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
-import { addAllProcessItem, addItem, addItem2, getLatestChangeRequestTemplateType, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getAuditTypes, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles, getRecommendationTypes, getGeneratedTemplateDoc, getAllClassificationMaster, addMemoNumber, updateMemoNumber, getdigitalsignaturerequestbyID, updateDigitalsign } from './MemorandumService';
+import { addAllProcessItem, addItem, addItem2, getLatestChangeRequestTemplateType, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getAuditTypes, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles, getRecommendationTypes, getGeneratedTemplateDoc, getAllClassificationMaster, addMemoNumber, updateMemoNumber, getdigitalsignaturerequestbyID, updateDigitalsign, getAdditionalDocumentLinkByID } from './MemorandumService';
 import { IDatePickerStyles, TextField } from '@fluentui/react';
 import { Icon } from '@fluentui/react/lib/Icon';
 import { Tooltip } from 'react-tooltip';
@@ -76,6 +76,8 @@ const MemoContext = ({ props }: any) => {
 
 
   const [FilesArr, setFilesArr] = React.useState<any>([]);
+  const [AdditionalFilesArr, setAdditionalFilesArr] = React.useState<any>([]);
+  const [SelectedFilesArr, setSelectedFilesArr] = React.useState<any>([]);
   const [TemplateDoc, setTemplateDoc] = React.useState<any>([]);
   const [Loading, setLoading] = React.useState(false);
   const [FormLoading, setFormLoading] = React.useState(false);
@@ -118,6 +120,9 @@ const MemoContext = ({ props }: any) => {
   const [tooltipText, settooltipText] = React.useState("");
   const [tooltipText1, settooltipText1] = React.useState("");
   const [showModal, setShowModal] = React.useState(false);
+
+  const [selectedFileArrName, setselectedFileArrName] = React.useState("");
+
   const [auditTypeOption, setAuditTypeOption] = React.useState(null);
 
   const [DigitalsignID, setDigitalsignID] = React.useState(null);
@@ -805,14 +810,17 @@ const MemoContext = ({ props }: any) => {
           //   CCUsersTitle: filteredDept?.CCUsersTitle || [],
           // };
         }) || []);
+
+        // setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId[0]));
+        let arrn = await getAdditionalDocumentLinkByID(sp, setBannerById[0].ID);
+        setAdditionalFilesArr(arrn);
+
+
+
         if (setBannerById[0].AttachmentId) {
-          // setDocumentLink(await getDocumentLinkByID(sp, setBannerById[0].AttachmentId[0]));
           let arrn = await getDocumentLinkByID(sp, setBannerById[0].AttachmentId);
           setFilesArr([...FilesArr, ...arrn]);
-
-
         }
-
         setTemplateDoc(await getGeneratedTemplateDoc(sp, Number(formitemid)));
 
         const ApprowData: any[] = await getAllProcessData(sp, Number(formitemid), CONTENTTYPE_Memo, setBannerById[0].ReferenceNumber)
@@ -1502,6 +1510,74 @@ const MemoContext = ({ props }: any) => {
             const postId = postResult?.data?.ID;
 
 
+            if (AdditionalFilesArr.length > 0) {
+              // let additionalFileID = null;
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Description');
+
+              for (const file of AdditionalFilesArr) {
+                if (!file.ID) {
+                  await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
+                    // .getById(itemId)
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Description'`)()
+                    .then(async (res) => {
+                      if (res.length > 0) {
+                        res.forEach(async (element) => {
+                          await sp.web.getFileByServerRelativePath(element.FileRef).delete();
+
+                        });
+                      }
+
+                      const newFileName = await getNewFileName(file.name, memoFileName);
+                      // let DocumentName = newFileName;
+                      const fileAddResult = await folder2.files.addChunked(newFileName, file);
+                      const fileNew = fileAddResult.file;
+
+                      const fileItem = await fileNew.getItem();
+                      fileItem.update({
+                        ListItemIDId: editItemID
+                      });
+                    })
+                    .catch((error) => {
+                      console.log("Error fetching data: ", error);
+                    });
+
+
+                  // const currentItemId = await fileNew.getItem<{ Id: number }>();
+                  // const itemId = currentItemId.Id;
+
+                  // additionalFileID = itemId
+
+
+                }
+                // else {
+                //   // const itemId = file.ID;
+                //   // attachmentIds.push(file.ID);
+                //   additionalFileID = file.ID
+                // }
+                
+
+
+
+              }
+            }
+            if(AdditionalFilesArr.length == 0){
+              await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
+                // .getById(itemId)
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Description'`)()
+                .then(async (res) => {
+                  if (res.length > 0) {
+                    res.forEach(async (element) => {
+                      await sp.web.getFileByServerRelativePath(element.FileRef).delete();
+
+                    });
+                  }
+                })
+                .catch((error) => {
+                  console.log("Error fetching data: ", error);
+                }); 
+            }
+
+
             if (formData.RecommendationTypeValue == "Table") {
               for (const row of recommendationRows) {
 
@@ -1868,6 +1944,43 @@ const MemoContext = ({ props }: any) => {
               return;
             }
 
+            if (AdditionalFilesArr.length > 0) {
+              // let additionalFileID = null;
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Description');
+
+              for (const file of AdditionalFilesArr) {
+                if (!file.ID) {
+                  //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                  // DocumentName = file.name;
+                  const newFileName = await getNewFileName(file.name, memoFileName);
+                  // let DocumentName = newFileName;
+                  const fileAddResult = await folder2.files.addChunked(newFileName, file);
+                  const fileNew = fileAddResult.file;
+
+                  const fileItem = await fileNew.getItem();
+                  fileItem.update({
+                    ListItemIDId: postId
+                  });
+                  // Get the item ID for the uploaded file
+                  // const currentItemId = await fileNew.getItem<{ Id: number }>();
+                  // const itemId = currentItemId.Id;
+
+                  // additionalFileID = itemId;
+                  // await updateMemoAdditionalFile(postId,sp, itemId,newFileName);
+
+
+                }
+                // else {
+                //   // const itemId = file.ID;
+                //   // attachmentIds.push(file.ID);
+                //   additionalFileID = file.ID
+                // }
+
+
+
+              }
+            }
+
             if (formData.RecommendationTypeValue == "Table") {
               for (const row of recommendationRows) {
 
@@ -2046,7 +2159,7 @@ const MemoContext = ({ props }: any) => {
                 if (!file.ID) {
                   //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                   // DocumentName = file.name;
-                  const newFileName = await getNewFileName(file.name, "");
+                  const newFileName = await getNewFileName(file.name, formData.memoNo.replace(/\//g, "_"));
                   DocumentName = newFileName;
                   const fileAddResult = await folder.files.addChunked(newFileName, file);
                   const fileNew = fileAddResult.file;
@@ -2189,6 +2302,81 @@ const MemoContext = ({ props }: any) => {
             const postResult = await updateItem(arr, sp, editItemID);
             const postId = postResult?.data?.ID;
             //  ////////////////////////////
+
+            if (AdditionalFilesArr.length > 0) {
+              // let additionalFileID = null;
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Description');
+
+              for (const file of AdditionalFilesArr) {
+                if (!file.ID) {
+
+                  await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
+                    // .getById(itemId)
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Description'`)()
+                    .then(async (res) => {
+                      if (res.length > 0) {
+                        res.forEach(async (element) => {
+                          await sp.web.getFileByServerRelativePath(element.FileRef).delete();
+  
+                        });
+                      }
+                      
+
+                      const newFileName = await getNewFileName(file.name, formData.memoNo.replace(/\//g, "_"));
+                      // let DocumentName = newFileName;
+                      const fileAddResult = await folder2.files.addChunked(newFileName, file);
+                      const fileNew = fileAddResult.file;
+
+                      const fileItem = await fileNew.getItem();
+                      fileItem.update({
+                        ListItemIDId: editItemID
+                      });
+                    })
+                    .catch((error) => {
+                      console.log("Error fetching data: ", error);
+                    });
+
+
+                  // Get the item ID for the uploaded file
+                  // const currentItemId = await fileNew.getItem<{ Id: number }>();
+                  // const itemId = currentItemId.Id;
+
+                  // additionalFileID = itemId;
+                  // await updateMemoAdditionalFile(postId,sp, itemId,newFileName);
+
+
+                }
+                // else {
+                //   // const itemId = file.ID;
+                //   // attachmentIds.push(file.ID);
+                //   // additionalFileID = file.ID
+                // }
+               
+
+
+
+              }
+            }
+
+            if(AdditionalFilesArr.length ==0){
+              await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
+                // .getById(itemId)
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Description'`)()
+                .then(async (res) => {
+                  if (res.length > 0) {
+                    res.forEach(async (element) => {
+                      await sp.web.getFileByServerRelativePath(element.FileRef).delete();
+
+                    });
+                  }
+                })
+                .catch((error) => {
+                  console.log("Error fetching data: ", error);
+                }); 
+            }
+
+
+            // ////////
             if (formData.RecommendationTypeValue == "Table") {
               for (const row of recommendationRows) {
 
@@ -2495,9 +2683,48 @@ const MemoContext = ({ props }: any) => {
             const postResult = await addItem(arr, sp);
             const postId = postResult?.data?.ID;
             // // debugger
+
+
             if (!postId) {
               console.error("Post creation failed.");
               return;
+            }
+
+            if (AdditionalFilesArr.length > 0) {
+              // let additionalFileID = null;
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Description');
+
+              for (const file of AdditionalFilesArr) {
+                if (!file.ID) {
+                  //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                  // DocumentName = file.name;
+                  const newFileName = await getNewFileName(file.name, formData.memoNo.replace(/\//g, "_"));
+                  // let DocumentName = newFileName;
+                  const fileAddResult = await folder2.files.addChunked(newFileName, file);
+                  const fileNew = fileAddResult.file;
+
+                  const fileItem = await fileNew.getItem();
+                  fileItem.update({
+                    ListItemIDId: postId
+                  });
+                  // Get the item ID for the uploaded file
+                  // const currentItemId = await fileNew.getItem<{ Id: number }>();
+                  // const itemId = currentItemId.Id;
+
+                  // additionalFileID = itemId;
+                  // await updateMemoAdditionalFile(postId,sp, itemId,newFileName);
+
+
+                }
+                // else {
+                //   // const itemId = file.ID;
+                //   // attachmentIds.push(file.ID);
+                //   additionalFileID = file.ID
+                // }
+
+
+
+              }
             }
             if (formData.RecommendationTypeValue == "Table") {
 
@@ -2628,99 +2855,162 @@ const MemoContext = ({ props }: any) => {
 
   const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>, libraryName: string, docLib: string) => {
     event.preventDefault();
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/gif",
-      "image/bmp",
-      "image/svg+xml",
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "application/vnd.ms-excel",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "application/vnd.ms-powerpoint",
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation"
-    ];
+    if (docLib == "MemorandumAdditionalDocs") {
 
-    filechanged = true;
-    newfileupload = true;
-    let uloadBannerImageFiles: any[] = [];
-    let uloadImageFiles: any[] = [];
-    let uloadImageFiles1: any[] = [];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/jpg",
+      ];
+
+      // filechanged = true;
+      // newfileupload = true;
+      // let uloadBannerImageFiles: any[] = [];
+      // let uloadImageFiles: any[] = [];
+      // let uloadImageFiles1: any[] = [];
 
 
-    if (event.target.files && event.target.files.length > 0) {
-      const files = Array.from(event.target.files);
-      (event.target as HTMLInputElement).value = '';
+      if (event.target.files && event.target.files.length > 0) {
+        const files = Array.from(event.target.files);
+        (event.target as HTMLInputElement).value = '';
 
-      if (files.length > 0) {
+        if (files.length > 0) {
 
-        for (const fn of files) {
-          // const file = files[0];
-          if (!allowedTypes.includes(fn.type)) {
-            Swal.fire({
-              icon: "error",
-              title: "Invalid File Type",
-              text: "Only images and document files are allowed.",
-            });
-            return;
+          for (const fn of files) {
+            // const file = files[0];
+            if (!allowedTypes.includes(fn.type)) {
+              Swal.fire({
+                icon: "error",
+                title: "Invalid File Type",
+                text: "Only image files (jpg,jpeg,png) are allowed.",
+              });
+              return;
+            }
+
+            const fileType = fn.type.split("/")[0]; // Extract file type (image, pdf, etc.)
+            const preview = URL.createObjectURL(fn);
+
           }
 
-          const fileType = fn.type.split("/")[0]; // Extract file type (image, pdf, etc.)
-          // const folder = sp.web.getFolderByServerRelativePath('Socialfeedimages');
-          // const uploadResult = await folder.files.addChunked(file.name, file);
-          // console.log("File uploaded successfully", uploadResult);
+          // setAdditionalFilesArr([...AdditionalFilesArr, ...files]);
+          setAdditionalFilesArr(files);
 
-          // Generate the preview URL dynamically
-          // const previewUrl = await generatePreviewUrl(uploadResult.data.ServerRelativeUrl);
 
-          //previewFile(previewUrl);
-          const preview = URL.createObjectURL(fn);
 
-          // newfilepreview = preview
-          // // setPreviewUrl(preview);
-          // // setFileType(fileType);
-
-          // var arr = {};
-          // arr = {
-          //     // files: files,
-          //     libraryName: libraryName,
-          //     docLib: docLib,
-          //     name: fn.name,
-          //     fileName: fn.name,
-          //     fileSize: fn.size,
-          //     date: new Date().toLocaleDateString("en-GB", {
-          //         day: "2-digit",
-          //         month: "short",
-          //         year: "numeric"
-          //     }).replace(/ /g, "/"),
-          //     fileUrl: preview,
-          //     fileType: fileType,
-          //     //   previewUrl: previewUrl
-          // };
-          // uloadBannerImageFiles.push(arr);
-          // setFilesArr1(uloadBannerImageFiles);
+        } else {
+          Swal.fire("upload a document")
         }
-
-
-
-
-        // uloadBannerImageFiles.push(arr);
-        setFilesArr([...FilesArr, ...files]);
-
-
-
-
-      } else {
-        Swal.fire("upload a document")
       }
+
     }
+    else {
+
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/bmp",
+        "image/svg+xml",
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+      ];
+
+      filechanged = true;
+      newfileupload = true;
+      let uloadBannerImageFiles: any[] = [];
+      let uloadImageFiles: any[] = [];
+      let uloadImageFiles1: any[] = [];
+
+
+      if (event.target.files && event.target.files.length > 0) {
+        const files = Array.from(event.target.files);
+        (event.target as HTMLInputElement).value = '';
+
+        if (files.length > 0) {
+
+          for (const fn of files) {
+            // const file = files[0];
+            if (!allowedTypes.includes(fn.type)) {
+              Swal.fire({
+                icon: "error",
+                title: "Invalid File Type",
+                text: "Only images and document files are allowed.",
+              });
+              return;
+            }
+
+            const fileType = fn.type.split("/")[0]; // Extract file type (image, pdf, etc.)
+            // const folder = sp.web.getFolderByServerRelativePath('Socialfeedimages');
+            // const uploadResult = await folder.files.addChunked(file.name, file);
+            // console.log("File uploaded successfully", uploadResult);
+
+            // Generate the preview URL dynamically
+            // const previewUrl = await generatePreviewUrl(uploadResult.data.ServerRelativeUrl);
+
+            //previewFile(previewUrl);
+            const preview = URL.createObjectURL(fn);
+
+            // newfilepreview = preview
+            // // setPreviewUrl(preview);
+            // // setFileType(fileType);
+
+            // var arr = {};
+            // arr = {
+            //     // files: files,
+            //     libraryName: libraryName,
+            //     docLib: docLib,
+            //     name: fn.name,
+            //     fileName: fn.name,
+            //     fileSize: fn.size,
+            //     date: new Date().toLocaleDateString("en-GB", {
+            //         day: "2-digit",
+            //         month: "short",
+            //         year: "numeric"
+            //     }).replace(/ /g, "/"),
+            //     fileUrl: preview,
+            //     fileType: fileType,
+            //     //   previewUrl: previewUrl
+            // };
+            // uloadBannerImageFiles.push(arr);
+            // setFilesArr1(uloadBannerImageFiles);
+          }
+
+
+
+
+          // uloadBannerImageFiles.push(arr);
+          setFilesArr([...FilesArr, ...files]);
+
+
+
+
+        } else {
+          Swal.fire("upload a document")
+        }
+      }
+
+    }
+
   };
 
 
-  const handleDelete = (index: number) => {
-    setFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
+  const handleDelete = (index: number,ArrName:string) => {
+    if(ArrName=="AdditionalFilesArr"){
+      setAdditionalFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
+      setSelectedFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
+
+
+    }
+    else{
+      setFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
+      setSelectedFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
+
+    }
   };
 
 
@@ -3501,7 +3791,7 @@ const MemoContext = ({ props }: any) => {
                                       <div >
                                         <div>
                                           {FilesArr.length > 0 ?
-                                            (<a style={{ fontSize: '0.875rem' }} onClick={() => setShowModal(true)}>
+                                            (<a style={{ fontSize: '0.875rem' }} onClick={() => { setShowModal(true); setSelectedFilesArr(FilesArr) ;setselectedFileArrName("FilesArr");setShowfile(false)}}>
                                               <FontAwesomeIcon icon={faPaperclip} />{" "}{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
                                             </a>) : ""
 
@@ -3520,7 +3810,7 @@ const MemoContext = ({ props }: any) => {
                                         onChange={(e) => onFileChange(e, "Gallery", "MemorandumDocs")}
                                         // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
                                         disabled={InputDisabled}
-                                        multiple
+
                                       />
 
                                     </div>
@@ -3577,6 +3867,48 @@ const MemoContext = ({ props }: any) => {
                                     </div>
                                   </div>
                                 </div>
+
+                                <div className="col-lg-6">
+                                  <div className="mb-3">
+                                    <div className='d-flex justify-content-between'>
+                                      <label htmlFor="attachment" className="col-form-label">Additional Description Attachment (only image file)</label>
+                                      <div >
+                                        <div className='mt-2'>
+                                          {AdditionalFilesArr.length > 0 ?
+                                            (<a style={{ fontSize: '0.875rem' }} onClick={() => { setShowModal(true); setSelectedFilesArr(AdditionalFilesArr);setselectedFileArrName("AdditionalFilesArr");setShowfile(false) }}>
+                                              <FontAwesomeIcon icon={faPaperclip} />
+                                              {" "}{AdditionalFilesArr.length} {AdditionalFilesArr.length > 0 ? "files" : "file"} Attached
+                                            </a>) : ""
+
+                                          }
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <input style={{ height: '47px', padding: '10px' }}
+                                        type="file"
+                                        // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                        className="form-control"
+                                        id="attachment2"
+                                        accept=".jpg,.jpeg,.png"
+                                        onChange={(e) => onFileChange(e, "AdditionalDocs", "MemorandumAdditionalDocs")}
+                                        // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
+                                        disabled={InputDisabled}
+                                        multiple
+                                      />
+
+                                    </div>
+
+
+
+
+
+
+
+                                  </div>
+                                </div>
+
                               </div>
                             </form>
                           </div>
@@ -4280,18 +4612,9 @@ const MemoContext = ({ props }: any) => {
                                     </tr>
                                   </thead>
                                   <tbody>
-                                    {FilesArr.length > 0 && (
-                                      FilesArr.map((row: any, index: number) => {
+                                    {SelectedFilesArr.length > 0 && (
+                                      SelectedFilesArr.map((row: any, index: number) => {
                                         const date = new Date();
-                                        // const components = [
-                                        //   date.getDate().toString().padStart(2, '0'),
-                                        //   (date.getMonth() + 1).toString().padStart(2, '0'),
-                                        //   date.getFullYear().toString(),
-                                        //   date.getHours().toString().padStart(2, '0'),
-                                        //   date.getMinutes().toString().padStart(2, '0'),
-                                        //   date.getSeconds().toString().padStart(2, '0'),
-                                        //   date.getMilliseconds().toString().padStart(3, '0')
-                                        // ];
                                         const fileExtension = row.name ? row.name.split('.').pop() : "";
                                         const fileNameWithoutExtension = row.name ? row.name.split('.').slice(0, -1).join('.') : "";
                                         // const NewFileName = `${formData.memoFileName}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`;
@@ -4348,7 +4671,7 @@ const MemoContext = ({ props }: any) => {
                                                 <img title='delete file'
                                                   src={require("../../assets/del.png")}
                                                   style={{ cursor: "pointer" }}
-                                                  onClick={() => handleDelete(index)}
+                                                  onClick={() => handleDelete(index,selectedFileArrName)}
                                                 />
                                               )}
                                             </td>
@@ -4379,6 +4702,9 @@ const MemoContext = ({ props }: any) => {
                             </>
                           </Modal.Body>
                         </Modal>
+
+
+
 
 
 

@@ -110,6 +110,8 @@ export class IState {
 }
 let optionsmemoNumbernewnc: any[] = [];
 let optionsmemoNumbernewobs: any[] = [];
+let optionsMemoNC: any[] = [];
+let optionsMemoObs: any[] = [];
 export default class AuditPlan extends React.Component<IAuditPlanProps, IState> {
   constructor(props: IAuditPlanProps) {
     super(props);
@@ -304,7 +306,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
           label: entry.NCNumber,
           ncNo: entry.NCNumber,
           reportcode: entry.ReportCode,
-          nctype: entry.NCType
+          nctype: entry.NCType,
+          description:entry.Description
         }));
     }
     debugger
@@ -319,9 +322,10 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       ApprovedAuditReport: item && Number(item?.value),
       MemoNumber: item && item?.reportCode,
       ApprovedAuditSelected: approvedauditreportselected,
-      departmentselected: selectedOption
+      departmentselected: selectedOption,
+      //problemDescription: approvedauditreportselected && approvedauditreportselected[0]?.additionalDetails
     });
-    this.setState({ NCNumber: "", NCNumberID: "", NCNumberselected: [] });
+    this.setState({ NCNumber: "", NCNumberID: "", NCNumberselected: [],problemDescription:"" });
     console.log("ApprovedAuditSelected", approvedauditreportselected);
   };
 
@@ -352,7 +356,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
 
   public changeNCNumber = (item?: any): void => {
     let ncnumberselected = this.state.NCNumberOptions.filter((x: any) => x.value == item?.value);
-    this.setState({ NCNumber: item?.label, NCNumberID: item?.value, NCNumberselected: ncnumberselected });
+    this.setState({ NCNumber: item?.label, NCNumberID: item?.value, NCNumberselected: ncnumberselected,problemDescription:item?.description });
   };
   public handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     debugger
@@ -599,100 +603,187 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       // let optionsmemoNumbernewnc: any[] = [];
       // let optionsmemoNumbernewobs: any[] = [];
 
+      // if (memoItems.length > 0) {
+      //   const filteredItemsNC = memoItems[0].filter((item: any) => item.FailureofIntentNonconformity === "Yes");
+      //   const filteredItemsObs = memoItems[0].filter((item: any) => item.Observations === "Yes");
+
+      //   // Helper: Group ReportCodes to expected NC Numbers or Observation Numbers
+      //   const groupItemsByReportCode = (items: any[]) => {
+      //     const result: { [reportCode: string]: Set<string> } = {};
+      //     items.forEach((item) => {
+      //       const reportCode = item.ReportCode?.trim();
+      //       const number = item.NCNumber?.toString().trim();
+
+      //       // Only proceed if both reportCode and NCNumber are non-empty
+      //       if (reportCode && number && number !== "") {
+      //         if (!result[reportCode]) {
+      //           result[reportCode] = new Set();
+      //         }
+      //         result[reportCode].add(number);
+      //       }
+      //     });
+      //     return result;
+      //   };
+
+
+      //   const reportCodeToExpectedNCs = groupItemsByReportCode(filteredItemsNC);
+      //   const cleanedFilteredItemsObs = filteredItemsObs.filter((item: any) => {
+      //     const nc = item.NCNumber?.toString().trim();
+      //     return nc && nc !== "";
+      //   });
+      //   //const reportCodeToExpectedObs = groupItemsByReportCode(cleanedFilteredItemsObs);
+
+      //   const reportCodeToExpectedObs = groupItemsByReportCode(cleanedFilteredItemsObs);
+
+      //   // Process NC report codes
+      //   await Promise.all(Object.keys(reportCodeToExpectedNCs).map(async (reportCode) => {
+      //     const ncData = await this.getNCdata(reportCode);
+      //     const existingNumbers = new Set(ncData.map((item: any) => item.NCNumber));
+      //     const expectedNumbers = reportCodeToExpectedNCs[reportCode];
+
+      //     const allCreated = Array.from(expectedNumbers).every((num) => existingNumbers.has(num));
+
+      //     if (!allCreated) {
+      //       const exampleItem = filteredItemsNC.find((item: any) => item.ReportCode === reportCode);
+      //       if (exampleItem) {
+      //         optionsmemoNumbernewnc.push({
+      //           value: exampleItem.ID,
+      //           label: exampleItem.ReportCode,
+      //           itemId: exampleItem.ID,
+      //           reportCode: exampleItem.ReportCode,
+      //           ncNo: exampleItem.NCNumber,
+      //           department: exampleItem.DepartmentAuditedId,
+      //           additionalDetails: exampleItem.AdditionalDetails
+      //         });
+      //       }
+      //     }
+      //   }));
+
+      //   // Process Observation report codes
+      //   await Promise.all(Object.keys(reportCodeToExpectedObs).map(async (reportCode) => {
+      //     const obsData = await this.getNCdata(reportCode); // Assuming same list for Observations
+      //     const existingNumbers = new Set(obsData.map((item: any) => item.NCNumber));
+      //     const expectedNumbers = reportCodeToExpectedObs[reportCode];
+
+      //     const allCreated = Array.from(expectedNumbers).every((num) => existingNumbers.has(num));
+
+      //     if (!allCreated) {
+      //       const exampleItem = filteredItemsObs.find((item: any) => item.ReportCode === reportCode);
+      //       if (exampleItem) {
+      //         optionsmemoNumbernewobs.push({
+      //           value: exampleItem.ID,
+      //           label: exampleItem.ReportCode,
+      //           itemId: exampleItem.ID,
+      //           reportCode: exampleItem.ReportCode,
+      //           ncNo: exampleItem.NCNumber,
+      //           department: exampleItem.DepartmentAuditedId,
+      //           additionalDetails: exampleItem.AdditionalDetails
+      //         });
+      //       }
+      //     }
+      //   }));
+
+      //   console.log("Expected Observation NCs:", reportCodeToExpectedObs);
+      //   // Sort options
+      //   optionsmemoNumbernewobs = await this.getUniqueBy(optionsmemoNumbernewobs, "reportCode");
+      //   optionsmemoNumbernewnc = await this.getUniqueBy(optionsmemoNumbernewnc, "reportCode");
+      //   optionsmemoNumbernewnc.sort((a, b) => a.label.localeCompare(b.label));
+      //   optionsmemoNumbernewobs.sort((a, b) => a.label.localeCompare(b.label));
+      //   optionsMemoNC = optionsmemoNumbernewnc;
+      //   optionsMemoObs = optionsmemoNumbernewobs;
+      //   // Set dropdown options based on selected type (NC or Observation)
+      //   this.setState({
+      //     // memonumberOptions: this.state.ncType === "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
+      //     memonumberOptionsall: memoItems.length > 0 ? memoItems : []
+      //   });
+      // }
       if (memoItems.length > 0) {
-        const filteredItemsNC = memoItems[0].filter((item: any) => item.FailureofIntentNonconformity === "Yes");
+        const filteredItemsNC = memoItems[0].filter((item: any) => (item.FailureofIntentNonconformity === "Yes" || item.FailureofImplementation =="Yes" || item.FailureofEffectiveness =="Yes"));
         const filteredItemsObs = memoItems[0].filter((item: any) => item.Observations === "Yes");
 
-        // Helper: Group ReportCodes to expected NC Numbers or Observation Numbers
-        const groupItemsByReportCode = (items: any[]) => {
-          const result: { [reportCode: string]: Set<string> } = {};
-          items.forEach((item) => {
-            const reportCode = item.ReportCode?.trim();
-            const number = item.NCNumber?.toString().trim();
+        const reportCodeToExpectedNCs = this.groupItemsByReportCode(filteredItemsNC);
+        const reportCodeToExpectedObs = this.groupItemsByReportCode(filteredItemsObs);
 
-            // Only proceed if both reportCode and NCNumber are non-empty
-            if (reportCode && number && number !== "") {
-              if (!result[reportCode]) {
-                result[reportCode] = new Set();
+        // ⬇️ Helper to process either NC or Observation
+        const processItems = async (
+          reportCodeToExpected: { [reportCode: string]: Set<string> },
+          filteredItems: any[],
+          NCType: "NC" | "Observation",
+          targetArray: any[]
+        ) => {
+          await Promise.all(Object.keys(reportCodeToExpected).map(async (reportCode) => {
+            // ⬇️ 1. Fetch created numbers for the ReportCode and NCType
+            const auditReportNumbers = await this.getAuditReportNCNumbers(reportCode, NCType);
+            const existingNCNumbers = auditReportNumbers.map((item: any) => item.NCNumber?.toString().trim()).filter(Boolean);
+            const createdNumbersSet = new Set(existingNCNumbers);
+
+            const expectedNumbers = reportCodeToExpected[reportCode];
+
+            // ⬇️ 2. Find missing numbers
+            const missingNumbers = Array.from(expectedNumbers).filter((num) => !createdNumbersSet.has(num));
+
+            // ⬇️ 3. If there are any missing, add one example (first match)
+            if (missingNumbers.length > 0) {
+              const exampleItem = filteredItems.find((item: any) => item.ReportCode === reportCode && missingNumbers.includes(item.NCNumber?.toString().trim()));
+              if (exampleItem) {
+                targetArray.push({
+                  value: exampleItem.ID,
+                  label: exampleItem.ReportCode,
+                  itemId: exampleItem.ID,
+                  reportCode: exampleItem.ReportCode,
+                  ncNo: missingNumbers.join(", "), // Show all missing NC numbers
+                  department: exampleItem.DepartmentAuditedId,
+                  additionalDetails: exampleItem.AdditionalDetails
+                });
               }
-              result[reportCode].add(number);
             }
-          });
-          return result;
+          }));
         };
 
+        // ⬇️ Process NCs
+        await processItems(reportCodeToExpectedNCs, filteredItemsNC, "NC", optionsmemoNumbernewnc);
 
-        const reportCodeToExpectedNCs = groupItemsByReportCode(filteredItemsNC);
-        const cleanedFilteredItemsObs = filteredItemsObs.filter((item: any) => {
-          const nc = item.NCNumber?.toString().trim();
-          return nc && nc !== "";
-        });
-        //const reportCodeToExpectedObs = groupItemsByReportCode(cleanedFilteredItemsObs);
+        // ⬇️ Process Observations
+        await processItems(reportCodeToExpectedObs, filteredItemsObs, "Observation", optionsmemoNumbernewobs);
 
-        const reportCodeToExpectedObs = groupItemsByReportCode(cleanedFilteredItemsObs);
-
-        // Process NC report codes
-        await Promise.all(Object.keys(reportCodeToExpectedNCs).map(async (reportCode) => {
-          const ncData = await this.getNCdata(reportCode);
-          const existingNumbers = new Set(ncData.map((item: any) => item.NCNumber));
-          const expectedNumbers = reportCodeToExpectedNCs[reportCode];
-
-          const allCreated = Array.from(expectedNumbers).every((num) => existingNumbers.has(num));
-
-          if (!allCreated) {
-            const exampleItem = filteredItemsNC.find((item: any) => item.ReportCode === reportCode);
-            if (exampleItem) {
-              optionsmemoNumbernewnc.push({
-                value: exampleItem.ID,
-                label: exampleItem.ReportCode,
-                itemId: exampleItem.ID,
-                reportCode: exampleItem.ReportCode,
-                ncNo: exampleItem.NCNumber,
-                department: exampleItem.DepartmentAuditedId
-              });
-            }
-          }
-        }));
-
-        // Process Observation report codes
-        await Promise.all(Object.keys(reportCodeToExpectedObs).map(async (reportCode) => {
-          const obsData = await this.getNCdata(reportCode); // Assuming same list for Observations
-          const existingNumbers = new Set(obsData.map((item: any) => item.NCNumber));
-          const expectedNumbers = reportCodeToExpectedObs[reportCode];
-
-          const allCreated = Array.from(expectedNumbers).every((num) => existingNumbers.has(num));
-
-          if (!allCreated) {
-            const exampleItem = filteredItemsObs.find((item: any) => item.ReportCode === reportCode);
-            if (exampleItem) {
-              optionsmemoNumbernewobs.push({
-                value: exampleItem.ID,
-                label: exampleItem.ReportCode,
-                itemId: exampleItem.ID,
-                reportCode: exampleItem.ReportCode,
-                ncNo: exampleItem.NCNumber,
-                department: exampleItem.DepartmentAuditedId
-              });
-            }
-          }
-        }));
-
-        console.log("Expected Observation NCs:", reportCodeToExpectedObs);
-        // Sort options
+        // ✅ Sort and deduplicate
         optionsmemoNumbernewobs = await this.getUniqueBy(optionsmemoNumbernewobs, "reportCode");
         optionsmemoNumbernewnc = await this.getUniqueBy(optionsmemoNumbernewnc, "reportCode");
-        optionsmemoNumbernewnc.sort((a, b) => a.label.localeCompare(b.label));
-        optionsmemoNumbernewobs.sort((a, b) => a.label.localeCompare(b.label));
-
-        // Set dropdown options based on selected type (NC or Observation)
-        this.setState({
-          // memonumberOptions: this.state.ncType === "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
-          memonumberOptionsall: memoItems.length > 0 ? memoItems : []
-        });
       }
 
     } catch (e) {
       console.error(e);
+    }
+  }
+  private groupItemsByReportCode = (items: any[]) => {
+    const result: { [reportCode: string]: Set<string> } = {};
+    items.forEach((item) => {
+      const reportCode = item.ReportCode?.trim();
+      const number = item.NCNumber?.toString().trim();
+
+      if (reportCode && number) {
+        if (!result[reportCode]) result[reportCode] = new Set();
+        result[reportCode].add(number);
+      }
+    });
+    return result;
+  };
+  private async getAuditReportNCNumbers(reportCode: string, NCType: "NC" | "Observation") {
+    const sp = spfi().using(SPFx(this.props.context));
+    try {
+      const filter = `ReportCode eq '${reportCode}' and NCType eq '${NCType}'`;
+
+      const items = await sp.web.lists
+        .getByTitle("AuditReportNCNumber")
+        .items
+        .filter(filter)
+        .select("ID", "ReportCode", "NCType", "NCNumber","Description")
+        ();
+
+      return items;
+    } catch (error) {
+      console.error(`Error fetching AuditReportNCNumbers for ${reportCode} (${NCType}):`, error);
+      return [];
     }
   }
 
@@ -1001,7 +1092,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       errors.dueDate = "Due Date is required";
       isValid = false;
     }
-    // if (!this.state.fileCount && this.state.exFiles.length == 0) {
+    // if ((!this.state.fileCount || this.state.fileCount == 0) && this.state.exFiles.length == 0) {
     //   errors.Attchments = "Attachments are required";
     //   isValid = false;
     //   document.querySelectorAll("#newfile").forEach((el) => {
@@ -1776,13 +1867,13 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                   <label htmlFor="Attchments" style={{ marginRight: "10px" }}>Attachments </label>
 
                   <input
-                    className="form-control"
+                    //className="form-control"
                     type="file" name="myFile" onChange={(e) => this.handleFileChange(e, this)} id="newfile" multiple
-                  // style={{
-                  //   backgroundColor: this.state.errors.Attchments ? "#ffcccb" : "white",
-                  //   borderColor: this.state.errors.Attchments ? 'red' : '#dee2e6'
-                  // }}
-                  //className={`form-control ${this.state.errors?.Attachments} ? 'textfield-error' : ''`}
+                    // style={{
+                    //   backgroundColor: this.state.errors.Attchments ? "#ffcccb" : "white",
+                    //   borderColor: this.state.errors.Attchments ? 'red' : '#dee2e6'
+                    // }}
+                    className={`form-control ${this.state.errors?.Attachments} ? 'textfield-error' : ''`}
                   />
                   {this.state.fileCount > 0 ?
                     (<span style={{ fontSize: '0.875rem' }} onClick={this._OpenModal} className='newpo'>

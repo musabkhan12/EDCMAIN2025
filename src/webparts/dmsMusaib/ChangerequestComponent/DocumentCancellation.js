@@ -31,7 +31,9 @@ export const getAllDocumentCode = async (_sp) => {
         }
       }
 
-      arr = Object.values(latestByDocumentCode);
+      arr = Object.values(latestByDocumentCode).filter(
+        item => item.DocumentCancellationStatus !== 'Yes'
+      );
       for (const item of res) {
         const docCode = item.DocumentCode;
         if (docCode && !latestByDocumentCode[docCode]) {
@@ -134,7 +136,7 @@ export const getChangeRequestTypeMaster = async (_sp, RequestType) => {
   let arr = [];
 
   await _sp.web.lists.getByTitle("ChangeRequestTypeMaster").items
-    .select("*","ID", "ChangeRequestType", "RequestType/RequestType", "RequestType/ID")
+    .select("*", "ID", "ChangeRequestType", "RequestType/RequestType", "RequestType/ID")
     .expand("RequestType")
     .filter(`RequestType/RequestType eq '${RequestType}'`)
     .orderBy("ID", false)
