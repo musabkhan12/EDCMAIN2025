@@ -30,7 +30,7 @@ import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
-import { addAllProcessItem, addItem, addItem2, addItemNC, getAllApprovedAuditplan, getAllAuditType, getAllDepartment, getAllDepartment1, getAllProcessData, getAllSubDepartment, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDocumentLinkByIDPlan, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDocAuditplan, getGeneratedTemplateDocCR, getItemByID, getItemByID2, getItemfromChecklistMaster, getItemsAuditReportNC, getItemsAuditReportObs, getLatestChangeRequestTemplateType, getLatestChangeRequestTemplateTypeAuditReport, getListNameID, getNCNumberbyID, UpdateAllProcessItem, updateApprovalItem, updateDigitalsign, updateItem, updateItem2, updateItemNC, uploadAllFiles } from './AuditReportService';
+import { addAllProcessItem, addItem, addItem2, addItemNC, getAllApprovedAuditplan, getAllAuditType, getAllDepartment, getAllDepartment1, getAllProcessData, getAllSubDepartment, getApprovalByID, getApprovalByID2, getDataRoles, getDocumentLinkByID, getDocumentLinkByIDPlan, getDraftApprovalByID, getFormNameID, getGeneratedTemplateDocAuditplan, getGeneratedTemplateDocCR, getItemByID, getItemByID2, getItemfromChecklistMaster, getItemsAuditReportNC, getItemsAuditReportObs, getLatestChangeRequestTemplateType, getLatestChangeRequestTemplateTypeAuditReport, getListNameID, getNCNumberbyID, getTemplatelink, UpdateAllProcessItem, updateApprovalItem, updateDigitalsign, updateItem, updateItem2, updateItemNC, uploadAllFiles } from './AuditReportService';
 import { TextField } from '@fluentui/react';
 import { DatePicker, isMac } from 'office-ui-fabric-react';
 import moment from 'moment';
@@ -165,7 +165,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [isoreferenceerr, setisoreferenceerr] = React.useState(false);
     const [departmenterr, setdepartmenterr] = React.useState(false);
     const [subdepartmenterr, setsubdepartmenterr] = React.useState(false);
-
+    const [showModaltemp, setShowModaltemp] = React.useState(false);
     const [fromdepartmenterr, setfromdepartmenterr] = React.useState(false);
     const [imsprocedureerr, setimsprocedureerr] = React.useState(false);
     const [inquirieserr, setinquirieserr] = React.useState(false);
@@ -189,6 +189,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [showdigisign, setshowdigisign] = React.useState(false);
     const [DigitalsignID, setDigitalsignID] = React.useState(null);
     const [hidedigisign, sethidedigisign] = React.useState(false);
+    const [Templatelink, setTemplatelink] = React.useState(null);
     //const [checkboxNumberValues, setCheckboxNumberValues] = React.useState<{ [key: string]: number }>({});
     const [checkboxNumberValues, setCheckboxNumberValues] = React.useState({
         ConformingPositiveFindingsN: 0,
@@ -293,7 +294,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
     };
     const handleDepartmentChange = async (selectedOption: any) => {
         debugger
-        setFormData({ ...formData, reportCode: "" ,subdeptId:0});
+        setFormData({ ...formData, reportCode: "", subdeptId: 0 });
         setselectUsersubDept([]);
         setSequencesLoaded(false);
         setIsDepartmentReady(false); // Prevent effects during update
@@ -875,6 +876,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
             fromEmail: Currusers?.Email,
 
         }));
+        let alltemplates = await getTemplatelink(sp);
+        if (alltemplates.length > 0) {
+            setTemplatelink(alltemplates[0]);
+        }
         let ChangeRequestTemplateType = await getLatestChangeRequestTemplateType(sp, CONTENTTYPE_AuditReportTemp);
         debugger
         if (ChangeRequestTemplateType.length > 0) {
@@ -1945,7 +1950,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
                         // const finalDataForSharePoint = {
                         //     ...convertCheckboxValuesForSharePoint(checkboxValues),
                         //     ...checkboxNumberValues
@@ -2161,7 +2166,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     // MainListID: String(editItemID),
                                     MainListID: String(editItemID),
                                     ContentTitle: doccode,
-                                    RequestId: formData.reportCode,
+                                    RequestId:(formData.reportCode !== undefined && formData.reportCode !== '') 
+                                    ? formData.reportCode 
+                                    : reportCode,
                                     // RequestId:String(editID.Id),
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
@@ -2263,7 +2270,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId");
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // setTimeout(() => {
@@ -2300,7 +2307,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -2509,7 +2516,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     Title: currentUser.Title,
                                     // ContentTitle: selectedOption.ReferenceNumber,
                                     ContentTitle: doccode,
-                                    RequestId: formData.reportCode,
+                                    RequestId:(formData.reportCode !== undefined && formData.reportCode !== '') 
+                                    ? formData.reportCode 
+                                    : reportCode,
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role,
                                     Level: Number(item.level),
@@ -2559,7 +2568,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         //Swal.fire('Submitted successfully.', '', 'success');
@@ -2635,7 +2644,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -2831,7 +2840,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 Title: currentUser.Title,
                                 // ContentTitle: selectedOption.ReferenceNumber,
                                 ContentTitle: doccode,
-                                RequestId: formData.reportCode,
+                                RequestId:(formData.reportCode !== undefined && formData.reportCode !== '') 
+                                    ? formData.reportCode 
+                                    : reportCode,
                                 MainListNameId: ListNameId,
                                 ApproverRoleId: item.role || 0,
                                 Level: Number(item.level),
@@ -2944,7 +2955,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId")
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -2982,7 +2993,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -3172,7 +3183,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     Title: currentUser.Title,
                                     // ContentTitle: selectedOption.ReferenceNumber,
                                     ContentTitle: doccode,
-                                    RequestId: formData.reportCode,
+                                    RequestId:(formData.reportCode !== undefined && formData.reportCode !== '') 
+                                    ? formData.reportCode 
+                                    : reportCode,
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role ? item.role : 0,
                                     Level: Number(item.level),
@@ -3222,7 +3235,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // sessionStorage.removeItem("bannerId")
@@ -4323,9 +4336,24 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
                                                                         <div className="d-flex justify-content-between align-items-center">
-                                                                            <label htmlFor="attachment" className="col-form-label">
-                                                                                Audit Report Attachment<span className="text-danger1"> *</span>
-                                                                            </label>
+                                                                            <div style={{ display: "flex", alignItems: "center" }}>
+                                                                                {/* Label */}
+                                                                                <label htmlFor="attachment" className="col-form-label mb-0">
+                                                                                    Audit Report Attachment
+                                                                                </label>
+
+                                                                                {/* Download Icon - NOT inside label */}
+                                                                                <a
+                                                                                    onClick={() => setShowModaltemp(true)}
+                                                                                    style={{ fontSize: "0.875rem", marginLeft: "5px", cursor: "pointer" }}
+                                                                                    title="Download Template"
+                                                                                >
+                                                                                    <FontAwesomeIcon icon={faDownload} />
+                                                                                </a>
+
+                                                                                {/* Required marker */}
+                                                                                <span className="text-danger1" style={{ marginLeft: "4px" }}>*</span>
+                                                                            </div>
 
                                                                             {/* File count on right */}
                                                                             {FilesArr.length > 0 && (
@@ -4694,11 +4722,13 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     {/* {UserRoles.map((role: any, index: number) => (
                                                                                     <option key={index} value={role.value}>{role.label}</option>
                                                                                 ))} */}
-                                                                                    {UserRoles.filter((role: any) =>
-                                                                                        !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
-                                                                                    ).map((role: any, idx: number) => (
-                                                                                        <option key={idx} value={role.value}>{role.label}</option>
-                                                                                    ))}
+                                                                                    {UserRoles
+                                                                                        //.filter((role: any) =>
+                                                                                        // !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
+                                                                                        //)
+                                                                                        .map((role: any, idx: number) => (
+                                                                                            <option key={idx} value={role.value}>{role.label}</option>
+                                                                                        ))}
 
 
 
@@ -4908,7 +4938,60 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                 {/* </div> */}
 
                                                 {/* /////////// */}
+                                                <Modal show={showModaltemp} onHide={() => setShowModaltemp(false)} size={Showfile ? "xl" : "lg"} className='newmobmodal'>
+                                                    <Modal.Header closeButton>
+                                                        <Modal.Title> Download Template <br></br>
+                                                            <p className='text-muted font-14 fw-400'>Please download the provided template to proceed with creating the document
+                                                            </p>
 
+                                                        </Modal.Title>
+                                                        {/* {ImagepostArr1.length > 0 && showBannerModal && <Modal.Title>Media Images</Modal.Title>} */}
+                                                    </Modal.Header>
+                                                    <Modal.Body className="" id="style-5">
+                                                        <>
+                                                            {Showfile ?
+
+                                                                <FileViewer showfile={Showfile} docurl={redirecturl} cancelAction={cancelModalAction} />
+                                                                :
+                                                                <table className="mtbalenew" style={{ maxHeight: '400px', overflowY: 'auto' }} >
+                                                                    <thead style={{ background: '#eef6f7' }}>
+                                                                        <tr>
+                                                                            <th style={{ minWidth: '50px', maxWidth: '50px' }}>S.No.</th>
+                                                                            <th style={{ minWidth: '140px', maxWidth: '1400px', textAlign: 'left' }}>File Name</th>
+                                                                            {/* {editForm && <th>File Link</th>} */}
+                                                                            {/* <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Upload date</th> */}
+                                                                            {/* {!InputDisabled && <th className='text-center'>Action</th>} */}
+                                                                            <th style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>Action</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {console.log("Templatelink doc link", Templatelink)}
+                                                                        {Templatelink && Templatelink?.length > 0 && (
+                                                                            Templatelink?.map((row: any, index: number) => {
+                                                                                return (
+                                                                                    <tr key={index}>
+                                                                                        <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center'>{index + 1}</td>
+
+                                                                                        <td style={{ minWidth: '140px', maxWidth: '140px', textAlign: 'left' }} title={row != null && `${cleanFileName(row?.FileLeafRef)}`}>{row != null && `${cleanFileName(row?.FileLeafRef)}`}</td>
+
+                                                                                        {/* <td style={{ minWidth: '50px', maxWidth: '50px' }} className='text-center' title={row && moment(row?.Created).format("DD/MMM/YYYY")}>{row && moment(row?.Created).format("DD/MMM/YYYY")}</td> */}
+
+                                                                                        <td style={{ minWidth: '50px', maxWidth: '50px', textAlign: 'center' }}>
+
+                                                                                            <span title='Download template' onClick={() => OpenFile(row != null && row, "Download")} style={{ color: "blue", cursor: "pointer", margin: "10px" }}>
+                                                                                                <FontAwesomeIcon icon={faDownload} /></span>
+                                                                                        </td>
+
+                                                                                    </tr>
+                                                                                )
+                                                                            }))}
+                                                                    </tbody>
+
+                                                                </table>
+                                                            }
+                                                        </>
+                                                    </Modal.Body>
+                                                </Modal>
                                                 <Modal show={showModal} onHide={() => setShowModal(false)} size={Showfile ? "xl" : "lg"} className='filemodal'>
                                                     <Modal.Header closeButton>
                                                         <Modal.Title > <h4 className='font-16 text-dark fw-bold mb-0'>Attachment Details Audit report attachment</h4>

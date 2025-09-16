@@ -445,8 +445,18 @@ const ArgPoc = ({ props }: any) => {
   // }, []);
   useEffect(() => {
     // const params = new URLSearchParams(window.location.search);
-    const url = window.location.href;
+    let url = window.location.href;
     // const matches = url.match(/\/([^\/]+)\.aspx/);
+    let newurl = new URL(url);
+    var isSearch = newurl.search;
+    newurl.search = "";
+    url = newurl.toString();
+    if(isSearch !=""){
+      window.location.href = url;
+    }
+    
+
+
     let extractedPart = url.split('.aspx')[1];
     let parameters = extractedPart.split('?')
 

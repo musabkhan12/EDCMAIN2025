@@ -30,7 +30,7 @@ import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from './CustomBreadcrumb/CustomBreadcrumb';
-import { addAllProcessItem, addItem, addItem2, getLatestChangeRequestTemplateType, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getAuditTypes, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles, getRecommendationTypes, getGeneratedTemplateDoc, getAllClassificationMaster, addMemoNumber, updateMemoNumber, getdigitalsignaturerequestbyID, updateDigitalsign, getAdditionalDocumentLinkByID } from './MemorandumService';
+import { addAllProcessItem, addItem, addItem2, getLatestChangeRequestTemplateType, getAllAuditType, getAllDepartment, getAllProcessData, getApprovalByID, getApprovalByID2, getAuditTypes, getDataRoles, getDocumentLinkByID, getDraftApprovalByID, getFormNameID, getItemByID, getItemByID2, getListNameID, UpdateAllProcessItem, updateApprovalItem, updateItem, updateItem2, uploadAllFiles, getRecommendationTypes, getGeneratedTemplateDoc, getAllClassificationMaster, addMemoNumber, updateMemoNumber, getdigitalsignaturerequestbyID, updateDigitalsign, getAdditionalDocumentLinkByID, getBGAdditionalDocumentLinkByID, getRecomAdditionalDocumentLinkByID } from './MemorandumService';
 import { IDatePickerStyles, TextField } from '@fluentui/react';
 import { Icon } from '@fluentui/react/lib/Icon';
 import { Tooltip } from 'react-tooltip';
@@ -78,6 +78,13 @@ const MemoContext = ({ props }: any) => {
   const [FilesArr, setFilesArr] = React.useState<any>([]);
   const [AdditionalFilesArr, setAdditionalFilesArr] = React.useState<any>([]);
   const [SelectedFilesArr, setSelectedFilesArr] = React.useState<any>([]);
+  // ///
+  const [BGAdditionalFilesArr, setBGAdditionalFilesArr] = React.useState<any>([]);
+  const [SelectedBGFilesArr, setSelectedBGFilesArr] = React.useState<any>([]);
+
+  const [RecomAdditionalFilesArr, setRecomAdditionalFilesArr] = React.useState<any>([]);
+  const [SelectedRecomFilesArr, setSelectedRecomFilesArr] = React.useState<any>([]);
+  // ///
   const [TemplateDoc, setTemplateDoc] = React.useState<any>([]);
   const [Loading, setLoading] = React.useState(false);
   const [FormLoading, setFormLoading] = React.useState(false);
@@ -815,6 +822,12 @@ const MemoContext = ({ props }: any) => {
         let arrn = await getAdditionalDocumentLinkByID(sp, setBannerById[0].ID);
         setAdditionalFilesArr(arrn);
 
+        let arrn1 = await getBGAdditionalDocumentLinkByID(sp, setBannerById[0].ID);
+        setBGAdditionalFilesArr(arrn1);
+
+        let arrn2 = await getRecomAdditionalDocumentLinkByID(sp, setBannerById[0].ID);
+        setRecomAdditionalFilesArr(arrn2);
+
 
 
         if (setBannerById[0].AttachmentId) {
@@ -1504,6 +1517,10 @@ const MemoContext = ({ props }: any) => {
               ChangeRequestIDId: formData.changeReqListID,
               // AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
+              IsBackgroundAttachment: BGAdditionalFilesArr.length > 0 ? "Yes" : "No",
+              IsIssuesAttachment: AdditionalFilesArr.length > 0 ? "Yes" : "No",
+              IsRecommendationDetails: RecomAdditionalFilesArr.length > 0 ? "Yes" : "No",
+
 
             }
             const postResult = await updateItem(arr, sp, editItemID);
@@ -1554,13 +1571,13 @@ const MemoContext = ({ props }: any) => {
                 //   // attachmentIds.push(file.ID);
                 //   additionalFileID = file.ID
                 // }
-                
+
 
 
 
               }
             }
-            if(AdditionalFilesArr.length == 0){
+            if (AdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
                 .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Description'`)()
@@ -1574,8 +1591,118 @@ const MemoContext = ({ props }: any) => {
                 })
                 .catch((error) => {
                   console.log("Error fetching data: ", error);
-                }); 
+                });
             }
+
+
+            // /////////
+
+            if (BGAdditionalFilesArr.length > 0) {
+              // let additionalFileID = null;
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Background');
+
+              for (const file of BGAdditionalFilesArr) {
+                if (!file.ID) {
+                  await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
+                    // .getById(itemId)
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Background'`)()
+                    .then(async (res) => {
+                      if (res.length > 0) {
+                        res.forEach(async (element) => {
+                          await sp.web.getFileByServerRelativePath(element.FileRef).delete();
+
+                        });
+                      }
+
+                      const newFileName = await getNewFileName(file.name, memoFileName);
+                      // let DocumentName = newFileName;
+                      const fileAddResult = await folder2.files.addChunked(newFileName, file);
+                      const fileNew = fileAddResult.file;
+
+                      const fileItem = await fileNew.getItem();
+                      fileItem.update({
+                        ListItemIDId: editItemID
+                      });
+                    })
+                    .catch((error) => {
+                      console.log("Error fetching data: ", error);
+                    });
+
+                }
+
+              }
+            }
+            if (BGAdditionalFilesArr.length == 0) {
+              await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
+                // .getById(itemId)
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Background'`)()
+                .then(async (res) => {
+                  if (res.length > 0) {
+                    res.forEach(async (element) => {
+                      await sp.web.getFileByServerRelativePath(element.FileRef).delete();
+
+                    });
+                  }
+                })
+                .catch((error) => {
+                  console.log("Error fetching data: ", error);
+                });
+            }
+
+            // ////////
+            if (RecomAdditionalFilesArr.length > 0) {
+              // let additionalFileID = null;
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Recommadation');
+
+              for (const file of RecomAdditionalFilesArr) {
+                if (!file.ID) {
+                  await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
+                    // .getById(itemId)
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Recommadation'`)()
+                    .then(async (res) => {
+                      if (res.length > 0) {
+                        res.forEach(async (element) => {
+                          await sp.web.getFileByServerRelativePath(element.FileRef).delete();
+
+                        });
+                      }
+
+                      const newFileName = await getNewFileName(file.name, memoFileName);
+                      // let DocumentName = newFileName;
+                      const fileAddResult = await folder2.files.addChunked(newFileName, file);
+                      const fileNew = fileAddResult.file;
+
+                      const fileItem = await fileNew.getItem();
+                      fileItem.update({
+                        ListItemIDId: editItemID
+                      });
+                    })
+                    .catch((error) => {
+                      console.log("Error fetching data: ", error);
+                    });
+
+                }
+
+              }
+            }
+            if (RecomAdditionalFilesArr.length == 0) {
+              await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
+                // .getById(itemId)
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Recommadation'`)()
+                .then(async (res) => {
+                  if (res.length > 0) {
+                    res.forEach(async (element) => {
+                      await sp.web.getFileByServerRelativePath(element.FileRef).delete();
+
+                    });
+                  }
+                })
+                .catch((error) => {
+                  console.log("Error fetching data: ", error);
+                });
+            }
+
+            // ///////////////
 
 
             if (formData.RecommendationTypeValue == "Table") {
@@ -1931,6 +2058,10 @@ const MemoContext = ({ props }: any) => {
               ChangeRequestIDId: formData.changeReqListID,
               // AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
+              IsBackgroundAttachment: BGAdditionalFilesArr.length > 0 ? "Yes" : "No",
+              IsIssuesAttachment: AdditionalFilesArr.length > 0 ? "Yes" : "No",
+              IsRecommendationDetails: RecomAdditionalFilesArr.length > 0 ? "Yes" : "No",
+
 
             }
 
@@ -1977,6 +2108,51 @@ const MemoContext = ({ props }: any) => {
                 // }
 
 
+
+              }
+            }
+
+            if (BGAdditionalFilesArr.length > 0) {
+              // let additionalFileID = null;
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Background');
+
+              for (const file of BGAdditionalFilesArr) {
+                if (!file.ID) {
+                  //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                  // DocumentName = file.name;
+                  const newFileName = await getNewFileName(file.name, memoFileName);
+                  // let DocumentName = newFileName;
+                  const fileAddResult = await folder2.files.addChunked(newFileName, file);
+                  const fileNew = fileAddResult.file;
+
+                  const fileItem = await fileNew.getItem();
+                  fileItem.update({
+                    ListItemIDId: postId
+                  });
+
+                }
+
+              }
+            }
+            if (RecomAdditionalFilesArr.length > 0) {
+              // let additionalFileID = null;
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Recommadation');
+
+              for (const file of RecomAdditionalFilesArr) {
+                if (!file.ID) {
+                  //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                  // DocumentName = file.name;
+                  const newFileName = await getNewFileName(file.name, memoFileName);
+                  // let DocumentName = newFileName;
+                  const fileAddResult = await folder2.files.addChunked(newFileName, file);
+                  const fileNew = fileAddResult.file;
+
+                  const fileItem = await fileNew.getItem();
+                  fileItem.update({
+                    ListItemIDId: postId
+                  });
+
+                }
 
               }
             }
@@ -2245,6 +2421,10 @@ const MemoContext = ({ props }: any) => {
                 ChangeRequestIDId: formData.changeReqListID,
                 // AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
+                IsBackgroundAttachment: BGAdditionalFilesArr.length > 0 ? "Yes" : "No",
+                IsIssuesAttachment: AdditionalFilesArr.length > 0 ? "Yes" : "No",
+                IsRecommendationDetails: RecomAdditionalFilesArr.length > 0 ? "Yes" : "No",
+
 
               }
             }
@@ -2294,6 +2474,9 @@ const MemoContext = ({ props }: any) => {
                 AttachmentId: attachmentIds || [],
                 ChangeRequestIDId: formData.changeReqListID,
                 // AttachmentJson: JSON.stringify(bannerImageArray) || ""
+                IsBackgroundAttachment: BGAdditionalFilesArr.length > 0 ? "Yes" : "No",
+                IsIssuesAttachment: AdditionalFilesArr.length > 0 ? "Yes" : "No",
+                IsRecommendationDetails: RecomAdditionalFilesArr.length > 0 ? "Yes" : "No",
 
 
               }
@@ -2317,10 +2500,10 @@ const MemoContext = ({ props }: any) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
                           await sp.web.getFileByServerRelativePath(element.FileRef).delete();
-  
+
                         });
                       }
-                      
+
 
                       const newFileName = await getNewFileName(file.name, formData.memoNo.replace(/\//g, "_"));
                       // let DocumentName = newFileName;
@@ -2335,30 +2518,12 @@ const MemoContext = ({ props }: any) => {
                     .catch((error) => {
                       console.log("Error fetching data: ", error);
                     });
-
-
-                  // Get the item ID for the uploaded file
-                  // const currentItemId = await fileNew.getItem<{ Id: number }>();
-                  // const itemId = currentItemId.Id;
-
-                  // additionalFileID = itemId;
-                  // await updateMemoAdditionalFile(postId,sp, itemId,newFileName);
-
-
                 }
-                // else {
-                //   // const itemId = file.ID;
-                //   // attachmentIds.push(file.ID);
-                //   // additionalFileID = file.ID
-                // }
-               
-
-
 
               }
             }
 
-            if(AdditionalFilesArr.length ==0){
+            if (AdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
                 .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Description'`)()
@@ -2372,7 +2537,121 @@ const MemoContext = ({ props }: any) => {
                 })
                 .catch((error) => {
                   console.log("Error fetching data: ", error);
-                }); 
+                });
+            }
+
+
+            // ////////////
+
+            if (BGAdditionalFilesArr.length > 0) {
+              // let additionalFileID = null;
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Background');
+
+              for (const file of BGAdditionalFilesArr) {
+                if (!file.ID) {
+
+                  await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
+                    // .getById(itemId)
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Background'`)()
+                    .then(async (res) => {
+                      if (res.length > 0) {
+                        res.forEach(async (element) => {
+                          await sp.web.getFileByServerRelativePath(element.FileRef).delete();
+
+                        });
+                      }
+
+
+                      const newFileName = await getNewFileName(file.name, formData.memoNo.replace(/\//g, "_"));
+                      // let DocumentName = newFileName;
+                      const fileAddResult = await folder2.files.addChunked(newFileName, file);
+                      const fileNew = fileAddResult.file;
+
+                      const fileItem = await fileNew.getItem();
+                      fileItem.update({
+                        ListItemIDId: editItemID
+                      });
+                    })
+                    .catch((error) => {
+                      console.log("Error fetching data: ", error);
+                    });
+                }
+
+              }
+            }
+
+            if (BGAdditionalFilesArr.length == 0) {
+              await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
+                // .getById(itemId)
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Background'`)()
+                .then(async (res) => {
+                  if (res.length > 0) {
+                    res.forEach(async (element) => {
+                      await sp.web.getFileByServerRelativePath(element.FileRef).delete();
+
+                    });
+                  }
+                })
+                .catch((error) => {
+                  console.log("Error fetching data: ", error);
+                });
+            }
+
+            if (RecomAdditionalFilesArr.length > 0) {
+              // let additionalFileID = null;
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Recommadation');
+
+              for (const file of RecomAdditionalFilesArr) {
+                if (!file.ID) {
+
+                  await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
+                    // .getById(itemId)
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Recommadation'`)()
+                    .then(async (res) => {
+                      if (res.length > 0) {
+                        res.forEach(async (element) => {
+                          await sp.web.getFileByServerRelativePath(element.FileRef).delete();
+
+                        });
+                      }
+
+
+                      const newFileName = await getNewFileName(file.name, formData.memoNo.replace(/\//g, "_"));
+                      // let DocumentName = newFileName;
+                      const fileAddResult = await folder2.files.addChunked(newFileName, file);
+                      const fileNew = fileAddResult.file;
+
+                      const fileItem = await fileNew.getItem();
+                      fileItem.update({
+                        ListItemIDId: editItemID
+                      });
+                    })
+                    .catch((error) => {
+                      console.log("Error fetching data: ", error);
+                    });
+                }
+
+              }
+            }
+
+
+            // ///////////
+
+            if (RecomAdditionalFilesArr.length == 0) {
+              await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
+                // .getById(itemId)
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Recommadation'`)()
+                .then(async (res) => {
+                  if (res.length > 0) {
+                    res.forEach(async (element) => {
+                      await sp.web.getFileByServerRelativePath(element.FileRef).delete();
+
+                    });
+                  }
+                })
+                .catch((error) => {
+                  console.log("Error fetching data: ", error);
+                });
             }
 
 
@@ -2677,6 +2956,11 @@ const MemoContext = ({ props }: any) => {
               // AttachmentJson: JSON.stringify(bannerImageArray) || ""
 
 
+              IsBackgroundAttachment: BGAdditionalFilesArr.length > 0 ? "Yes" : "No",
+              IsIssuesAttachment: AdditionalFilesArr.length > 0 ? "Yes" : "No",
+              IsRecommendationDetails: RecomAdditionalFilesArr.length > 0 ? "Yes" : "No",
+
+
             }
             // console.log(postPayload);
 
@@ -2707,22 +2991,52 @@ const MemoContext = ({ props }: any) => {
                   fileItem.update({
                     ListItemIDId: postId
                   });
-                  // Get the item ID for the uploaded file
-                  // const currentItemId = await fileNew.getItem<{ Id: number }>();
-                  // const itemId = currentItemId.Id;
-
-                  // additionalFileID = itemId;
-                  // await updateMemoAdditionalFile(postId,sp, itemId,newFileName);
-
 
                 }
-                // else {
-                //   // const itemId = file.ID;
-                //   // attachmentIds.push(file.ID);
-                //   additionalFileID = file.ID
-                // }
 
+              }
+            }
+            if (BGAdditionalFilesArr.length > 0) {
+              // let additionalFileID = null;
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Background');
 
+              for (const file of BGAdditionalFilesArr) {
+                if (!file.ID) {
+                  //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                  // DocumentName = file.name;
+                  const newFileName = await getNewFileName(file.name, formData.memoNo.replace(/\//g, "_"));
+                  // let DocumentName = newFileName;
+                  const fileAddResult = await folder2.files.addChunked(newFileName, file);
+                  const fileNew = fileAddResult.file;
+
+                  const fileItem = await fileNew.getItem();
+                  fileItem.update({
+                    ListItemIDId: postId
+                  });
+
+                }
+
+              }
+            }
+            if (RecomAdditionalFilesArr.length > 0) {
+              // let additionalFileID = null;
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Recommadation');
+
+              for (const file of RecomAdditionalFilesArr) {
+                if (!file.ID) {
+                  //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
+                  // DocumentName = file.name;
+                  const newFileName = await getNewFileName(file.name, formData.memoNo.replace(/\//g, "_"));
+                  // let DocumentName = newFileName;
+                  const fileAddResult = await folder2.files.addChunked(newFileName, file);
+                  const fileNew = fileAddResult.file;
+
+                  const fileItem = await fileNew.getItem();
+                  fileItem.update({
+                    ListItemIDId: postId
+                  });
+
+                }
 
               }
             }
@@ -2863,44 +3177,111 @@ const MemoContext = ({ props }: any) => {
         "image/jpg",
       ];
 
-      // filechanged = true;
-      // newfileupload = true;
-      // let uloadBannerImageFiles: any[] = [];
-      // let uloadImageFiles: any[] = [];
-      // let uloadImageFiles1: any[] = [];
+      if (libraryName == "AdditionalDocs") {
 
+        if (event.target.files && event.target.files.length > 0) {
+          const files = Array.from(event.target.files);
+          (event.target as HTMLInputElement).value = '';
 
-      if (event.target.files && event.target.files.length > 0) {
-        const files = Array.from(event.target.files);
-        (event.target as HTMLInputElement).value = '';
+          if (files.length > 0) {
 
-        if (files.length > 0) {
+            for (const fn of files) {
+              // const file = files[0];
+              if (!allowedTypes.includes(fn.type)) {
+                Swal.fire({
+                  icon: "error",
+                  title: "Invalid File Type",
+                  text: "Only image files (jpg,jpeg,png) are allowed.",
+                });
+                return;
+              }
 
-          for (const fn of files) {
-            // const file = files[0];
-            if (!allowedTypes.includes(fn.type)) {
-              Swal.fire({
-                icon: "error",
-                title: "Invalid File Type",
-                text: "Only image files (jpg,jpeg,png) are allowed.",
-              });
-              return;
+              const fileType = fn.type.split("/")[0]; // Extract file type (image, pdf, etc.)
+              const preview = URL.createObjectURL(fn);
+
             }
 
-            const fileType = fn.type.split("/")[0]; // Extract file type (image, pdf, etc.)
-            const preview = URL.createObjectURL(fn);
+            // setAdditionalFilesArr([...AdditionalFilesArr, ...files]);
+            setAdditionalFilesArr(files);
 
+
+
+          } else {
+            Swal.fire("upload a document")
           }
-
-          // setAdditionalFilesArr([...AdditionalFilesArr, ...files]);
-          setAdditionalFilesArr(files);
-
-
-
-        } else {
-          Swal.fire("upload a document")
         }
       }
+
+      else if (libraryName == "BGAdditionalDocs") {
+
+        if (event.target.files && event.target.files.length > 0) {
+          const files = Array.from(event.target.files);
+          (event.target as HTMLInputElement).value = '';
+
+          if (files.length > 0) {
+
+            for (const fn of files) {
+              // const file = files[0];
+              if (!allowedTypes.includes(fn.type)) {
+                Swal.fire({
+                  icon: "error",
+                  title: "Invalid File Type",
+                  text: "Only image files (jpg,jpeg,png) are allowed.",
+                });
+                return;
+              }
+
+              const fileType = fn.type.split("/")[0]; // Extract file type (image, pdf, etc.)
+              const preview = URL.createObjectURL(fn);
+
+            }
+
+            // setAdditionalFilesArr([...AdditionalFilesArr, ...files]);
+            setBGAdditionalFilesArr(files);
+
+
+
+          } else {
+            Swal.fire("upload a document")
+          }
+        }
+      }
+
+      else if (libraryName == "RecomAdditionalDocs") {
+
+        if (event.target.files && event.target.files.length > 0) {
+          const files = Array.from(event.target.files);
+          (event.target as HTMLInputElement).value = '';
+
+          if (files.length > 0) {
+
+            for (const fn of files) {
+              // const file = files[0];
+              if (!allowedTypes.includes(fn.type)) {
+                Swal.fire({
+                  icon: "error",
+                  title: "Invalid File Type",
+                  text: "Only image files (jpg,jpeg,png) are allowed.",
+                });
+                return;
+              }
+
+              const fileType = fn.type.split("/")[0]; // Extract file type (image, pdf, etc.)
+              const preview = URL.createObjectURL(fn);
+
+            }
+
+            // setAdditionalFilesArr([...AdditionalFilesArr, ...files]);
+            setRecomAdditionalFilesArr(files);
+
+
+
+          } else {
+            Swal.fire("upload a document")
+          }
+        }
+      }
+
 
     }
     else {
@@ -2999,14 +3380,26 @@ const MemoContext = ({ props }: any) => {
   };
 
 
-  const handleDelete = (index: number,ArrName:string) => {
-    if(ArrName=="AdditionalFilesArr"){
+  const handleDelete = (index: number, ArrName: string) => {
+    if (ArrName == "AdditionalFilesArr") {
       setAdditionalFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
       setSelectedFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
 
 
     }
-    else{
+    if (ArrName == "BGAdditionalFilesArr") {
+      setBGAdditionalFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
+      setSelectedFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
+
+
+    }
+    if (ArrName == "RecomAdditionalFilesArr") {
+      setRecomAdditionalFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
+      setSelectedFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
+
+
+    }
+    else {
       setFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
       setSelectedFilesArr((prevFiles: any[]) => prevFiles.filter((_file: any, i: number) => i !== index));
 
@@ -3791,7 +4184,7 @@ const MemoContext = ({ props }: any) => {
                                       <div >
                                         <div>
                                           {FilesArr.length > 0 ?
-                                            (<a style={{ fontSize: '0.875rem' }} onClick={() => { setShowModal(true); setSelectedFilesArr(FilesArr) ;setselectedFileArrName("FilesArr");setShowfile(false)}}>
+                                            (<a style={{ fontSize: '0.875rem' }} onClick={() => { setShowModal(true); setSelectedFilesArr(FilesArr); setselectedFileArrName("FilesArr"); setShowfile(false) }}>
                                               <FontAwesomeIcon icon={faPaperclip} />{" "}{FilesArr.length} {FilesArr.length > 0 ? "files" : "file"} Attached
                                             </a>) : ""
 
@@ -3845,6 +4238,47 @@ const MemoContext = ({ props }: any) => {
                                   </div>
                                 </div>
 
+                                <div className="col-lg-6">
+                                  <div className="mb-3">
+                                    <div className='d-flex justify-content-between'>
+                                      <label htmlFor="attachment" className="col-form-label">Additional Background Attachment (only image file)</label>
+                                      <div >
+                                        <div className='mt-2'>
+                                          {BGAdditionalFilesArr.length > 0 ?
+                                            (<a style={{ fontSize: '0.875rem' }} onClick={() => { setShowModal(true); setSelectedFilesArr(BGAdditionalFilesArr); setselectedFileArrName("BGAdditionalFilesArr"); setShowfile(false) }}>
+                                              <FontAwesomeIcon icon={faPaperclip} />
+                                              {" "}{BGAdditionalFilesArr.length} {BGAdditionalFilesArr.length > 0 ? "files" : "file"} Attached
+                                            </a>) : ""
+
+                                          }
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <input style={{ height: '47px', padding: '10px' }}
+                                        type="file"
+                                        // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                        className="form-control"
+                                        id="attachment2"
+                                        accept=".jpg,.jpeg,.png"
+                                        onChange={(e) => onFileChange(e, "BGAdditionalDocs", "MemorandumAdditionalDocs")}
+                                        // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
+                                        disabled={InputDisabled}
+                                        multiple
+                                      />
+
+                                    </div>
+
+
+
+
+
+
+
+                                  </div>
+                                </div>
+
                                 <div className="col-lg-12">
                                   <div className="mb-3">
                                     <label htmlFor="issues" className="col-form-label">Description<span className="text-danger1"> *</span></label>
@@ -3875,7 +4309,7 @@ const MemoContext = ({ props }: any) => {
                                       <div >
                                         <div className='mt-2'>
                                           {AdditionalFilesArr.length > 0 ?
-                                            (<a style={{ fontSize: '0.875rem' }} onClick={() => { setShowModal(true); setSelectedFilesArr(AdditionalFilesArr);setselectedFileArrName("AdditionalFilesArr");setShowfile(false) }}>
+                                            (<a style={{ fontSize: '0.875rem' }} onClick={() => { setShowModal(true); setSelectedFilesArr(AdditionalFilesArr); setselectedFileArrName("AdditionalFilesArr"); setShowfile(false) }}>
                                               <FontAwesomeIcon icon={faPaperclip} />
                                               {" "}{AdditionalFilesArr.length} {AdditionalFilesArr.length > 0 ? "files" : "file"} Attached
                                             </a>) : ""
@@ -4149,6 +4583,48 @@ const MemoContext = ({ props }: any) => {
                             ) : null}
 
 
+                            <div className="col-lg-6">
+                              <div className="mb-3">
+                                <div className='d-flex justify-content-between'>
+                                  <label htmlFor="attachment" className="col-form-label">Additional Recommendation Attachment (only image file)</label>
+                                  <div >
+                                    <div className='mt-2'>
+                                      {RecomAdditionalFilesArr.length > 0 ?
+                                        (<a style={{ fontSize: '0.875rem' }} onClick={() => { setShowModal(true); setSelectedFilesArr(RecomAdditionalFilesArr); setselectedFileArrName("RecomAdditionalFilesArr"); setShowfile(false) }}>
+                                          <FontAwesomeIcon icon={faPaperclip} />
+                                          {" "}{RecomAdditionalFilesArr.length} {RecomAdditionalFilesArr.length > 0 ? "files" : "file"} Attached
+                                        </a>) : ""
+
+                                      }
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <input style={{ height: '47px', padding: '10px' }}
+                                    type="file"
+                                    // className={`form-control ${(!ValidSubmit) ? "border-on-error" : ""}`}
+                                    className="form-control"
+                                    id="attachment2"
+                                    accept=".jpg,.jpeg,.png"
+                                    onChange={(e) => onFileChange(e, "RecomAdditionalDocs", "MemorandumAdditionalDocs")}
+                                    // onChange={(e) => setFormData({ ...formData, attachment: e.target.files[0] })}
+                                    disabled={InputDisabled}
+                                    multiple
+                                  />
+
+                                </div>
+
+
+
+
+
+
+
+                              </div>
+                            </div>
+
+
 
 
 
@@ -4363,11 +4839,13 @@ const MemoContext = ({ props }: any) => {
                                           title={row.role ? UserRoles.find((role: any) => role.value === row.role)?.label : "Select Role"}
                                         >
                                           <option value="" selected>Select Role</option>
-                                          {UserRoles.filter((role: any) =>
-                                            !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
-                                          ).map((role: any, idx: number) => (
-                                            <option key={idx} value={role.value}>{role.label}</option>
-                                          ))}
+                                          {UserRoles
+                                            // .filter((role: any) =>
+                                            //   !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
+                                            // )
+                                            .map((role: any, idx: number) => (
+                                              <option key={idx} value={role.value}>{role.label}</option>
+                                            ))}
 
 
 
@@ -4671,7 +5149,7 @@ const MemoContext = ({ props }: any) => {
                                                 <img title='delete file'
                                                   src={require("../../assets/del.png")}
                                                   style={{ cursor: "pointer" }}
-                                                  onClick={() => handleDelete(index,selectedFileArrName)}
+                                                  onClick={() => handleDelete(index, selectedFileArrName)}
                                                 />
                                               )}
                                             </td>

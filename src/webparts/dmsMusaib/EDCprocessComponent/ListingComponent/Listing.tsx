@@ -298,8 +298,11 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                 displayName = "IMS Annual Audit Program";
             } else if (item?.ProcessName === "Annual Audit Report") {
                 displayName = "IMS Audit Report and Checklist";
-            } else if(item.ProcessName == "Document Cancellation"){
-                displayName =  `${item?.ProcessName} (Issue No:${item.IssueNumber}, Revision No:${item.RevisionNumber})`;
+            } else if (item.ProcessName == "Document Cancellation") {
+                displayName = `${item?.ProcessName} (Issue No:${item.IssueNumber}, Revision No:${item.RevisionNumber})`;
+            } else if (item?.ProcessName === "Non Conformity") {
+                displayName = item?.ProcessNameNC;
+
             }
             else {
                 displayName = item?.ProcessName;
@@ -336,7 +339,9 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                                     ? "IMS Audit Report and Checklist"
                                     : item?.ProcessName === "Change Request"
                                         ? item?.ProcessNameNew
-                                        : item?.ProcessName}
+                                        : item?.ProcessName === "Non Conformity"
+                                            ? item?.ProcessNameNC
+                                            : item?.ProcessName}
                     </td>
                     <td title={item.ReqName} style={{ minWidth: '80px', maxWidth: '80px' }}>{item.ReqName}</td>
                     <td title={moment(item.ReqDt).format("DD/MMM/YYYY")} style={{ minWidth: '85px', maxWidth: '85px' }}>{moment(item.ReqDt).format("DD/MMM/YYYY")}</td>
@@ -812,7 +817,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                         Id: item.Id,
                         SubmitStatus: '',
                         RevisionNumber: item.RevisionNumber,
-                     IssueNumber: item.IssueNumber
+                        IssueNumber: item.IssueNumber
                     });
                 }
             } else {
@@ -828,7 +833,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                     Id: item.Id,
                     SubmitStatus: '',
                     RevisionNumber: item.RevisionNumber,
-                   IssueNumber: item.IssueNumber
+                    IssueNumber: item.IssueNumber
                 });
             }
         }
@@ -1012,6 +1017,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                 //Title: item.ProblemDescription,
                 ProblemDescription: item.ProblemDescription,
                 ProcessName: "Non Conformity",
+                ProcessNameNC: item.NCType == "NC" ? "Non Conformity" : "Observation",
                 ReqName: item.Author?.Title || '',
                 // ReqDt: item.Created ? moment(item.Created).format("DD-MMM-YYYY") : '',
                 ReqDt: new Date(item.Created),

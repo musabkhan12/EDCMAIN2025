@@ -301,7 +301,7 @@ export const getMemoNumberAuditReport = async (_sp) => {
   await _sp.web.lists.getByTitle("AnnualAuditReportList").items
     .select("*,ApprovedAuditPlan/MemoNumber,ApprovedAuditPlan/ID,FailureofIntentNonconformity,DepartmentAudited/ID,DepartmentAudited/Department,Shift/ID,Shift/Shift")
     .expand("ApprovedAuditPlan,DepartmentAudited,Shift")
-    .filter(`FailureofIntentNonconformity eq 'Yes' or Observations eq 'Yes'`)
+    .filter(`FailureofIntentNonconformity eq 'Yes' or Observations eq 'Yes' or FailureofImplementation eq 'Yes' or FailureofEffectiveness eq  'Yes'`)
     .orderBy("Modified", false)
     ()
     .then((res) => {
@@ -1110,4 +1110,23 @@ export const getDocumentLinkByID = async (_sp, AttachmentIds, itemid) => {
   }
   console.log(results, 'results');
   return results;
+}
+export const getTemplatelink = async (_sp) => {
+
+  let reqId = [];
+  await _sp.web.lists.getByTitle("IMSAnnualAuditReportTemplate").items
+    .select("*,FileRef, FileLeafRef").orderBy("SNo", true)()
+    .then((res) => {
+      console.log(res, 'file let arrs=[]');
+
+
+      //  arr =(res[0].Id)
+      // arr = res;
+      reqId.push(res)
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+  console.log(reqId, 'arr arrrr');
+  return reqId;
 }

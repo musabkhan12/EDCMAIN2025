@@ -193,7 +193,7 @@ const FormContext = ({ props }: any) => {
     RequesterName: "",
     RequestDate: null,
 
-    Remark:""
+    Remark: ""
 
   });
   const [selectCCUsers, setSelectCCUsers] = React.useState([]);
@@ -652,9 +652,9 @@ const FormContext = ({ props }: any) => {
       // setDraftApprovalItem(await getDraftApprovalByID(sp, Number(formitemid), CONTENTTYPE_DocumentCancel))
       setDraftApprovalItem(ProcessApprovalItem);
       setFormData(prevData => ({
-          ...prevData,
+        ...prevData,
 
-          Remark: ProcessApprovalItem[0]?.Remark || "",
+        Remark: ProcessApprovalItem[0]?.Remark || "",
       }));
 
     }
@@ -899,18 +899,18 @@ const FormContext = ({ props }: any) => {
             auditorIds: year.AuditorId || null,
             auditor: year.Auditor ? { label: year.Auditor?.Role, value: year.Auditor?.ID } : null, // Convert single object
 
-            Jan: year.Jan||"No",
-            Feb: year.Feb||"No",
-            Mar: year.Mar||"No",
-            Apr: year.Apr||"No",
-            May: year.May||"No",
-            Jun: year.Jun||"No",
-            Jul: year.Jul||"No",
-            Aug: year.Aug||"No",
-            Sep: year.Sep||"No",
-            Oct: year.Oct||"No",
-            Nov: year.Nov||"No",
-            Dec: year.Dec||"No",
+            Jan: year.Jan || "No",
+            Feb: year.Feb || "No",
+            Mar: year.Mar || "No",
+            Apr: year.Apr || "No",
+            May: year.May || "No",
+            Jun: year.Jun || "No",
+            Jul: year.Jul || "No",
+            Aug: year.Aug || "No",
+            Sep: year.Sep || "No",
+            Oct: year.Oct || "No",
+            Nov: year.Nov || "No",
+            Dec: year.Dec || "No",
 
 
             custodianId: year.CustodianId || 0,
@@ -1268,16 +1268,16 @@ const FormContext = ({ props }: any) => {
       }
 
       // if (YearlyList.length > 0 && YearlyList.every((row: any) => row.procedure.trim() !== ""  && row.deptId != null && row.auditor != null && row.auditor.length != 0 && row.Shift !=null && row.ShiftId !=0 && row.custodianId !=0 ) == false) {
-      if (YearlyList.length > 0 && YearlyList.every((row: any) =>(row.locationId !== null && row.locationId !== 0) && (row.ShiftId !== null && row.ShiftId !== 0) && row.procedure.trim() !== "" && row.deptId != null && row.auditor != null && row.auditor.length != 0 && row.custodianId != 0 &&
-      // ( row.Jan !== "" && row.Feb !== ""&&row.Mar !== ""&&row.Apr !== ""&& row.May !== ""&& row.Jun !== ""&&row.Jul !== ""&& row.Aug !== ""&& row.Sep !== ""&& row.Oct !== ""&& row.Nov !== ""&& row.Dec !== "")) == false) {
-      ( row.Jan !== "No" || row.Feb !== "No" ||row.Mar !== "No" ||row.Apr !== "No" || row.May !== "No" || row.Jun !== "No" ||row.Jul !== "No" || row.Aug !== "No" || row.Sep !== "No" || row.Oct !== "No" || row.Nov !== "No" || row.Dec !== "No")) == false) {
+      if (YearlyList.length > 0 && YearlyList.every((row: any) => (row.locationId !== null && row.locationId !== 0) && (row.ShiftId !== null && row.ShiftId !== 0) && row.procedure.trim() !== "" && row.deptId != null && row.auditor != null && row.auditor.length != 0 && row.custodianId != 0 &&
+        // ( row.Jan !== "" && row.Feb !== ""&&row.Mar !== ""&&row.Apr !== ""&& row.May !== ""&& row.Jun !== ""&&row.Jul !== ""&& row.Aug !== ""&& row.Sep !== ""&& row.Oct !== ""&& row.Nov !== ""&& row.Dec !== "")) == false) {
+        (row.Jan !== "No" || row.Feb !== "No" || row.Mar !== "No" || row.Apr !== "No" || row.May !== "No" || row.Jun !== "No" || row.Jul !== "No" || row.Aug !== "No" || row.Sep !== "No" || row.Oct !== "No" || row.Nov !== "No" || row.Dec !== "No")) == false) {
 
 
         // document.getElementById("date")?.classList.add("border-on-error");
         validRec = false;
 
         Array.from(document.getElementsByClassName("YearlylistclsErr")).forEach((element: Element) => {
-          if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "Select Department" || element.textContent?.trim() === "Select Custodian" || element.textContent?.trim() === "Select Shift"|| element.textContent?.trim() === "Select Location"|| element.textContent?.trim() === "")) {
+          if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "Select Department" || element.textContent?.trim() === "Select Custodian" || element.textContent?.trim() === "Select Shift" || element.textContent?.trim() === "Select Location" || element.textContent?.trim() === "")) {
 
             // if (element.tagName === "DIV" && (element.textContent?.trim() === "Select" || element.textContent?.trim() === "Select Department" || element.textContent?.trim() === "Select Custodian" || element.textContent?.trim() === "Select Location"|| element.textContent?.trim() === "Select Shift" || element.textContent?.trim() === "")) {
             element.classList.add("border-on-error");
@@ -1288,12 +1288,55 @@ const FormContext = ({ props }: any) => {
           // else if (element.tagName == "SELECT" && (element as HTMLInputElement).value.trim() == '') {
           //   element.classList.add("border-on-error");
           // }
-          else if (element.tagName == "SELECT") {
-            element.classList.add("border-on-error");
-          }
+          // else if (element.tagName == "SELECT") {
+          // //  if(YearlyList.every((row: any) =>( row.Jan !== "No" || row.Feb !== "No" ||row.Mar !== "No" ||row.Apr !== "No" || row.May !== "No" || row.Jun !== "No" ||row.Jul !== "No" || row.Aug !== "No" || row.Sep !== "No" || row.Oct !== "No" || row.Nov !== "No" || row.Dec !== "No") == false)){
+          // //     element.classList.add("border-on-error");
+          // //   }
+          // if((element as HTMLInputElement).value.trim() == 'No'){
+          //   element.classList.add("border-on-error");
+          // }
+
+          // }
+
 
 
         });
+        // Array.from(document.getElementsByClassName("YearlyMonthclsErr")).forEach((element: Element) => {
+        //   if (element.tagName == "SELECT") {
+        //     if(YearlyList.every((row: any) =>( row.Jan !== "No" || row.Feb !== "No" ||row.Mar !== "No" ||row.Apr !== "No" || row.May !== "No" || row.Jun !== "No" ||row.Jul !== "No" || row.Aug !== "No" || row.Sep !== "No" || row.Oct !== "No" || row.Nov !== "No" || row.Dec !== "No") == false)){
+        //       element.classList.add("border-on-error");
+        //     }
+        //   }
+
+        // });
+        YearlyList.forEach((row, index) => {
+          // Array.from(document.getElementsByClassName("YearlyMonthclsErr"+(index+1))).forEach((element: Element) => {
+          // if (element.tagName == "SELECT") {
+          // if(Array.from(document.getElementsByClassName("YearlyMonthclsErr"+(index+1))).every((element: any) =>( element.Jan !== "No" || element.Feb !== "No" ||element.Mar !== "No" ||element.Apr !== "No" || element.May !== "No" || element.Jun !== "No" ||element.Jul !== "No" || element.Aug !== "No" || element.Sep !== "No" || element.Oct !== "No" || element.Nov !== "No" || element.Dec !== "No") == false)){
+          //   // element.classList.add("border-on-error");
+          // }
+          // }
+
+          // });
+          const allNo = YearlyList[index].Jan === "No" && YearlyList[index].Feb === "No" && YearlyList[index].Mar === "No" &&
+            YearlyList[index].Apr === "No" && YearlyList[index].May === "No" && YearlyList[index].Jun === "No" &&
+            YearlyList[index].Jul === "No" && YearlyList[index].Aug === "No" && YearlyList[index].Sep === "No" &&
+            YearlyList[index].Oct === "No" && YearlyList[index].Nov === "No" && YearlyList[index].Dec === "No";
+
+          if (allNo) {
+            Array.from(document.getElementsByClassName("YearlyMonthclsErr" + (index + 1))).forEach((element: any) => {
+              element.classList.add("border-on-error");
+            });
+          } else {
+            Array.from(document.getElementsByClassName("YearlyMonthclsErr" + (index + 1))).forEach((element: any) => {
+              element.classList.remove("border-on-error");
+            });
+          }
+          // element.classList.add("border-on-error");
+          // }
+
+        });
+
       }
 
       if (formData.RecommendationTypeValue == "Table") {
@@ -1479,13 +1522,13 @@ const FormContext = ({ props }: any) => {
       if (editForm) {
         if (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0) {
           if (formData.Remark === "") {
-              //   setValidRemark(false);
-              document.getElementById("Remark-textarea2")?.classList.add("border-on-error");
-              Swal.fire('Please fill the mandatory fields', '', 'warning');
-              return;
-             
+            //   setValidRemark(false);
+            document.getElementById("Remark-textarea2")?.classList.add("border-on-error");
+            Swal.fire('Please fill the mandatory fields', '', 'warning');
+            return;
+
           }
-      }
+        }
         Swal.fire({
           title: 'Do you want to submit this request?',
           showConfirmButton: true,
@@ -1763,7 +1806,7 @@ const FormContext = ({ props }: any) => {
                   year.Nov !== "" ||
                   year.Dec !== "" ||
                   // year.area.trim() !== "" ||
-                  year.procedure.trim() !== ""|| (year.custodianId !== null && year.custodianId !== 0) || (year.locationId !== null && year.locationId !== 0) || (year.ShiftId !== null && year.ShiftId !== 0)  ||
+                  year.procedure.trim() !== "" || (year.custodianId !== null && year.custodianId !== 0) || (year.locationId !== null && year.locationId !== 0) || (year.ShiftId !== null && year.ShiftId !== 0) ||
                   (year.deptId !== null && year.deptId !== 0) || (year.auditorIds !== null && year.auditorIds !== 0) ||
                   (year.auditor && year.auditor !== 0 && year.auditor.length > 0)
                 ) {
@@ -4429,9 +4472,9 @@ const FormContext = ({ props }: any) => {
                                         <th style={{ minWidth: '210px', maxWidth: '210px' }}>Custodian<span className="text-danger1"> *</span></th>
 
                                         <th style={{ minWidth: '210px', maxWidth: '210px' }}>Department / Area<span className="text-danger1"> *</span></th>
-                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>Location</th>
+                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>Location <span className="text-danger1"> *</span></th>
                                         {/*<th style={{ minWidth: '150px', maxWidth: '150px' }}>Other Details<span className="text-danger1"> *</span></th> */}
-                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>Shift</th>
+                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>Shift <span className="text-danger1"> *</span></th>
 
                                         <th style={{ minWidth: '160px', maxWidth: '160px' }}>Related Procedure<span className="text-danger1"> *</span></th>
                                         <th style={{ minWidth: '200px', maxWidth: '200px' }}>Auditor <span className="text-danger1"> *</span></th>
@@ -4645,7 +4688,7 @@ const FormContext = ({ props }: any) => {
 
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
-                                              className="form-select YearlylistclsErr"
+                                              className={`form-select YearlylistclsErr YearlyMonthclsErr${index + 1}`}
                                               value={row.Jan || "No"}
 
                                               onChange={(e) => handleYearlylistrow(index, 'Jan', e.target.value)}
@@ -4658,7 +4701,7 @@ const FormContext = ({ props }: any) => {
                                           </td>
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
-                                              className="form-select YearlylistclsErr"
+                                              className={`form-select YearlylistclsErr YearlyMonthclsErr${index + 1}`}
                                               value={row.Feb || "No"}
 
                                               onChange={(e) => handleYearlylistrow(index, 'Feb', e.target.value)}
@@ -4671,7 +4714,7 @@ const FormContext = ({ props }: any) => {
                                           </td>
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
-                                              className="form-select YearlylistclsErr"
+                                              className={`form-select YearlylistclsErr YearlyMonthclsErr${index + 1}`}
                                               value={row.Mar || "No"}
                                               onChange={(e) => handleYearlylistrow(index, 'Mar', e.target.value)}
                                               disabled={InputDisabled}
@@ -4683,7 +4726,7 @@ const FormContext = ({ props }: any) => {
                                           </td>
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
-                                              className="form-select YearlylistclsErr"
+                                              className={`form-select YearlylistclsErr YearlyMonthclsErr${index + 1}`}
                                               value={row.Apr || "No"}
                                               onChange={(e) => handleYearlylistrow(index, 'Apr', e.target.value)}
                                               disabled={InputDisabled}
@@ -4695,7 +4738,7 @@ const FormContext = ({ props }: any) => {
                                           </td>
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
-                                              className="form-select YearlylistclsErr"
+                                              className={`form-select YearlylistclsErr YearlyMonthclsErr${index + 1}`}
                                               value={row.May || "No"}
                                               onChange={(e) => handleYearlylistrow(index, 'May', e.target.value)}
                                               disabled={InputDisabled}
@@ -4707,7 +4750,7 @@ const FormContext = ({ props }: any) => {
                                           </td>
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
-                                              className="form-select YearlylistclsErr"
+                                              className={`form-select YearlylistclsErr YearlyMonthclsErr${index + 1}`}
                                               value={row.Jun || "No"}
                                               onChange={(e) => handleYearlylistrow(index, 'Jun', e.target.value)}
                                               disabled={InputDisabled}
@@ -4719,7 +4762,7 @@ const FormContext = ({ props }: any) => {
                                           </td>
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
-                                              className="form-select YearlylistclsErr"
+                                              className={`form-select YearlylistclsErr YearlyMonthclsErr${index + 1}`}
                                               value={row.Jul || "No"}
                                               onChange={(e) => handleYearlylistrow(index, 'Jul', e.target.value)}
                                               disabled={InputDisabled}
@@ -4731,7 +4774,7 @@ const FormContext = ({ props }: any) => {
                                           </td>
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
-                                              className="form-select YearlylistclsErr"
+                                              className={`form-select YearlylistclsErr YearlyMonthclsErr${index + 1}`}
                                               value={row.Aug || "No"}
                                               onChange={(e) => handleYearlylistrow(index, 'Aug', e.target.value)}
                                               disabled={InputDisabled}
@@ -4743,7 +4786,7 @@ const FormContext = ({ props }: any) => {
                                           </td>
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
-                                              className="form-select YearlylistclsErr"
+                                              className={`form-select YearlylistclsErr YearlyMonthclsErr${index + 1}`}
                                               value={row.Sep || "No"}
                                               onChange={(e) => handleYearlylistrow(index, 'Sep', e.target.value)}
                                               disabled={InputDisabled}
@@ -4755,7 +4798,7 @@ const FormContext = ({ props }: any) => {
                                           </td>
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
-                                              className="form-select YearlylistclsErr"
+                                              className={`form-select YearlylistclsErr YearlyMonthclsErr${index + 1}`}
                                               value={row.Oct || "No"}
                                               onChange={(e) => handleYearlylistrow(index, 'Oct', e.target.value)}
                                               disabled={InputDisabled}
@@ -4767,7 +4810,7 @@ const FormContext = ({ props }: any) => {
                                           </td>
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
-                                              className="form-select YearlylistclsErr"
+                                              className={`form-select YearlylistclsErr YearlyMonthclsErr${index + 1}`}
                                               value={row.Nov || "No"}
                                               onChange={(e) => handleYearlylistrow(index, 'Nov', e.target.value)}
                                               disabled={InputDisabled}
@@ -4779,7 +4822,7 @@ const FormContext = ({ props }: any) => {
                                           </td>
                                           <td style={{ minWidth: '70px', maxWidth: '70px' }}>
                                             <select
-                                              className="form-select YearlylistclsErr"
+                                              className={`form-select YearlylistclsErr YearlyMonthclsErr${index + 1}`}
                                               value={row.Dec || "No"}
                                               onChange={(e) => handleYearlylistrow(index, 'Dec', e.target.value)}
                                               disabled={InputDisabled}
@@ -4814,7 +4857,7 @@ const FormContext = ({ props }: any) => {
                           </div>
                         </div>
 
-                       
+
 
 
                         {/* /////////////////%%%%%%%%%%%%%%%%%%%%%%%% */}
@@ -4876,9 +4919,11 @@ const FormContext = ({ props }: any) => {
                                           {/* {UserRoles.map((role: any, index: number) => (
                                                                                     <option key={index} value={role.value}>{role.label}</option>
                                                                                 ))} */}
-                                          {UserRoles.filter((role: any) =>
-                                            !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
-                                          ).map((role: any, idx: number) => (
+                                          {UserRoles
+                                          // .filter((role: any) =>
+                                          //   !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
+                                          // )
+                                          .map((role: any, idx: number) => (
                                             <option key={idx} value={role.value}>{role.label}</option>
                                           ))}
 
@@ -4904,7 +4949,7 @@ const FormContext = ({ props }: any) => {
                                             <option value="Signer">Signer</option>
                                             <option value="Reviewer">Reviewer</option>
                                           </select>
-                                          
+
                                         </div>
 
                                       </td>
@@ -4984,46 +5029,46 @@ const FormContext = ({ props }: any) => {
                         </div>
                         {/* // } */}
 
-                         {/* //////&&&&& */}
-                         {(editID != null && editID.CurrentUserRole === "Initiator" && editID.IsInitiator == "Yes" && editID.Level == 0) && editID.Status === "Pending" && 
-                        <div className="card mt-3">
-                                                    <div className="col-12 text-center card-body">
+                        {/* //////&&&&& */}
+                        {(editID != null && editID.CurrentUserRole === "Initiator" && editID.IsInitiator == "Yes" && editID.Level == 0) && editID.Status === "Pending" &&
+                          <div className="card mt-3">
+                            <div className="col-12 text-center card-body">
 
 
 
-                                                        <div className="row">
-                                                            <div className="col-lg-12">
+                              <div className="row">
+                                <div className="col-lg-12">
 
-                                                                <div className="mb-0" >
+                                  <div className="mb-0" >
 
-                                                                    <label htmlFor="example-textarea" className="form-label text-dark font-14" style={{ textAlign: 'left' }}>Remarks <span className="text-danger1"> *</span></label>
+                                    <label htmlFor="example-textarea" className="form-label text-dark font-14" style={{ textAlign: 'left' }}>Remarks <span className="text-danger1"> *</span></label>
 
-                                                                    <textarea
-                                                                        style={{ height: '80px' }}
-                                                                        className={`form-control `}
-                                                                        id="Remark-textarea2"
-                                                                        rows={5}
-                                                                        name="Remark"
-                                                                        value={formData.Remark}
-                                                                        onChange={(e) => setFormData({ ...formData, Remark: e.target.value })}
-                                                                    ></textarea>
+                                    <textarea
+                                      style={{ height: '80px' }}
+                                      className={`form-control `}
+                                      id="Remark-textarea2"
+                                      rows={5}
+                                      name="Remark"
+                                      value={formData.Remark}
+                                      onChange={(e) => setFormData({ ...formData, Remark: e.target.value })}
+                                    ></textarea>
 
-                                                                </div>
+                                  </div>
 
-                                                            </div>
-
-
-
-                                                        </div>
+                                </div>
 
 
 
+                              </div>
 
-                                                    </div>
-                                                </div>
-                                                }
 
-                                                {/* ////////&&&& */}
+
+
+                            </div>
+                          </div>
+                        }
+
+                        {/* ////////&&&& */}
 
 
 
@@ -5084,7 +5129,7 @@ const FormContext = ({ props }: any) => {
 
 
 
-                            {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && (editID.ApprovalType !== "Approval"|| editID.IsInitiator == "Yes" || editID.Status != "Pending"))) &&
+                            {((modeValue === "" || modeValue === "edit" || modeValue === "view") || (editID !== null && (editID.ApprovalType !== "Approval" || editID.IsInitiator == "Yes" || editID.Status != "Pending"))) &&
                               <div className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}> <img src={require('../../../../Assets/ExtraImage/xIcon.svg')} style={{ width: '1rem' }}
                                 className='me-1' alt="x" /> Cancel</div>
                             }

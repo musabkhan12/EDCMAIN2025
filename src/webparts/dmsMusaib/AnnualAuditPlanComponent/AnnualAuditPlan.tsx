@@ -4848,9 +4848,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     title={UserRoles.find((role: any) => role.value === row.role)?.label || "Select Role"} // Added title tooltip
                                                                                 >
                                                                                     <option value="" selected>Select Role</option>
-                                                                                    {UserRoles.filter((role: any) =>
-                                                                                        !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
-                                                                                    ).map((role: any, idx: number) => (
+                                                                                    {UserRoles
+                                                                                    // .filter((role: any) =>
+                                                                                    //     !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
+                                                                                    // )
+                                                                                    .map((role: any, idx: number) => (
                                                                                         <option key={idx} value={role.value}>{role.label}</option>
                                                                                     ))}
 

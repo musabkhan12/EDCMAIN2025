@@ -4134,9 +4134,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                                         {/* {UserRoles.map((role: any, index: number) => (
                                 <option key={index} value={role.value}>{role.label}</option>
                             ))} */}
-                                                                                        {UserRoles.filter((role: any) =>
-                                                                                            !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
-                                                                                        ).map((role: any, idx: number) => (
+                                                                                        {UserRoles
+                                                                                        // .filter((role: any) =>
+                                                                                        //     !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
+                                                                                        // )
+                                                                                        .map((role: any, idx: number) => (
                                                                                             <option key={idx} value={role.value}>{role.label}</option>
                                                                                         ))}
                                                                                     </select>

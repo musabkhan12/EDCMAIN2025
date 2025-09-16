@@ -291,7 +291,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     const nctypenew: string = this.state.ncType === "NC" ? "NC Number" : "Observation Number";
     let optionsNCNumber: any = [];
     const NCNumberoptionnew = item && await getNCNumbers(sp, item?.label, nctypenew);
-    let existingrecords = item && await this.getNCdata(item?.label);
+    let existingrecords = item && await this.getNCdata(item?.label, this.state.ncType);
     if (Array.isArray(NCNumberoptionnew) && NCNumberoptionnew.length > 0) {
       // Safely extract existing NCNumbers, even if the array is empty
       const existingNCNumbersSet = new Set(
@@ -307,7 +307,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
           ncNo: entry.NCNumber,
           reportcode: entry.ReportCode,
           nctype: entry.NCType,
-          description:entry.Description
+          description: entry.Description
         }));
     }
     debugger
@@ -325,7 +325,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       departmentselected: selectedOption,
       //problemDescription: approvedauditreportselected && approvedauditreportselected[0]?.additionalDetails
     });
-    this.setState({ NCNumber: "", NCNumberID: "", NCNumberselected: [],problemDescription:"" });
+    this.setState({ NCNumber: "", NCNumberID: "", NCNumberselected: [], problemDescription: "" });
     console.log("ApprovedAuditSelected", approvedauditreportselected);
   };
 
@@ -356,7 +356,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
 
   public changeNCNumber = (item?: any): void => {
     let ncnumberselected = this.state.NCNumberOptions.filter((x: any) => x.value == item?.value);
-    this.setState({ NCNumber: item?.label, NCNumberID: item?.value, NCNumberselected: ncnumberselected,problemDescription:item?.description });
+    this.setState({ NCNumber: item?.label, NCNumberID: item?.value, NCNumberselected: ncnumberselected, problemDescription: item?.description });
   };
   public handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     debugger
@@ -399,6 +399,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     }));
   };
   private _handlePeoplePickerChange = (field: keyof IState, idField: keyof IState) => (items: any[]) => {
+    debugger
     if (items.length > 0) {
       this.setState({
         [field]: items[0].text,
@@ -465,7 +466,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     await this.getnctypeoptions();
 
   }
-  public async getNCdata(reportcode: string) {
+  public async getNCdata(reportcode: string, nctype: string) {
     const sp = spfi().using(SPFx(this.props.context));
     let arr: any[] = []
     let arrs = []
@@ -474,7 +475,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     await sp.web.lists.getByTitle("NonConformityList").items
       .select("*")
       .expand("")
-      .filter(`ApprovedAuditReportMemoNumber eq '${reportcode}'`)
+      .filter(`ApprovedAuditReportMemoNumber eq '${reportcode}' and NCType eq '${nctype}'`)
       .orderBy("Modified", false)
       ()
       .then((res: any) => {
@@ -697,12 +698,14 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       //     memonumberOptionsall: memoItems.length > 0 ? memoItems : []
       //   });
       // }
+      const newmemoitems = await this.getAuditReportNCNumbersAll(); // Fetch all items without filtering by reportCode or NCType
       if (memoItems.length > 0) {
-        const filteredItemsNC = memoItems[0].filter((item: any) => (item.FailureofIntentNonconformity === "Yes" || item.FailureofImplementation =="Yes" || item.FailureofEffectiveness =="Yes"));
+        const filteredItemsNC = memoItems[0].filter((item: any) => (item.FailureofIntentNonconformity === "Yes" || item.FailureofImplementation == "Yes" || item.FailureofEffectiveness == "Yes"));
         const filteredItemsObs = memoItems[0].filter((item: any) => item.Observations === "Yes");
-
-        const reportCodeToExpectedNCs = this.groupItemsByReportCode(filteredItemsNC);
-        const reportCodeToExpectedObs = this.groupItemsByReportCode(filteredItemsObs);
+        const filteredItemsNCNew = newmemoitems.filter((item: any) => (item.NCType === "NC Number"));
+        const filteredItemsObsNew = newmemoitems.filter((item: any) => item.NCType === "Observation Number");
+        const reportCodeToExpectedNCs = this.groupItemsByReportCode(filteredItemsNCNew);
+        const reportCodeToExpectedObs = this.groupItemsByReportCode(filteredItemsObsNew);
 
         // ⬇️ Helper to process either NC or Observation
         const processItems = async (
@@ -716,24 +719,32 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
             const auditReportNumbers = await this.getAuditReportNCNumbers(reportCode, NCType);
             const existingNCNumbers = auditReportNumbers.map((item: any) => item.NCNumber?.toString().trim()).filter(Boolean);
             const createdNumbersSet = new Set(existingNCNumbers);
-
+            let existingrecords = await this.getNCdata(reportCode, NCType);
             const expectedNumbers = reportCodeToExpected[reportCode];
-
+            const confirmedExistingNumbers = new Set(
+              existingrecords
+                .map((item: any) => item.NCNumber?.toString().trim())
+                .filter(Boolean)
+            );
             // ⬇️ 2. Find missing numbers
-            const missingNumbers = Array.from(expectedNumbers).filter((num) => !createdNumbersSet.has(num));
-
+            //const missingNumbers = Array.from(expectedNumbers).filter((num) => !createdNumbersSet.has(num));
+            const missingNumbers = Array.from(expectedNumbers).filter(
+              (num) =>
+                createdNumbersSet.has(num) &&
+                !confirmedExistingNumbers.has(num)
+            );
             // ⬇️ 3. If there are any missing, add one example (first match)
             if (missingNumbers.length > 0) {
               const exampleItem = filteredItems.find((item: any) => item.ReportCode === reportCode && missingNumbers.includes(item.NCNumber?.toString().trim()));
               if (exampleItem) {
                 targetArray.push({
-                  value: exampleItem.ID,
+                  value: exampleItem.AnnualAuditReportListId,
                   label: exampleItem.ReportCode,
                   itemId: exampleItem.ID,
                   reportCode: exampleItem.ReportCode,
                   ncNo: missingNumbers.join(", "), // Show all missing NC numbers
-                  department: exampleItem.DepartmentAuditedId,
-                  additionalDetails: exampleItem.AdditionalDetails
+                  department: memoItems && memoItems[0].filter((x: any) => x.ID == exampleItem.AnnualAuditReportListId)[0].DepartmentAuditedId,
+                  additionalDetails: memoItems && memoItems[0].filter((x: any) => x.ID == exampleItem.AnnualAuditReportListId)[0].AdditionalDetails
                 });
               }
             }
@@ -741,14 +752,16 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
         };
 
         // ⬇️ Process NCs
-        await processItems(reportCodeToExpectedNCs, filteredItemsNC, "NC", optionsmemoNumbernewnc);
+        await processItems(reportCodeToExpectedNCs, filteredItemsNCNew, "NC", optionsmemoNumbernewnc);
 
         // ⬇️ Process Observations
-        await processItems(reportCodeToExpectedObs, filteredItemsObs, "Observation", optionsmemoNumbernewobs);
+        await processItems(reportCodeToExpectedObs, filteredItemsObsNew, "Observation", optionsmemoNumbernewobs);
 
         // ✅ Sort and deduplicate
         optionsmemoNumbernewobs = await this.getUniqueBy(optionsmemoNumbernewobs, "reportCode");
         optionsmemoNumbernewnc = await this.getUniqueBy(optionsmemoNumbernewnc, "reportCode");
+        optionsmemoNumbernewnc.sort((a, b) => a.label.localeCompare(b.label));
+        optionsmemoNumbernewobs.sort((a, b) => a.label.localeCompare(b.label));
       }
 
     } catch (e) {
@@ -769,15 +782,17 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     return result;
   };
   private async getAuditReportNCNumbers(reportCode: string, NCType: "NC" | "Observation") {
+
     const sp = spfi().using(SPFx(this.props.context));
+    let nctype = NCType == "NC" ? "NC Number" : "Observation Number";
     try {
-      const filter = `ReportCode eq '${reportCode}' and NCType eq '${NCType}'`;
+      const filter = `ReportCode eq '${reportCode}' and NCType eq '${nctype}'`;
 
       const items = await sp.web.lists
         .getByTitle("AuditReportNCNumber")
         .items
         .filter(filter)
-        .select("ID", "ReportCode", "NCType", "NCNumber","Description")
+        .select("ID", "ReportCode", "NCType", "NCNumber", "Description", "AnnualAuditReportListId")
         ();
 
       return items;
@@ -786,7 +801,26 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       return [];
     }
   }
+  private async getAuditReportNCNumbersAll() {
 
+    const sp = spfi().using(SPFx(this.props.context));
+    //let nctype = NCType == "NC" ? "NC Number" : "Observation Number";
+    try {
+      //const filter = `ReportCode eq '${reportCode}' and NCType eq '${nctype}'`;
+
+      const items = await sp.web.lists
+        .getByTitle("AuditReportNCNumber")
+        .items
+        //.filter(filter)
+        .select("ID", "ReportCode", "NCType", "NCNumber", "Description", "AnnualAuditReportListId").top(5000)
+        ();
+
+      return items;
+    } catch (error) {
+      //console.error(`Error fetching AuditReportNCNumbers for ${reportCode} (${NCType}):`, error);
+      return [];
+    }
+  }
   // public async getAuditreport() {
   //   debugger
   //   const sp = spfi().using(SPFx(this.props.context));
@@ -892,7 +926,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       //const Currusers: any = await this.getCurrentUser(sp, this.state.siteurl);
       const userProfile = await sp.profiles.myProperties();
       const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
-      let currentuserdepartment = UserDept;
+      let currentuserdepartment = UserDept || "Strategy & Sustainable Growth";
       const selectedOption = options.find(user => user?.adDepartmentName === currentuserdepartment);
       this.setState({
         fromdepartment: selectedOption?.value,
@@ -1364,7 +1398,10 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                 date.getMilliseconds().toString().padStart(3, '0')
               ];
               //var fileNamePath = encodeURI(file.name);
-              var fileNamePath = `${userId}_${components.join('')}_${file.name}`;
+              let originalFileName = file.name;
+              const fileNameWithoutExtension = originalFileName.split('.').slice(0, -1).join('.');
+              //return `${userId}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`;
+              var fileNamePath = `${userId}_${fileNameWithoutExtension}_${components.join('')}.${fileExtension}`;
               //return `${userId}_${components.join('')}_${file.name}`;
 
               sp.web.getFolderByServerRelativePath("NonConformityDocs").files.addUsingPath(fileNamePath, file, { Overwrite: true }).then(function (response) {

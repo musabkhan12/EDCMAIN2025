@@ -633,6 +633,44 @@ export const getAdditionalDocumentLinkByID = async (_sp, listItemID) => {
   return results;
 }
 
+export const getBGAdditionalDocumentLinkByID = async (_sp, listItemID) => {
+  let results = [];
+  // for (let itemId of AttachmentIds) {
+     await _sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
+    // .getById(itemId)
+      .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${listItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Background'`)()
+      .then((res) => {
+        // console.log(res, ' let arrs=[]');
+        // results.push(res);
+        results = res;
+      })
+      .catch((error) => {
+        console.log("Error fetching data: ", error);
+      });
+  // }
+  console.log(results, 'results');
+  return results;
+}
+
+export const getRecomAdditionalDocumentLinkByID = async (_sp, listItemID) => {
+  let results = [];
+  // for (let itemId of AttachmentIds) {
+     await _sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
+    // .getById(itemId)
+      .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${listItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Recommadation'`)()
+      .then((res) => {
+        // console.log(res, ' let arrs=[]');
+        // results.push(res);
+        results = res;
+      })
+      .catch((error) => {
+        console.log("Error fetching data: ", error);
+      });
+  // }
+  console.log(results, 'results');
+  return results;
+}
+
 // export const getGeneratedTemplateDoc = async (_sp, itemId) => {
 //   let results = [];
 //   // for (let itemId of AttachmentIds) {
