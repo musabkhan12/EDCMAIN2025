@@ -25,8 +25,8 @@
 //     return (
 //       <div>
 //   <iframe src={mypreviewurl2} style={{ width: '100%', height: '600px', border: 'none' }} />
-//       {/* <iframe src={'https://edcadae.sharepoint.com/sites/ededms/HR%20Department%20Testing/Policy/Forms/AllItems.aspx?id=%2Fsites%2FEDeDMS%2FHR%20Department%20Testing%2FPolicy%2FEDC%20Status%2Exlsx&parent=%2Fsites%2FEDeDMS%2FHR%20Department%20Testing%2FPolicy'} style={{ width: '100%', height: '600px', border: 'none' }} />
-//       <iframe src={'https://edcadae.sharepoint.com/sites/ededms/HR%20Department%20Testing/Policy/Forms/AllItems.aspx?id=/sites/ededms/HR%2520Department%2520Testing/Policy/EDC%2520Status.xlsx&parent=/sites/ededms/HR%2520Department%2520Testing/Policy'} style={{ width: '100%', height: '600px', border: 'none' }} /> */}
+//       {/* <iframe src={'https://officeindia.sharepoint.com/sites/edcspfx/HR%20Department%20Testing/Policy/Forms/AllItems.aspx?id=%2Fsites%2FEDeDMS%2FHR%20Department%20Testing%2FPolicy%2FEDC%20Status%2Exlsx&parent=%2Fsites%2FEDeDMS%2FHR%20Department%20Testing%2FPolicy'} style={{ width: '100%', height: '600px', border: 'none' }} />
+//       <iframe src={'https://officeindia.sharepoint.com/sites/edcspfx/HR%20Department%20Testing/Policy/Forms/AllItems.aspx?id=/sites/edcspfx/HR%2520Department%2520Testing/Policy/EDC%2520Status.xlsx&parent=/sites/edcspfx/HR%2520Department%2520Testing/Policy'} style={{ width: '100%', height: '600px', border: 'none' }} /> */}
 //       </div>
     
 //     );

@@ -184,7 +184,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         Remark: "",
 
         DeptRepId: [],
-        DeptRepValue:[]
+        DeptRepValue: [],
+        surpriseAudit: "No",
 
 
     });
@@ -890,7 +891,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     fromEmail: setBannerById[0].From?.EMail,
                     to: setBannerById[0].ToId || [],
                     DeptRepId: setBannerById[0].ToId || [],
-                    DeptRepValue:  setBannerById[0].To?.map((approver: any) => ({
+                    DeptRepValue: setBannerById[0].To?.map((approver: any) => ({
                         value: approver.ID,
                         label: approver.Title,
                     })) || [],
@@ -925,6 +926,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     classificationValue: ClassificationVal?.[0] || null,
 
                     Status: setBannerById[0].Status,
+                    surpriseAudit: setBannerById[0].SurpriseAudit || "",
                 }));
                 setdisableDepartment(setBannerById[0].DepartmentId ? true : false);
 
@@ -1252,7 +1254,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             classificationValue,
             classificationId,
             DeptRepId,
-            DeptRepValue
+            DeptRepValue,
+            surpriseAudit
         } = formData;
         // const { description } = richTextValues;
         let valid = true;
@@ -1302,7 +1305,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 document.getElementById("ToDept")?.classList.add("border-on-error");
                 valid = false;
             }
-            if(!DeptRepId.length){
+            if (!DeptRepId.length) {
                 document.getElementById("DeptRep")?.classList.add("border-on-error");
                 valid = false;
             }
@@ -1551,6 +1554,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 document.getElementById("scope")?.classList.add("border-on-error");
                 validAudit = false;
             }
+            if (!surpriseAudit) {
+                document.getElementById("surpriseAudit")?.classList.add("border-on-error");
+                validAudit = false;
+            }
 
 
             // setValidSubmit(valid);
@@ -1659,11 +1666,52 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         setLoading(true);
 
 
+                        // //////*************** */
+                        let memoNum;
+
+                        let memo;
+                        let memoFileName = "";
+                        if (DraftApprovalItem == null || DraftApprovalItem == undefined || DraftApprovalItem.length == 0) {
+                            const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${formData.deptId}`).orderBy("SerialNumber", false).top(1)();
+
+                            if (listItems.length > 0) {
+                                // if (modeValue == "") {
+                                memo = listItems[0].SerialNumber ? listItems[0].SerialNumber + 1 : 1;
+
+
+                            } else {
+                                memo = 1;
+                                // memoId = 0;
+
+                            }
+                            const formattedMemoSerialNo = memo < 10
+                                ? `00${memo}`
+                                : memo < 100
+                                    ? `0${memo}`
+                                    : memo;
+
+                            memoNum = `${selectUserDept?.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`;
+
+                            memoFileName = memoNum.replace(/\//g, "_");
+
+                        }
+                        else {
+                            memo = formData.memoSerialNo;
+                            memoNum = formData.memoNo;
+                            memoFileName = memoNum.replace(/\//g, "_");
+                        }
+
+
+
+
+                        // //////////****************** */
+
+
                         let galleryArray: any[] = [];
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditPlanDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditPlanDocs');
 
 
 
@@ -1672,7 +1720,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 if (!file.ID) {
                                     //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                                     // DocumentName = file.name;
-                                    const newFileName = await getNewFileName(file.name, "");
+                                    const newFileName = await getNewFileName(file.name, memoFileName);
                                     DocumentName = newFileName;
                                     const fileAddResult = await folder.files.addChunked(newFileName, file);
                                     const fileNew = fileAddResult.file;
@@ -1706,9 +1754,10 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                             MemorandumIDId: formData.MemoId,
 
-                            // MemoNumber: formData.memoNo.label,
-                            MemoNumber: formData.memoNo,
-                            MemoSerialNumber: formData.memoSerialNo,
+                            MemoNumber: memoNum,
+                            MemoSerialNumber: memo,
+                            // MemoNumber: formData.memoNo,
+                            // MemoSerialNumber: formData.memoSerialNo,
                             // IssueNumber:,
                             // RevisionNumber:,
                             AuditPlanTypeId: formData.auditPlanTypeId,
@@ -1754,6 +1803,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             // MIssueNumber: formData.MIssueNumber,
                             // MRevisionDate: formData.MRevisionDate,
                             // MIssueDate:formData.MIssueDate
+
+                            SurpriseAudit: formData.surpriseAudit,
 
 
                         }
@@ -2017,7 +2068,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         // }, 500);
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx` : `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // }
@@ -2080,7 +2131,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditPlanDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditPlanDocs');
 
 
                         if (FilesArr.length > 0) {
@@ -2173,7 +2224,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             MRevisionNumber: formData.MRevisionNumber,
                             MIssueNumber: formData.MIssueNumber,
                             MRevisionDate: formData.MRevisionDate,
-                            MIssueDate: formData.MIssueDate
+                            MIssueDate: formData.MIssueDate,
+
+                            SurpriseAudit: formData.surpriseAudit,
 
 
                         }
@@ -2352,7 +2405,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         // }
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx` : `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -2384,7 +2437,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditPlanDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditPlanDocs');
 
 
                         if (FilesArr.length > 0) {
@@ -2486,6 +2539,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 // MRevisionDate: formData.MRevisionDate,
                                 // MIssueDate:formData.MIssueDate
 
+                                SurpriseAudit: formData.surpriseAudit,
+
 
                             }
 
@@ -2540,6 +2595,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 // MIssueNumber: formData.MIssueNumber,
                                 // MRevisionDate: formData.MRevisionDate,
                                 // MIssueDate:formData.MIssueDate
+                                SurpriseAudit: formData.surpriseAudit,
 
 
                             }
@@ -2787,9 +2843,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         // }
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
 
-                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                // window.location.href = modeValue == "approve" ? `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx` : `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -2810,6 +2866,42 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                     if (result.isConfirmed) {
                         setLoading(true);
 
+                        // //////*************** */
+                        // const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${formData.deptId}`).orderBy("SerialNumber", false).top(1)();
+                        // let memoNum;
+
+                        // let memo;
+                        // if (listItems.length > 0) {
+                        //     // if (modeValue == "") {
+                        //     memo = listItems[0].SerialNumber ? listItems[0].SerialNumber + 1 : 1;
+                        //     // memoId = listItems[0].Id;
+                        //     // }
+                        //     // else {
+                        //     //   memo = listItems[0].SerialNumber;
+                        //     //   // memoId = listItems[0].Id;
+
+                        //     // }
+
+                        // } else {
+                        //     memo = 1;
+                        //     // memoId = 0;
+
+                        // }
+                        // const formattedMemoSerialNo = memo < 10
+                        //     ? `00${memo}`
+                        //     : memo < 100
+                        //         ? `0${memo}`
+                        //         : memo;
+
+                        // memoNum = `${selectUserDept?.DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`;
+
+                        // const memoFileName = memoNum.replace(/\//g, "_");
+
+
+
+                        // //////////****************** */
+
+
 
                         // let galleryIds: any[] = [];
 
@@ -2817,7 +2909,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditPlanDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditPlanDocs');
 
 
                         if (FilesArr.length > 0) {
@@ -2827,6 +2919,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
                                     // DocumentName = file.name;
                                     const newFileName = await getNewFileName(file.name, "");
+                                    // const newFileName = await getNewFileName(file.name, memoFileName);
                                     DocumentName = newFileName;
                                     const fileAddResult = await folder.files.addChunked(newFileName, file);
                                     const fileNew = fileAddResult.file;
@@ -2862,9 +2955,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             RequestDate: new Date(formData.RequestDate).toISOString(),
 
                             MemorandumIDId: formData.MemoId,
-                            // MemoNumber: formData.memoNo.label,
+                           
                             MemoNumber: formData.memoNo,
                             MemoSerialNumber: formData.memoSerialNo,
+                            // MemoNumber: memoNum,
+                            // MemoSerialNumber: memo,
                             // IssueNumber:,
                             // RevisionNumber:,
                             AuditPlanTypeId: formData.auditPlanTypeId,
@@ -2909,7 +3004,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             MRevisionNumber: formData.MRevisionNumber,
                             MIssueNumber: formData.MIssueNumber,
                             MRevisionDate: formData.MRevisionDate,
-                            MIssueDate: formData.MIssueDate
+                            MIssueDate: formData.MIssueDate,
+                            SurpriseAudit: formData.surpriseAudit,
 
 
                         }
@@ -3053,8 +3149,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         // }, 1000);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
-                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                                // window.location.href = modeValue == "approve" ? `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx` : `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -3175,11 +3271,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     //     const encodedFilePath = encodeURIComponent(serverRelativeUrl);
 
     //     // Example:
-    //     // serverRelativeUrl = "/sites/ededms/test/DocumentLibraryInsideTest/Book.xlsx"
+    //     // serverRelativeUrl = "/sites/edcspfx/test/DocumentLibraryInsideTest/Book.xlsx"
     //     const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
     //     const siteUrl = window.location.origin;
 
-    //     // const previewUrl = `${siteUrl}/sites/ededms/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    //     // const previewUrl = `${siteUrl}/sites/edcspfx/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     //     const previewUrl = `${siteUrl}${locationPath}/ChangeRequestDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     //     // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     //     console.log("Generated Preview URL:", previewUrl);
@@ -3873,7 +3969,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                         <label style={{ display: 'flex' }} htmlFor="to" className="col-form-label">Share With
 
 
-                                                                          <span className="text-danger1"> *</span></label>
+                                                                            <span className="text-danger1"> *</span></label>
                                                                         <div className="" title={formData?.DeptRepValue?.map((approver: any) => approver.label).join(", ") || "Select"}
                                                                         >
                                                                             <Select
@@ -4483,6 +4579,23 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                 </div>
                                                             </div>
 
+                                                            <div className="col-lg-4">
+                                                                <div className="mb-3">
+                                                                    <label htmlFor="criteria" className="form-label">Surprise Audit?<span className="text-danger1"> *</span></label>
+                                                                    <select
+                                                                        className="form-select"
+                                                                        value={formData.surpriseAudit || ""}
+                                                                        id='surpriseAudit'
+                                                                        onChange={(e) => setFormData({ ...formData, surpriseAudit: e.target.value })}
+                                                                        disabled={InputDisabled}
+                                                                    >
+                                                                        <option value="">Select</option>
+                                                                        <option value="Yes">Yes</option>
+                                                                        <option value="No">No</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+
 
 
 
@@ -4849,12 +4962,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                 >
                                                                                     <option value="" selected>Select Role</option>
                                                                                     {UserRoles
-                                                                                    // .filter((role: any) =>
-                                                                                    //     !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
-                                                                                    // )
-                                                                                    .map((role: any, idx: number) => (
-                                                                                        <option key={idx} value={role.value}>{role.label}</option>
-                                                                                    ))}
+                                                                                        // .filter((role: any) =>
+                                                                                        //     !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
+                                                                                        // )
+                                                                                        .map((role: any, idx: number) => (
+                                                                                            <option key={idx} value={role.value}>{role.label}</option>
+                                                                                        ))}
 
 
 

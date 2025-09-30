@@ -87,6 +87,12 @@ const datePickerErrorStyles: Partial<IDatePickerStyles> = {
 
 export interface IEditState {
   // mainItemId?: any | null;
+  Auditeeuser: any;
+  DelegatetoUser: any;
+  Analyzedbyuser: any;
+  allusersoption: any;
+  editoptionsmemoNC: any;
+  editoptionsmemoObs: any;
   Loading: boolean;
   Approveremailnew: string;
   mainItemId?: any;
@@ -204,7 +210,7 @@ export interface IEditState {
   fileCount: number;
   exFiles: any[];
   ShowDeleteicon: boolean;
-  ShowDeleteiconInitiator:boolean;
+  ShowDeleteiconInitiator: boolean;
   fileDeleteId: any[];
   fileDeleteIdauditee: any[];
   files: FileList;
@@ -251,6 +257,12 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
     this.state = {
       // mainItemId: props.edItm || null,
+      Auditeeuser: [],
+      DelegatetoUser: [],
+      Analyzedbyuser: [],
+      allusersoption: [],
+      editoptionsmemoNC: [],
+      editoptionsmemoObs: [],
       Loading: false,
       Approveremailnew: "",
       mainItemId: '',
@@ -371,7 +383,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       fileCount: 0,
       exFiles: [],
       ShowDeleteicon: false,
-      ShowDeleteiconInitiator:false,
+      ShowDeleteiconInitiator: false,
       fileDeleteId: [],
       fileDeleteIdauditee: [],
       files: {} as FileList,
@@ -749,6 +761,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           nctype: entry.NCType
         }));
     }
+    debugger
     let optionsNCNumbernew: any[] = [];
     optionsNCNumbernew = optionsNCNumber.length > 0 && await this.getUniqueBy(optionsNCNumber, "ncNo");
     optionsNCNumbernew && optionsNCNumbernew.sort((a, b) => a.label.localeCompare(b.label));
@@ -763,6 +776,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     this.setState({ editNCNumber: "", editNCNumberID: "", NCNumberselected: [] });
   };
   public async getNCdata(reportcode: string, nctype: string) {
+
     const sp = spfi().using(SPFx(this.props.context));
     let arr: any[] = []
     let arrs = []
@@ -783,7 +797,32 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       .catch((error: any) => {
         console.log("Error fetching data: ", error);
       });
-    console.log(arr, 'arr');
+    console.log(arr, 'arr bnbnbn');
+    return arr;
+  }
+  public async getNCdatadraft(reportcode: string, nctype: string, itemid: number) {
+
+    const sp = spfi().using(SPFx(this.props.context));
+    let arr: any[] = []
+    let arrs = []
+    let bannerimg = []
+    const currentUser = await sp.web.currentUser();
+    await sp.web.lists.getByTitle("NonConformityList").items
+      .select("*")
+      .expand("")
+      .filter(`ApprovedAuditReportMemoNumber eq '${reportcode}' and NCType eq '${nctype}' and ID ne ${itemid}`)
+      .orderBy("Modified", false)
+      ()
+      .then((res: any) => {
+        //console.log(res, 'Memonumbers from audit report');
+
+        //arr.push(res)
+        arr = res;
+      })
+      .catch((error: any) => {
+        console.log("Error fetching data: ", error);
+      });
+    console.log(arr, 'arr bnbnbn');
     return arr;
   }
   public changeNCNumber = (item: any): void => {
@@ -827,7 +866,63 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       } as unknown as Pick<IEditState, keyof IEditState>);
     }
   };
+  private onSelectAuditee = (selectedOptions: any, field: keyof IEditState, idField: keyof IEditState) => {
+    if (selectedOptions.length > 0) {
+      this.setState({
+        [field]: selectedOptions[0].label,
+        [idField]: selectedOptions[0].value,
+      } as Pick<IEditState, keyof IEditState>);
+    } else {
+      this.setState({
+        [field]: "",
+        [idField]: null,
+      } as unknown as Pick<IEditState, keyof IEditState>);
+    }
+    const uniqueOptions = (selectedOptions || []).filter(
+      (option: any, index: any, self: any) =>
+        index === self.findIndex((o: any) => o.value === option.value)
+    );
+    this.setState({ Auditeeuser: uniqueOptions })
 
+  };
+  private onSelectDelegateto = (selectedOptions: any, field: keyof IEditState, idField: keyof IEditState) => {
+    if (selectedOptions.length > 0) {
+      this.setState({
+        [field]: selectedOptions[0].label,
+        [idField]: selectedOptions[0].value,
+      } as Pick<IEditState, keyof IEditState>);
+    } else {
+      this.setState({
+        [field]: "",
+        [idField]: null,
+      } as unknown as Pick<IEditState, keyof IEditState>);
+    }
+    const uniqueOptions = (selectedOptions || []).filter(
+      (option: any, index: any, self: any) =>
+        index === self.findIndex((o: any) => o.value === option.value)
+    );
+    this.setState({ DelegatetoUser: uniqueOptions })
+
+  };
+  private onSelectAnalyzedby = (selectedOptions: any, field: keyof IEditState, idField: keyof IEditState) => {
+    if (selectedOptions.length > 0) {
+      this.setState({
+        [field]: selectedOptions[0].label,
+        [idField]: selectedOptions[0].value,
+      } as Pick<IEditState, keyof IEditState>);
+    } else {
+      this.setState({
+        [field]: "",
+        [idField]: null,
+      } as unknown as Pick<IEditState, keyof IEditState>);
+    }
+    const uniqueOptions = (selectedOptions || []).filter(
+      (option: any, index: any, self: any) =>
+        index === self.findIndex((o: any) => o.value === option.value)
+    );
+    this.setState({ Analyzedbyuser: uniqueOptions })
+
+  };
   private _handleCheckboxChange = (stateKey: keyof IEditState, itemKey: number, itemtext: String) =>
     (_ev: React.FormEvent<HTMLElement>, isChecked?: boolean) => {
       // if (stateKey == "editCategoryValueIsCheck" && itemtext == "Others") {
@@ -886,6 +981,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
     const _sp = spfi().using(SPFx(this.props.context));
     const currentUser = await _sp.web.currentUser();
+    const users = await _sp.web.siteUsers();
+    const people = users.filter(user => user.PrincipalType === PrincipalType.User);
+
+    const Selectedoptions = people.map(item => ({
+      value: item.Id,
+      label: item.Title,
+      UserName: item.Title,
+      UserEmail: item.Email
+    }));
+    this.setState({ allusersoption: Selectedoptions })
     CurrentuserEmail = currentUser.Email;
     // Extracting the part after `#/`
     const url = window.location.href;
@@ -910,93 +1015,151 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     setloading = true;
     await this.getnctypeoptions();
     await this.getDepartment();
-    await this.getAuditreport();
+    //await this.getAuditreport();
     await this.getDataRoles();
     await this.getMainListName();
     await this.getRequestorRole();
     await this.getFormName();
     if (id) {
       this.setState({ mainItemId: id }, async () => {
+        if (editType === "view") {
+          // this.setState({ isDisabled: true });
+          // this.setState({ deptSectionDisable: true });
+          // this.setState({ showDelegate: true });
+          // this.setState({ forwarDisable: true });
+          // this.setState({ showApprove: false });
+          // this.setState({ showSubmit: false });
+          // this.setState({ showDraft: false });
+          // this.setState({ showForward: false });
+          // this.setState({ showReject: false });
+          this.setState({
+            isDisabled: true,
+            deptSectionDisable: true,
+            showDelegate: true,
+            forwarDisable: true,
+            showApprove: false,
+            showSubmit: false,
+            showDraft: false,
+            showForward: false,
+            showReject: false,
+          });
+        }
+        // if (editType === "approve") {
+        //   const approvalItemId = parts[3];
+        //   // console.log("approvalItemId",approvalItemId)
+        //   // alert("approvalItemId"+ approvalItemId)
+        //   // alert("approvalItemId"+ typeof(approvalItemId))
+        //   if (approvalItemId) {
+        //     Approvallistitemid = Number(approvalItemId);
+        //     this.setState({ approvalItemId: approvalItemId })
+        //     // alert('here is my state ' + this.state.approvalItemId)
+        //   }
+        //   // this.setState({ isDisabled: true });
+        //   // this.setState({ deptSectionDisable: true });
+        //   // this.setState({ showDelegate: true });
+        //   // this.setState({ showApprove: true });
+        //   // this.setState({ showSubmit: false });
+        //   // this.setState({ showDraft: false });
+        //   // this.setState({ showReject: false });
+        //   // this.setState({
+        //   //   isDisabled: true,
+        //   //   deptSectionDisable: true,
+        //   //   showDelegate: true,
+        //   //   showApprove: true,
+        //   //   showSubmit: false,
+        //   //   showDraft: false,
+        //   //   showReject: false,
+        //   // });
+        //   // if (EditLastInitiatorSubmitStatus == "No" && EditCurrentUserrole == "LastInitiator") {
+        //   //   this.setState({ showApprove: false, showForward: true });
+        //   //   //this.setState({ showForward: true });
+        //   // }
+        //   // if (EditLastInitiatorSubmitStatus == "Yes" && EditCurrentUserrole == "LastInitiator") {
+        //   //   this.setState({ showApprove: false, forwarDisable: true, showForward: false });
+        //   //   // this.setState({ forwarDisable: true });
+        //   //   // this.setState({ showForward: false });
+        //   //   // this.setState({ showReject: true });
+        //   // }
+        //   // if (EditLastInitiatorSubmitStatus == "Yes") {
+        //   //   if (EditCurrentUserrole == "Approverrole") {
+        //   //     this.setState({ showApprove: false, forwarDisable: true, showForward: false, showReject: true });
+        //   //     // this.setState({ forwarDisable: true });
+        //   //     // this.setState({ showForward: false });
+        //   //     // this.setState({ showReject: true });
+        //   //   }
+
+        //   //   forwardisdisabled = true;
+        //   // }
+
+        //   // if (EditStatus == "Approved" || EditStatus == "Rejected") {
+        //   //   this.setState({ showReject: false });
+        //   // }
+        // }
         // this.getAllapprovalitems(Number(id));
         // This will run AFTER the state update is completed
         // alert("Updated mainItemId: " + this.state.mainItemId);
         await this.getListData(Number(id)); // Fetch list data after updating state
         await this.getGeneratedTemplateDocNC(Number(id));
-        if (editType === "edit") {
-          this.setState({ showApprove: false });
-          this.setState({ showSubmit: true });
-          this.setState({ showForward: false });
-          this.setState({ showReject: false });
-          this.setState({ forwarDisable: false });
-          if (EditSubmitStatus === 'No' || (EditStatus == "Rework" && EditCurrentUserrole == "FirstInitiator")) {
-            this.setState({ showDraft: true });
-            this.setState({ isDisabled: false });
-          }
-          else {
-            this.setState({ deptSectionDisable: false });
-            this.setState({ showDelegate: false });
-            this.setState({ showDraft: false });
-            this.setState({ isDisabled: true });
-          }
-          if (EditDelegateToSubmitStatus == "No" && EditCurrentUserrole == "DelegateTo") {
-            this.setState({ showDelegate: true });
-          }
-        }
+        // if (editType === "edit") {
+        //   // this.setState({ showApprove: false });
+        //   // this.setState({ showSubmit: true });
+        //   // this.setState({ showForward: false });
+        //   // this.setState({ showReject: false });
+        //   // this.setState({ forwarDisable: false });
+        //   this.setState({
+        //     showApprove: false,
+        //     showSubmit: true,
+        //     showForward: false,
+        //     showReject: false,
+        //     forwarDisable: false,
+        //   });
+        //   if (EditSubmitStatus === 'No' || (EditStatus == "Rework" && EditCurrentUserrole == "FirstInitiator")) {
+        //     this.setState({ showDraft: true, isDisabled: false });
+        //     //this.setState({ isDisabled: false });
+        //   }
+        //   else {
+        //     // this.setState({ deptSectionDisable: false });
+        //     // this.setState({ showDelegate: false });
+        //     // this.setState({ showDraft: false });
+        //     // this.setState({ isDisabled: true });
+        //     this.setState({
+        //       deptSectionDisable: false,
+        //       showDelegate: false,
+        //       showDraft: false,
+        //       isDisabled: true,
+        //     });
+
+        //   }
+        //   if (EditDelegateToSubmitStatus == "No" && EditCurrentUserrole == "DelegateTo") {
+        //     this.setState({ showDelegate: true });
+        //   }
+        // }
 
 
-        else if (editType === "view") {
-          this.setState({ isDisabled: true });
-          this.setState({ deptSectionDisable: true });
-          this.setState({ showDelegate: true });
-          this.setState({ forwarDisable: true });
-          this.setState({ showApprove: false });
-          this.setState({ showSubmit: false });
-          this.setState({ showDraft: false });
-          this.setState({ showForward: false });
-          this.setState({ showReject: false });
-        }
-        else if (editType === "approve") {
-          const approvalItemId = parts[3];
-          // console.log("approvalItemId",approvalItemId)
-          // alert("approvalItemId"+ approvalItemId)
-          // alert("approvalItemId"+ typeof(approvalItemId))
-          if (approvalItemId) {
-            Approvallistitemid = Number(approvalItemId);
-            this.setState({ approvalItemId: approvalItemId })
-            // alert('here is my state ' + this.state.approvalItemId)
-          }
-          this.setState({ isDisabled: true });
-          this.setState({ deptSectionDisable: true });
-          this.setState({ showDelegate: true });
-          this.setState({ showApprove: true });
-          this.setState({ showSubmit: false });
-          this.setState({ showDraft: false });
-          this.setState({ showReject: false });
-          if (EditLastInitiatorSubmitStatus == "No" && EditCurrentUserrole == "LastInitiator") {
-            this.setState({ showApprove: false });
-            this.setState({ showForward: true });
-          }
-          if (EditLastInitiatorSubmitStatus == "Yes" && EditCurrentUserrole == "LastInitiator") {
-            this.setState({ showApprove: false });
-            this.setState({ forwarDisable: true });
-            this.setState({ showForward: false });
-            // this.setState({ showReject: true });
-          }
-          if (EditLastInitiatorSubmitStatus == "Yes") {
-            if (EditCurrentUserrole == "Approverrole") {
-              this.setState({ showApprove: false });
-              this.setState({ forwarDisable: true });
-              this.setState({ showForward: false });
-              this.setState({ showReject: true });
-            }
+        // else if (editType === "view") {
+        //   // this.setState({ isDisabled: true });
+        //   // this.setState({ deptSectionDisable: true });
+        //   // this.setState({ showDelegate: true });
+        //   // this.setState({ forwarDisable: true });
+        //   // this.setState({ showApprove: false });
+        //   // this.setState({ showSubmit: false });
+        //   // this.setState({ showDraft: false });
+        //   // this.setState({ showForward: false });
+        //   // this.setState({ showReject: false });
+        //   this.setState({
+        //     isDisabled: true,
+        //     deptSectionDisable: true,
+        //     showDelegate: true,
+        //     forwarDisable: true,
+        //     showApprove: false,
+        //     showSubmit: false,
+        //     showDraft: false,
+        //     showForward: false,
+        //     showReject: false,
+        //   });
+        // }
+        // else
 
-            forwardisdisabled = true;
-          }
-
-          if (EditStatus == "Approved" || EditStatus == "Rejected") {
-            this.setState({ showReject: false });
-          }
-        }
       });
     }
     if (editType) {
@@ -1005,13 +1168,14 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
     // await this.getListData();
 
+    this.setState({ Loading: false });
+    setloading = false;
+    await this.getAuditreport();
 
-
-
-    setTimeout(() => {
-      this.setState({ Loading: false });
-      setloading = false;
-    }, 7000); // 5000ms = 5 seconds
+    // setTimeout(() => {
+    //   this.setState({ Loading: false });
+    //   setloading = false;
+    // }, 7000); // 5000ms = 5 seconds
   }
   public async getGeneratedTemplateDocNC(itemId: number) {
 
@@ -1158,6 +1322,12 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     return arr;
   }
   public async getListData(idNumber: any) {
+    let url = window.location.href;
+    let parts = url.split("#/")[1].split("/");
+    let editType = parts[1]; // "edit"
+    let id = parts[2];
+    let currentlevel: any;
+    let finallevel: any;
     this.setState({ Loading: true });
     setloading = true;
     const sp = spfi().using(SPFx(this.props.context));
@@ -1165,7 +1335,25 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     // let memoopt = await this.getAuditreport().then(async (x) => {
     //const auditData = await this.getAuditreport();
     //console.log("Audit Report Result", auditData);
-    console.log("nmnngfhjagfhjdagfjadfdhjmnm", this.state.editmemonumberOptions, optionsmemoNumbernewnc, editoptsmemoAllNC, editoptsmemoAllObs);
+    const memoItems = await getMemoNumberAuditReport(sp);
+    // console.log("Fetched memoItems:", memoItems);
+
+    if (!Array.isArray(memoItems) || memoItems.length === 0) {
+      console.warn("No memo items returned or not an array");
+      return;
+    }
+
+    // Flatten if memoItems is nested: [ [ items ] ]
+    const flatMemoItems = Array.isArray(memoItems[0]) ? memoItems[0] : memoItems;
+    const optionsallnc = flatMemoItems.map((item: any) => ({
+      value: item.ID,
+      label: item.ReportCode,
+      itemId: item.ID,
+      reportCode: item.ReportCode,
+      ncNo: item.NCNumber,
+      department: item.DepartmentAuditedId
+    }));
+    console.log("nmnngfhjagfhjdagfjadfdhjmnm", flatMemoItems, this.state.editmemonumberOptions, optionsmemoNumbernewnc, editoptsmemoAllNC, editoptsmemoAllObs);
     //let departopt = await this.getDepartment();
     const deptItems = await sp.web.lists.getByTitle("ProcessDepartmentMasterList").items();
     const optionsdept = deptItems.map((item: {
@@ -1188,13 +1376,14 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       EditCurrentUserrole = Items.CurrentUserRole;
       EditDelegateToSubmitStatus = Items.DelegateToSubmitStatus;
       EditLastInitiatorSubmitStatus = Items.LastInitiatorSubmitStatus;
-      let editmemonumberOptionsselect = Items?.NCType == "NC" ? editoptsmemoAllNC : editoptsmemoAllObs;
-      let approvedauditreportselected = editmemonumberOptionsselect.filter((x: any) => Number(x.value) == Number(Items.ApprovedAuditReportId));
+      let editmemonumberOptionsselect = Items?.NCType == "NC" ? this.state.editoptionsmemoNC : this.state.editoptionsmemoObs;
+      let approvedauditreportselected = optionsallnc && optionsallnc.filter((x: any) => Number(x.value) == Number(Items.ApprovedAuditReportId));
       let selecteddepartment = optionsdept.filter((x: any) => x.value == Items.DepartmentId);
       let fromselecteddepartment = optionsdept.filter((x: any) => x.value == Items.FromDepartmentId);
       const showCategoryOthers = Items.Category?.some((cat: any) => cat.Title === "Others") || false;
       const showSubCategoryOthers = Items.SubCategory?.some((sub: any) => sub.Title === "Others") || false;
       const showLocationOthers = Items.Location?.some((loc: any) => loc.Title === "Others") || false;
+      //let auditreport=this.state.editmemonumberOptions.length > 0 && Items.ApprovedAuditReportId && this.state.editmemonumberOptions.filter((item: any) => item?.value == Items.ApprovedAuditReportId)
       this.setState({
         ApprovedAuditSelected: approvedauditreportselected,
         departmentselected: selecteddepartment,
@@ -1271,13 +1460,144 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
         // this.setState({ showcategoryothers: showCategoryOthers, showlocationothers: showLocationOthers, showsubcategoryothers: showSubCategoryOthers });
       });
+      let delegatetouser: any[] = [];
 
+      if (Items.DelegateTo) {
+        const approver = Items.DelegateTo; // single object
+        delegatetouser = [{
+          value: approver.Id,
+          label: approver.Title,
+          UserName: approver.Title,
+          UserEmail: approver.EMail
+        }];
+
+      }
+
+      let Assignedtouser: any[] = [];
+
+      if (Items.AssignedTo) {
+        const approver = Items.AssignedTo; // single object
+        Assignedtouser = [{
+          value: approver.Id,
+          label: approver.Title,
+          UserName: approver.Title,
+          UserEmail: approver.EMail
+        }];
+      }
+      let AnalyzedByuser: any[] = [];
+
+      if (Items.AnalyzedBy) {
+        const approver = Items.AnalyzedBy; // single object
+        AnalyzedByuser = [{
+          value: approver.Id,
+          label: approver.Title,
+          UserName: approver.Title,
+          UserEmail: approver.EMail
+        }];
+      }
+      this.setState({ DelegatetoUser: delegatetouser, Auditeeuser: Assignedtouser, Analyzedbyuser: AnalyzedByuser })
+      if (editType == "edit") {
+        this.setState({
+          showApprove: false,
+          showSubmit: true,
+          showForward: false,
+          showReject: false,
+          forwarDisable: false,
+        });
+        if (Items.SubmitStatus === 'No' || (Items.Status == "Rework" && Items.CurrentUserRole == "FirstInitiator")) {
+          this.setState({ showDraft: true, isDisabled: false });
+        }
+        else {
+
+          this.setState({
+            deptSectionDisable: false,
+            showDelegate: false,
+            showDraft: false,
+            isDisabled: true,
+          });
+        }
+        if (Items.DelegateToSubmitStatus == "No" && Items.CurrentUserRole == "DelegateTo") {
+          this.setState({ showDelegate: true });
+        }
+        // if (currentApprover.CurrentUserRole !== "LastInitiator") {
+        showreworkremarks = true;
+        showimsupdated = true;
+        isdisableims = false;
+        // }
+      }
+      if (editType === "approve") {
+        const approvalItemId = parts[3];
+        if (approvalItemId) {
+          Approvallistitemid = Number(approvalItemId);
+          this.setState({ approvalItemId: approvalItemId })
+          // alert('here is my state ' + this.state.approvalItemId)
+        }
+
+        this.setState({
+          isDisabled: true,
+          deptSectionDisable: true,
+          showDelegate: true,
+          showApprove: true,
+          showSubmit: false,
+          showDraft: false,
+          showReject: false,
+        });
+      }
       // if (Items?.NCType) {
       //   this.setState({
       //     editncType: Items?.NCType,
       //     editmemonumberOptions: Items?.NCType == "NC" ? auditData.optionsmemoNumbernewnc : auditData.optionsmemoNumbernewobs
       //   });
       // }
+      var cnt: any = 0;
+      var appItems: any[] = [];
+      const apprItems = await sp.web.lists
+        .getByTitle("ProcessApprovalList")
+        .items.select(
+          "*",
+          "AssignedTo/Title,AssignedTo/Id,AssignedTo/EMail,ActionTakenRole,ActionTakenRole/Role,RequesterName/Title,ActionTakenBy/Title"
+        )
+        .expand("AssignedTo,ActionTakenRole,RequesterName,ActionTakenBy")
+        .filter(
+          "ListItemId eq '" +
+          idNumber +
+          "' and ProcessName eq 'Non Conformity'"
+        )
+        .orderBy("Id", true)();
+      if (apprItems && apprItems.length > 0) {
+        apprItems.forEach(async function (itm: any) {
+          //Audit Report
+          var objToAdd: any = {};
+          objToAdd["Level"] = itm.Level;
+          objToAdd["AssignedTo"] = itm.AssignedTo?.Title;
+          objToAdd["AssignedToEmail"] = itm.AssignedTo?.EMail;
+          objToAdd["RequesterName"] = itm.RequesterName?.Title;
+          objToAdd["ActionTakenRole"] = itm.ActionTakenRoleId == null ? itm.CurrentUserRole : itm.ActionTakenRole?.Role;
+          {
+            /* Divyansh Changes */
+          }
+          if (itm.RequestedDate == "" || itm.RequestedDate == null) {
+            objToAdd["RequestedDate"] = "";
+          } else {
+            objToAdd["RequestedDate"] = itm.RequestedDate;
+          }
+          if (itm.ActionTakenById != null) {
+            objToAdd["ActionTakenBy"] = itm.ActionTakenBy.Title;
+          }
+          else {
+            objToAdd["ActionTakenBy"] = "";
+          }
+
+          objToAdd["ActionTakenOn"] = itm.ActionTakenOn;
+          objToAdd["Remarks"] = itm.Remark;
+          objToAdd["Status"] = itm.Status;
+          objToAdd["Index"] = itm.Level;
+
+          appItems.push(objToAdd);
+          cnt = cnt + 1;
+        });
+        this.setState({ apprItems: appItems });
+      }
       const newItem1 = await this.getdigitalsignaturerequestbyID("NonConformityList", sp, Number(idNumber));
       const isRecordExist = await this.getdigitalsignaturerequestbyIDYes("NonConformityList", sp, Number(idNumber));
       console.log("newItem1newItem1", newItem1, isRecordExist);
@@ -1290,15 +1610,16 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       } else {
         this.setState({ showdigisign: true });
       }
-      setTimeout(() => {
-        this.setState({ Loading: false });
-        setloading = false;
-      }, 7000);
+      // setTimeout(() => {
+      //   this.setState({ Loading: false });
+      //   setloading = false;
+      // }, 7000);
+      debugger
+      let optnew: any;
       let nctypenew: string = Items.NCType == "NC" ? "NC Number" : "Observation NUmber";
       let NCNumberoptionnew = await getNCNumbers(sp, Items.ApprovedAuditReportMemoNumber, nctypenew);
-      let optionsNCNumber: any = [];
       if (NCNumberoptionnew.length > 0) {
-        optionsNCNumber = NCNumberoptionnew[0].map((item: any) => ({
+        optnew = NCNumberoptionnew[0].map((item: any) => ({
           value: item.ID,
           label: item.NCNumber,
           ncNo: item.NCNumber,
@@ -1306,6 +1627,42 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           nctype: item.NCType
         }));
       }
+      let ncnumberselectednew = optnew.length > 0 && optnew.filter((x: any) => x.value == Items.NCNumberID);
+
+      this.setState({
+        //editNCNumberOptions: optionsNCNumbernew,
+        NCNumberselected: ncnumberselectednew,
+
+      })
+      let existingrecords = Items && await this.getNCdatadraft(Items.ApprovedAuditReportMemoNumber, Items.NCType, Items.ID);
+      let optionsNCNumber: any = [];
+      if (Array.isArray(NCNumberoptionnew) && NCNumberoptionnew.length > 0) {
+        // Safely extract existing NCNumbers, even if the array is empty
+        const existingNCNumbersSet = new Set(
+          (Array.isArray(existingrecords) ? existingrecords : []).map((rec: any) => rec.NCNumber)
+        );
+
+        // Filter out NCNumbers already in existingrecords
+        optionsNCNumber = NCNumberoptionnew[0]
+          .filter((entry: any) => !existingNCNumbersSet.has(entry.NCNumber))
+          .map((entry: any) => ({
+            value: entry.ID,
+            label: entry.NCNumber,
+            ncNo: entry.NCNumber,
+            reportcode: entry.ReportCode,
+            nctype: entry.NCType
+          }));
+      }
+
+      // if (NCNumberoptionnew.length > 0) {
+      //   optionsNCNumber = NCNumberoptionnew[0].map((item: any) => ({
+      //     value: item.ID,
+      //     label: item.NCNumber,
+      //     ncNo: item.NCNumber,
+      //     reportcode: item.ReportCode,
+      //     nctype: item.NCType
+      //   }));
+      // }
       let optionsNCNumbernew: any[] = [];
 
       // console.log("nmnnmnm", this.state.editmemonumberOptions, optionsmemoNumbernewnc, editoptsmemoAllNC, editoptsmemoAllObs);
@@ -1324,36 +1681,34 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       isAssignedtoDelegated = await this.isUserDelegatedFor(Items.AssignedTo && Items.AssignedTo?.EMail, currentUser.Id);
       isDelegatedToDelegated = await this.isUserDelegatedFor(Items.DelegateTo && Items.DelegateTo?.EMail, currentUser.Id);
 
-      const apprItems = await sp.web.lists
-        .getByTitle("ProcessApprovalList")
-        .items.select(
-          "*",
-          "AssignedTo/Title,AssignedTo/Id,AssignedTo/EMail,ActionTakenRole,ActionTakenRole/Role,RequesterName/Title,ActionTakenBy/Title"
-        )
-        .expand("AssignedTo,ActionTakenRole,RequesterName,ActionTakenBy")
-        .filter(
-          "ListItemId eq '" +
-          idNumber +
-          "' and ProcessName eq 'Non Conformity'"
-        )
-        .orderBy("Id", true)();
 
 
-      let url = window.location.href;
-      let parts = url.split("#/")[1].split("/");
-      let editType = parts[1]; // "edit"
-      let id = parts[2];
-      let currentlevel: any;
-      let finallevel: any;
-      if (editType == "edit") {
-        // if (currentApprover.CurrentUserRole !== "LastInitiator") {
-        showreworkremarks = true;
-        showimsupdated = true;
-        isdisableims = false;
-        // }
-      }
+
+      EditSubmitStatus = Items.SubmitStatus;
+
+      EditStatus = Items.Status;
+      EditCurrentUserrole = Items.CurrentUserRole;
+      EditDelegateToSubmitStatus = Items.DelegateToSubmitStatus;
+      EditLastInitiatorSubmitStatus = Items.LastInitiatorSubmitStatus;
+
       if (editType === "approve") {
+        if (Items.LastInitiatorSubmitStatus == "No" && Items.CurrentUserRole == "LastInitiator") {
+          this.setState({ showApprove: false, showForward: true });
+          //this.setState({ showForward: true });
+        }
+        if (Items.LastInitiatorSubmitStatus == "Yes" && Items.CurrentUserRole == "LastInitiator") {
+          this.setState({ showApprove: false, forwarDisable: true, showForward: false });
+        }
+        if (Items.LastInitiatorSubmitStatus == "Yes") {
+          if (EditCurrentUserrole == "Approverrole") {
+            this.setState({ showApprove: false, forwarDisable: true, showForward: false, showReject: true });
+          }
+          forwardisdisabled = true;
+        }
 
+        if (EditStatus == "Approved" || EditStatus == "Rejected") {
+          this.setState({ showReject: false });
+        }
         let approvalItemIdnew = parts[3];
         let Approverdata = await this.getapprovalbyID(Number(approvalItemIdnew), "Non Conformity");
         console.log("Approverdata", Approverdata, "Approverdata0", Approverdata && Approverdata[0], Approvallistitemid, approvalItemIdnew);
@@ -1422,7 +1777,17 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
 
       }
       if (editType == "view") {
-
+        this.setState({
+          isDisabled: true,
+          deptSectionDisable: true,
+          showDelegate: true,
+          forwarDisable: true,
+          showApprove: false,
+          showSubmit: false,
+          showDraft: false,
+          showForward: false,
+          showReject: false,
+        });
         if (Items.IMSUpdated != "" && Items.IMSUpdated != null && Items.RiskOpportunitiesUpdated != "" && Items.RiskOpportunitiesUpdated != null) {
           showimsupdated = true;
           isdisableims = true;
@@ -1433,8 +1798,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
           isdisablefinal = true;
         }
       }
-      var cnt: any = 0;
-      var appItems: any[] = [];
+
       //  console.log("apprItems111", apprItems);
       if (apprItems && apprItems.length > 0) {
         if (Items.SubmitStatus == "Yes" && (Items.CurrentUserRole == "FirstAssignedTo" || Items.CurrentUserRole == "DelegateTo")) {
@@ -1534,10 +1898,10 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         (Items.CurrentUserRole == "DelegateTo" && (Items.delegateToSubmitStatus == "No" || Items.delegateToSubmitStatus == undefined))) {
         this.setState({ ShowDeleteicon: true })
       }
-      if (Items.SubmitStatus == "No"  || Items.FirstInitiatorSubmitStatus == "No"
-     ) {
-      this.setState({ ShowDeleteiconInitiator: true })
-    }
+      if (Items.SubmitStatus == "No" || Items.FirstInitiatorSubmitStatus == "No"
+      ) {
+        this.setState({ ShowDeleteiconInitiator: true })
+      }
       //AllProcessApproval Table data
 
       const approvalItems = await sp.web.lists.getByTitle("AllProcessApprovalLevelList").items.select("*", "Approvers/Name", "Approvers/Title", "Approvers/EMail", "Approvers/ID").expand("Approvers")
@@ -1628,7 +1992,12 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         }
 
       }
-
+      setTimeout(() => {
+        this.setState({ Loading: false });
+        setloading = false;
+      }, 2000);
+      // this.setState({ Loading: false });
+      // setloading = false;
       //Get latest last rec the NC list   
       const latestItem = await sp.web.lists
         .getByTitle("NonConformityList").items.select("Id", "SerialNumber", "Created", "SubmitStatus")
@@ -1995,7 +2364,8 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       editoptsmemoAllObs = optionsallobs;
 
       this.setState({
-        editmemonumberOptions: this.state.editncType === "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs,
+        editmemonumberOptions: this.state.editncType === "NC" ? optionsmemoNumbernewnc : optionsmemoNumbernewobs, editoptionsmemoNC: optionsallnc,
+        editoptionsmemoObs: optionsallobs
         //editmemonumberOptionsall: this.state.editncType === "NC" ? optionsNCNumber : optionsObservationNumber
       });
 
@@ -2433,7 +2803,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       this.approveRequest(formsubmode);
     } else {
       //if (this.validateFormRemark()) {
-        this.approveRequest(formsubmode);
+      this.approveRequest(formsubmode);
 
       // }
       // else {
@@ -2573,22 +2943,26 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     const sp = spfi().using(SPFx(this.props.context));
     let observationStatus: string = "";
     let observationStatus1: string = "";
+    let closeoutstatuss: string = "";
     let test1 = this.state.correctionApplicable ? "Yes" : "No";
     let test2 = this.state.notEffective ? "Yes" : "No";
     let test3 = this.state.effectiveClosed ? "Yes" : "No";
-    let test4 = this.state.isIMSUpdated =="Yes" ? "Yes" : "No";
-    let test5 = this.state.riskandopportunitiesUpdated =="Yes" ? "Yes" : "No";
-    let ncStatus = (_editsubmitStatus == "Rework" || (this.state.editStatus == "Rework" && _editsubmitStatus == "draft"))  && this.state.editCurrentUserRole != "FirstInitiator" || (this.state.editStatus == "Rework" && _editsubmitStatus == "draft" && this.state.editCurrentUserRole == "FirstInitiator")
+    let test4 = this.state.isIMSUpdated == "Yes" ? "Yes" : "No";
+    let test5 = this.state.riskandopportunitiesUpdated == "Yes" ? "Yes" : "No";
+    let ncStatus = (_editsubmitStatus == "Rework" || (this.state.editStatus == "Rework" && _editsubmitStatus == "draft")) && this.state.editCurrentUserRole != "FirstInitiator" || (this.state.editStatus == "Rework" && _editsubmitStatus == "draft" && this.state.editCurrentUserRole == "FirstInitiator")
       //(_editsubmitStatus == "submit" && this.state.editStatus == "Rework" && this.state.editCurrentUserRole == "FirstInitiator")
       ? "Rework" : "Pending";
 
     if (this.state.editncType == "Observation" && this.state.editDelegateToId != null && this.state.editCurrentUserRole == "LastInitiator" && _editsubmitStatus != "Rework") {
-      observationStatus1 = "Approved"
+      observationStatus1 = "Approved";
+      closeoutstatuss = "Completed"
     } else
       if (this.state.editncType == "Observation" && this.state.editDelegateToId == null && this.state.editCurrentUserRole == "LastInitiator" && _editsubmitStatus != "Rework") {
-        observationStatus1 = "Approved"
+        observationStatus1 = "Approved";
+        closeoutstatuss = "Completed"
       } else {
-        observationStatus1 = "Pending"
+        observationStatus1 = "Pending";
+        closeoutstatuss = this.state.editCloseOutStatus
       };
     observationStatus = _editsubmitStatus == "Rework" || (this.state.editStatus == "Rework" && _editsubmitStatus == "draft") ? "Rework" : observationStatus1;
     // let submitstatus: string = "";
@@ -2605,7 +2979,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       DepartmentId: this.state.editDepartment || null,
       FromDepartmentId: this.state.editfromdepartment,
       Criteria: this.state.editCriteria,
-      CloseOutStatus: this.state.editCloseOutStatus,
+      CloseOutStatus: this.state.editncType == "Observation" ? closeoutstatuss : this.state.editCloseOutStatus,
       //NCRNo: this.state.editNCRNo,
       ReferenceNumber: this.state.editReferenceNumber,
       RevisionNumber: this.state.editRevisionNo !== "" ? Number(this.state.editRevisionNo) : null,
@@ -3464,20 +3838,20 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
         serialNumber = this.state.notUpdateSerialNo;
         ncrnumber = this.state.notUpdateDepartmentCode;
       }
-      else 
-      if (_editsubmitStatus == "Approve" && this.state.editCurrentUserRole == "LastInitiator") {
-        firstInitiatorSubmitStatus = "Yes"
-        firstAssignedToSubmitStatus = "Yes";
-        delegateToSubmitStatus = "Yes";
-        analyzedBySubmitStatus = "Yes";
-        reviewedBySubmitStatus = "Yes";
-        lastAssignedToSubmitStatus = "Yes";
-        lastInitiatorSubmitStatus = "Yes";
-        currentUserRole = "";
-        reworkById = null;
-        serialNumber = this.state.notUpdateSerialNo;
-        ncrnumber = this.state.notUpdateDepartmentCode;
-      }
+      else
+        if (_editsubmitStatus == "Approve" && this.state.editCurrentUserRole == "LastInitiator") {
+          firstInitiatorSubmitStatus = "Yes"
+          firstAssignedToSubmitStatus = "Yes";
+          delegateToSubmitStatus = "Yes";
+          analyzedBySubmitStatus = "Yes";
+          reviewedBySubmitStatus = "Yes";
+          lastAssignedToSubmitStatus = "Yes";
+          lastInitiatorSubmitStatus = "Yes";
+          currentUserRole = "";
+          reworkById = null;
+          serialNumber = this.state.notUpdateSerialNo;
+          ncrnumber = this.state.notUpdateDepartmentCode;
+        }
     }
     //<-------- End Case2 --------->
     if (!IsactionTaken) {
@@ -3717,7 +4091,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     if (match) {
       return `${match[1]}.${filename.split('.').pop()}`;
     }
-    console.log("ghghggh",filename)
+    console.log("ghghggh", filename)
     return filename;
   }
 
@@ -3728,7 +4102,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     if (datetimePattern.test(filename)) {
       return filename.replace(datetimePattern, '');
     }
-console.log("ghghggh",filename)
+    console.log("ghghggh", filename)
     return filename;
   }
   //Rework Call
@@ -3830,8 +4204,8 @@ console.log("ghghggh",filename)
         reviewedBySubmitStatus = "No";
         lastAssignedToSubmitStatus = "No";
         lastInitiatorSubmitStatus = "No";
-        currentUserRole ="FirstAssignedTo",// "DelegateTo";
-        reworkById = this.state.editAnalyzedById || null;
+        currentUserRole = "FirstAssignedTo",// "DelegateTo";
+          reworkById = this.state.editAnalyzedById || null;
         serialNumber = this.state.notUpdateSerialNo;
         ncrnumber = this.state.notUpdateDepartmentCode;
       } else if (_editsubmitStatus == "Rework" && this.state.editCurrentUserRole == "FirstAssignedTo") {
@@ -3856,7 +4230,7 @@ console.log("ghghggh",filename)
         lastAssignedToSubmitStatus = "No";
         lastInitiatorSubmitStatus = "No";
         currentUserRole = "FirstAssignedTo",//"FirstInitiator"; //LastInitiator
-        reworkById = this.state.editDelegateToId || null;
+          reworkById = this.state.editDelegateToId || null;
         serialNumber = this.state.notUpdateSerialNo;
         ncrnumber = this.state.notUpdateDepartmentCode;
       }
@@ -4485,8 +4859,18 @@ console.log("ghghggh",filename)
           <td title={item.AssignedTo} style={{ minWidth: '90px', maxWidth: '90px' }}>
             {item.AssignedTo}
           </td>
-          <td title={item.ActionTakenRole == "LastInitiator" ? "Initiator" : item.ActionTakenRole} style={{ minWidth: "90px", maxWidth: "90px" }}>
-            {item.ActionTakenRole == "LastInitiator" ? "Initiator" : item.ActionTakenRole} {/* Divyansh Changes */}
+          <td title={item.ActionTakenRole == "LastInitiator" ? "Initiator" :
+            item.ActionTakenRole == "FirstAssignedTo" ? "Auditee" :
+              item.ActionTakenRole == "DelegateTo" ? "Delegate" :
+                item.ActionTakenRole == "AnalyzedBy" ? "Analyzed By" :
+                  item.ActionTakenRole == "FirstInitiator" ? "Initiator" :
+                    item.ActionTakenRole} style={{ minWidth: "90px", maxWidth: "90px" }}>
+            {item.ActionTakenRole == "LastInitiator" ? "Initiator" :
+              item.ActionTakenRole == "FirstAssignedTo" ? "Auditee" :
+                item.ActionTakenRole == "DelegateTo" ? "Delegate" :
+                  item.ActionTakenRole == "AnalyzedBy" ? "Analyzed By" :
+                    item.ActionTakenRole == "FirstInitiator" ? "Initiator" :
+                      item.ActionTakenRole} {/* Divyansh Changes */}
           </td>
           <td title={item.RequesterName} style={{ minWidth: "90px", maxWidth: "90px" }}>
             {item.RequesterName}
@@ -4572,7 +4956,7 @@ console.log("ghghggh",filename)
 
           </div>
           {console.log("this.state.Loading || setloading", this.state.Loading, setloading)}
-          {this.state.Loading || setloading ?
+          {this.state.Loading && setloading ?
 
             <div className="loadernewadd mt-10">
               <div>
@@ -4650,6 +5034,7 @@ console.log("ghghggh",filename)
                         />
                       </TooltipHost>
                     </div>
+                    {console.log("this.state.ApprovedAuditSelected", this.state.ApprovedAuditSelected)}
                     <div className="form-group col-md-4 mb-3">
                       <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }}>Approved Report Code:<span className="text-danger1">*</span>
                       </label>
@@ -4659,6 +5044,9 @@ console.log("ghghggh",filename)
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
                       >
 
+                        {/* {this.state.ApprovedAuditSelected.length ==0 ?
+                          <TextField
+                            value={this.state.editMemoNumber + ""} disabled={true} /> : */}
                         <Select
                           options={this.state.editmemonumberOptions}
                           value={this.state.ApprovedAuditSelected}
@@ -4671,7 +5059,7 @@ console.log("ghghggh",filename)
                           placeholder={"Approved Report Code"}
 
                         />
-
+                        {/* } */}
                         {/* <Dropdown
                           disabled={this.state.isDisabled}
                           required
@@ -4943,7 +5331,7 @@ console.log("ghghggh",filename)
                   </div>
                   <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                     <div className="form-group col-md-4 " id='AssigntoPeoplepicker'>
-                      <TooltipHost
+                      {/* <TooltipHost
                         content={this.state.editAssignTo}
                         calloutProps={{ gapSpace: 0 }}
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
@@ -4966,8 +5354,25 @@ console.log("ghghggh",filename)
                               backgroundColor: this.state.editErrors.editAssignTo ? "#ffcccb" : "white",
                             }
                           }}
-                        /></TooltipHost>
+                        />
+                      </TooltipHost> */}
+                      <label htmlFor="revisionNo">Auditee<span className="text-danger1"> *</span></label>
+                      <div title={this.state.Auditeeuser.map((user: any) => user.label).join(', ')}>
+                        <Select
+                          //onKeyDown={handleKeyDown}
+                          isClearable={true}
+                          options={this.state.allusersoption}
+                          isMulti
+                          value={this.state.Auditeeuser}
+                          name="Auditee"
+                          //className={`newse ${(!ValidSubmit && sharewitherr) ? "border-on-error" : ""}`}
+                          // onChange={(selectedOption: any) => onSelect(selectedOption)}
+                          onChange={(selectedOptions: any) => this.onSelectAuditee(selectedOptions, "editAssignTo", "editAssignToId")}
+                          placeholder="Enter Prepared By"
+                          isDisabled={this.state.isDisabled}
+                        /></div>
                     </div>
+
                     <div className="form-group col-md-4">
                       <Label>
                         Due Date <span className={styles.textdanger}>*</span>
@@ -5057,11 +5462,11 @@ console.log("ghghggh",filename)
                                   //   ? (item.Name.includes('_') ? item.Name.split('_')[2] : item.Name)
                                   //   : decodeURIComponent(item.name);
                                   const fileName = isExistingFile
-                                  ? (() => {
+                                    ? (() => {
                                       const match = item.Name.match(/^\d+_(.*?)_\d{17}\.[^.]+$/);
                                       return match ? `${match[1]}.${item.Name.split('.').pop()}` : item.Name;
                                     })()
-                                  : decodeURIComponent(item.name);
+                                    : decodeURIComponent(item.name);
                                   const uploadDate = isExistingFile
                                     ? moment(new Date(item.Uploaded)).format("DD/MMM/YYYY")
                                     : new Date().toLocaleDateString("en-GB", {
@@ -5263,7 +5668,7 @@ console.log("ghghggh",filename)
 
                   <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                     <div className="form-group col-md-4 mb-3" id='delegatetopeoplepicker'>
-                      <TooltipHost
+                      {/* <TooltipHost
                         content={this.state.editDelegateTo}
                         calloutProps={{ gapSpace: 0 }}
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
@@ -5280,10 +5685,25 @@ console.log("ghghggh",filename)
                           resolveDelay={1000}
                           ensureUser={true}
                         />
-                      </TooltipHost>
+                      </TooltipHost> */}
+                      <label htmlFor="revisionNo">Delegate To:</label>
+                      <div title={this.state.DelegatetoUser.map((user: any) => user.label).join(', ')}>
+                        <Select
+                          //onKeyDown={handleKeyDown}
+                          isClearable={true}
+                          options={this.state.allusersoption}
+                          
+                          value={this.state.DelegatetoUser}
+                          name="Delegate To"
+                          //className={`newse ${(!ValidSubmit && sharewitherr) ? "border-on-error" : ""}`}
+                          // onChange={(selectedOption: any) => onSelect(selectedOption)}
+                          onChange={(selectedOptions: any) => this.onSelectDelegateto(selectedOptions, "editDelegateTo", "editDelegateToId")}
+                          placeholder="Delegate To"
+                          isDisabled={this.state.showDelegate}
+                        /></div>
                     </div>
                     <div className="form-group col-md-4" id='analyzedBypeoplepicker'>
-                      <TooltipHost
+                      {/* <TooltipHost
                         content={this.state.editAnalyzedBy}
                         calloutProps={{ gapSpace: 0 }}
                         styles={{ root: { display: 'inline-block', width: '100%' } }}
@@ -5305,7 +5725,22 @@ console.log("ghghggh",filename)
                             }
                           }}
                         />
-                      </TooltipHost>
+                      </TooltipHost> */}
+                      <label htmlFor="revisionNo">Analyzed By:</label>
+                      <div title={this.state.Analyzedbyuser.map((user: any) => user.label).join(', ')}>
+                        <Select
+                          //onKeyDown={handleKeyDown}
+                          isClearable={true}
+                          options={this.state.allusersoption}
+                          
+                          value={this.state.Analyzedbyuser}
+                          name="Analyzed by"
+                          //className={`newse ${(!ValidSubmit && sharewitherr) ? "border-on-error" : ""}`}
+                          // onChange={(selectedOption: any) => onSelect(selectedOption)}
+                          onChange={(selectedOptions: any) => this.onSelectAnalyzedby(selectedOptions, "editAnalyzedBy", "editAnalyzedById")}
+                          placeholder="Analyzed By"
+                          isDisabled={this.state.showDelegate}
+                        /></div>
                     </div>
                     {/* <div className="form-group col-md-4" id='reviewedBypeoplepicker'>
                       <TooltipHost
@@ -5404,11 +5839,11 @@ console.log("ghghggh",filename)
                                     //   ? (item.Name.includes('_') ? item.Name.split('_')[2] : item.Name)
                                     //   : decodeURIComponent(item.name);
                                     const fileName = isExisting
-                                    ? (() => {
+                                      ? (() => {
                                         const match = item.Name.match(/^\d+_(.*?)_\d{17}\.[^.]+$/);
                                         return match ? `${match[1]}.${item.Name.split('.').pop()}` : item.Name;
                                       })()
-                                    : decodeURIComponent(item.name);
+                                      : decodeURIComponent(item.name);
                                     const uploadDate = isExisting
                                       ? moment(new Date(item.Uploaded)).format("DD/MMM/YYYY")
                                       : new Date().toLocaleDateString("en-GB", {
@@ -5466,7 +5901,7 @@ console.log("ghghggh",filename)
                       )}
                     </div>
                   </div>
-               
+
                   <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                     <div className="form-group col-md-12">
                       <TooltipHost
@@ -5490,8 +5925,8 @@ console.log("ghghggh",filename)
                       </TooltipHost>
                     </div>
                   </div>
-                     {console.log("showimsupdatedshowimsupdated",showimsupdated,isdisableims)}
-                    {(showimsupdated && isdisableims) &&
+                  {console.log("showimsupdatedshowimsupdated", showimsupdated, isdisableims)}
+                  {(showimsupdated && isdisableims) &&
                     <div style={{ textAlign: 'left', display: 'flex', justifyContent: 'space-between', gap: '2rem', marginTop: '1rem' }}>
 
                       {/* IMS Updated */}
@@ -5554,72 +5989,72 @@ console.log("ghghggh",filename)
 
                     </div>
                   }
-                   {(showimsupdated && !isdisableims) &&
-                <div style={{ textAlign: 'left', display: 'flex', justifyContent: 'space-between', gap: '2rem', marginTop: '1rem' }}>
+                  {(showimsupdated && !isdisableims) &&
+                    <div style={{ textAlign: 'left', display: 'flex', justifyContent: 'space-between', gap: '2rem', marginTop: '1rem' }}>
 
-                  {/* IMS Updated */}
-                  <div style={{ flex: 1 }}>
-                    <div style={{ marginBottom: '0.3rem' }}>
-                      <strong>IMS Updated</strong>
+                      {/* IMS Updated */}
+                      <div style={{ flex: 1 }}>
+                        <div style={{ marginBottom: '0.3rem' }}>
+                          <strong>IMS Updated</strong>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                          <label style={{ display: 'flex', alignItems: 'center' }}>
+                            <input
+                              disabled={isdisableims}
+                              type="checkbox"
+                              checked={this.state.isIMSUpdated === 'Yes'}
+                              onChange={() => this.handleChangecheckbox('Yes', "IMSUpdated")}
+                              style={{ marginRight: '0.4rem' }}
+                            />
+                            Yes
+                          </label>
+
+                          <label style={{ display: 'flex', alignItems: 'center' }}>
+                            <input
+                              disabled={isdisableims}
+                              type="checkbox"
+                              checked={this.state.isIMSUpdated === 'No'}
+                              onChange={() => this.handleChangecheckbox('No', "IMSUpdated")}
+                              style={{ marginRight: '0.4rem' }}
+                            />
+                            No
+                          </label>
+                        </div>
+                      </div>
+                      {/* Risk & Opportunities Updated */}
+                      <div style={{ flex: 1 }}>
+                        <div style={{ marginBottom: '0.3rem' }}><strong>Risk & Opportunities Updated:</strong></div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                          <label style={{ display: 'flex', alignItems: 'center' }}>
+                            <input
+                              disabled={isdisableims}
+                              type="checkbox"
+                              checked={this.state.riskandopportunitiesUpdated === 'Yes'}
+                              onChange={() => this.handleChangecheckbox('Yes', "RiskOpportunities")}
+                              style={{ marginRight: '0.4rem' }}
+                            />
+                            Yes
+                          </label>
+
+                          <label style={{ display: 'flex', alignItems: 'center' }}>
+                            <input
+                              disabled={isdisableims}
+                              type="checkbox"
+                              checked={this.state.riskandopportunitiesUpdated === 'No'}
+                              onChange={() => this.handleChangecheckbox('No', "RiskOpportunities")}
+                              style={{ marginRight: '0.4rem' }}
+                            />
+                            No
+                          </label>
+                        </div>
+                      </div>
+
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-                      <label style={{ display: 'flex', alignItems: 'center' }}>
-                        <input
-                          disabled={isdisableims}
-                          type="checkbox"
-                          checked={this.state.isIMSUpdated === 'Yes'}
-                          onChange={() => this.handleChangecheckbox('Yes', "IMSUpdated")}
-                          style={{ marginRight: '0.4rem' }}
-                        />
-                        Yes
-                      </label>
+                  }
 
-                      <label style={{ display: 'flex', alignItems: 'center' }}>
-                        <input
-                          disabled={isdisableims}
-                          type="checkbox"
-                          checked={this.state.isIMSUpdated === 'No'}
-                          onChange={() => this.handleChangecheckbox('No', "IMSUpdated")}
-                          style={{ marginRight: '0.4rem' }}
-                        />
-                        No
-                      </label>
-                    </div>
-                  </div>
-                  {/* Risk & Opportunities Updated */}
-                  <div style={{ flex: 1 }}>
-                    <div style={{ marginBottom: '0.3rem' }}><strong>Risk & Opportunities Updated:</strong></div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-                      <label style={{ display: 'flex', alignItems: 'center' }}>
-                        <input
-                          disabled={isdisableims}
-                          type="checkbox"
-                          checked={this.state.riskandopportunitiesUpdated === 'Yes'}
-                          onChange={() => this.handleChangecheckbox('Yes', "RiskOpportunities")}
-                          style={{ marginRight: '0.4rem' }}
-                        />
-                        Yes
-                      </label>
-
-                      <label style={{ display: 'flex', alignItems: 'center' }}>
-                        <input
-                          disabled={isdisableims}
-                          type="checkbox"
-                          checked={this.state.riskandopportunitiesUpdated === 'No'}
-                          onChange={() => this.handleChangecheckbox('No', "RiskOpportunities")}
-                          style={{ marginRight: '0.4rem' }}
-                        />
-                        No
-                      </label>
-                    </div>
-                  </div>
-
-                </div>
-              }
-                
                   {(this.state.editCurrentUserRole == "LastInitiator" || this.state.editCurrentUserRole == "Approverrole") &&
-                  this.state.editncType == "NC" &&
+                    this.state.editncType == "NC" &&
                     <><div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                       <div className="form-group col-md-12"><h3 style={{ textAlign: 'left' }} className='text-dark text-left font-16 fw-bold mb-0'>Non Conformity / Observation Close Out Details</h3></div>
                     </div><div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
@@ -5757,19 +6192,20 @@ console.log("ghghggh",filename)
           {console.log("ghghghgh", this.state.editCurrentUserRole == "FirstInitiator", this.state.editStatus == "Rework", this.state.editFirstInitiatorSubmitStatus == "No",
             (!this.state.Loading || !setloading) && !this.state.showDraft, (this.state.edType !== "view" || (showimsupdated && !isdisableims) || showcorrectionappicable && !isdisablefinal)
           )}
-          {(((this.state.showApprove === true || this.state.showReject === true || (showreworkremarks && this.state.editCurrentUserRole != null) 
-          //|| (showimsupdated && !isdisableims) 
-          ||
+          {(((this.state.showApprove === true || this.state.showReject === true || (showreworkremarks && this.state.editCurrentUserRole != null)
+            //|| (showimsupdated && !isdisableims) 
+            ||
             (showcorrectionappicable && !isdisablefinal)) && this.state.editCurrentUserRole != "FirstInitiator")
             ||
             ((this.state.editReviewedBySubmitStatus == "Yes" && this.state.editDelegateToId == null) ||
               (this.state.editLastAssignedToSubmitStatus == "Yes" && this.state.editDelegateToId != null)) ||
             (this.state.editCurrentUserRole == "FirstInitiator" && this.state.editStatus == "Rework" && this.state.editFirstInitiatorSubmitStatus == "No"))
-            && (!this.state.Loading || !setloading)
+
             //&& (!this.state.showDraft) 
-            && (this.state.edType !== "view" 
-            //|| (showimsupdated && !isdisableims) 
-            || showcorrectionappicable && !isdisablefinal)
+            && (this.state.edType !== "view"
+              //|| (showimsupdated && !isdisableims) 
+              || showcorrectionappicable && !isdisablefinal)
+            && (!this.state.Loading || !setloading)
             ?
             <section style={{ justifyContent: 'left', textAlign: 'left' }} id="approvalSection" className='card card-body'>
               {this.state.edType !== "view" &&
@@ -5779,8 +6215,8 @@ console.log("ghghggh",filename)
                   styles={{ root: { display: 'inline-block', width: '100%' } }}
                 >
                   <TextField label="Remarks"
-                  //Approveclicked ||
-                    required={( Rejectclicked || Reworkclicked || resubmitclicked || this.state.showApprove === true ||
+                    //Approveclicked ||
+                    required={(Rejectclicked || Reworkclicked || resubmitclicked || this.state.showApprove === true ||
                       this.state.showReject === true) ? true : false}
                     name="remarks"
                     value={this.state.editCurrentUserRole == "FirstInitiator" && this.state.editStatus == "Rework" && this.state.editFirstInitiatorSubmitStatus == "No" ? this.state.reworkremarks : this.state.remarks}
@@ -5790,7 +6226,7 @@ console.log("ghghggh",filename)
                     className={this.state.editErrors?.remarks ? 'textfield-error' : ''}// styles={{
                   /></TooltipHost>
               }
-             
+
               {console.log("isFinalApprover 5539", this.state.IsFinalapprover, IsAnalyzedBy, isdisablefinal, showcorrectionappicable)}
               {/* {showcorrectionappicable && !isdisablefinal &&
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginTop: '0.5rem' }}>
@@ -5847,7 +6283,7 @@ console.log("ghghggh",filename)
             (this.state.edType == "edit" && this.state.editStatus == "Rework" && (this.state.editAssignToEmail == CurrentuserEmail || isAssignedtoDelegated) && this.state.editCurrentUserRole == "FirstAssignedTo") ||
             (this.state.edType == "edit" && this.state.editStatus == "Rework" && (this.state.editDelegateToEmail == CurrentuserEmail || isDelegatedToDelegated) && this.state.editCurrentUserRole == "DelegateTo")
 
-          ) && (!this.state.Loading || !setloading) &&
+          ) && (!this.state.Loading && !setloading) &&
 
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }} className='newnbu'>
 
@@ -5969,7 +6405,7 @@ console.log("ghghggh",filename)
             </div>
           }
           {console.log("ApproverEmailApproverEmail", ApproverEmail, CurrentuserEmail)}
-          {this.state.showApprove && (!this.state.Loading || !setloading) &&
+          {this.state.showApprove && (!this.state.Loading && !setloading) &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
               {(ApproverEmail == CurrentuserEmail || isApproverDelegated) &&
                 <>
@@ -6032,7 +6468,7 @@ console.log("ghghggh",filename)
             </div>
           }
           {console.log("ApproverEmailforward", ApproverEmail, CurrentuserEmail)}
-          {this.state.showForward && (!this.state.Loading || !setloading) &&
+          {this.state.showForward && (!this.state.Loading && !setloading) &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
               {(RequesterEmail == CurrentuserEmail || isRequesterDelegated) &&
                 <>
@@ -6095,7 +6531,7 @@ console.log("ghghggh",filename)
             </div>
           }
           {console.log("Approverreject", this.state.showReject, ApproverEmail, CurrentuserEmail)}
-          {this.state.showReject && (!this.state.Loading || !setloading) &&
+          {this.state.showReject && (!this.state.Loading && !setloading) &&
 
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
               {(ApproverEmail == CurrentuserEmail || isApproverDelegated) &&
@@ -6173,7 +6609,7 @@ console.log("ghghggh",filename)
 
             </div>
           }
-          {this.state.edType === "view" && (!this.state.Loading || !setloading)
+          {this.state.edType === "view" && (!(this.state.Loading && setloading))
             &&
             <div style={{ margin: '10px', justifyContent: 'center', display: 'flex', gap: '5px' }}>
 

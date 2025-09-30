@@ -726,8 +726,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
             date.getMinutes().toString().padStart(2, '0'),
             date.getSeconds().toString().padStart(2, '0')
         ];
-
-        const iddd = formData.reportCode.replace(/\//g, '_');
+        let reportcodenew = (formData.reportCode !== undefined && formData.reportCode !== '')
+            ? formData.reportCode
+            : reportCode
+        const iddd = reportcodenew.replace(/\//g, '_');
 
         return `${iddd}_${fileNameWithoutExt}_${components.join('')}.${fileExtension}`;
 
@@ -1950,7 +1952,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
                         // const finalDataForSharePoint = {
                         //     ...convertCheckboxValuesForSharePoint(checkboxValues),
                         //     ...checkboxNumberValues
@@ -2166,9 +2168,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     // MainListID: String(editItemID),
                                     MainListID: String(editItemID),
                                     ContentTitle: doccode,
-                                    RequestId:(formData.reportCode !== undefined && formData.reportCode !== '') 
-                                    ? formData.reportCode 
-                                    : reportCode,
+                                    RequestId: (formData.reportCode !== undefined && formData.reportCode !== '')
+                                        ? formData.reportCode
+                                        : reportCode,
                                     // RequestId:String(editID.Id),
                                     RequesterNameId: currentUser.Id,
                                     RequestedDate: new Date().toLocaleDateString("en-CA"),
@@ -2270,7 +2272,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId");
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // setTimeout(() => {
@@ -2307,7 +2309,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -2516,9 +2518,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     Title: currentUser.Title,
                                     // ContentTitle: selectedOption.ReferenceNumber,
                                     ContentTitle: doccode,
-                                    RequestId:(formData.reportCode !== undefined && formData.reportCode !== '') 
-                                    ? formData.reportCode 
-                                    : reportCode,
+                                    RequestId: (formData.reportCode !== undefined && formData.reportCode !== '')
+                                        ? formData.reportCode
+                                        : reportCode,
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role,
                                     Level: Number(item.level),
@@ -2568,7 +2570,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         //Swal.fire('Submitted successfully.', '', 'success');
@@ -2644,7 +2646,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -2840,8 +2842,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 Title: currentUser.Title,
                                 // ContentTitle: selectedOption.ReferenceNumber,
                                 ContentTitle: doccode,
-                                RequestId:(formData.reportCode !== undefined && formData.reportCode !== '') 
-                                    ? formData.reportCode 
+                                RequestId: (formData.reportCode !== undefined && formData.reportCode !== '')
+                                    ? formData.reportCode
                                     : reportCode,
                                 MainListNameId: ListNameId,
                                 ApproverRoleId: item.role || 0,
@@ -2955,7 +2957,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId")
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -2993,7 +2995,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -3183,9 +3185,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                     Title: currentUser.Title,
                                     // ContentTitle: selectedOption.ReferenceNumber,
                                     ContentTitle: doccode,
-                                    RequestId:(formData.reportCode !== undefined && formData.reportCode !== '') 
-                                    ? formData.reportCode 
-                                    : reportCode,
+                                    RequestId: (formData.reportCode !== undefined && formData.reportCode !== '')
+                                        ? formData.reportCode
+                                        : reportCode,
                                     MainListNameId: ListNameId,
                                     ApproverRoleId: item.role ? item.role : 0,
                                     Level: Number(item.level),
@@ -3235,7 +3237,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // sessionStorage.removeItem("bannerId")

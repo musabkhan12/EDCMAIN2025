@@ -7250,7 +7250,7 @@ const ArgPoc = ({ props }: any) => {
   //     // };
   //     // const FolderUID :any = folderDetails.uniqueId
   //     // console.log(folderDetails.uniqueId , "folderDetails.uniqueId ")
-  //     // console.log(`https://edcadae.sharepoint.com/${currentfolderpath}` , "path")
+  //     // console.log(`https://officeindia.sharepoint.com/${currentfolderpath}` , "path")
   //     const site = await sp.site.getContextInfo()
   //     console.log(site , "site")
   //     const site2 = await sp.site.getRootWeb()
@@ -7265,8 +7265,8 @@ const ArgPoc = ({ props }: any) => {
   //             const searchQuery = {
   //                   // Querytext: `"${searchText}"`, 
 
-  //                   Querytext:`${searchText} AND (siteId:${currentsiteID2}) AND (webId:${currentsiteID}) AND (ListId:${FolderUID}) AND (path:"https://edcadae.sharepoint.com/${currentfolderpath}" OR ParentLink:"https://edcadae.sharepoint.com/${currentfolderpath}*")`, 
-  //                 // Querytext:`"${searchText}" AND ParentLink:"https://edcadae.sharepoint.com${currentfolderpath}"`,
+  //                   Querytext:`${searchText} AND (siteId:${currentsiteID2}) AND (webId:${currentsiteID}) AND (ListId:${FolderUID}) AND (path:"https://officeindia.sharepoint.com/${currentfolderpath}" OR ParentLink:"https://officeindia.sharepoint.com/${currentfolderpath}*")`, 
+  //                 // Querytext:`"${searchText}" AND ParentLink:"https://officeindia.sharepoint.com${currentfolderpath}"`,
   //                 RowLimit: 500,
   //                 SelectProperties: ["Title", "Path", "FileExtension", "UniqueId", "Size", "Created", "Modified"],  // Additional file properties
   //                 // Refiners: 'FileExtension',
@@ -8144,7 +8144,7 @@ const ArgPoc = ({ props }: any) => {
       try {
         console.log(currentfolderpath, "currentfolderpath")
         // const searchQuery = {
-        //   Querytext: `${searchText} AND Path:"https://edcadae.sharepoint.com${currentfolderpath}"`,
+        //   Querytext: `${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
         //   // Querytext: `"${searchText}"`,
         //   RowLimit: 500,
         //   SelectProperties: ["Title", "Path", "FileExtension", "UniqueId", "Size", "Created", "Modified"],
@@ -8316,7 +8316,7 @@ const ArgPoc = ({ props }: any) => {
   //     try {
   //       console.log(currentfolderpath, "currentfolderpath")
   //         const searchQuery = {
-  //              Querytext:`${searchText} AND Path:"https://edcadae.sharepoint.com${currentfolderpath}"`,
+  //              Querytext:`${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
   //             // Querytext: `"${searchText}"`,
   //             RowLimit: 500,
   //             SelectProperties: ["Title", "Path", "FileExtension", "UniqueId", "Size", "Created", "Modified"], 
@@ -13146,7 +13146,7 @@ const ArgPoc = ({ props }: any) => {
           const encodedFilePath = encodeURIComponent(file.ServerRelativeUrl);
           const parentFolder = file.ServerRelativeUrl.substring(0, file.ServerRelativeUrl.lastIndexOf('/'));
           const siteUrl = window.location.origin;
-          // const previewUrl = `${siteUrl}/sites/ededms/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+          // const previewUrl = `${siteUrl}/sites/edcspfx/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
           const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
            console.log("previewUrl", previewUrl);
 
@@ -14854,7 +14854,7 @@ const ArgPoc = ({ props }: any) => {
       const siteUrl = window.location.origin;
       console.log(siteUrl, "siteUrl");
       const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
-      // const previewUrl = `${siteUrl}/sites/ededms/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
+      // const previewUrl = `${siteUrl}/sites/edcspfx/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
        preURL = previewUrl;
     }
     console.log("filePath", filePath);
@@ -16719,11 +16719,11 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
       const encodedFilePath = encodeURIComponent(serverRelativeUrl);
 
       // Example: 
-      // serverRelativeUrl = "/sites/ededms/test/DocumentLibraryInsideTest/Book.xlsx"
+      // serverRelativeUrl = "/sites/edcspfx/test/DocumentLibraryInsideTest/Book.xlsx"
       const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
       const siteUrl = window.location.origin;
 
-      // const previewUrl = `${siteUrl}/sites/ededms/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+      // const previewUrl = `${siteUrl}/sites/edcspfx/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       const previewUrl = `${siteUrl}${locationPath}/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       console.log("Generated Preview URL:", previewUrl);
@@ -16958,7 +16958,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
     const siteUrl = window.location.origin;
     console.log(siteUrl, "siteUrl");
 
-    // const previewUrl = `${siteUrl}/sites/ededms/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
+    // const previewUrl = `${siteUrl}/sites/edcspfx/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
     const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
 
     if (previewUrl) {
@@ -17224,7 +17224,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
         const parentFolder = uploadResult.data.ServerRelativeUrl.substring(0, uploadResult.data.ServerRelativeUrl.lastIndexOf('/'));
         const siteUrl = window.location.origin;
         const encodedFilePath = encodeURIComponent(uploadResult.data.ServerRelativeUrl);
-        // const previewUrl = `${siteUrl}/sites/ededms/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+        // const previewUrl = `${siteUrl}/sites/edcspfx/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
         const previewUrl = `${siteUrl}${locationPath}/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
 
         await listItem.update(payload);

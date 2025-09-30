@@ -203,8 +203,14 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                 if (key === "ReqDt" || key === "ReqDt") {
                     return isDateMatch(itemValue, searchValue);
                 }
-
+              
                 const columnValue = itemValue?.toString().toLowerCase();
+                if (key === "ProcessName") {
+                    const processName = item["ProcessName"]?.toString().toLowerCase() || "";
+                    const processNameNC = item["ProcessNameNC"]?.toString().toLowerCase() || "";
+                    return processName?.includes(searchValue) || processNameNC?.includes(searchValue);
+                }
+               
                 return columnValue?.includes(searchValue);
             });
         });
@@ -624,6 +630,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                             RequestId: itm.MemoNumber ? itm.MemoNumber : "",
                             Title: itm.Subject ? itm.Subject : "",
                             ProcessName: "IMS Annual Audit Program",
+                            ProcessNameNC:  "IMS Annual Audit Program",
                             ReqName: itm.Author ? itm.Author.Title : '',
                             ReqDt: new Date(itm.Created),
                             Status: itm.Status,
@@ -642,6 +649,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                         RequestId: itm.MemoNumber ? itm.MemoNumber : "",
                         Title: itm.Subject ? itm.Subject : "",
                         ProcessName: "IMS Annual Audit Program",
+                        ProcessNameNC:  "IMS Annual Audit Program",
                         ReqName: itm.Author ? itm.Author.Title : '',
                         ReqDt: new Date(itm.Created),
                         // ? moment(itm.Created).format("DD-MMM-YYYY") : ''
@@ -658,6 +666,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                     RequestId: itm.MemoNumber || "",
                     Title: itm.Subject || "",
                     ProcessName: "IMS Annual Audit Program",
+                    ProcessNameNC:  "IMS Annual Audit Program",
                     ReqName: itm.Author ? itm.Author.Title : '',
                     ReqDt: new Date(itm.Created),
                     Status: itm.Status,
@@ -679,6 +688,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                             RequestId: itm.MemoNumber ? itm.MemoNumber : "",
                             Title: itm.Subject ? itm.Subject : "",
                             ProcessName: "Memorandum",
+                            ProcessNameNC:  "Memorandum",
                             ReqName: itm.Author ? itm.Author.Title : '',
                             ReqDt: new Date(itm.Created),
                             Status: itm.Status,
@@ -697,6 +707,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                         RequestId: itm.MemoNumber ? itm.MemoNumber : "",
                         Title: itm.Subject ? itm.Subject : "",
                         ProcessName: "Memorandum",
+                        ProcessNameNC:  "Memorandum",
                         ReqName: itm.Author ? itm.Author.Title : '',
                         ReqDt: new Date(itm.Created),
                         // ? moment(itm.Created).format("DD-MMM-YYYY") : ''
@@ -713,6 +724,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                     RequestId: itm.MemoNumber || "",
                     Title: itm.Subject || "",
                     ProcessName: "Memorandum",
+                    ProcessNameNC:  "Memorandum",
                     ReqName: itm.Author ? itm.Author.Title : '',
                     ReqDt: new Date(itm.Created),
                     Status: itm.Status,
@@ -735,6 +747,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                             RequestId: itm.MemoNumber ? itm.MemoNumber : "",
                             Title: itm.Subject ? itm.Subject : "",
                             ProcessName: "IMS Audit Plan",
+                            ProcessNameNC:  "IMS Audit Plan",
                             ReqName: itm.Author ? itm.Author.Title : '',
                             ReqDt: new Date(itm.Created),
                             Status: itm.Status,
@@ -753,6 +766,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                         RequestId: itm.MemoNumber ? itm.MemoNumber : "",
                         Title: itm.Subject ? itm.Subject : "",
                         ProcessName: "IMS Audit Plan",
+                        ProcessNameNC:  "IMS Audit Plan",
                         ReqName: itm.Author ? itm.Author.Title : '',
                         ReqDt: new Date(itm.Created),
                         // ? moment(itm.Created).format("DD-MMM-YYYY") : ''
@@ -770,6 +784,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                     RequestId: itm.MemoNumber ? itm.MemoNumber : "",
                     Title: itm.Subject ? itm.Subject : "",
                     ProcessName: "IMS Audit Plan",
+                    ProcessNameNC:  "IMS Audit Plan",
                     ReqName: itm.Author ? itm.Author.Title : '',
                     ReqDt: new Date(itm.Created),
                     Status: itm.Status,
@@ -793,6 +808,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                             // Title: item.ReferenceNumber,
                             Title: item.FileName == "" || item.FileName == null ? " " : item.FileName,
                             ProcessName: "Document Cancellation",
+                            ProcessNameNC: "Document Cancellation",
                             ReqName: item.RequesterName?.Title || '',
                             ReqDt: new Date(item.Created),
                             Status: item.Status,
@@ -810,6 +826,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                         // Title: item.ReferenceNumber,
                         Title: item.FileName == "" || item.FileName == null ? " " : item.FileName,
                         ProcessName: "Document Cancellation",
+                        ProcessNameNC: "Document Cancellation",
                         ReqName: item.RequesterName?.Title || '',
                         ReqDt: new Date(item.Created),
                         Status: item.Status,
@@ -826,6 +843,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                     // Title: item.ReferenceNumber,
                     Title: item.FileName == "" || item.FileName == null ? " " : item.FileName,
                     ProcessName: "Document Cancellation",
+                    ProcessNameNC: "Document Cancellation",
                     ReqName: item.RequesterName?.Title || '',
                     ReqDt: new Date(item.Created),
                     Status: item.Status,
@@ -850,6 +868,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                             //Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
                             Title: item.FileName == "" || item.FileName == null ? " " : item.FileName,
                             ProcessName: "Change Request",
+                            ProcessNameNC:"Change Request",
                             ProcessNameNew: item.RequestType?.RequestType == "Change in Existing Documented Information" ? "Change Request (Existing)" : "Change Request (New)",
                             ReqName: item.RequesterName?.Title || '',
                             ReqDt: new Date(item.Created),
@@ -869,6 +888,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                         //Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
                         Title: item.FileName == "" || item.FileName == null ? " " : item.FileName,
                         ProcessName: "Change Request",
+                        ProcessNameNC:"Change Request",
                         ProcessNameNew: item.RequestType?.RequestType == "Change in Existing Documented Information" ? "Change Request (Existing)" : "Change Request (New)",
                         ReqName: item.RequesterName?.Title || '',
                         ReqDt: new Date(item.Created),
@@ -887,6 +907,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                     //Title: item.ReferenceNumber == "" || item.ReferenceNumber == null ? " " : item.ReferenceNumber,
                     Title: item.FileName == "" || item.FileName == null ? " " : item.FileName,
                     ProcessName: "Change Request",
+                    ProcessNameNC:"Change Request",
                     ProcessNameNew: item.RequestType?.RequestType == "Change in Existing Documented Information" ? "Change Request (Existing)" : "Change Request (New)",
                     ReqName: item.RequesterName?.Title || '',
                     ReqDt: new Date(item.Created),
@@ -915,6 +936,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                             ReportCode: itm.ReportCode ? itm.ReportCode : "",
                             Title: itm.MemoNumber ? itm.MemoNumber : "",
                             ProcessName: "IMS Audit Report and Checklist",
+                            ProcessNameNC:"IMS Audit Report and Checklist",
                             ReqName: itm.Author ? itm.Author.Title : '',
                             ReqDt: new Date(itm.Created),
                             Status: itm.Status,
@@ -933,6 +955,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                         ReportCode: itm.ReportCode ? itm.ReportCode : "",
                         Title: itm.MemoNumber ? itm.MemoNumber : "",
                         ProcessName: "IMS Audit Report and Checklist",
+                        ProcessNameNC:"IMS Audit Report and Checklist",
                         ReqName: itm.Author ? itm.Author.Title : '',
                         ReqDt: new Date(itm.Created),
                         Status: itm.Status,
@@ -951,6 +974,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                             ReportCode: itm.ReportCode ? itm.ReportCode : "",
                             Title: itm.MemoNumber ? itm.MemoNumber : "",
                             ProcessName: "IMS Audit Report and Checklist",
+                            ProcessNameNC:"IMS Audit Report and Checklist",
                             ReqName: itm.Author ? itm.Author.Title : '',
                             ReqDt: new Date(itm.Created),
                             Status: itm.Status,
@@ -969,6 +993,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                         ReportCode: itm.ReportCode ? itm.ReportCode : "",
                         Title: itm.MemoNumber ? itm.MemoNumber : "",
                         ProcessName: "IMS Audit Report and Checklist",
+                        ProcessNameNC:"IMS Audit Report and Checklist",
                         ReqName: itm.Author ? itm.Author.Title : '',
                         ReqDt: new Date(itm.Created),
                         Status: itm.Status,
@@ -984,6 +1009,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
                     ReportCode: itm.ReportCode ? itm.ReportCode : "",
                     Title: itm.MemoNumber ? itm.MemoNumber : "",
                     ProcessName: "IMS Audit Report and Checklist",
+                    ProcessNameNC:"IMS Audit Report and Checklist",
                     ReqName: itm.Author ? itm.Author.Title : '',
                     ReqDt: new Date(itm.Created),
                     Status: itm.Status,

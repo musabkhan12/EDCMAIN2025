@@ -458,12 +458,20 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     };
 
   public async componentDidMount() {
+    this.setState({ Loading: true });
+
+    await this.getAuditreport();
+    this.setState({ Loading: false });
+    await this.getnctypeoptions();
+   
     await this.getDepartment();
     await this.getFiles();
     await this.getchangerequestdetails();
     //await this.getDepartment();
-    await this.getAuditreport();
-    await this.getnctypeoptions();
+    // await this.getAuditreport();
+
+
+
 
   }
   public async getNCdata(reportcode: string, nctype: string) {
@@ -555,7 +563,10 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
 
     this.setState({ typeoptions: dropdownOptions });
   };
-
+  private newncoptions = [
+    { key: "NC", text: "NC" },
+    { key: "Observation", text: "Observation" }
+  ];
   public async getAuditreport() {
     const sp = spfi().using(SPFx(this.props.context));
     debugger
@@ -1532,7 +1543,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                 <div className="form-group col-md-12"><h3 className='text-dark font-16 text-left fw-bold mb-3'>Non Conformity / Observation Details</h3></div>
               </div>
               <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
-                {console.log("this.state.typeoptions", this.state.typeoptions)}
+                {console.log("this.state.typeoptions", this.state.typeoptions, this.newncoptions)}
                 <div className="form-group col-md-4 mb-3">
                   <TooltipHost
                     content={this.state.ncType || ""}
@@ -1543,7 +1554,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                       required
                       placeholder="Category"
                       label="Category:"
-                      options={this.state.typeoptions}
+                      options={this.newncoptions}
                       selectedKey={this.state.ncType}
                       onChange={this.onChangenctype}
                       className={this.state.errors?.nctype ? 'dropdown-error' : ''}

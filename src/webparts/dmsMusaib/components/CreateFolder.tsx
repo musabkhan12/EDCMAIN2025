@@ -821,7 +821,7 @@ const validateFields = () => {
         if(OthProps.DocumentLibrary === ""){
           (payloadForFolderMaster as any).DocumentLibraryName=folderName.trim();
           //  (payloadForFolderMaster as any).FolderPath=`/sites/IntranetUAT/${OthProps.Entity}/${folderName}`;
-          //  (payloadForFolderMaster as any).FolderPath=`/sites/ededms/${OthProps.Entity}/${folderName}`;
+          //  (payloadForFolderMaster as any).FolderPath=`/sites/edcspfx/${OthProps.Entity}/${folderName}`;
            (payloadForFolderMaster as any).FolderPath=`${locationPath}/${OthProps.Entity}/${folderName.trim()}`;
           //  (payloadForFolderMaster as any).FolderPath=`/sites/AlRostmani/${OthProps.Entity}/${folderName}`;
           (payloadForFolderMaster as any).IsLibrary=true;
@@ -1201,7 +1201,7 @@ const validateFields = () => {
           if(OthProps.DocumentLibrary === ""){
             (payloadForFolderDelegation as any).DocumentLibraryName=folderName.trim();
             //  (payloadForFolderDelegation as any).FolderPath=`/sites/IntranetUAT/${OthProps.Entity}/${folderName}`;
-            //  (payloadForFolderDelegation as any).FolderPath=`/sites/ededms/${OthProps.Entity}/${folderName}`;
+            //  (payloadForFolderDelegation as any).FolderPath=`/sites/edcspfx/${OthProps.Entity}/${folderName}`;
             //  (payloadForFolderDelegation as any).FolderPath=`/sites/AlRostmani/${OthProps.Entity}/${folderName}`;
              (payloadForFolderDelegation as any).FolderPath=`${locationPath}/${OthProps.Entity}/${folderName.trim()}`;
             (payloadForFolderDelegation as any).IsLibrary=true;
