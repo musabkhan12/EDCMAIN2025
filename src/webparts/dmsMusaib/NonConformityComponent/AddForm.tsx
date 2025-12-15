@@ -49,6 +49,8 @@ const datePickerErrorStyles: Partial<IDatePickerStyles> = {
 
 
 export class IState {
+  allusersoption:any;
+  Auditeeuser:any;
   Loading: boolean;
   departmentOption: any[];
   departmentselected: any;
@@ -118,6 +120,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     const selectedTextDiv = document.getElementById('selectedText');
     selectedTextDiv.style.display = 'none';
     this.state = {
+      allusersoption:[],
+      Auditeeuser:[],
       Loading: false,
       departmentOption: [],
       departmentselected: [],
@@ -470,16 +474,46 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     //await this.getDepartment();
     // await this.getAuditreport();
 
+    const _sp = spfi().using(SPFx(this.props.context));
+    const users = await _sp.web.siteUsers();
+    const people = users.filter(user => user.PrincipalType === PrincipalType.User);
 
-
+    const Selectedoptions = people.map(item => ({
+      value: item.Id,
+      label: item.Title,
+      UserName: item.Title,
+      UserEmail: item.Email
+    }));
+    this.setState({ allusersoption: Selectedoptions })
 
   }
+  private onSelectAuditee = (selectedOption: any, field: keyof IState, idField: keyof IState) => {
+    if (selectedOption) {
+      this.setState({
+        [field]: selectedOption.label,
+        [idField]: selectedOption.value,
+        Auditeeuser: selectedOption // ✅ set selected option directly
+      } as unknown as Pick<IState, keyof IState>);
+    } else {
+      this.setState({
+        [field]: "",
+        [idField]: null,
+        Auditeeuser: null
+      } as unknown as Pick<IState, keyof IState>);
+    }
+    // const uniqueOptions = (selectedOptions || []).filter(
+    //   (option: any, index: any, self: any) =>
+    //     index === self.findIndex((o: any) => o.value === option.value)
+    // );
+    // this.setState({ Auditeeuser: uniqueOptions })
+
+  };
   public async getNCdata(reportcode: string, nctype: string) {
     const sp = spfi().using(SPFx(this.props.context));
     let arr: any[] = []
     let arrs = []
     let bannerimg = []
-    const currentUser = await sp.web.currentUser();
+    //const currentUser = await sp.web.currentUser();
     await sp.web.lists.getByTitle("NonConformityList").items
       .select("*")
       .expand("")
@@ -1869,7 +1903,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
               </div>
               <div style={{ justifyContent: 'left', textAlign: 'left' }} className="row mb-3">
                 <div className="form-group col-md-4" id="AssigntoPeoplepicker">
-                  <TooltipHost
+                  {/* <TooltipHost
                     content={this.state.assignTo}
                     calloutProps={{ gapSpace: 0 }}
                     styles={{ root: { display: 'inline-block', width: '100%' } }}
@@ -1891,7 +1925,29 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                           backgroundColor: this.state.errors.assignTo ? "#ffcccb" : "white",
                         },
                       }}
-                    /></TooltipHost>
+                    /></TooltipHost> */}
+                     <label htmlFor="revisionNo">Auditee<span className="text-danger1"> *</span></label>
+                      <div >
+                        <TooltipHost
+                          content={this.state.assignTo}
+                          calloutProps={{ gapSpace: 0 }}
+                          styles={{ root: { display: 'inline-block', width: '100%' } }}
+                        >
+                          <Select
+                            //onKeyDown={handleKeyDown}
+                            isClearable={true}
+                            options={this.state.allusersoption}
+
+                            value={this.state.Auditeeuser}
+                            name="Auditee"
+                            className={`${this.state.errors.assignTo ? 'border-on-error' : ""}`}
+                            // onChange={(selectedOption: any) => onSelect(selectedOption)}
+                            onChange={(selectedOptions: any) => this.onSelectAuditee(selectedOptions, "assignTo", "assignToId")}
+                            placeholder="Auditee"
+                            isDisabled={false}
+                          /></TooltipHost>
+                      </div>
+
                 </div>
                 <div className="form-group col-md-4">
                   <Label>

@@ -25,36 +25,36 @@ import "@pnp/sp/fields";
 
 
 // ///////old working code
-// var _sp: SPFI;
-// export const getSP = (context?: WebPartContext): SPFI => {
+var _sp: SPFI;
+export const getSP = (context?: WebPartContext): SPFI => {
   
     
-//   if (context !== null && (_sp === undefined ||_sp === null)) {
-//     //You must add the @pnp/logging package to include the PnPLogging behavior it is no longer a peer dependency
-//     // The LogLevel set's at what level a message will be written to the console
-//     _sp = spfi().using(SPFx(context)).using(PnPLogging(LogLevel.Warning));
+  if (context !== null && (_sp === undefined ||_sp === null)) {
+    //You must add the @pnp/logging package to include the PnPLogging behavior it is no longer a peer dependency
+    // The LogLevel set's at what level a message will be written to the console
+    _sp = spfi().using(SPFx(context)).using(PnPLogging(LogLevel.Warning));
   
     
-//   }
-//   return _sp;
-// }
+  }
+  return _sp;
+}
 
 
 
 /////new changes
 
-var _sp: SPFI;
+// var _sp: SPFI;
 
-export const getSP = (context?: WebPartContext): SPFI => {
-  if (context && (_sp === undefined || _sp === null)) {
+// export const getSP = (context?: WebPartContext): SPFI => {
+//   if (context && (_sp === undefined || _sp === null)) {
 
-    // 👇 Explicit site URL override
-    const targetSiteUrl = "https://officeindia.sharepoint.com/sites/edcspfx";
+//     // 👇 Explicit site URL override
+//     const targetSiteUrl = "https://edcadae.sharepoint.com/sites/ededms";
 
-    _sp = spfi(targetSiteUrl) // 👈 base URL points to your actual data site
-      .using(SPFx(context))
-      .using(PnPLogging(LogLevel.Warning));
-  }
+//     _sp = spfi(targetSiteUrl) // 👈 base URL points to your actual data site
+//       .using(SPFx(context))
+//       .using(PnPLogging(LogLevel.Warning));
+//   }
 
-  return _sp;
-};
+//   return _sp;
+// };

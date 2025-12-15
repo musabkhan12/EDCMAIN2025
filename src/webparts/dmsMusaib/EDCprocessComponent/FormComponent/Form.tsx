@@ -1588,7 +1588,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditProgramDocs');
 
 
 
@@ -1981,7 +1981,7 @@ const FormContext = ({ props }: any) => {
             // }
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx` : `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -2043,7 +2043,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditProgramDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2357,7 +2357,7 @@ const FormContext = ({ props }: any) => {
             // }
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx` : `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -2388,7 +2388,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditProgramDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2825,8 +2825,8 @@ const FormContext = ({ props }: any) => {
             // }
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
-                // window.location.href = modeValue == "approve" ? `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx` : `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -2854,7 +2854,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditProgramDocs');
 
 
             if (FilesArr.length > 0) {
@@ -3130,8 +3130,8 @@ const FormContext = ({ props }: any) => {
             // }, 1000);
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
-                // window.location.href = modeValue == "approve" ? `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx` : `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
           }

@@ -1436,7 +1436,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumDocs');
 
 
 
@@ -1530,13 +1530,13 @@ const MemoContext = ({ props }: any) => {
 
             if (AdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumAdditionalDocs/Description');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Description');
 
               for (const file of AdditionalFilesArr) {
                 if (!file.ID) {
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/edcspfx/MemorandumAdditionalDocs/Description'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Description'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -1581,7 +1581,7 @@ const MemoContext = ({ props }: any) => {
             if (AdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/edcspfx/MemorandumAdditionalDocs/Description'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Description'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -1600,13 +1600,13 @@ const MemoContext = ({ props }: any) => {
 
             if (BGAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumAdditionalDocs/Background');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Background');
 
               for (const file of BGAdditionalFilesArr) {
                 if (!file.ID) {
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/edcspfx/MemorandumAdditionalDocs/Background'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Background'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -1636,7 +1636,7 @@ const MemoContext = ({ props }: any) => {
             if (BGAdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/edcspfx/MemorandumAdditionalDocs/Background'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Background'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -1653,13 +1653,13 @@ const MemoContext = ({ props }: any) => {
             // ////////
             if (RecomAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumAdditionalDocs/Recommadation');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Recommadation');
 
               for (const file of RecomAdditionalFilesArr) {
                 if (!file.ID) {
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/edcspfx/MemorandumAdditionalDocs/Recommadation'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Recommadation'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -1689,7 +1689,7 @@ const MemoContext = ({ props }: any) => {
             if (RecomAdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/edcspfx/MemorandumAdditionalDocs/Recommadation'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Recommadation'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -1913,7 +1913,7 @@ const MemoContext = ({ props }: any) => {
             // }
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx` : `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -1967,7 +1967,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2078,7 +2078,7 @@ const MemoContext = ({ props }: any) => {
 
             if (AdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumAdditionalDocs/Description');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Description');
 
               for (const file of AdditionalFilesArr) {
                 if (!file.ID) {
@@ -2115,7 +2115,7 @@ const MemoContext = ({ props }: any) => {
 
             if (BGAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumAdditionalDocs/Background');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Background');
 
               for (const file of BGAdditionalFilesArr) {
                 if (!file.ID) {
@@ -2137,7 +2137,7 @@ const MemoContext = ({ props }: any) => {
             }
             if (RecomAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumAdditionalDocs/Recommadation');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Recommadation');
 
               for (const file of RecomAdditionalFilesArr) {
                 if (!file.ID) {
@@ -2295,7 +2295,7 @@ const MemoContext = ({ props }: any) => {
 
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx` : `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -2327,7 +2327,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2489,14 +2489,14 @@ const MemoContext = ({ props }: any) => {
 
             if (AdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumAdditionalDocs/Description');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Description');
 
               for (const file of AdditionalFilesArr) {
                 if (!file.ID) {
 
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/edcspfx/MemorandumAdditionalDocs/Description'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Description'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -2527,7 +2527,7 @@ const MemoContext = ({ props }: any) => {
             if (AdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/edcspfx/MemorandumAdditionalDocs/Description'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Description'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -2546,14 +2546,14 @@ const MemoContext = ({ props }: any) => {
 
             if (BGAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumAdditionalDocs/Background');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Background');
 
               for (const file of BGAdditionalFilesArr) {
                 if (!file.ID) {
 
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/edcspfx/MemorandumAdditionalDocs/Background'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Background'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -2584,7 +2584,7 @@ const MemoContext = ({ props }: any) => {
             if (BGAdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/edcspfx/MemorandumAdditionalDocs/Background'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Background'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -2600,14 +2600,14 @@ const MemoContext = ({ props }: any) => {
 
             if (RecomAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumAdditionalDocs/Recommadation');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Recommadation');
 
               for (const file of RecomAdditionalFilesArr) {
                 if (!file.ID) {
 
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/edcspfx/MemorandumAdditionalDocs/Recommadation'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Recommadation'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -2641,7 +2641,7 @@ const MemoContext = ({ props }: any) => {
             if (RecomAdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/edcspfx/MemorandumAdditionalDocs/Recommadation'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ededms/MemorandumAdditionalDocs/Recommadation'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -2839,8 +2839,8 @@ const MemoContext = ({ props }: any) => {
 
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
-                // window.location.href = modeValue == "approve" ? `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx` : `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -2868,7 +2868,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2977,7 +2977,7 @@ const MemoContext = ({ props }: any) => {
 
             if (AdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumAdditionalDocs/Description');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Description');
 
               for (const file of AdditionalFilesArr) {
                 if (!file.ID) {
@@ -2999,7 +2999,7 @@ const MemoContext = ({ props }: any) => {
             }
             if (BGAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumAdditionalDocs/Background');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Background');
 
               for (const file of BGAdditionalFilesArr) {
                 if (!file.ID) {
@@ -3021,7 +3021,7 @@ const MemoContext = ({ props }: any) => {
             }
             if (RecomAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/edcspfx/MemorandumAdditionalDocs/Recommadation');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ededms/MemorandumAdditionalDocs/Recommadation');
 
               for (const file of RecomAdditionalFilesArr) {
                 if (!file.ID) {
@@ -3154,8 +3154,8 @@ const MemoContext = ({ props }: any) => {
             // }, 1000);
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
-                // window.location.href = modeValue == "approve" ? `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx` : `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
           }

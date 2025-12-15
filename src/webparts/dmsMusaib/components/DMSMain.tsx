@@ -13,7 +13,8 @@ declare global {
     undo: (fileId: any, siteId: any, FileMasterList: any, documentLibraryName: any, ID: any, folderPath: any, fileName: any) => void;
     confirmUndo: (fileId: any, siteId: any, FileMasterList: any, documentLibraryName: any, ID: any, folderPath: any, fileName: any) => void;
     hideSharePopUp: () => void;
-    revokeAccess: (UserArray: string, FileName: string, fileId: any, siteId: any, folderpath: any) => void
+    revokeAccess: (UserArray: string, FileName: string, fileId: any, siteId: any, folderpath: any) => void;
+    RenameFile : (FileName:string ,CurrentFolderPath:string  ,SiteID:string ,myrequest:any,FileUID:string , SiteName:any) =>void
   }
 
 }
@@ -7250,7 +7251,7 @@ const ArgPoc = ({ props }: any) => {
   //     // };
   //     // const FolderUID :any = folderDetails.uniqueId
   //     // console.log(folderDetails.uniqueId , "folderDetails.uniqueId ")
-  //     // console.log(`https://officeindia.sharepoint.com/${currentfolderpath}` , "path")
+  //     // console.log(`https://edcadae.sharepoint.com/${currentfolderpath}` , "path")
   //     const site = await sp.site.getContextInfo()
   //     console.log(site , "site")
   //     const site2 = await sp.site.getRootWeb()
@@ -7265,8 +7266,8 @@ const ArgPoc = ({ props }: any) => {
   //             const searchQuery = {
   //                   // Querytext: `"${searchText}"`, 
 
-  //                   Querytext:`${searchText} AND (siteId:${currentsiteID2}) AND (webId:${currentsiteID}) AND (ListId:${FolderUID}) AND (path:"https://officeindia.sharepoint.com/${currentfolderpath}" OR ParentLink:"https://officeindia.sharepoint.com/${currentfolderpath}*")`, 
-  //                 // Querytext:`"${searchText}" AND ParentLink:"https://officeindia.sharepoint.com${currentfolderpath}"`,
+  //                   Querytext:`${searchText} AND (siteId:${currentsiteID2}) AND (webId:${currentsiteID}) AND (ListId:${FolderUID}) AND (path:"https://edcadae.sharepoint.com/${currentfolderpath}" OR ParentLink:"https://edcadae.sharepoint.com/${currentfolderpath}*")`, 
+  //                 // Querytext:`"${searchText}" AND ParentLink:"https://edcadae.sharepoint.com${currentfolderpath}"`,
   //                 RowLimit: 500,
   //                 SelectProperties: ["Title", "Path", "FileExtension", "UniqueId", "Size", "Created", "Modified"],  // Additional file properties
   //                 // Refiners: 'FileExtension',
@@ -8144,7 +8145,7 @@ const ArgPoc = ({ props }: any) => {
       try {
         console.log(currentfolderpath, "currentfolderpath")
         // const searchQuery = {
-        //   Querytext: `${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
+        //   Querytext: `${searchText} AND Path:"https://edcadae.sharepoint.com${currentfolderpath}"`,
         //   // Querytext: `"${searchText}"`,
         //   RowLimit: 500,
         //   SelectProperties: ["Title", "Path", "FileExtension", "UniqueId", "Size", "Created", "Modified"],
@@ -8316,7 +8317,7 @@ const ArgPoc = ({ props }: any) => {
   //     try {
   //       console.log(currentfolderpath, "currentfolderpath")
   //         const searchQuery = {
-  //              Querytext:`${searchText} AND Path:"https://officeindia.sharepoint.com${currentfolderpath}"`,
+  //              Querytext:`${searchText} AND Path:"https://edcadae.sharepoint.com${currentfolderpath}"`,
   //             // Querytext: `"${searchText}"`,
   //             RowLimit: 500,
   //             SelectProperties: ["Title", "Path", "FileExtension", "UniqueId", "Size", "Created", "Modified"], 
@@ -12650,6 +12651,183 @@ const ArgPoc = ({ props }: any) => {
     document.body.appendChild(popup);
   }
 
+  //rename file
+  window.RenameFile = async (FileName:any,CurrentFolderPath:any,SiteID:any,myrequest:any , FileUID:any , SiteName:any)=>{
+    console.log("FileName",FileName)
+    console.log("CurrentFolderPath",CurrentFolderPath)
+    console.log("SiteID",SiteID)
+    console.log("FileUID",FileUID)
+  
+       const newsp = await sp.site.openWebById(SiteID);
+      //  alert("newsp" + newsp)
+      // Check if a popup already exists, if so, remove it
+      const existingPopup = document.getElementById("renamefile-popup");
+      if (existingPopup) {
+        existingPopup.remove();
+      }
+    
+       // Create the popup container
+       const popup = document.createElement("div");
+       popup.id = "renamefile-popup";
+       popup.style.position = "fixed";
+      
+  
+       // Create a wrapper div
+      const wrapper = document.createElement("div");
+      wrapper.id = "renamefile-wrapper";
+      wrapper.className = "blur-backround";
+  
+       // Add the heading
+       const heading = document.createElement("h3");
+       heading.innerText = "Rename File";
+       heading.style.marginBottom = "0px";
+       heading.style.fontSize = "18px";
+       heading.style.borderBottom = "1px solid #ccc";
+       heading.style.paddingBottom = "15px";
+       heading.style.fontWeight = "bold";
+      //  popup.appendChild(heading);
+      wrapper.appendChild(heading);
+      
+     
+       // Add a close button
+       const closeButton = document.createElement("span");
+       closeButton.innerText = "×";
+       closeButton.style.position = "relative";
+       closeButton.style.top = "-42px";
+       closeButton.style.right = "0px";
+       closeButton.style.cursor = "pointer";
+       closeButton.style.fontSize = "18px";
+       closeButton.style.border = "1px solid #ccc";
+       closeButton.style.color = "#666";
+       closeButton.style.minWidth = "30px";
+       closeButton.style.height = "30px";
+       closeButton.style.textAlign = "center";
+       closeButton.style.borderRadius = "1000px";
+       closeButton.style.float = "right";
+       closeButton.style.lineHeight = "27px";
+       closeButton.onclick = () => popup.remove();
+       wrapper.appendChild(closeButton);
+      //  popup.appendChild(closeButton);
+     
+       // Add the input box with the current folder name as the default value
+       const input = document.createElement("input");
+       input.type = "text";
+       input.value = FileName; // Pre-fill with current name
+       input.style.width = "100%";
+       input.style.marginBottom = "15px";
+       input.style.padding = "8px";
+       input.style.border = "1px solid #ccc";
+       input.style.borderRadius = "4px";
+      //  popup.appendChild(input);
+      wrapper.appendChild(input);
+     
+       // Add the submit button
+       const submitButton = document.createElement("button");
+       submitButton.innerText = "Submit";
+       submitButton.style.padding = "6px 20px";
+       submitButton.style.backgroundColor = "#2c9942";
+       submitButton.style.color = "#fff";
+       submitButton.style.border = "none";
+       submitButton.style.borderRadius = "4px";
+       submitButton.style.cursor = "pointer";
+       submitButton.style.float = "right";
+       submitButton.style.marginTop = "0px";
+      submitButton.onclick = async() => {
+        const newName = input.value.trim();
+        if (newName) {
+          console.log("New  name:", newName);
+          // submit the new name to the list
+          try {
+            if(newName === ''){
+              console.log("required")
+              return;
+            }
+            await sp.web.lists.getByTitle('DMSFileApprovalList').
+            items.filter(`SiteName eq '${SiteName}' and FileName eq '${FileName}' and FileUID eq '${FileUID}'`).getAll().then((res)=>{
+              console.log("res",res)
+              res.map(async(item)=>{
+                const itemId=item.Id;
+                console.log("itemId",itemId)
+                await sp.web.lists.getByTitle('DMSFileApprovalList').items.getById(itemId).update({
+                  FileName:newName
+                });
+              })
+            })
+            await sp.web.lists.getByTitle(`DMS${SiteName}FileMaster`).
+            items.filter(`SiteName eq '${SiteName}' and FileName eq '${FileName}' and FileUID eq '${FileUID}'`).getAll().then((res)=>{
+              console.log("res",res)
+              res.map(async(item)=>{
+                const itemId=item.Id;
+                console.log("itemId",itemId)
+                await sp.web.lists.getByTitle(`DMS${SiteName}FileMaster`).items.getById(itemId).update({
+                  FileName:newName
+                });
+              })
+            })
+          // await newsp.web.getFileById(FileUID).rename(newName);
+          try {
+    // Get file by unique ID
+    const file = newsp.web.getFileById(FileUID);
+  
+    // Get file properties including path
+    const fileProps = await file.select("ServerRelativeUrl", "Name")();
+    console.log("File Properties:", fileProps);
+  
+    // Get the file's ListItem
+    const item = await file.getItem();
+    console.log("List Item:", item);
+  
+    // Rename the file by updating FileLeafRef
+    const updateRes = await item.update({
+      FileLeafRef: newName
+    });
+  
+    console.log("File renamed successfully:", updateRes);
+  } catch (err) {
+    console.error("Error renaming file:", err);
+  }
+  //           try{
+  //              const renamefile2 = await newsp.web.getFileById(FileUID)()
+  //              console.log("renamefile2",renamefile2)
+  //          const fileItem =  (renamefile2 as any).select('ServerRelativeUrl').get();
+  //          console.log("fileItem",fileItem)
+  //           const getfilebyser = await newsp.web.getFileByServerRelativePath(fileItem)();
+  //            console.log(getfilebyser , "getfilebyser")
+  //            await getfilebyser.update({
+  //             FileLeafRef: newName
+  //         });
+  //            const file = newsp.web.getFileByServerRelativePath(fileItem);
+  //          const getfileds = await file.listItemAllFields();
+  //          console.log("getfileds",getfileds)
+  //         const updatefilename = await newsp.web.lists.getByTitle(fileItem.ListTitle).items.getById(FileUID).update({
+  //   FileLeafRef: newName
+  // });
+  //                console.log("updatefilename",updatefilename)
+  //           console.log("Folder Rename successfully");
+  //           }catch{
+  
+  //           }
+        
+            myRequest()
+            popup.remove();
+            Swal.fire('Successfull','Folder rename successfully','success');
+          } catch (error) {
+            console.log("Error in rename the folders ",error)
+          }
+          
+        } else {
+  
+        }
+      };
+      // popup.appendChild(submitButton);
+      wrapper.appendChild(submitButton);
+  
+      // Add the wrapper to the popup
+      popup.appendChild(wrapper);
+    
+      // Add the popup to the document body
+      document.body.appendChild(popup);
+  }
   // This function called when we click on the Rename Column option inside the mycreated Folder
   // @ts-ignore
   window.renameColumn = async (siteName: string, documentLibraryName: string) => {
@@ -13146,7 +13324,7 @@ const ArgPoc = ({ props }: any) => {
           const encodedFilePath = encodeURIComponent(file.ServerRelativeUrl);
           const parentFolder = file.ServerRelativeUrl.substring(0, file.ServerRelativeUrl.lastIndexOf('/'));
           const siteUrl = window.location.origin;
-          // const previewUrl = `${siteUrl}/sites/edcspfx/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+          // const previewUrl = `${siteUrl}/sites/ededms/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
           const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
            console.log("previewUrl", previewUrl);
 
@@ -13902,6 +14080,9 @@ const ArgPoc = ({ props }: any) => {
             <li onclick="versionHistory('${file.FileName}', '${file.CurrentFolderPath}', '${file.SiteID}' ,'MyRequest','${file.FileUID}')">
               <img src=${editIcon} alt="Version History"/> Version History
             </li>
+              <li onclick="RenameFile('${file.FileName}', '${file.CurrentFolderPath}', '${file.SiteID}' ,'MyRequest','${file.FileUID}' , '${file.SiteName}') ">
+            <img src=${editIcon} alt="Version History"/> Rename File
+          </li>
             ${file.Status === "Rework" ? `
               <li onclick="rework('${file.FileUID}', '${file.SiteID}','${file?.DocumentLibraryName}','${file?.SiteName}','${file.CurrentFolderPath}/${file.FileName}')">
                 <img src=${editIcon} alt="Edit File"/> Edit File
@@ -14854,7 +15035,7 @@ const ArgPoc = ({ props }: any) => {
       const siteUrl = window.location.origin;
       console.log(siteUrl, "siteUrl");
       const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
-      // const previewUrl = `${siteUrl}/sites/edcspfx/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
+      // const previewUrl = `${siteUrl}/sites/ededms/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
        preURL = previewUrl;
     }
     console.log("filePath", filePath);
@@ -16719,11 +16900,11 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
       const encodedFilePath = encodeURIComponent(serverRelativeUrl);
 
       // Example: 
-      // serverRelativeUrl = "/sites/edcspfx/test/DocumentLibraryInsideTest/Book.xlsx"
+      // serverRelativeUrl = "/sites/ededms/test/DocumentLibraryInsideTest/Book.xlsx"
       const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
       const siteUrl = window.location.origin;
 
-      // const previewUrl = `${siteUrl}/sites/edcspfx/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+      // const previewUrl = `${siteUrl}/sites/ededms/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       const previewUrl = `${siteUrl}${locationPath}/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       console.log("Generated Preview URL:", previewUrl);
@@ -16958,7 +17139,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
     const siteUrl = window.location.origin;
     console.log(siteUrl, "siteUrl");
 
-    // const previewUrl = `${siteUrl}/sites/edcspfx/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
+    // const previewUrl = `${siteUrl}/sites/ededms/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
     const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
 
     if (previewUrl) {
@@ -17224,7 +17405,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
         const parentFolder = uploadResult.data.ServerRelativeUrl.substring(0, uploadResult.data.ServerRelativeUrl.lastIndexOf('/'));
         const siteUrl = window.location.origin;
         const encodedFilePath = encodeURIComponent(uploadResult.data.ServerRelativeUrl);
-        // const previewUrl = `${siteUrl}/sites/edcspfx/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+        // const previewUrl = `${siteUrl}/sites/ededms/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
         const previewUrl = `${siteUrl}${locationPath}/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
 
         await listItem.update(payload);

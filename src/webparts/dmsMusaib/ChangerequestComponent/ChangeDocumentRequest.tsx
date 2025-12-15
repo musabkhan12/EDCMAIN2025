@@ -72,6 +72,7 @@ let enableTemplatetype: boolean = false;
 let Showfile: boolean = false;
 let IsRecorddisabled: boolean = false;
 let isCurrentuserDelegated: boolean = false;
+let IsDepartmentEditable: boolean = false;
 export enum FormSubmissionMode {
   DRAFT, SUBMIT
 }
@@ -314,6 +315,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     const isMemberOfSuperAdmin = userGroups.some(group => group.Title === `DMSSuper_Admin`);
     if (isMemberOfStrategyandSustainableGrowth || isMemberOfSuperAdmin) {
       enableTemplatetype = true;
+    }
+    const IsDepartmentPermission = userGroups.some(group => group.Title === `DepartmentFieldPermission`);
+    if (IsDepartmentPermission) {
+      IsDepartmentEditable = true;
     }
     locationPath = window.location.href.match(/\/sites\/[^\/]+/)[0];
     if (path1.includes("/view/") || path1.includes("/approve/")) {
@@ -1493,7 +1498,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     const isOfficeFile = /\.(docx?|xlsx?|pptx?)$/i.test(fileUrl);
 
     if (isOfficeFile) {
-      return `https://officeindia.sharepoint.com/sites/edcspfx/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(fileUrl)}&action=embedview`;
+      return `https://edcadae.sharepoint.com/sites/ededms/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(fileUrl)}&action=embedview`;
     }
 
     if (/\.pdf$/i.test(fileUrl)) {
@@ -1518,14 +1523,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     //const fileUrl = `${Tenant_URL}${obj.FileRef}`;
 
     console.log("ttrtrtrtt", obj);
-    const tenantUrl = "https://officeindia.sharepoint.com";
-    const docurl = "/sites/edcspfx/ImportantDocuments/SomeFolder/Example.pdf";
+    const tenantUrl = "https://edcadae.sharepoint.com";
+    const docurl = "/sites/ededms/ImportantDocuments/SomeFolder/Example.pdf";
 
     // Extract parent folder from docurl
     const parent = docurl.substring(0, docurl.lastIndexOf("/") + 1);
 
     // Construct the final redirect URL
-    const redirectURLpdf = `${tenantUrl}/sites/edcspfx/ImportantDocuments/Forms/AllItems.aspx?id=${encodeURIComponent(docurl)}&parent=${encodeURIComponent(parent)}&p=true&ga=1`;
+    const redirectURLpdf = `${tenantUrl}/sites/ededms/ImportantDocuments/Forms/AllItems.aspx?id=${encodeURIComponent(docurl)}&parent=${encodeURIComponent(parent)}&p=true&ga=1`;
 
     console.log(redirectURLpdf);
 
@@ -2133,7 +2138,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let DocumentName: string = "";
             let attachmentIds = [];
             debugger
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/ChangeRequestDocs');
             let docCode = selectedOptionReq.requestcode == "New" ? doccode : selectedOption?.DocumentCode;
             let filenamenew: any;
             let newfileName: any;
@@ -2456,13 +2461,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
             //sessionStorage.removeItem("ChangeRequestId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
             // }, 1000);
             // }
           }
@@ -2487,7 +2492,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let DocumentName: string = "";
             let attachmentIds = [];
             debugger
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/ChangeRequestDocs');
             let docCode = selectedOptionReq?.requestcode == "New" ? doccode : selectedOption?.DocumentCode;
             debugger
             if (Attachmentarr.length > 0) {
@@ -2769,14 +2774,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Submitted successfully.', '', 'success');
             // // sessionStorage.removeItem("bannerId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
             // }, 1000);
             // }
 
@@ -2878,7 +2883,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let DocumentName: string = "";
             let attachmentIds = [];
             debugger
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/ChangeRequestDocs');
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
@@ -3046,14 +3051,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Saved successfully.', '', 'success');
             // sessionStorage.removeItem("ChangeRequestId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
             // }, 2000);
             // }
           }
@@ -3076,7 +3081,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/ChangeRequestDocs');
             debugger
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
@@ -3216,14 +3221,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Saved successfully.', '', 'success');
             // // sessionStorage.removeItem("bannerId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
             // }, 1000);
           }
         })
@@ -3476,7 +3481,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx`;
               }
             });
 
@@ -3595,7 +3600,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/MyApprovals.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx`;
               }
             });
             // }
@@ -3697,7 +3702,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/ChangeRequestDocs');
             // if (Attachmentarr.length > 0) {
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
@@ -4029,7 +4034,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -4072,7 +4077,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/edcspfx/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/ChangeRequestDocs');
 
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
@@ -4400,7 +4405,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https://officeindia.sharepoint.com/sites/edcspfx/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -4534,11 +4539,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     const encodedFilePath = encodeURIComponent(serverRelativeUrl);
 
     // Example: 
-    // serverRelativeUrl = "/sites/edcspfx/test/DocumentLibraryInsideTest/Book.xlsx"
+    // serverRelativeUrl = "/sites/ededms/test/DocumentLibraryInsideTest/Book.xlsx"
     const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
     const siteUrl = window.location.origin;
 
-    // const previewUrl = `${siteUrl}/sites/edcspfx/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    // const previewUrl = `${siteUrl}/sites/ededms/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     const previewUrl = `${siteUrl}${locationPath}/ChangeRequestDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     console.log("Generated Preview URL:", previewUrl);
@@ -4903,7 +4908,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                       className={`${(!ValidDraft && departmenterr) ? "border-on-error" : ""} ${(!ValidSubmit && departmenterr) ? "border-on-error" : ""}`}
                                       onChange={(selectedOption: any) => onSelectDepart(selectedOption)}
                                       placeholder="Search Department"
-                                      isDisabled={InputDisabled || formData?.Status == "Rework" || IsRecorddisabled}
+                                      isDisabled={InputDisabled || formData?.Status == "Rework" || IsRecorddisabled || !IsDepartmentEditable}
                                     />
                                   </div>
 
@@ -5768,7 +5773,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                       {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><i className="fe-check-circle me-1"></i> Submit</button>}
 
                       {/* </a> */}
-                        {/* <a href="../sites/edcspfx/SitePages/EDCMAIN.aspx">       */}
+                        {/* <a href="../sites/ededms/SitePages/EDCMAIN.aspx">       */}
                         {/* <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}><i className="fe-x me-1"></i> Cancel</button>
                       {/* </a> */}
                         {/* </div>

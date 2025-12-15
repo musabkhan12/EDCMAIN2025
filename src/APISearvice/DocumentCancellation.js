@@ -463,13 +463,13 @@ export const getApprovalByID = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo?.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then((result) => {
           if (result.length > 0) {
             // If the current user is a delegate, check if they are acting for the assigned user
             // and if the process name matches
-            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].DelegateNameId) && res.ProcessName === processName) {
+            if (res && (res.AssignedTo?.Id == currentUser.Id || res.AssignedTo?.Id == result[0].DelegateNameId) && res.ProcessName === processName) {
               arr = res;
             }
             // if (res && (res.AssignedTo.Id == currentUser.Id || res.ActingFor.Id == currentUser.Id) && res.ProcessName === processName) {
@@ -479,7 +479,7 @@ export const getApprovalByID = async (_sp, id, processName) => {
 
           }
           else {
-            if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName) {
+            if (res && res.AssignedTo?.Id == currentUser.Id && res.ProcessName === processName) {
               arr = res;
             }
 
@@ -528,13 +528,13 @@ export const getApprovalByID2 = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo?.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then((result) => {
           if (result.length > 0) {
             // If the current user is a delegate, check if they are acting for the assigned user
             // and if the process name matches
-            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].DelegateNameId) && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 && res.CurrentUserRole == "Initiator") {
+            if (res && (res.AssignedTo?.Id == currentUser.Id || res.AssignedTo?.Id == result[0].DelegateNameId) && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 && res.CurrentUserRole == "Initiator") {
               arr = false;
             }
             //  if (res && (res.AssignedTo.Id == currentUser.Id || res.ActingFor.Id == currentUser.Id) && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
@@ -543,7 +543,7 @@ export const getApprovalByID2 = async (_sp, id, processName) => {
 
           }
           else {
-            if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 && res.CurrentUserRole == "Initiator") {
+            if (res && res.AssignedTo?.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 && res.CurrentUserRole == "Initiator") {
               arr = false;
             }
 
@@ -572,6 +572,7 @@ export const getDraftApprovalByID = async (_sp, id, processName) => {
   let Sts = "Save as draft";
   let sts = "Pending"
   const currentUser = await _sp.web.currentUser();
+  const today = new Date().toISOString();
   // await _sp.web.lists.getByTitle("ProcessApprovalList").items
   //   .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`ListItemId eq '${id}' and AssignedTo/ID  eq '${currentUser.Id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).top(1)()
   //   .then((res) => {
@@ -598,19 +599,19 @@ export const getDraftApprovalByID = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo?.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then(async (result) => {
           if (result.length > 0) {
 
-            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].DelegateNameId) && res.ProcessName === processName && (res?.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+            if (res && (res.AssignedTo?.Id == currentUser.Id || res.AssignedTo?.Id == result[0].DelegateNameId) && res.ProcessName === processName && (res?.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
               arr = res;
             }
 
           }
           else {
 
-            if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+            if (res && res.AssignedTo?.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
               arr = res;
             }
 
@@ -873,7 +874,9 @@ export const getDocumentLinkByIDSigned = async (_sp, itemId) => {
 export const getGeneratedTemplateDoc = async (_sp, itemId, DocCode) => {
   let results = [];
   try {
-    const res = await _sp.web.lists.getByTitle("DocumentCancellationDigitalSignedDocs").items
+    // const res = await _sp.web.lists.getByTitle("DocumentCancellationDigitalSignedDocs").items
+    const res = await _sp.web.lists.getByTitle("DocumentCancellationAttachDigitalSignedDocs").items
+
       .select("*,FileRef, FileLeafRef")
       .filter(`ListItemID/ID eq ${itemId}`)
       .orderBy("ID", false)
