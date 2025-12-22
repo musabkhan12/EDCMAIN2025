@@ -48,6 +48,11 @@ import { Modal } from 'react-bootstrap';
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from '../../ChangerequestComponent/CustomBreadcrumb/CustomBreadcrumb';
 import FileViewer from '../../components/fileviewer';
+import { GraphFI, graphfi, SPFx as graphSPFx } from "@pnp/graph";
+import "@pnp/graph/groups";
+import "@pnp/graph/members";
+import "@pnp/sp/webs";
+import "@pnp/sp/site-groups/web";
 let myloader = '../../'
 interface ForwardTo {
     id: number;
@@ -64,6 +69,7 @@ const ErrorCls = "border-on-error";
 
 const DocumentCancellationProcessContext = ({ props }: any) => {
     const sp: SPFI = getSP();
+    let graph: GraphFI;
     const elementRef = React.useRef<HTMLDivElement>(null);
     const siteUrl = props.siteUrl;
     const { useHide }: any = React.useContext(UserContext);
@@ -258,7 +264,16 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     };
 
     const ApiCallFunc = async () => {
+        const me = await graph.me.select(
+            "displayName",
+            "mail",
+            "jobTitle",
+            "department",
+            "officeLocation",
+            "companyName"
+        )();
 
+        const graphCurrentUserDept = me.department;
 
         var ReqId = await getRequestTypeID(sp);
         setRequestTypeId(ReqId);
@@ -315,7 +330,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
         setRows1(Selectedoptions);
 
-        var fetchUserDept = await getUserDepartment(sp, UserDept)
+        // var fetchUserDept = await getUserDepartment(sp, UserDept)//old
+        var fetchUserDept = await getUserDepartment(sp, graphCurrentUserDept)//new
+
 
         setFormData(prevData => ({
             ...prevData,
@@ -335,7 +352,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
         }));
         setFormLoading(true);
-        var DocCodeArr = await getAllDocumentCode(sp, UserDept);
+        // var DocCodeArr = await getAllDocumentCode(sp, UserDept);//old
+        var DocCodeArr = await getAllDocumentCode(sp, graphCurrentUserDept);//new
         // var DocCodeArr = await getAllDocumentCode(sp);
         const options = DocCodeArr.map((item: any) => ({
             value: item.DocumentCode,
@@ -947,7 +965,10 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
     React.useEffect(() => {
 
-        ApiCallFunc();
+        if (props?.context) {
+            graph = graphfi().using(graphSPFx(props.context));
+            if (graph) { ApiCallFunc(); }
+        }
 
 
 
@@ -3374,7 +3395,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         const parts = TemplateDoc[0]?.FileRef?.split('/');
                                                                         const folderName = parts && parts[3] ? parts[3] : null;
                                                                         // return folderName === "DocumentCancellationDigitalSignedDocs" ? (
-                                                                            return folderName === "DocumentCancellationAttachDigitalSignedDocs" && TemplateDoc[0]?.IsDigitalSignatureDoc ==="Yes" ? (
+                                                                        return folderName === "DocumentCancellationAttachDigitalSignedDocs" && TemplateDoc[0]?.IsDigitalSignatureDoc === "Yes" ? (
                                                                             // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} alt="Download Icon" />
                                                                             // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/digisigndownload.png")} alt="Digital Sign Download Icon" />
                                                                             <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/signicon.png")} alt="Digital Sign Download Icon" />
@@ -4136,12 +4157,12 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                 <option key={index} value={role.value}>{role.label}</option>
                             ))} */}
                                                                                         {UserRoles
-                                                                                        // .filter((role: any) =>
-                                                                                        //     !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
-                                                                                        // )
-                                                                                        .map((role: any, idx: number) => (
-                                                                                            <option key={idx} value={role.value}>{role.label}</option>
-                                                                                        ))}
+                                                                                            // .filter((role: any) =>
+                                                                                            //     !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
+                                                                                            // )
+                                                                                            .map((role: any, idx: number) => (
+                                                                                                <option key={idx} value={role.value}>{role.label}</option>
+                                                                                            ))}
                                                                                     </select>
 
                                                                                 </td>

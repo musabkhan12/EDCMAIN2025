@@ -41,7 +41,11 @@ import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import "./AuditProg.scss"
 import FileViewer from '../../components/fileviewer';
-
+import { GraphFI, graphfi, SPFx as graphSPFx } from "@pnp/graph";
+import "@pnp/graph/groups";
+import "@pnp/graph/members";
+import "@pnp/sp/webs";
+import "@pnp/sp/site-groups/web";
 
 // let myloader = '../../'
 let newfileupload: any
@@ -60,6 +64,7 @@ interface ForwardTo {
 const FormContext = ({ props }: any) => {
 
   const sp: SPFI = getSP();
+  let graph: GraphFI;
   const elementRef = React.useRef<HTMLDivElement>(null);
   const siteUrl = props.siteUrl;
   const { useHide }: any = React.useContext(UserContext);
@@ -268,21 +273,29 @@ const FormContext = ({ props }: any) => {
         ? `0${memo}`
         : memo;
     if (selectedOption == null) {
+
       setFormData((prevFormData) => ({
         ...prevFormData,
-        MemoListId: memoId,
-        memoSerialNo: memo,
-        deptId: onloadDeptId,
-        // memoNo: setAllDept1.filter(user => user.label === UserDept)[0]
-        //     ? `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-        //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-        memoNo: AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0]
-          ? `${AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-          : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-        memoFileName: AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]
-          ? `${AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
-          : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+        MemoListId: 0,
+        memoSerialNo: 0,
+        deptId: null,
+        // memoNo: `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+        // memoFileName: `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+        memoNo: `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/001`,
+        memoFileName: `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_001`,
       }));
+      // setFormData((prevFormData) => ({
+      //   ...prevFormData,
+      //   MemoListId: memoId,
+      //   memoSerialNo: memo,
+      //   deptId: onloadDeptId,
+      //   memoNo: AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0]
+      //     ? `${AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+      //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+      //   memoFileName: AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]
+      //     ? `${AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+      //     : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+      // }));
 
     }
     else {
@@ -439,6 +452,16 @@ const FormContext = ({ props }: any) => {
   };
 
   const ApiCallFunc = async () => {
+    const me = await graph.me.select(
+      "displayName",
+      "mail",
+      "jobTitle",
+      "department",
+      "officeLocation",
+      "companyName"
+    )();
+
+    const graphCurrentUserDept = me.department;
     setAuditProgramType(await getAllAuditType(sp));
 
 
@@ -492,8 +515,9 @@ const FormContext = ({ props }: any) => {
     const userProfile = await sp.profiles.myProperties();
     setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
     const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
-    // setselectUserDept(setAllDept1.filter((user: any) => user.label === UserDept));
-    setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept));
+    
+    // setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept));//old
+     setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept));//new
     var allAuditTypes = await getAuditTypes(sp);
     setauditTypes(allAuditTypes);
     const recommendationTypes = await getRecommendationTypes(sp);
@@ -522,9 +546,8 @@ const FormContext = ({ props }: any) => {
           }));
         }
       }
-
-      // const onloadDeptId = setAllDept1.filter((user: any) => user.label === UserDept)[0]?.value || 0;
-      const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0;
+      // const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0;//old
+       const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]?.value || 0;//new
 
       const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
       if (listItems.length > 0) {
@@ -558,11 +581,11 @@ const FormContext = ({ props }: any) => {
         //   ? `${setAllDept1.filter((user: any) => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
         //   : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
 
-        memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]
-          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
+          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
           : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-        memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]
-          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+        memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
+          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
           : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
       }));
 
@@ -1035,8 +1058,12 @@ const FormContext = ({ props }: any) => {
 
 
   React.useEffect(() => {
+    if (props?.context) {
+      graph = graphfi().using(graphSPFx(props.context));
+      if (graph) { ApiCallFunc(); }
+    }
 
-    ApiCallFunc();
+  
     // getMemoNumber();
     const handleScroll = () => {
       // Close the dropdown on scroll
@@ -4964,12 +4991,12 @@ const FormContext = ({ props }: any) => {
                                                                                     <option key={index} value={role.value}>{role.label}</option>
                                                                                 ))} */}
                                           {UserRoles
-                                          // .filter((role: any) =>
-                                          //   !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
-                                          // )
-                                          .map((role: any, idx: number) => (
-                                            <option key={idx} value={role.value}>{role.label}</option>
-                                          ))}
+                                            // .filter((role: any) =>
+                                            //   !forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
+                                            // )
+                                            .map((role: any, idx: number) => (
+                                              <option key={idx} value={role.value}>{role.label}</option>
+                                            ))}
 
 
 

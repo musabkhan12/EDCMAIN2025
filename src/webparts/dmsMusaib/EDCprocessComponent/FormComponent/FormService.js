@@ -378,7 +378,7 @@ export const getApprovalByID = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo?.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then((result) => {
           if (result.length > 0) {
@@ -468,7 +468,7 @@ export const getApprovalByID2 = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo?.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then((result) => {
           if (result.length > 0) {
@@ -574,7 +574,7 @@ export const getDraftApprovalByID = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo?.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then(async (result) => {
           if (result.length > 0) {

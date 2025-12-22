@@ -59,7 +59,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
     }
 
     async componentDidMount() {
-        debugger
+        //debugger
         this.setState({ loading: true });
         const userdata = await this._sp.web.currentUser();
 
@@ -131,7 +131,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
     private handleSort(column: string) {
         const { sortColumn, sortDirection } = this.state;
         let newSortDirection = 'asc';
-        debugger
+        //debugger
         if (column === sortColumn) {
             newSortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
         }
@@ -218,7 +218,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
         let filitems = filteredItems.sort((a, b) => b.ReqDt - a.ReqDt)
         // Sort items based on the selected column and direction
         const sortedItems = filitems.sort((a, b) => {
-            // debugger
+            // //debugger
             if (sortColumn) {
                 const aValue = a[sortColumn];
                 const bValue = b[sortColumn];
@@ -382,11 +382,11 @@ export class Listing extends React.Component<IListingProps, IListingState> {
             <div>
                 {showform ? (
                     <div>
-                        {this.state.process == "Change Request" && <ChangeDocumentRequest description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''}></ChangeDocumentRequest>}
-                        {this.state.process == "Document Cancellation" && <DocumentCancellationProcess description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''}></DocumentCancellationProcess>}
+                        {this.state.process == "Change Request" && <ChangeDocumentRequest description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={this.props.context} siteUrl={''}></ChangeDocumentRequest>}
+                        {this.state.process == "Document Cancellation" && <DocumentCancellationProcess description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={this.props.context} siteUrl={''}></DocumentCancellationProcess>}
                         {(this.state.process == "Annual Audit Program" || this.state.process == "IMS Annual Audit Program") && <FormComponent userDisplayName={''} userid={this.props.userid} context={this.props.context} item={this.state.edItm} onClose={this.closeForm} />}
-                        {(this.state.process == "Annual Audit Plan" || this.state.process == "IMS Audit Plan") && <AnnualAuditPlan description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''} />}
-                        {(this.state.process == "Annual Audit Report" || this.state.process == "IMS Audit Report and Checklist") && <AnnualAuditReport description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={undefined} siteUrl={''} />}
+                        {(this.state.process == "Annual Audit Plan" || this.state.process == "IMS Audit Plan") && <AnnualAuditPlan description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={this.props.context} siteUrl={''} />}
+                        {(this.state.process == "Annual Audit Report" || this.state.process == "IMS Audit Report and Checklist") && <AnnualAuditReport description={''} isDarkTheme={!1} environmentMessage={''} hasTeamsContext={!1} userDisplayName={''} context={this.props.context} siteUrl={''} />}
                         {this.state.process == "Non Conformity" && <NonConformity description={''} context={this.props.context} currentUserID={this.props.userid} userDisplayName={currentusertitle} />}
                         {this.state.process == "Memorandum" && <MemoComponent userDisplayName={''} userid={this.props.userid} context={this.props.context} item={this.state.edItm} onClose={this.closeForm} />}
 
@@ -857,7 +857,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
         }
 
         const ChangeRequestListItems = await spfi(this._sp).web.lists.getByTitle("ChangeRequestList").items.select('Id,FileName,ReferenceNumber,RequesterName/Title,RequesterName/Id,Title,Author/Title,RequestDate,Status,DocumentCode,Created,FileName,RequestType/ID,RequestType/RequestType,IssueNumber,RevisionNumber').expand('Author', 'RequesterName', 'RequestType').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
-        debugger
+        //debugger
         for (const item of ChangeRequestListItems) {
             if (item.Status === "Rework") {
                 const processItems = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and Status eq 'Pending' and ProcessName eq 'Change Request' and ListItemId eq ${item.Id}`)();
@@ -925,7 +925,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
 
         const AnnualAuditReportList = await spfi(this._sp).web.lists.getByTitle("AnnualAuditReportList").items.select('*,ReportCode,Id,Title,Author/Title,Created,Status,ReferenceNumber').expand('Author').filter(`Author/ID eq '${this.props.userid}'`)();
         AnnualAuditReportList.forEach(async itm => {
-            debugger
+            //debugger
             if (itm.Status === "Rework") {
                 const processItems2 = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and (Status eq 'Pending' or Status eq 'Save as draft') and (ProcessName eq 'Annual Audit Report' or ProcessName eq 'IMS Audit Report and Checklist') and ListItemId eq ${itm.Id}`)();
                 if (processItems2.length > 0) {

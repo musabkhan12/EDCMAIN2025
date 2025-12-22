@@ -31,6 +31,11 @@ import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import "./nonconformity.scss";
 import { CONTENTTYPE_NonComformity } from '../ChangerequestComponent/Constants';
 import Select from "react-select";
+import { GraphFI, graphfi, SPFx as graphSPFx } from "@pnp/graph";
+import "@pnp/graph/groups";
+import "@pnp/graph/members";
+import "@pnp/sp/webs";
+import "@pnp/sp/site-groups/web";
 
 const datePickerErrorStyles: Partial<IDatePickerStyles> = {
   root: {
@@ -53,6 +58,7 @@ export class IState {
   Auditeeuser:any;
   Loading: boolean;
   departmentOption: any[];
+  AuditProgdepartmentOption: any[];
   departmentselected: any;
   fromdepartmentselected: any;
   memonumberOptions: any[];
@@ -109,6 +115,8 @@ export class IState {
   files: FileList;
   siteurl: any;
   requesterDesignation: string;
+  CustodianOption:any[];
+   custodianselected: any;
 }
 let optionsmemoNumbernewnc: any[] = [];
 let optionsmemoNumbernewobs: any[] = [];
@@ -124,6 +132,9 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       Auditeeuser:[],
       Loading: false,
       departmentOption: [],
+      AuditProgdepartmentOption: [],
+      CustodianOption:[],
+      custodianselected: null,
       departmentselected: [],
       fromdepartmentselected: [],
       memonumberOptions: [],
@@ -320,6 +331,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
 
     let approvedauditreportselected = this.state.memonumberOptions.filter((x: any) => x.value == item?.value);
     const selectedOption = this.state.departmentOption.find(user => user?.value === approvedauditreportselected[0]?.department);
+    const CustselectedOption = this.state.CustodianOption.find(user => user?.value === approvedauditreportselected[0]?.custodian);
+
     this.setState({
       department: approvedauditreportselected && approvedauditreportselected[0]?.department,
       NCNumberOptions: uniqueOptions,
@@ -327,6 +340,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       MemoNumber: item && item?.reportCode,
       ApprovedAuditSelected: approvedauditreportselected,
       departmentselected: selectedOption,
+      custodianselected: CustselectedOption,
       //problemDescription: approvedauditreportselected && approvedauditreportselected[0]?.additionalDetails
     });
     this.setState({ NCNumber: "", NCNumberID: "", NCNumberselected: [], problemDescription: "" });
@@ -471,7 +485,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     await this.getDepartment();
     await this.getFiles();
     await this.getchangerequestdetails();
-    //await this.getDepartment();
+    await this.fetchCustodian();
     // await this.getAuditreport();
 
     const _sp = spfi().using(SPFx(this.props.context));
@@ -789,7 +803,8 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                   reportCode: exampleItem.ReportCode,
                   ncNo: missingNumbers.join(", "), // Show all missing NC numbers
                   department: memoItems && memoItems[0].filter((x: any) => x.ID == exampleItem.AnnualAuditReportListId)[0].DepartmentAuditedId,
-                  additionalDetails: memoItems && memoItems[0].filter((x: any) => x.ID == exampleItem.AnnualAuditReportListId)[0].AdditionalDetails
+                  additionalDetails: memoItems && memoItems[0].filter((x: any) => x.ID == exampleItem.AnnualAuditReportListId)[0].AdditionalDetails,
+                  custodian: memoItems && memoItems[0].filter((x: any) => x.ID == exampleItem.AnnualAuditReportListId)[0].SubDepartmentId,
                 });
               }
             }
@@ -955,7 +970,19 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
   // }
 
   public async getDepartment() {
+    let graph: GraphFI;
+    graph = graphfi().using(graphSPFx(this.props.context));
     const sp = spfi().using(SPFx(this.props.context));
+    const me = await graph.me.select(
+      "displayName",
+      "mail",
+      "jobTitle",
+      "department",
+      "officeLocation",
+      "companyName"
+    )();
+
+    const graphCurrentUserDept = me.department;
     try {
       // const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items();
       const deptItems = await sp.web.lists.getByTitle("ProcessDepartmentMasterList").items.orderBy("Title", true)();
@@ -968,11 +995,20 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
         data: { departmentCode: item.DepartmentCode },
       }));
       this.setState({ departmentOption: options });
+      const deptItems2 = await sp.web.lists.getByTitle("AuditProgramDepartmentMaster").items.orderBy("Department", true)();
+      const options2 = deptItems2.map((item) => ({
+        value: item.Id,
+        label: item.Department,
+        adDepartmentName: item.Department,
+        data: { departmentCode: item.DepartmentCode },
+      }));
+      this.setState({ AuditProgdepartmentOption: options2 });
       //const Currusers: any = await this.getCurrentUser(sp, this.state.siteurl);
       const userProfile = await sp.profiles.myProperties();
-      const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
-      let currentuserdepartment = UserDept || "Strategy & Sustainable Growth";
-      const selectedOption = options.find(user => user?.adDepartmentName === currentuserdepartment);
+      // const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
+      // let currentuserdepartment = UserDept || "Strategy & Sustainable Growth";
+      // const selectedOption = options.find(user => user?.adDepartmentName === currentuserdepartment);//old
+      const selectedOption = options.find(user => user?.adDepartmentName === graphCurrentUserDept);
       this.setState({
         fromdepartment: selectedOption?.value,
         //department: selectedOption?.value, 
@@ -987,6 +1023,37 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       console.error(e);
     }
   }
+
+  public async fetchCustodian () {
+     const sp = spfi().using(SPFx(this.props.context));
+        try {
+            // Fetch the items
+            const items = await sp.web.lists
+                // .getByTitle("LocationMaster") // Your list name
+                .getByTitle("AuditProgramCustodianMaster") // Your list name
+                .items
+                // .filter("IsActive eq 'Yes'") // Filter active items
+                // .select("ID", "Location", "LocationCode") // Select required fields
+                .top(5000) // Limit number of records
+                (); // Call get() to fetch data
+            items.sort((a, b) => a.Custodian.localeCompare(b.Custodian));
+            // Use map on the result to create the desired array structure
+            const custodians = items.map((item: any) => ({
+                custodianId: item.ID, // Store the ID for lookup
+                custodianName: item.Custodian, // Name of the location
+                // locationCode: item.LocationCode, // Code of the location
+                label: item.Custodian,
+                value: item.ID
+            }));
+
+            // Update state with the fetched locations
+            // setCustodianOpt(custodians);
+            this.setState({ CustodianOption: custodians });
+            return custodians;
+        } catch (error) {
+            console.error("Error fetching locations: ", error);
+        }
+    };
 
   public async getCategory() {
     const sp = spfi().using(SPFx(this.props.context));
@@ -1394,6 +1461,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
           RevisionDate: this.state.revisionDate || null,
           ReferenceNumber: this.state.referenceNo,
           DepartmentId: this.state.department || null,
+          CustodianId: this.state.custodianselected.value || null,
           FromDepartmentId: this.state.fromdepartment || null,
           Criteria: this.state.criteria,
           CloseOutStatus: this.state.closeOutStatus,
@@ -1752,15 +1820,52 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                     /></TooltipHost>
                 </div>
                 <div className="form-group col-md-4 mb-3">
-                  <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }} >Department:<span className="text-danger1">*</span>
+                  <label htmlFor="Custodian" style={{ marginBottom: '10px' }} >Custodian:<span className="text-danger1">*</span>
                   </label>
                   <TooltipHost
-                    content={this.state.departmentOption.filter((x: any) => x.value == this.state.department)[0]?.label || ""}
+                    content={this.state.custodianselected?.label || ""}
                     calloutProps={{ gapSpace: 0 }}
                     styles={{ root: { display: 'inline-block', width: '100%' } }}
                   >
                     <Select
-                      options={this.state.departmentOption}
+                      options={this.state.CustodianOption}
+                      value={this.state.custodianselected}
+                      name="Custodian"
+                      isDisabled
+                      isClearable={true}
+                      isSearchable={true}
+                      className={this.state.errors?.custodian ? 'border-on-error' : ''}
+                      // onChange={(selectedOption: any) => this.changeDepartment(selectedOption)}
+                      placeholder={"Custodian"}
+
+                    />
+                    </TooltipHost>
+                  {/* <Dropdown
+                    required
+                    placeholder="Department"
+                    label="Department:"
+                    options={this.state.departmentOption}
+                    defaultSelectedKey={this.state.department}
+                    selectedKey={this.state.department}
+                    onChange={this.changeDepartment}
+                    className={this.state.errors?.department ? 'dropdown-error' : ''}
+                  // styles={{
+                  //   title: {
+                  //     backgroundColor: this.state.errors.department ? "#ffcccb" : "white", // Light red when error
+                  //   },
+                  // }}
+                  /> */}
+                </div>
+                <div className="form-group col-md-4 mb-3">
+                  <label htmlFor="DocumentCode" style={{ marginBottom: '10px' }} >Department:<span className="text-danger1">*</span>
+                  </label>
+                  <TooltipHost
+                    content={this.state.AuditProgdepartmentOption.filter((x: any) => x.value == this.state.department)[0]?.label || ""}
+                    calloutProps={{ gapSpace: 0 }}
+                    styles={{ root: { display: 'inline-block', width: '100%' } }}
+                  >
+                    <Select
+                      options={this.state.AuditProgdepartmentOption}
                       value={this.state.departmentselected}
                       name="Department"
                       isDisabled

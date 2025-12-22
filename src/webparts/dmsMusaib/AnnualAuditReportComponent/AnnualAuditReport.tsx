@@ -44,15 +44,11 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { getAuditProgShift } from '../EDCprocessComponent/FormComponent/FormService';
 import FileViewer from '../ChangerequestComponent/fileviewer';
 import { CheckIfAlreadyactionTaken, getdigitalsignaturerequestbyID, getdigitalsignaturerequestbyIDYes } from '../ChangerequestComponent/DocumentCancellation';
-//SYnc time picker
-// import { TimePickerComponent } from '@syncfusion/ej2-react-calendars';
-
-// import '@syncfusion/ej2-base/styles/material.css';
-// import '@syncfusion/ej2-react-calendars/styles/material.css';
-
-// import { TimePicker } from 'antd';
-// import dayjs from 'dayjs';
-// import 'antd/dist/reset.css'; // Or 'antd/dist/antd.css' if using antd < 5
+import { GraphFI, graphfi, SPFx as graphSPFx } from "@pnp/graph";
+import "@pnp/graph/groups";
+import "@pnp/graph/members";
+import "@pnp/sp/webs";
+import "@pnp/sp/site-groups/web";
 
 // let myloader = '../../'
 let newfileupload: any
@@ -90,6 +86,7 @@ interface ncNumber {
 }
 const AnnualAuditReportContext = ({ props }: any) => {
     const sp: SPFI = getSP();
+    let graph: GraphFI;
     const elementRef = React.useRef<HTMLDivElement>(null);
     const siteUrl = props.siteUrl;
     const { useHide }: any = React.useContext(UserContext);
@@ -178,6 +175,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [TemplateDocAudit, setTemplateDocAudit] = React.useState<any>([]);
     const [sharewithusers, setSharewithusers] = React.useState([]);
     const [ValidRemark, setValidRemark] = React.useState(true);
+    const [CustodianOpt, setCustodianOpt] = React.useState<any>([]);
+    const [CriteriaDeptOpt, setCriteriaDeptOpt] = React.useState<any>([]);
     const [checkboxValues, setCheckboxValues] = React.useState({
         ConformingPositiveFindings: false,
         FailureofIntentNonconformity: false,
@@ -241,7 +240,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
         attachment: null,
         attachmentIds: null,
         AuditplanDocId: null,
-        attachmentJson: null
+        attachmentJson: null,
+        CustodianId: null, Custodian: null,
+        AuditProgdeptId: 0,
+        AuditProgdept: null,
+        AuditDeptCode: "",
 
     });
     const [selectCCUsers, setSelectCCUsers] = React.useState([]);
@@ -389,9 +392,105 @@ const AnnualAuditReportContext = ({ props }: any) => {
         }, 2000); // Let React batch state updates first
     };
     const handlesubDepartmentChange = async (selectedOption: any) => {
-        debugger
+        
         setselectUsersubDept(selectedOption);
-        debugger
+         // //////##################
+            setFormData({ ...formData, reportCode: "", AuditProgdeptId: null });
+            setselectUsersubDept([]);
+            setSequencesLoaded(false);
+            setIsDepartmentReady(false); // Prevent effects during update
+            skipNCUpdateRef.current = true;
+            departmentChanged = true;
+            EnableNC = true;
+            setEnableNCObs(true);
+            // const filteredSubDepartments = AllsubDepartment
+            //     .filter((x) => x.departmentId === selectedOption?.value)
+            //     .map((item) => ({
+            //         value: item.value,
+            //         label: item.subdepartment,
+            //         itemId: item.itemId,
+            //         department: item.department,
+            //         departmentcode: item.departmentCode,
+            //         subdepartment: item.subdepartment,
+            //         subdepartmentcode: item.subdepartmentcode
+            //     }));
+            // setAllsubDept(filteredSubDepartments);
+            const setAuditreportNC = await getItemsAuditReportNC(sp, selectedOption?.value);
+            const setAuditreportObs = await getItemsAuditReportObs(sp, selectedOption?.value);
+            if (setAuditreportNC.length > 0 || setAuditreportObs.length > 0) {
+                maxncseq = setAuditreportNC?.length > 0 && setAuditreportNC[0].NCSequence;
+                maxobsseq = setAuditreportObs?.length > 0 && setAuditreportObs[0].ObservationSequence;
+                setFormData(prevData => ({
+                    ...prevData,
+                    NCSequence: setAuditreportNC?.length > 0 ? setAuditreportNC[0].NCSequence : 0,
+                    ObservationSequence: setAuditreportObs?.length > 0 ? setAuditreportObs[0].ObservationSequence : 0,
+                }));
+            }
+            else{
+                maxncseq =0;
+                maxobsseq =0;
+            }
+           
+            maxNCSeqRef.current = maxncseq;
+            maxObsSeqRef.current = maxobsseq;
+            setNCNumberrows([]);
+            setSequencesLoaded(true);
+            setCheckboxValues(prev => ({
+                ...prev,
+                FailureofIntentNonconformity: false,
+                Observations: false,
+                FailureofEffectiveness: false,
+                FailureofImplementation: false,
+                ConformingPositiveFindings: false,
+                OpportunitiesforImprovement: false
+            }));
+            const updatedValues: Record<string, number> = { ...checkboxNumberValues };
+
+            AuditFindingsOptions.forEach((checkbox) => {
+                //const fieldKey = CheckboxFieldMap[checkbox.value];
+                const fieldKeyN = CheckboxFieldMapN[checkbox.value];
+                if (checkbox.value === 'Observations') {
+                    updatedValues[fieldKeyN] = 0;
+                }
+
+                if (checkbox.value === 'Failure of Effectiveness') {
+                    updatedValues[fieldKeyN] = 0;
+                }
+            });
+
+            setCheckboxNumberValues(prev => ({
+                ...prev,
+                ...updatedValues
+            }));
+
+            setselectUserDept(selectedOption);
+            debugger
+            // let reportcode: string = "";
+            // if (filteredSubDepartments.length > 0) {
+            //     // if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
+            //     //     reportcode = selectedOption.departmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
+            //     // }
+            //     setreportCode("");
+            //     setFormData({ ...formData, reportCode: "" });
+            // } else {
+            //     if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
+            //         reportcode = selectedOption.departmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
+            //     }
+            //     setreportCode(reportcode);
+            //     setFormData({ ...formData, reportCode: reportcode });
+            // }
+            // setFormData({ ...formData, deptId: selectedOption?.value });
+            setTimeout(() => {
+                if (hiddenDivRef.current) {
+                    hiddenDivRef.current.click();
+                }
+                setIsDepartmentReady(true);
+            }, 2000); // Let React batch state updates first
+
+
+            ///////##############
+
+       
         // let reportcode: string = "";
         // if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
         //     reportcode = selectedOption.departmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
@@ -402,12 +501,31 @@ const AnnualAuditReportContext = ({ props }: any) => {
         //     subdeptId: selectedOption?.value,
         //     //reportCode: reportcode 
         // });
+
         let reportcode: string = "";
-        if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
-            reportcode = selectedOption.subdepartmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
+        // if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
+        //     reportcode = selectedOption.subdepartmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
+        // }
+        if (selectedOption !== null) {
+
+           
+
+
+
+            if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
+                reportcode = selectedOption.deptCode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
+            }
+            setreportCode(reportcode);
+            setFormData({ ...formData, AuditProgdeptId: selectedOption != null ? selectedOption?.value : null, AuditProgdept: selectedOption != null ? selectedOption : null, reportCode: reportcode, AuditDeptCode: selectedOption.deptCode });
+
+
         }
-        setreportCode(reportcode);
-        setFormData({ ...formData, subdeptId: selectedOption != null ? selectedOption?.value : null, reportCode: reportcode });
+        else if (selectedOption == null) {
+            setreportCode(reportcode);
+            setFormData({ ...formData, AuditProgdeptId: selectedOption != null ? selectedOption?.value : null, AuditProgdept: selectedOption != null ? selectedOption : null, reportCode: "", AuditDeptCode: "" });
+
+        }
+
     };
     const handleShiftChange = async (selectedOption: any) => {
         setselectshift(selectedOption);
@@ -417,16 +535,22 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
         debugger
         let reportcode: string = "";
-        // if ((formData.date != "" || formData.date != null) && (formData.deptId != 0 || formData.deptId != null)) {
-        //     reportcode = selectUserDept?.departmentcode + "/" + moment(new Date(e.target.value)).format("DD/MM/YYYY");
+
+        // if ((date !== "" && date !== null) && (formData.subdeptId !== 0 && formData.subdeptId !== null && selectUsersubDept != null)) {
+        //     reportcode = (selectUsersubDept.length == 1 ? selectUsersubDept[0]?.subdepartmentcode : selectUsersubDept?.subdepartmentcode) + "/" + moment(new Date(date)).format("DD/MM/YYYY");
+        // } else {
+        //     if ((date !== "" && date !== null) && (formData.deptId !== 0 && formData.deptId !== null && selectUserDept != null)) {
+        //         reportcode = (selectUserDept.length == 1 ? selectUserDept[0]?.departmentcode : selectUserDept?.departmentcode) + "/" + moment(new Date(date)).format("DD/MM/YYYY");
+        //     }
         // }
-        if ((date !== "" && date !== null) && (formData.subdeptId !== 0 && formData.subdeptId !== null && selectUsersubDept != null)) {
-            reportcode = (selectUsersubDept.length == 1 ? selectUsersubDept[0]?.subdepartmentcode : selectUsersubDept?.subdepartmentcode) + "/" + moment(new Date(date)).format("DD/MM/YYYY");
-        } else {
-            if ((date !== "" && date !== null) && (formData.deptId !== 0 && formData.deptId !== null && selectUserDept != null)) {
-                reportcode = (selectUserDept.length == 1 ? selectUserDept[0]?.departmentcode : selectUserDept?.departmentcode) + "/" + moment(new Date(date)).format("DD/MM/YYYY");
-            }
+        if ((date !== "" && date !== null) && (formData.AuditProgdeptId !== 0 && formData.AuditProgdeptId !== null && formData.AuditProgdept != null)) {
+            reportcode = formData.AuditDeptCode + "/" + moment(new Date(date)).format("DD/MM/YYYY");
         }
+        // else {
+        //     if ((date !== "" && date !== null) && (formData.deptId !== 0 && formData.deptId !== null && selectUserDept != null)) {
+        //         reportcode = (selectUserDept.length == 1 ? selectUserDept[0]?.departmentcode : selectUserDept?.departmentcode) + "/" + moment(new Date(date)).format("DD/MM/YYYY");
+        //     }
+        // }
         setreportCode(reportcode);
         //setFormData({ ...formData, date: new Date(date).toLocaleDateString("en-CA") });
         setFormData({ ...formData, date: new Date(date).toLocaleDateString("en-CA"), reportCode: reportcode })
@@ -734,9 +858,80 @@ const AnnualAuditReportContext = ({ props }: any) => {
         return `${iddd}_${fileNameWithoutExt}_${components.join('')}.${fileExtension}`;
 
     };
+
+    const fetchCustodian = async () => {
+        try {
+            // Fetch the items
+            const items = await sp.web.lists
+                // .getByTitle("LocationMaster") // Your list name
+                .getByTitle("AuditProgramCustodianMaster") // Your list name
+                .items
+                // .filter("IsActive eq 'Yes'") // Filter active items
+                // .select("ID", "Location", "LocationCode") // Select required fields
+                .top(5000) // Limit number of records
+                (); // Call get() to fetch data
+            items.sort((a, b) => a.Custodian.localeCompare(b.Custodian));
+            // Use map on the result to create the desired array structure
+            const custodians = items.map((item: any) => ({
+                custodianId: item.ID, // Store the ID for lookup
+                custodianName: item.Custodian, // Name of the location
+                // locationCode: item.LocationCode, // Code of the location
+                label: item.Custodian,
+                value: item.ID
+            }));
+
+            // Update state with the fetched locations
+            setCustodianOpt(custodians);
+            return custodians;
+        } catch (error) {
+            console.error("Error fetching locations: ", error);
+        }
+    };
+
+    const AuditProgDept = async () => {
+        try {
+            // Fetch the items
+            const items = await sp.web.lists
+                // .getByTitle("LocationMaster") // Your list name
+                .getByTitle("AuditProgramDepartmentMaster") // Your list name
+                .items
+                // .filter("IsActive eq 'Yes'") // Filter active items
+                .select("ID", "Department", "DepartmentCode") // Select required fields
+                .top(5000) // Limit number of records
+                (); // Call get() to fetch data
+            items.sort((a, b) => a.Department.localeCompare(b.Department));
+            // Use map on the result to create the desired array structure
+            const departments = items.map((item: any) => ({
+                departmentId: item.ID, // Store the ID for lookup
+                departmentName: item.Department, // Name of the location
+                // locationCode: item.LocationCode, // Code of the location
+                label: item.Department,
+                value: item.ID,
+                deptCode: item.DepartmentCode
+            }));
+
+            // Update state with the fetched locations
+            setCriteriaDeptOpt(departments);
+            return departments;
+        } catch (error) {
+            console.error("Error fetching locations: ", error);
+        }
+    };
     const ApiCallFunc = async () => {
         setLoading(true);
         setFormLoading(true);
+        const me = await graph.me.select(
+            "displayName",
+            "mail",
+            "jobTitle",
+            "department",
+            "officeLocation",
+            "companyName"
+        )();
+
+        const graphCurrentUserDept = me.department;
+        const custodianOpt = await fetchCustodian();
+        const AuditProgOpt =  await AuditProgDept();
         setTimeout(() => {
             setLoading(false);
             setFormLoading(false);
@@ -836,8 +1031,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
         const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
         //setselectUserDept(setAllDept1.filter(user => user.label === UserDept));
-        let currentuserdepartment = UserDept == "IT" ? "Information Technology" : UserDept;
-        setcurrentUserDept(setAllDept1.filter(user => user.label === currentuserdepartment))
+        // let currentuserdepartment = UserDept == "IT" ? "Information Technology" : UserDept;//old
+        // setcurrentUserDept(setAllDept1.filter(user => user.label === currentuserdepartment)) //old
+        setcurrentUserDept(setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept));
+
         setFormData(prevData => ({
             ...prevData,
             RequesterNameId: Currusers?.Id || "",
@@ -849,8 +1046,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
             //RequestedDate: new Date().toISOString().split("T")[0] // Format as YYYY-MM-DD
 
         }));
-        console.log("userrrrdeptt", UserDept);
-        setFormData({ ...formData, fromdeptId: setAllDept1.filter(user => user.label === currentuserdepartment)[0]?.value });
+        // console.log("userrrrdeptt", UserDept);
+        // setFormData({ ...formData, fromdeptId: setAllDept1.filter(user => user.label === currentuserdepartment)[0]?.value }); //old
+        setFormData({ ...formData, fromdeptId: setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept)[0]?.value });//new
+
         const AllUserRoles = await getDataRoles(sp);
         const setRolesValue = AllUserRoles.map((item: any) => ({
             value: item.Id,
@@ -1026,8 +1225,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     memoNumber: setBannerById[0].MemoNumber,
                     description: setBannerById[0].Description,
                     additionalDetails: setBannerById[0].AdditionalDetails,
-                    subdeptId: setBannerById[0].SubDepartmentId || 0, // Default to 0 if SubDepartmentId is null
-                    deptId: setBannerById[0].DepartmentAuditedId,
+                    // subdeptId: setBannerById[0].SubDepartmentId || 0, // Default to 0 if SubDepartmentId is null
+                    // deptId: setBannerById[0].DepartmentAuditedId,
+                    AuditProgdeptId: setBannerById[0].DepartmentAuditedId,
+                    CustodianId:setBannerById[0].SubDepartmentId||null,
                     shiftId: setBannerById[0].ShiftId, // Default to 0 if ShiftId is null
                     fromdeptId: setBannerById[0].DepartmentId,
                     issueNo: setBannerById[0].IssueNumber,
@@ -1048,7 +1249,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     documentname: setBannerById[0].DocumentName,
                     isrework: setBannerById[0].IsRework,
                     attachmentIds: setBannerById[0].AttachmentId || null,
-                    attachmentJson: setBannerById[0].AttachmentJson || null
+                    attachmentJson: setBannerById[0].AttachmentJson || null,
+                    Custodian:custodianOpt.filter((user:any) => user.value === setBannerById[0].SubDepartmentId)[0]||null,
+                    AuditProgdept:AuditProgOpt.filter((user:any) => user.value === setBannerById[0].DepartmentAuditedId)[0]||null
                 }));
                 setauditplandate(setBannerById[0].AuditPlanDate && new Date(setBannerById[0].AuditPlanDate).toLocaleDateString("en-CA"))
                 setFormData(prevData => ({
@@ -1081,7 +1284,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 setSharewithusers(sharewithuser);
                 setdoccode(setBannerById[0].Title);
                 debugger
-                setselectUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentAuditedId));
+                // setselectUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentAuditedId));//old
+                  setselectUserDept(AuditProgOpt.filter((user:any) => user.value === setBannerById[0].DepartmentAuditedId));//new
+
                 setselectUsersubDept(AllsubDepartment.filter(user => user.value === setBannerById[0].SubDepartmentId));
                 if (setBannerById[0].DepartmentAuditedId > 0) {
                     let departmentselected = setAllDept1.filter(user => user.value === setBannerById[0].DepartmentAuditedId)
@@ -1320,8 +1525,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
 
     React.useEffect(() => {
+        if (props?.context) {
+            graph = graphfi().using(graphSPFx(props.context));
+            if (graph) { ApiCallFunc(); }
+        }
 
-        ApiCallFunc();
+        // ApiCallFunc();
 
     }, [useHide]);
 
@@ -1574,7 +1783,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
             documentLink,
             attachment,
             attachmentIds,
-            attachmentJson } = formData;
+            attachmentJson ,CustodianId,AuditProgdeptId} = formData;
         const validationErrors: { [level: number]: { role: boolean; approvers: boolean; approvalType: boolean, responsibility: boolean } } = {};
         // const { description } = richTextValues;
         console.log("formdataaaaa", formData);
@@ -1611,17 +1820,32 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 setapprovedauditplanerr(true);
                 valid = false;
             }
-            if (AllsubDept.length > 0 && (!subdeptId || (selectUsersubDept && selectUsersubDept?.length == 0) || !selectUsersubDept)) {
+            // if (AllsubDept.length > 0 && (!subdeptId || (selectUsersubDept && selectUsersubDept?.length == 0) || !selectUsersubDept)) {
+            //     setsubdepartmenterr(true);
+            //     //Swal.fire('Error', 'Title is required!', 'error');
+            //     valid = false;
+            // }
+             if (CustodianOpt.length > 0 && (!CustodianId)) {
                 setsubdepartmenterr(true);
                 //Swal.fire('Error', 'Title is required!', 'error');
                 valid = false;
             }
-            if (!deptId && !selectUserDept) {
+            // if (!deptId && !selectUserDept) {//old
+            //     setdepartmenterr(true);
+            //     //Swal.fire('Error', 'Title is required!', 'error');
+            //     valid = false;
+            // }
+            if (!AuditProgdeptId && !selectUserDept) {//new
                 setdepartmenterr(true);
                 //Swal.fire('Error', 'Title is required!', 'error');
                 valid = false;
             }
-            if (!deptId || (selectUserDept && selectUserDept?.length == 0) || !selectUserDept) {
+            // if (!deptId || (selectUserDept && selectUserDept?.length == 0) || !selectUserDept) {
+            //     setdepartmenterr(true);
+            //     //Swal.fire('Error', 'Type is required!', 'error');
+            //     validraft = false;
+            // }
+            if (!AuditProgdeptId || (selectUserDept && selectUserDept?.length == 0) || !selectUserDept) {
                 setdepartmenterr(true);
                 //Swal.fire('Error', 'Type is required!', 'error');
                 validraft = false;
@@ -1777,17 +2001,33 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 setapprovedauditplanerr(true);
                 validraft = false;
             }
-            if (AllsubDept.length > 0 && (!subdeptId || (selectUsersubDept && selectUsersubDept?.length == 0) || !selectUsersubDept)) {
-                setsubdepartmenterr(true);
+            // if (AllsubDept.length > 0 && (!subdeptId || (selectUsersubDept && selectUsersubDept?.length == 0) || !selectUsersubDept)) {
+            //     setsubdepartmenterr(true);
+            //     //Swal.fire('Error', 'Title is required!', 'error');
+            //     valid = false;
+            // }
+            // if (!deptId && !selectUserDept) {
+            //     setdepartmenterr(true);
+            //     //Swal.fire('Error', 'Type is required!', 'error');
+            //     validraft = false;
+            // }
+            // if (!deptId || (selectUserDept && selectUserDept?.length == 0) || !selectUserDept) {
+            //     setdepartmenterr(true);
+            //     //Swal.fire('Error', 'Type is required!', 'error');
+            //     validraft = false;
+            // }
+            //  if (CustodianOpt.length > 0 && (!CustodianId)) {
+            //     setsubdepartmenterr(true);
+            //     //Swal.fire('Error', 'Title is required!', 'error');
+            //     valid = false;
+            // }
+            if (!AuditProgdeptId && !selectUserDept) {//new
+                setdepartmenterr(true);
                 //Swal.fire('Error', 'Title is required!', 'error');
                 valid = false;
             }
-            if (!deptId && !selectUserDept) {
-                setdepartmenterr(true);
-                //Swal.fire('Error', 'Type is required!', 'error');
-                validraft = false;
-            }
-            if (!deptId || (selectUserDept && selectUserDept?.length == 0) || !selectUserDept) {
+            
+            if (!AuditProgdeptId || (selectUserDept && selectUserDept?.length == 0) || !selectUserDept) {
                 setdepartmenterr(true);
                 //Swal.fire('Error', 'Type is required!', 'error');
                 validraft = false;
@@ -2026,8 +2266,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
                             ShiftId: formData.shiftId,
-                            DepartmentAuditedId: formData.deptId,
-                            SubDepartmentId: formData.subdeptId, // Default to 0 if SubDepartmentId is null
+                            // DepartmentAuditedId: formData.deptId,//old
+                            // SubDepartmentId: formData.subdeptId, //old
+                             DepartmentAuditedId: formData.AuditProgdeptId,//new
+                            SubDepartmentId: formData.CustodianId,//new
                             Date: formData.date,
                             AuditPlanDate: auditplandate,
                             DocumentCode: formData.documentCode,
@@ -2074,7 +2316,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 ReportCode: reportCode,
                                 NCType: row.nctype,
                                 Description: row.descriptionNC,
-                                DepartmentId: formData.deptId,
+                                DepartmentId: formData.AuditProgdeptId,
+                                CustodianId:formData.CustodianId,
                                 Title: row.id.toString()
                             }
                             if (row.Id) {
@@ -2397,8 +2640,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
                             ShiftId: formData.shiftId,
-                            DepartmentAuditedId: formData.deptId,
-                            SubDepartmentId: formData.subdeptId, // Default to 0 if SubDepartmentId is null
+                            // DepartmentAuditedId: formData.deptId,
+                            // SubDepartmentId: formData.subdeptId, 
+                            DepartmentAuditedId: formData.AuditProgdeptId,//new
+                            SubDepartmentId: formData.CustodianId,//new
                             Date: formData.date,
                             AuditPlanDate: auditplandate,
                             DocumentCode: formData.documentCode,
@@ -2711,8 +2956,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
                             ShiftId: formData.shiftId,
-                            DepartmentAuditedId: formData.deptId,
-                            SubDepartmentId: formData.subdeptId, // Default to 0 if SubDepartmentId is null
+                            // DepartmentAuditedId: formData.deptId,
+                            // SubDepartmentId: formData.subdeptId, // Default to 0 if SubDepartmentId is null
+                            DepartmentAuditedId: formData.AuditProgdeptId,//new
+                            SubDepartmentId: formData.CustodianId,//new
                             Date: formData.date,
                             AuditPlanDate: auditplandate,
                             DocumentCode: formData.documentCode,
@@ -2762,7 +3009,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 ReportCode: reportCode,
                                 NCType: row.nctype,
                                 Description: row.descriptionNC,
-                                DepartmentId: formData.deptId,
+                                // DepartmentId: formData.deptId,old
+                                DepartmentId: formData.AuditProgdeptId,
+                                CustodianId:formData.CustodianId,
                                 Title: row.id.toString()
                             }
                             if (row.Id) {
@@ -3064,8 +3313,10 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             ApprovedAuditPlanId: selectAuditplan.ID,
                             DepartmentId: formData.fromdeptId,
                             ShiftId: formData.shiftId,
-                            DepartmentAuditedId: formData.deptId,
-                            SubDepartmentId: formData.subdeptId, // Default to 0 if SubDepartmentId is null
+                            // DepartmentAuditedId: formData.deptId,
+                            // SubDepartmentId: formData.subdeptId, // Default to 0 if SubDepartmentId is null
+                            DepartmentAuditedId: formData.AuditProgdeptId,//new
+                            SubDepartmentId: formData.CustodianId,//new
                             Date: formData.date,
                             AuditPlanDate: auditplandate,
                             DocumentCode: formData.documentCode,
@@ -3119,7 +3370,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 ReportCode: reportCode,
                                 NCType: row.nctype,
                                 Description: row.descriptionNC,
-                                DepartmentId: formData.deptId,
+                                // DepartmentId: formData.deptId,
+                                DepartmentId: formData.AuditProgdeptId,
+                                CustodianId:formData.CustodianId,
                                 Title: row.id.toString()
                             }
                             const postResultNC = await addItemNC(postPayloadNC, sp);
@@ -4246,12 +4499,14 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                {console.log("deoartment auditeddd", selectUserDept, formData.deptId, AllDept.filter((x: any) => x.value == formData.deptId))}
+                                                                {/* {console.log("deoartment auditeddd", selectUserDept, formData.deptId, AllDept.filter((x: any) => x.value == formData.deptId))} */}
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
-                                                                        <label htmlFor="Department" className="col-form-label">Department Audited<span className="text-danger1"> *</span></label>
+                                                                        <label htmlFor="Custodian" className="col-form-label">Custodian<span className="text-danger1"> *</span></label>
+
+                                                                        {/* <label htmlFor="Department" className="col-form-label">Department Audited<span className="text-danger1"> *</span></label> */}
                                                                         <div >
-                                                                            <div
+                                                                            {/* <div
                                                                                 title={selectUserDept && selectUserDept[0]?.label || selectUserDept && selectUserDept?.label}
                                                                                 style={{ width: "100%" }}
                                                                             >
@@ -4269,6 +4524,56 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     onChange={(selectedOptions: any) => handleDepartmentChange(selectedOptions)}
                                                                                     placeholder="Select Department"
                                                                                 />
+                                                                            </div> */}
+                                                                            <div
+                                                                                title={formData.Custodian?.label || "Select Custodian"}
+                                                                                style={{ width: "100%" }}
+                                                                            >
+                                                                                <Select
+                                                                                    options={CustodianOpt}
+                                                                                    // isMulti
+                                                                                    className={`newse ${(!ValidSubmit && subdepartmenterr) ? "border-on-error" : ""}`}
+                                                                                    value={formData.Custodian}
+                                                                                    isClearable
+
+                                                                                    title={formData.Custodian?.label || "Select Custodian"} // Added title tooltip
+                                                                                    // onChange={(selectedOptions: any) => handleCoverageRow(index, 'Custodian', selectedOptions)}
+                                                                                    onChange={(e: any) => {
+
+                                                                                        if (!e) {
+                                                                                            setFormData({
+                                                                                                ...formData,
+                                                                                                CustodianId: 0,
+                                                                                                Custodian: null
+                                                                                            });
+                                                                                        } else {
+                                                                                            setFormData({
+                                                                                                ...formData,
+                                                                                                CustodianId: e.value,
+                                                                                                Custodian: e
+                                                                                            });
+                                                                                        }
+                                                                                    }}
+                                                                                    placeholder="Select"
+                                                                                    isDisabled={InputDisabled}
+
+                                                                                    menuPortalTarget={document.body}
+                                                                                    // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
+                                                                                    styles={{
+                                                                                        menu: (base: any) => ({
+                                                                                            ...base,
+                                                                                            position: 'absolute',
+                                                                                            zIndex: 9,
+                                                                                            top: '100%',
+                                                                                            left: 0,
+                                                                                        }),
+                                                                                        container: (base: any) => ({
+                                                                                            ...base,
+                                                                                            zIndex: 0,
+                                                                                            position: 'relative'
+                                                                                        }),
+                                                                                    }}
+                                                                                />
                                                                             </div>
 
                                                                         </div>
@@ -4276,27 +4581,72 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                 </div>
                                                                 <div className="col-lg-4">
                                                                     <div className="mb-3">
-                                                                        <label htmlFor="Department" className="col-form-label">Sub-Department<span className="text-danger1">{AllsubDept.length > 0 && "*"}</span></label>
+                                                                        {/* <label htmlFor="Department" className="col-form-label">Sub-Department<span className="text-danger1">{AllsubDept.length > 0 && "*"}</span></label> */}
+                                                                        {/* <label htmlFor="Department" className="col-form-label">Department<span className="text-danger1">{AllsubDept.length > 0 && "*"}</span></label> */}
+                                                                        <label htmlFor="Department" className="col-form-label">Department Audited<span className="text-danger1">{"*"}</span></label>
+
                                                                         <div >
                                                                             <div
-                                                                                title={selectUsersubDept && selectUsersubDept[0]?.label || selectUsersubDept && selectUsersubDept?.label}
+                                                                                title={formData.AuditProgdept?.label|| "Select department"}
                                                                                 style={{ width: "100%" }}
                                                                             >
                                                                                 <Select
                                                                                     //onKeyDown={handleKeyDown}
                                                                                     isClearable={true}
-                                                                                    options={AllsubDept}
+                                                                                    options={CriteriaDeptOpt.sort((a: any, b: any) => a.label.localeCompare(b.label))}
                                                                                     isDisabled={InputDisabled}
-                                                                                    value={selectUsersubDept}
+                                                                                    value={formData.AuditProgdept}
                                                                                     name="subdeptId"
-                                                                                    className={`newse  ${(!ValidSubmit && subdepartmenterr) ? "border-on-error" : ""} ${(!ValidDraft && subdepartmenterr) ? "border-on-error" : ""}`}
-                                                                                    // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
-                                                                                    // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
-                                                                                    // onChange={handleDepartmentChange}
+                                                                                    className={`newse  ${(!ValidSubmit && departmenterr) ? "border-on-error" : ""} ${(!ValidDraft && departmenterr) ? "border-on-error" : ""}`}
+
                                                                                     onChange={(selectedOptions: any) => handlesubDepartmentChange(selectedOptions)}
                                                                                     placeholder="Select Sub-Department"
                                                                                 />
                                                                             </div>
+                                                                            {/* <div
+                                                                                title={formData.AuditProgdept?.label || "Select department"}
+                                                                                style={{ width: "100%" }}
+                                                                            >
+                                                                                <Select
+                                                                                    options={CriteriaDeptOpt.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                                                                    // isMulti
+                                                                                    className={`coverageClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                    value={formData.AuditProgdept}
+                                                                                    isClearable
+                                                                                    name="subdeptId"
+                                                                                    // onKeyDown={(e: any) => handleKeyDown(e, 'dept', index)}
+                                                                                    title={formData.AuditProgdept?.label || "Select department"} // Added title tooltip
+                                                                                    // onChange={(selectedOptions: any) => handleCoverageRow(index, 'dept', selectedOptions)}
+                                                                                    // onChange={(e: any) => setFormData({ ...formData, AuditProgdeptId: e.value, AuditProgdept: e })}
+                                                                                    // onChange={(e: any) => {
+                                                                                    //     setFormData({
+                                                                                    //         ...formData,
+                                                                                    //         AuditProgdeptId: e ? e.value : 0,
+                                                                                    //         AuditProgdept: e ? e : null
+                                                                                    //     });
+                                                                                    // }}
+                                                                                    onChange={(selectedOptions: any) => handlesubDepartmentChange(selectedOptions)}
+                                                                                    placeholder="Select department"
+                                                                                    isDisabled={InputDisabled}
+
+                                                                                    menuPortalTarget={document.body}
+                                                                                    // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
+                                                                                    styles={{
+                                                                                        menu: (base: any) => ({
+                                                                                            ...base,
+                                                                                            position: 'absolute',
+                                                                                            zIndex: 9,
+                                                                                            top: '100%',
+                                                                                            left: 0,
+                                                                                        }),
+                                                                                        container: (base: any) => ({
+                                                                                            ...base,
+                                                                                            zIndex: 0,
+                                                                                            position: 'relative'
+                                                                                        }),
+                                                                                    }}
+                                                                                />
+                                                                            </div> */}
 
                                                                         </div>
                                                                     </div>
@@ -4419,7 +4769,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     className={`newse`}
                                                                                     // onChange={(selectedOptions: any) => handleCCChange(selectedOptions, 'CC')}
                                                                                     // onChange={(e: any) => setFormData({ ...formData, deptId: e.value })}
-                                                                                    // onChange={handleDepartmentChange}
+
                                                                                     onChange={(selectedOptions: any) => handleShiftChange(selectedOptions)}
                                                                                     placeholder="Select Shift"
                                                                                 />

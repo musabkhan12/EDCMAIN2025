@@ -41,6 +41,11 @@ import moment from 'moment';
 import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import FileViewer from '../components/fileviewer';
+import { GraphFI, graphfi, SPFx as graphSPFx } from "@pnp/graph";
+import "@pnp/graph/groups";
+import "@pnp/graph/members";
+import "@pnp/sp/webs";
+import "@pnp/sp/site-groups/web";
 
 // let myloader = '../../'
 let newfileupload: any
@@ -61,9 +66,20 @@ interface Location {
     locationName: string;
     // locationCode: string;
 }
+interface Custodian {
+    custodianId: number; // ID for Location lookup
+    custodianName: string;
+    // locationCode: string;
+}
 
+interface Department {
+    departmentId: number; // ID for Location lookup
+    departmentName: string;
+    // locationCode: string;
+}
 const AnnualAuditPlanContext = ({ props }: any) => {
     const sp: SPFI = getSP();
+    let graph: GraphFI;
     const elementRef = React.useRef<HTMLDivElement>(null);
     const siteUrl = props.siteUrl;
     const { useHide }: any = React.useContext(UserContext);
@@ -108,6 +124,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     const [AllDept, setAllDept] = React.useState([]);
     const [DocumentLink, setDocumentLink] = React.useState(null);
     const [LocationOpt, setLocationOpt] = React.useState<any>([]);
+    const [CustodianOpt, setCustodianOpt] = React.useState<any>([]);
+    const [CriteriaDeptOpt, setCriteriaDeptOpt] = React.useState<any>([]);
     const [DraftApprovalItem, setDraftApprovalItem] = React.useState(null);
     const [RecommType, setRecommType] = React.useState([]);
     const [Classificationopt, setClassificationopt] = React.useState<any>([]);
@@ -264,19 +282,26 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         if (selectedOption == null) {
             setFormData((prevFormData) => ({
                 ...prevFormData,
-                MemoListId: memoId,
-                memoSerialNo: memo,
-                deptId: onloadDeptId,
-                // memoNo: setAllDept1.filter(user => user.label === UserDept)[0]
-                //     ? `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-                //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-                memoNo: AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0]
-                    ? `${AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-                    : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-                memoFileName: AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]
-                    ? `${AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
-                    : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+                MemoListId: 0,
+                memoSerialNo: 0,
+                deptId: null,
+                // memoNo: `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+                // memoFileName: `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+                memoNo: `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/001`,
+                memoFileName: `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_001`,
             }));
+            // setFormData((prevFormData) => ({
+            //     ...prevFormData,
+            //     MemoListId: memoId,
+            //     memoSerialNo: memo,
+            //     deptId: onloadDeptId,
+            //     memoNo: AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0]
+            //         ? `${AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+            //         : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+            //     memoFileName: AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]
+            //         ? `${AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+            //         : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+            // }));
 
 
         }
@@ -348,7 +373,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     ]);
 
     const [coverageAuditCriteria, setcoverageAuditCriteria] = React.useState([
-        { id: 0, ProcessActivity: "", date: "", dept: null, deptId: null, startTime: "", auditor: null, auditorIds: null, LocationId: null, Location: null, validtime: true }
+        { id: 0, ProcessActivity: "", date: "", dept: null, deptId: null, startTime: "", auditor: null, auditorIds: null, LocationId: null, Location: null, CustodianId: null, Custodian: null, validtime: true }
     ]);
 
     const [coverageAuditCriteriaEdit, setcoverageAuditCriteriaEdit] = React.useState([]);
@@ -360,7 +385,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     };
 
     const handleAddCoverageRow = () => {
-        setcoverageAuditCriteria([...coverageAuditCriteria, { id: 0, ProcessActivity: "", date: "", dept: null, deptId: null, startTime: "", auditor: null, auditorIds: null, LocationId: null, Location: null, validtime: true }]);
+        setcoverageAuditCriteria([...coverageAuditCriteria, { id: 0, ProcessActivity: "", date: "", dept: null, deptId: null, startTime: "", auditor: null, auditorIds: null, LocationId: null, Location: null, CustodianId: null, Custodian: null, validtime: true }]);
     };
 
     const handleRecommendationChange = (index: number, field: string, value: any) => {
@@ -415,6 +440,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             );
 
         }
+        else if (field == "Custodian") {
+            // const valuesOnly = value.map((option: any) => option.value);
+            updatedRows = coverageAuditCriteria.map((row, i) =>
+                i === index ? { ...row, [field]: value ? value : null, CustodianId: value ? value.value : null } : row
+            );
+
+        }
         else {
             updatedRows = coverageAuditCriteria.map((row, i) =>
                 i === index ? { ...row, [field]: value } : row
@@ -431,7 +463,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             // Fetch the items
             const items = await sp.web.lists
                 // .getByTitle("LocationMaster") // Your list name
-                .getByTitle("AuditPlanLocationMaster") // Your list name
+                .getByTitle("AuditProgramLocationMaster") // Your list name
                 .items
                 // .filter("IsActive eq 'Yes'") // Filter active items
                 // .select("ID", "Location", "LocationCode") // Select required fields
@@ -450,6 +482,63 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             // Update state with the fetched locations
             setLocationOpt(locations);
             return locations;
+        } catch (error) {
+            console.error("Error fetching locations: ", error);
+        }
+    };
+    const fetchCustodian = async () => {
+        try {
+            // Fetch the items
+            const items = await sp.web.lists
+                // .getByTitle("LocationMaster") // Your list name
+                .getByTitle("AuditProgramCustodianMaster") // Your list name
+                .items
+                // .filter("IsActive eq 'Yes'") // Filter active items
+                // .select("ID", "Location", "LocationCode") // Select required fields
+                .top(5000) // Limit number of records
+                (); // Call get() to fetch data
+            items.sort((a, b) => a.Custodian.localeCompare(b.Custodian));
+            // Use map on the result to create the desired array structure
+            const custodians: Custodian[] = items.map((item: any) => ({
+                custodianId: item.ID, // Store the ID for lookup
+                custodianName: item.Custodian, // Name of the location
+                // locationCode: item.LocationCode, // Code of the location
+                label: item.Custodian,
+                value: item.ID
+            }));
+
+            // Update state with the fetched locations
+            setCustodianOpt(custodians);
+            return custodians;
+        } catch (error) {
+            console.error("Error fetching locations: ", error);
+        }
+    };
+
+    const CriteriaDept = async () => {
+        try {
+            // Fetch the items
+            const items = await sp.web.lists
+                // .getByTitle("LocationMaster") // Your list name
+                .getByTitle("AuditProgramDepartmentMaster") // Your list name
+                .items
+                // .filter("IsActive eq 'Yes'") // Filter active items
+                // .select("ID", "Location", "LocationCode") // Select required fields
+                .top(5000) // Limit number of records
+                (); // Call get() to fetch data
+            items.sort((a, b) => a.Department.localeCompare(b.Department));
+            // Use map on the result to create the desired array structure
+            const departments: Department[] = items.map((item: any) => ({
+                departmentId: item.ID, // Store the ID for lookup
+                departmentName: item.Department, // Name of the location
+                // locationCode: item.LocationCode, // Code of the location
+                label: item.Department,
+                value: item.ID
+            }));
+
+            // Update state with the fetched locations
+            setCriteriaDeptOpt(departments);
+            return departments;
         } catch (error) {
             console.error("Error fetching locations: ", error);
         }
@@ -502,6 +591,18 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     };
 
     const ApiCallFunc = async () => {
+        const me = await graph.me.select(
+            "displayName",
+            "mail",
+            "jobTitle",
+            "department",
+            "officeLocation",
+            "companyName"
+        )();
+
+        const graphCurrentUserDept = me.department;
+
+        console.log("Current user department:", graphCurrentUserDept);
         setAuditPlanType(await getAllAuditType(sp));
 
 
@@ -558,7 +659,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
         const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
         // setselectUserDept(setAllDept1.filter(user => user.label === UserDept));
-        setselectUserDept(setAllDept1.filter(user => user.ADDepartmentName === UserDept));
+        // setselectUserDept(setAllDept1.filter(user => user.ADDepartmentName === UserDept)); //old
+        setselectUserDept(setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept));
+
         const recommendationTypes = await getRecommendationTypes(sp);
         setRecommType(recommendationTypes);
         var ClassificationArr = await getAllClassificationMaster(sp);
@@ -674,7 +777,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             // }
 
             // const onloadDeptId = setAllDept1.filter((user: any) => user.label === UserDept)[0]?.value || 0;
-            const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0;
+            // const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0;//old
+            const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]?.value || 0;
+
 
             const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
             if (listItems.length > 0) {
@@ -707,11 +812,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 // memoNo: setAllDept1.filter(user => user.label === UserDept)[0]
                 //     ? `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
                 //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-                memoNo: setAllDept1.filter(user => user.ADDepartmentName === UserDept)[0]
-                    ? `${setAllDept1.filter(user => user.ADDepartmentName === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+                memoNo: setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept)[0]
+                    ? `${setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
                     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-                memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]
-                    ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+                memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
+                    ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
                     : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
             }));
 
@@ -927,7 +1032,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
                     Status: setBannerById[0].Status,
                     surpriseAudit: setBannerById[0].SurpriseAudit || "",
-                    OnDemandAudit :setBannerById[0].OnDemandAudit || "",
+                    OnDemandAudit: setBannerById[0].OnDemandAudit || "",
                 }));
                 setdisableDepartment(setBannerById[0].DepartmentId ? true : false);
 
@@ -1049,6 +1154,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         dept: item?.Department ? { label: item.Department.Department, value: item.Department.ID } : null,
                         deptId: item.DepartmentId ? item.DepartmentId : null,
                         Location: item.Location ? { label: item.Location.Location, value: item.Location.ID } : null,
+                        Custodian: item.Custodian ? { label: item.Custodian.Custodian, value: item.Custodian.ID } : null,
+                        CustodianId: item.CustodianId,
                         auditorIds: item.AuditorId,
                         validtime: true,
                         auditor: item.Auditor ? { label: item.Auditor.Title, value: item.Auditor.ID } : null // Convert single object
@@ -1077,6 +1184,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         createTooltipContent(filteredDeptArrayCC);
         createTooltipContentTo(filteredDeptArrayTo);
         let locationoptions = await fetchLocations();
+        await fetchCustodian();
+        await CriteriaDept();
         setRecommType(await getRecommendationTypes(sp));
         let ChangeRequestTemplateType = await getLatestChangeRequestTemplateType(sp, CONTENTTYPE_AuditPlanTemp);
 
@@ -1155,11 +1264,19 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         setForwardToArr([...updatedRows]); // Ensure a new array reference
     };
 
+    React.useEffect(() => {
+        if (props?.context) {
+            graph = graphfi().using(graphSPFx(props.context));
+            if (graph) { ApiCallFunc(); }
+        }
 
+
+    }, [props.context]);
 
     React.useEffect(() => {
+        // graph = graphfi().using(graphSPFx(props.context));
 
-        ApiCallFunc();
+        // ApiCallFunc();
         // getMemoNumber();
         const handleScroll = () => {
             // Close the dropdown on scroll
@@ -1256,7 +1373,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             classificationId,
             DeptRepId,
             DeptRepValue,
-            surpriseAudit,OnDemandAudit
+            surpriseAudit, OnDemandAudit
         } = formData;
         // const { description } = richTextValues;
         let valid = true;
@@ -1494,7 +1611,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             if (!coverageAuditCriteria.length) {
                 valid1 = false;
             }
-            if (coverageAuditCriteria.length > 0 && coverageAuditCriteria.every((row: any) => row.Location != null && row.LocationId != null
+            if (coverageAuditCriteria.length > 0 && coverageAuditCriteria.every((row: any) => row.Location != null && row.LocationId != null && row.Custodian != null && row.CustodianId != null
                 // && row.StandardClauses.trim() !== ""
                 && row.ProcessActivity.trim() !== "" && row.date.trim() !== "" && row.startTime !== null && row.startTime.trim() !== "" && row.auditorIds != null && row.auditor != null && row.auditor.length != 0 && row.deptId != 0 && row.dept != null && row.dept != null) == false) {
                 valid1 = false;
@@ -1810,7 +1927,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             // MIssueDate:formData.MIssueDate
 
                             SurpriseAudit: formData.surpriseAudit,
-                            OnDemandAudit:formData.OnDemandAudit,
+                            OnDemandAudit: formData.OnDemandAudit,
 
 
                         }
@@ -1971,6 +2088,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 Time: cov.startTime || "",
                                 AuditorId: cov.auditorIds ? cov.auditorIds : null,
                                 LocationId: cov.LocationId ? cov.LocationId : null,
+                                CustodianId: cov.CustodianId ? cov.CustodianId : null,
                             }
 
                             if (cov.id) {
@@ -2233,7 +2351,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             MIssueDate: formData.MIssueDate,
 
                             SurpriseAudit: formData.surpriseAudit,
-                            OnDemandAudit:formData.OnDemandAudit,
+                            OnDemandAudit: formData.OnDemandAudit,
 
                         }
 
@@ -2381,6 +2499,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     Time: cov.startTime || "",
                                     AuditorId: cov.auditorIds ? cov.auditorIds : null,
                                     LocationId: cov.LocationId ? cov.LocationId : null,
+                                    CustodianId: cov.CustodianId ? cov.CustodianId : null,
                                 }
 
                                 const postResult2 = await addItem3(postPayload2, sp);
@@ -2546,7 +2665,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 // MIssueDate:formData.MIssueDate
 
                                 SurpriseAudit: formData.surpriseAudit,
-                                OnDemandAudit:formData.OnDemandAudit,
+                                OnDemandAudit: formData.OnDemandAudit,
 
                             }
 
@@ -2602,7 +2721,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                 // MRevisionDate: formData.MRevisionDate,
                                 // MIssueDate:formData.MIssueDate
                                 SurpriseAudit: formData.surpriseAudit,
-                                OnDemandAudit:formData.OnDemandAudit,
+                                OnDemandAudit: formData.OnDemandAudit,
 
                             }
                         }
@@ -2766,6 +2885,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     Time: cov.startTime || "",
                                     AuditorId: cov.auditorIds ? cov.auditorIds : null,
                                     LocationId: cov.LocationId ? cov.LocationId : null,
+                                    CustodianId: cov.CustodianId ? cov.CustodianId : null,
                                 }
 
                                 if (cov.id) {
@@ -2961,7 +3081,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             RequestDate: new Date(formData.RequestDate).toISOString(),
 
                             MemorandumIDId: formData.MemoId,
-                           
+
                             MemoNumber: formData.memoNo,
                             MemoSerialNumber: formData.memoSerialNo,
                             // MemoNumber: memoNum,
@@ -3012,7 +3132,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                             MRevisionDate: formData.MRevisionDate,
                             MIssueDate: formData.MIssueDate,
                             SurpriseAudit: formData.surpriseAudit,
-                            OnDemandAudit:formData.OnDemandAudit,
+                            OnDemandAudit: formData.OnDemandAudit,
 
                         }
                         // console.log(postPayload);
@@ -3132,6 +3252,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                     Time: cov.startTime || "",
                                     AuditorId: cov.auditorIds ? cov.auditorIds : null,
                                     LocationId: cov.LocationId ? cov.LocationId : null,
+                                    CustodianId: cov.CustodianId ? cov.CustodianId : null,
                                 }
 
                                 const postResult2 = await addItem3(postPayload2, sp);
@@ -4656,6 +4777,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                         <th style={{ minWidth: '140px', maxWidth: '140px' }} colSpan={2}>Time
                                                                             <span className="text-danger1"> *</span>
                                                                         </th>
+                                                                        <th style={{ minWidth: '200px', maxWidth: '200px' }}>Custodian
+                                                                            <span className="text-danger1"> *</span>
+                                                                        </th>
                                                                         <th style={{ minWidth: '200px', maxWidth: '200px' }}>Department
                                                                             <span className="text-danger1"> *</span>
                                                                         </th>
@@ -4748,7 +4872,38 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     />
                                                                                 </LocalizationProvider>
                                                                             </td>
-                                                                            <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }} title={row.dept?.label || "Select department"} className='mtbalenew3'>
+                                                                            <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }} title={row.Custodian?.label || "Select Custodian"}>
+                                                                                <Select
+                                                                                    options={CustodianOpt}
+                                                                                    // isMulti
+                                                                                    className={`coverageClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                    value={row.Custodian}
+                                                                                    isClearable
+                                                                                   
+                                                                                    title={row.Custodian?.label || "Select Custodian"} // Added title tooltip
+                                                                                    onChange={(selectedOptions: any) => handleCoverageRow(index, 'Custodian', selectedOptions)}
+                                                                                    placeholder="Select"
+                                                                                    isDisabled={InputDisabled}
+
+                                                                                    menuPortalTarget={document.body}
+                                                                                    // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
+                                                                                    styles={{
+                                                                                        menu: (base: any) => ({
+                                                                                            ...base,
+                                                                                            position: 'absolute',
+                                                                                            zIndex: 9,
+                                                                                            top: '100%',
+                                                                                            left: 0,
+                                                                                        }),
+                                                                                        container: (base: any) => ({
+                                                                                            ...base,
+                                                                                            zIndex: 0,
+                                                                                            position: 'relative'
+                                                                                        }),
+                                                                                    }}
+                                                                                />
+                                                                            </td>
+                                                                            {/* <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }} title={row.dept?.label || "Select department"} className='mtbalenew3'>
                                                                                 <Select
                                                                                     options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
                                                                                     // isMulti
@@ -4778,7 +4933,40 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                         }),
                                                                                     }}
                                                                                 />
+                                                                            </td> */}
+
+                                                                            <td style={{ overflow: "inherit", minWidth: '200px', maxWidth: '200px' }} title={row.dept?.label || "Select department"} className='mtbalenew3'>
+                                                                                <Select
+                                                                                    options={CriteriaDeptOpt.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                                                                    // isMulti
+                                                                                    className={`coverageClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
+                                                                                    value={row.dept}
+                                                                                    isClearable
+                                                                                    // onKeyDown={(e: any) => handleKeyDown(e, 'dept', index)}
+                                                                                    title={row.dept?.label || "Select department"} // Added title tooltip
+                                                                                    onChange={(selectedOptions: any) => handleCoverageRow(index, 'dept', selectedOptions)}
+                                                                                    placeholder="Select department"
+                                                                                    isDisabled={InputDisabled}
+
+                                                                                    menuPortalTarget={document.body}
+                                                                                    // styles={{ menuPortal: (base:any) => ({ ...base, zIndex: 9,position:'absolute'}) }}
+                                                                                    styles={{
+                                                                                        menu: (base: any) => ({
+                                                                                            ...base,
+                                                                                            position: 'absolute',
+                                                                                            zIndex: 9,
+                                                                                            top: '100%',
+                                                                                            left: 0,
+                                                                                        }),
+                                                                                        container: (base: any) => ({
+                                                                                            ...base,
+                                                                                            zIndex: 0,
+                                                                                            position: 'relative'
+                                                                                        }),
+                                                                                    }}
+                                                                                />
                                                                             </td>
+
                                                                             <td style={{ minWidth: '260px', maxWidth: '260px', overflow: "inherit" }}>
                                                                                 <textarea
                                                                                     className={`form-control coverageClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}

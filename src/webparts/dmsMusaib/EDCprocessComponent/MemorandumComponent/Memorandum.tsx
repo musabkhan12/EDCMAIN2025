@@ -41,6 +41,14 @@ import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import "./Memo.scss";
 import FileViewer from '../../components/fileviewer';
+// import { GraphFI, graphfi, SPFx as graphSPFx } from "@pnp/graph";
+import { GraphFI, graphfi, SPFx as graphSPFx } from "@pnp/graph";
+import "@pnp/graph/groups";
+import "@pnp/graph/members";
+import "@pnp/sp/webs";
+import "@pnp/sp/site-groups/web";
+// import { SPFI } from "@pnp/sp/presets/all";
+
 
 
 const datePickerErrorStyles: Partial<IDatePickerStyles> = {
@@ -66,6 +74,8 @@ interface ForwardTo {
 
 const MemoContext = ({ props }: any) => {
   const sp: SPFI = getSP();
+  let graph: GraphFI;
+  // console.log(sp, "sp", graph);
   const elementRef = React.useRef<HTMLDivElement>(null);
   const siteUrl = props.siteUrl;
   const { useHide }: any = React.useContext(UserContext);
@@ -449,6 +459,29 @@ const MemoContext = ({ props }: any) => {
   };
 
   const ApiCallFunc = async () => {
+    const userEmail = "s.Saleem@edcad.ae";
+    const user = await graph.users
+      .filter(`mail eq '${userEmail}'`)
+      .select("*,id,displayName,mail",
+        "jobTitle",
+        "department",
+        "officeLocation",
+        "companyName")
+      ();
+
+    const me = await graph.me.select(
+      "displayName",
+      "mail",
+      "jobTitle",
+      "department",
+      "officeLocation",
+      "companyName"
+    )();
+
+    const graphCurrentUserDept = me.department;
+
+    console.log("UAT user profile:", user);
+
     var setAllDept1 = await getAllDepartment(sp);
 
 
@@ -493,7 +526,8 @@ const MemoContext = ({ props }: any) => {
     const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
     // setcurrentUserDept(UserDept);
     // setselectUserDept(setAllDept1.filter((user: any) => user.label === UserDept));
-    setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]);
+    // setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]);
+    setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]);
     const recommendationTypes = await getRecommendationTypes(sp);
     setRecommType(recommendationTypes);
     var ClassificationArr = await getAllClassificationMaster(sp);
@@ -530,7 +564,11 @@ const MemoContext = ({ props }: any) => {
       // }
 
       // const onloadDeptId = setAllDept1.filter((user: any) => user.label === UserDept)[0]?.value || 0;
-      const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0;
+
+
+      // const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0; //old
+      const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]?.value || 0; //new
+
 
       const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
       if (listItems.length > 0) {
@@ -563,11 +601,11 @@ const MemoContext = ({ props }: any) => {
         // memoNo: setAllDept1.filter((user: any) => user.label === UserDept)[0]
         //   ? `${setAllDept1.filter((user: any) => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
         //   : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-        memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]
-          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
+          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
           : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-        memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]
-          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+        memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
+          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
           : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
       }));
 
@@ -970,9 +1008,14 @@ const MemoContext = ({ props }: any) => {
 
 
   React.useEffect(() => {
+    graph = graphfi().using(graphSPFx(props.context));
+
+
+
 
     ApiCallFunc();
     OnLoadCallFunc()
+
 
   }, [useHide]);
 

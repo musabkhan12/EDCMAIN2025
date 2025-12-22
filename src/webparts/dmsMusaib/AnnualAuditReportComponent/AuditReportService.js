@@ -473,14 +473,19 @@ export const getAllDepartment1 = async (_sp) => {
   let arrs = []
   let bannerimg = []
   await _sp.web.lists.getByTitle("ProcessDepartmentMasterList").items
-    .select("*").filter("Active eq 'Yes'")()
+    .select("*,ToUsers/Title,CCUsers/Title").expand("ToUsers,CCUsers").filter("Active eq 'Yes'")()
     .then((res) => {
       // console.log(res, ' let arrs=[]');
       arr = res.map((item) => ({
         value: item.Id,
         label: item.Department,
         Department: item.Department,
-        departmentcode: item.DepartmentCode
+        departmentcode: item.DepartmentCode,
+        ADDepartmentName: item.ADDepartmentName,
+        ToUsers: item.ToUsersId || [],
+        CCUsers: item.CCUsersId || [],
+        ToUsersTitle: item.ToUsers || [],
+        CCUsersTitle: item.CCUsers || [],
       }));
 
 

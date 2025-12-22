@@ -378,7 +378,7 @@ export const getApprovalByID = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo?.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then((result) => {
           if (result.length > 0) {
@@ -471,7 +471,7 @@ export const getApprovalByID = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo?.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then((result) => {
           if (result.length > 0) {
@@ -533,7 +533,7 @@ export const getApprovalByID = async (_sp, id, processName) => {
     debugger
     let arr = []
     let sampleDataArray = []
-    arr = await sp.web.lists.getByTitle("AnnualAuditPlanAuditCriteriaList").items.select("*,AnnualAuditPlanID/ID,Auditor/ID,Auditor/Title,Location/ID,Location/Location,Department/Department,Department/ID").expand("Department,Location,AnnualAuditPlanID,Auditor").filter(`AnnualAuditPlanID/ID eq ${AuditID}`).getAll();
+    arr = await sp.web.lists.getByTitle("AnnualAuditPlanAuditCriteriaList").items.select("*,AnnualAuditPlanID/ID,Auditor/ID,Auditor/Title,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,Department/Department,Department/ID").expand("Department,Custodian,Location,AnnualAuditPlanID,Auditor").filter(`AnnualAuditPlanID/ID eq ${AuditID}`).getAll();
     // .then((res) => {
     //   arr = res
     //   console.log(arr, 'arr');
@@ -595,7 +595,7 @@ export const getDraftApprovalByID = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo?.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then(async (result) => {
           if (result.length > 0) {

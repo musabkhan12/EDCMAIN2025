@@ -37,11 +37,11 @@ import {
   getdigitalsignaturerequestbyIDYes,
   CheckIfAlreadyactionTaken,
   getallProcessApprovalitemsLevel,
-   getDelegateduser,
+  getDelegateduser,
   getchangerequestnotes,
   CheckifDocumentisApproved,
   getChangeRequestTypeMaster
-  
+
 } from './DocumentCancellation';
 import Select from "react-select";
 import Swal from 'sweetalert2';
@@ -64,6 +64,13 @@ import * as XLSX from 'xlsx';
 import { SITE_URL } from '../../../Shared/Constants';
 import { set } from 'date-fns';
 import FileViewer from './fileviewer';
+import { spfi, SPFx } from '@pnp/sp';
+import { GraphFI, graphfi, SPFx as graphSPFx } from "@pnp/graph";
+import "@pnp/graph/groups";
+import "@pnp/graph/members";
+import "@pnp/sp/webs";
+import "@pnp/sp/site-groups/web";
+
 let newfileupload: any
 let newfilepreview: any;
 let filechanged: boolean = false;
@@ -131,6 +138,7 @@ interface IEmployeeDetails {
 }
 const ChangeDocumentRequestContext = ({ props }: any) => {
   const sp: SPFI = getSP();
+  let graph: GraphFI;
   const elementRef = React.useRef<HTMLDivElement>(null);
   const elementRef1 = React.useRef<HTMLDivElement>(null);
   const siteUrl = props.siteUrl;
@@ -307,6 +315,17 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   };
 
   const ApiCallFunc = async () => {
+    graph = graphfi().using(graphSPFx(props.context));
+    const  graphme = await graph.me.select(
+      "displayName",
+      "mail",
+      "jobTitle",
+      "department",
+      "officeLocation",
+      "companyName"
+    )();
+
+    // const graphCurrentUserDept = me.department;
     const path1 = window.location.href;
     debugger
     const currentUser = await sp.web.currentUser();
@@ -420,7 +439,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
     const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
     // let currentuserdepartment = UserDept == "IT" ? "Information Technology" : UserDept;
-    let currentuserdepartment = UserDept;
+    // let currentuserdepartment = UserDept;//old
+    let currentuserdepartment = graphme.department;//new
     let optionsfilterdepart = currentuserdepartment != "" && optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment);
     if (currentuserdepartment != "") {
       setSelectedOptionDepart(optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment));
@@ -4943,7 +4963,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           : null
                                       }
                                       onSelectDate={onDateChange}
-                                     // maxDate={new Date()}
+                                      // maxDate={new Date()}
                                       //minDate={new Date()}
                                       disabled={InputDisabled && formData?.Status !== "Rework" || IsRecorddisabled}
                                       formatDate={(date) => moment(date).format('DD/MMM/YYYY')}
@@ -5525,16 +5545,16 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                           >
                                             <option value="" selected>Select Role</option>
                                             {UserRoles
-                                            //.filter((role: any) =>
+                                              //.filter((role: any) =>
                                               //!forwardToArr.some((r) => r.role === role.value && r.level !== row.level) || role.value === row.role // Allow the current row's role
-                                            //)
-                                            .map((role: any, index: number) => (
-                                              <option key={index} value={role.value}
+                                              //)
+                                              .map((role: any, index: number) => (
+                                                <option key={index} value={role.value}
 
-                                              //disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}
-                                              >
-                                                {role.label}</option>
-                                            ))}
+                                                //disabled={!(modeValue === "approve" && editID != null && editID.ApprovalType === "Assignment" && editID.Status === "Pending" && editID.CurrentUserRole === "OES")}
+                                                >
+                                                  {role.label}</option>
+                                              ))}
                                           </select>
 
                                         </td>
@@ -5789,8 +5809,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                         <div className="row mt-3">
                           <div className="col-12 text-center">
-                            {(((InputDisabled != true && editItemID == null && MainEditItem == null) || 
-                            (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || 
+                            {(((InputDisabled != true && editItemID == null && MainEditItem == null) ||
+                              (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) ||
                               (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && (editID?.IsInitiator == "Yes" || editID == null) &&
                               // <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleSaveAsDraft}>
                               //   <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
@@ -5819,8 +5839,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
                             }
 
-                            {(((InputDisabled != true && editItemID == null && MainEditItem == null) || 
-                            (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) || 
+                            {(((InputDisabled != true && editItemID == null && MainEditItem == null) ||
+                              (MainEditItem?.Status === "Save as draft" && editID == null && (modeValue === "" || modeValue === "edit"))) ||
                               (editID && editID != null && editID.ApprovalType !== "Approval" && editID.ApprovalType !== "Assignment")) && (editID?.IsInitiator == "Yes" || editID == null) &&
                               // <button style={{ width: '145px' }} type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={handleFormSubmit}>
                               //   <img src={require('../../../Assets/ExtraImage/checkcircle.svg')} style={{ width: '1rem' }} className='me-1' alt="Check" />
