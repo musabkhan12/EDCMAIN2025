@@ -715,19 +715,19 @@ const ArgPoc = ({ props }: any) => {
 
     const idNum2: any = originalString.substring(1);
 
-    const getgroup = await sp.web.lists
-      .getByTitle("ARGGroupandTeam")
-      .items.select("*,InviteMemebers/Id,InviteMemebers/Title,InviteMemebers/EMail,GroupType").expand("InviteMemebers")()
-      .then((res) => {
-        // arr=res;
-        console.log(res, ":response")
-        // debugger
-        console.log("res------", res)
-        //  setArrDetails(res)
-      })
-      .catch((error) => {
-        console.log("Error fetching data: ", error);
-      });
+    // const getgroup = await sp.web.lists
+    //   .getByTitle("ARGGroupandTeam")
+    //   .items.select("*,InviteMemebers/Id,InviteMemebers/Title,InviteMemebers/EMail,GroupType").expand("InviteMemebers")()
+    //   .then((res) => {
+    //     // arr=res;
+    //     console.log(res, ":response")
+    //     // debugger
+    //     console.log("res------", res)
+    //     //  setArrDetails(res)
+    //   })
+    //   .catch((error) => {
+    //     console.log("Error fetching data: ", error);
+    //   });
   }
 
   const myrequestbuttonclick = () => {
@@ -2393,7 +2393,15 @@ const ArgPoc = ({ props }: any) => {
             titleElement.classList.remove("expanded");
         });
       });
+      if(container){
+        // const loader = document.getElementById("loader");
+        if (loader) loader.style.display = "none";
+      }
     } catch (error) {
+      
+        const loader = document.getElementById("loader");
+        if (loader) loader.style.display = "none";
+     
       console.error("Error fetching or building folder tree:", error);
     }
   };
@@ -13324,7 +13332,7 @@ const ArgPoc = ({ props }: any) => {
           const encodedFilePath = encodeURIComponent(file.ServerRelativeUrl);
           const parentFolder = file.ServerRelativeUrl.substring(0, file.ServerRelativeUrl.lastIndexOf('/'));
           const siteUrl = window.location.origin;
-          // const previewUrl = `${siteUrl}/sites/ededms/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+          // const previewUrl = `${siteUrl}/sites/ed/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
           const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
            console.log("previewUrl", previewUrl);
 
@@ -15035,7 +15043,7 @@ const ArgPoc = ({ props }: any) => {
       const siteUrl = window.location.origin;
       console.log(siteUrl, "siteUrl");
       const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
-      // const previewUrl = `${siteUrl}/sites/ededms/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
+      // const previewUrl = `${siteUrl}/sites/ed/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
        preURL = previewUrl;
     }
     console.log("filePath", filePath);
@@ -16900,11 +16908,11 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
       const encodedFilePath = encodeURIComponent(serverRelativeUrl);
 
       // Example: 
-      // serverRelativeUrl = "/sites/ededms/test/DocumentLibraryInsideTest/Book.xlsx"
+      // serverRelativeUrl = "/sites/ed/test/DocumentLibraryInsideTest/Book.xlsx"
       const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
       const siteUrl = window.location.origin;
 
-      // const previewUrl = `${siteUrl}/sites/ededms/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+      // const previewUrl = `${siteUrl}/sites/ed/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       const previewUrl = `${siteUrl}${locationPath}/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       console.log("Generated Preview URL:", previewUrl);
@@ -17139,7 +17147,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
     const siteUrl = window.location.origin;
     console.log(siteUrl, "siteUrl");
 
-    // const previewUrl = `${siteUrl}/sites/ededms/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
+    // const previewUrl = `${siteUrl}/sites/ed/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
     const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
 
     if (previewUrl) {
@@ -17405,7 +17413,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
         const parentFolder = uploadResult.data.ServerRelativeUrl.substring(0, uploadResult.data.ServerRelativeUrl.lastIndexOf('/'));
         const siteUrl = window.location.origin;
         const encodedFilePath = encodeURIComponent(uploadResult.data.ServerRelativeUrl);
-        // const previewUrl = `${siteUrl}/sites/ededms/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+        // const previewUrl = `${siteUrl}/sites/ed/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
         const previewUrl = `${siteUrl}${locationPath}/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
 
         await listItem.update(payload);
@@ -17609,7 +17617,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
 <iframe src={mailsharefilewithpreview} id="routefrommailfilePreview" style={{ width: '100%', height: '100%' }}></iframe> */}
 </div>
 ) : (
-        <div className="content" style={{ marginLeft: `${!useHide ? '240px' : '80px'}`, marginTop: '2.8rem' }}>
+        <div className="content" style={{ marginLeft: `${!useHide ? '240px' : '80px'}`, marginTop: '1rem' }}>
 
           <div className="container-fluid  paddb">
             {activeComponent === "" ? (

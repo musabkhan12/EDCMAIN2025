@@ -8,6 +8,9 @@
   // box-shadow: 0 0 1px var(--grey-color-light);
   transition: all 0.5s ease;
 }
+.item{
+  margin:0.8rem 0.8rem 0rem 0.8rem;
+} 
 .newbread .page-title{margin-top: -71px !important; text-align: left;}
 .newline{padding-top: 10px;}
 .newline .form-check {
@@ -368,7 +371,7 @@ a:hover, a:active {
   position: relative;
   text-align: center;
   margin-left: 12px;
-  border-radius: 6px;
+  border-radius: 6px; margin-top: -2px;
 }
 
 .navlink_icon::before {
@@ -395,7 +398,8 @@ a:hover, a:active {
 .link_name1
 {
   // background:#fff;
-  color: #6c757d;
+  color: #6c757d;    position: relative;
+    padding-left: 0.5rem !important;
 }
 .nav_link.active .link_name1:nth-child(1){
   color: #fff;
@@ -429,9 +433,7 @@ a:hover, a:active {
 }
 
 
-.item{
-  margin:0.8rem 0.8rem 0rem 0.8rem;
-} 
+
 .logo_item img{margin-left: 5px;}
 .sidebar.close .nav_link:hover {
   background: var(--blue-color);
@@ -691,11 +693,7 @@ margin-left: 0px;
   color:#fff !important;
   // color: #6c757d;
 }
-.link_name1:visited
-{
-  color:unset !important;
-  // color: #6c757d;
-}
+
 
 
 .content-page .content {
@@ -1376,13 +1374,14 @@ margin: 0px 0px !important ;
 .sidebar .menu_items .active{
   background: #f37421 !important; 
 }
-.sidebar .menu_items .active .link_name1{
-color: #fff !important;
-}
+
 .sidebar .menu_items .active{
   background: #f37421 !important; 
 }
 .sidebar .menu_items .active .link_name1{
+  color: #fff !important;
+  }
+.sidebar .menu_items .active .new_menu{
   color: #fff !important;
 }
 .menu_items .nav_link .submenu_item .link_name1{

@@ -49,7 +49,7 @@ import "@pnp/graph/groups";
 import "@pnp/graph/members";
 import "@pnp/sp/webs";
 import "@pnp/sp/site-groups/web";
-
+let IsDepartmentEditable: boolean = false;
 // let myloader = '../../'
 let newfileupload: any
 let newfilepreview: any;
@@ -392,105 +392,105 @@ const AnnualAuditReportContext = ({ props }: any) => {
         }, 2000); // Let React batch state updates first
     };
     const handlesubDepartmentChange = async (selectedOption: any) => {
-        
+
         setselectUsersubDept(selectedOption);
-         // //////##################
-            setFormData({ ...formData, reportCode: "", AuditProgdeptId: null });
-            setselectUsersubDept([]);
-            setSequencesLoaded(false);
-            setIsDepartmentReady(false); // Prevent effects during update
-            skipNCUpdateRef.current = true;
-            departmentChanged = true;
-            EnableNC = true;
-            setEnableNCObs(true);
-            // const filteredSubDepartments = AllsubDepartment
-            //     .filter((x) => x.departmentId === selectedOption?.value)
-            //     .map((item) => ({
-            //         value: item.value,
-            //         label: item.subdepartment,
-            //         itemId: item.itemId,
-            //         department: item.department,
-            //         departmentcode: item.departmentCode,
-            //         subdepartment: item.subdepartment,
-            //         subdepartmentcode: item.subdepartmentcode
-            //     }));
-            // setAllsubDept(filteredSubDepartments);
-            const setAuditreportNC = await getItemsAuditReportNC(sp, selectedOption?.value);
-            const setAuditreportObs = await getItemsAuditReportObs(sp, selectedOption?.value);
-            if (setAuditreportNC.length > 0 || setAuditreportObs.length > 0) {
-                maxncseq = setAuditreportNC?.length > 0 && setAuditreportNC[0].NCSequence;
-                maxobsseq = setAuditreportObs?.length > 0 && setAuditreportObs[0].ObservationSequence;
-                setFormData(prevData => ({
-                    ...prevData,
-                    NCSequence: setAuditreportNC?.length > 0 ? setAuditreportNC[0].NCSequence : 0,
-                    ObservationSequence: setAuditreportObs?.length > 0 ? setAuditreportObs[0].ObservationSequence : 0,
-                }));
-            }
-            else{
-                maxncseq =0;
-                maxobsseq =0;
-            }
-           
-            maxNCSeqRef.current = maxncseq;
-            maxObsSeqRef.current = maxobsseq;
-            setNCNumberrows([]);
-            setSequencesLoaded(true);
-            setCheckboxValues(prev => ({
-                ...prev,
-                FailureofIntentNonconformity: false,
-                Observations: false,
-                FailureofEffectiveness: false,
-                FailureofImplementation: false,
-                ConformingPositiveFindings: false,
-                OpportunitiesforImprovement: false
+        // //////##################
+        setFormData({ ...formData, reportCode: "", AuditProgdeptId: null });
+        setselectUsersubDept([]);
+        setSequencesLoaded(false);
+        setIsDepartmentReady(false); // Prevent effects during update
+        skipNCUpdateRef.current = true;
+        departmentChanged = true;
+        EnableNC = true;
+        setEnableNCObs(true);
+        // const filteredSubDepartments = AllsubDepartment
+        //     .filter((x) => x.departmentId === selectedOption?.value)
+        //     .map((item) => ({
+        //         value: item.value,
+        //         label: item.subdepartment,
+        //         itemId: item.itemId,
+        //         department: item.department,
+        //         departmentcode: item.departmentCode,
+        //         subdepartment: item.subdepartment,
+        //         subdepartmentcode: item.subdepartmentcode
+        //     }));
+        // setAllsubDept(filteredSubDepartments);
+        const setAuditreportNC = await getItemsAuditReportNC(sp, selectedOption?.value);
+        const setAuditreportObs = await getItemsAuditReportObs(sp, selectedOption?.value);
+        if (setAuditreportNC.length > 0 || setAuditreportObs.length > 0) {
+            maxncseq = setAuditreportNC?.length > 0 && setAuditreportNC[0].NCSequence;
+            maxobsseq = setAuditreportObs?.length > 0 && setAuditreportObs[0].ObservationSequence;
+            setFormData(prevData => ({
+                ...prevData,
+                NCSequence: setAuditreportNC?.length > 0 ? setAuditreportNC[0].NCSequence : 0,
+                ObservationSequence: setAuditreportObs?.length > 0 ? setAuditreportObs[0].ObservationSequence : 0,
             }));
-            const updatedValues: Record<string, number> = { ...checkboxNumberValues };
+        }
+        else {
+            maxncseq = 0;
+            maxobsseq = 0;
+        }
 
-            AuditFindingsOptions.forEach((checkbox) => {
-                //const fieldKey = CheckboxFieldMap[checkbox.value];
-                const fieldKeyN = CheckboxFieldMapN[checkbox.value];
-                if (checkbox.value === 'Observations') {
-                    updatedValues[fieldKeyN] = 0;
-                }
+        maxNCSeqRef.current = maxncseq;
+        maxObsSeqRef.current = maxobsseq;
+        setNCNumberrows([]);
+        setSequencesLoaded(true);
+        setCheckboxValues(prev => ({
+            ...prev,
+            FailureofIntentNonconformity: false,
+            Observations: false,
+            FailureofEffectiveness: false,
+            FailureofImplementation: false,
+            ConformingPositiveFindings: false,
+            OpportunitiesforImprovement: false
+        }));
+        const updatedValues: Record<string, number> = { ...checkboxNumberValues };
 
-                if (checkbox.value === 'Failure of Effectiveness') {
-                    updatedValues[fieldKeyN] = 0;
-                }
-            });
+        AuditFindingsOptions.forEach((checkbox) => {
+            //const fieldKey = CheckboxFieldMap[checkbox.value];
+            const fieldKeyN = CheckboxFieldMapN[checkbox.value];
+            if (checkbox.value === 'Observations') {
+                updatedValues[fieldKeyN] = 0;
+            }
 
-            setCheckboxNumberValues(prev => ({
-                ...prev,
-                ...updatedValues
-            }));
+            if (checkbox.value === 'Failure of Effectiveness') {
+                updatedValues[fieldKeyN] = 0;
+            }
+        });
 
-            setselectUserDept(selectedOption);
-            debugger
-            // let reportcode: string = "";
-            // if (filteredSubDepartments.length > 0) {
-            //     // if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
-            //     //     reportcode = selectedOption.departmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
-            //     // }
-            //     setreportCode("");
-            //     setFormData({ ...formData, reportCode: "" });
-            // } else {
-            //     if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
-            //         reportcode = selectedOption.departmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
-            //     }
-            //     setreportCode(reportcode);
-            //     setFormData({ ...formData, reportCode: reportcode });
-            // }
-            // setFormData({ ...formData, deptId: selectedOption?.value });
-            setTimeout(() => {
-                if (hiddenDivRef.current) {
-                    hiddenDivRef.current.click();
-                }
-                setIsDepartmentReady(true);
-            }, 2000); // Let React batch state updates first
+        setCheckboxNumberValues(prev => ({
+            ...prev,
+            ...updatedValues
+        }));
+
+        setselectUserDept(selectedOption);
+        debugger
+        // let reportcode: string = "";
+        // if (filteredSubDepartments.length > 0) {
+        //     // if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
+        //     //     reportcode = selectedOption.departmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
+        //     // }
+        //     setreportCode("");
+        //     setFormData({ ...formData, reportCode: "" });
+        // } else {
+        //     if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
+        //         reportcode = selectedOption.departmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
+        //     }
+        //     setreportCode(reportcode);
+        //     setFormData({ ...formData, reportCode: reportcode });
+        // }
+        // setFormData({ ...formData, deptId: selectedOption?.value });
+        setTimeout(() => {
+            if (hiddenDivRef.current) {
+                hiddenDivRef.current.click();
+            }
+            setIsDepartmentReady(true);
+        }, 2000); // Let React batch state updates first
 
 
-            ///////##############
+        ///////##############
 
-       
+
         // let reportcode: string = "";
         // if ((formData.date != "") && (selectedOption != null || selectedOption != "")) {
         //     reportcode = selectedOption.departmentcode + "/" + moment(new Date(formData.date)).format("DD/MM/YYYY");
@@ -508,7 +508,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         // }
         if (selectedOption !== null) {
 
-           
+
 
 
 
@@ -920,6 +920,12 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const ApiCallFunc = async () => {
         setLoading(true);
         setFormLoading(true);
+        const currentUser = await sp.web.currentUser();
+        const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+        const IsDepartmentPermission = userGroups.some(group => group.Title === `DepartmentFieldPermission`);
+        if (IsDepartmentPermission) {
+            IsDepartmentEditable = true;
+        }
         const me = await graph.me.select(
             "displayName",
             "mail",
@@ -931,7 +937,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
         const graphCurrentUserDept = me.department;
         const custodianOpt = await fetchCustodian();
-        const AuditProgOpt =  await AuditProgDept();
+        const AuditProgOpt = await AuditProgDept();
         setTimeout(() => {
             setLoading(false);
             setFormLoading(false);
@@ -1228,7 +1234,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     // subdeptId: setBannerById[0].SubDepartmentId || 0, // Default to 0 if SubDepartmentId is null
                     // deptId: setBannerById[0].DepartmentAuditedId,
                     AuditProgdeptId: setBannerById[0].DepartmentAuditedId,
-                    CustodianId:setBannerById[0].SubDepartmentId||null,
+                    CustodianId: setBannerById[0].SubDepartmentId || null,
                     shiftId: setBannerById[0].ShiftId, // Default to 0 if ShiftId is null
                     fromdeptId: setBannerById[0].DepartmentId,
                     issueNo: setBannerById[0].IssueNumber,
@@ -1250,8 +1256,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                     isrework: setBannerById[0].IsRework,
                     attachmentIds: setBannerById[0].AttachmentId || null,
                     attachmentJson: setBannerById[0].AttachmentJson || null,
-                    Custodian:custodianOpt.filter((user:any) => user.value === setBannerById[0].SubDepartmentId)[0]||null,
-                    AuditProgdept:AuditProgOpt.filter((user:any) => user.value === setBannerById[0].DepartmentAuditedId)[0]||null
+                    Custodian: custodianOpt.filter((user: any) => user.value === setBannerById[0].SubDepartmentId)[0] || null,
+                    AuditProgdept: AuditProgOpt.filter((user: any) => user.value === setBannerById[0].DepartmentAuditedId)[0] || null
                 }));
                 setauditplandate(setBannerById[0].AuditPlanDate && new Date(setBannerById[0].AuditPlanDate).toLocaleDateString("en-CA"))
                 setFormData(prevData => ({
@@ -1285,7 +1291,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 setdoccode(setBannerById[0].Title);
                 debugger
                 // setselectUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentAuditedId));//old
-                  setselectUserDept(AuditProgOpt.filter((user:any) => user.value === setBannerById[0].DepartmentAuditedId));//new
+                setselectUserDept(AuditProgOpt.filter((user: any) => user.value === setBannerById[0].DepartmentAuditedId));//new
 
                 setselectUsersubDept(AllsubDepartment.filter(user => user.value === setBannerById[0].SubDepartmentId));
                 if (setBannerById[0].DepartmentAuditedId > 0) {
@@ -1783,7 +1789,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
             documentLink,
             attachment,
             attachmentIds,
-            attachmentJson ,CustodianId,AuditProgdeptId} = formData;
+            attachmentJson, CustodianId, AuditProgdeptId } = formData;
         const validationErrors: { [level: number]: { role: boolean; approvers: boolean; approvalType: boolean, responsibility: boolean } } = {};
         // const { description } = richTextValues;
         console.log("formdataaaaa", formData);
@@ -1825,7 +1831,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
             //     //Swal.fire('Error', 'Title is required!', 'error');
             //     valid = false;
             // }
-             if (CustodianOpt.length > 0 && (!CustodianId)) {
+            if (CustodianOpt.length > 0 && (!CustodianId)) {
                 setsubdepartmenterr(true);
                 //Swal.fire('Error', 'Title is required!', 'error');
                 valid = false;
@@ -2026,7 +2032,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                 //Swal.fire('Error', 'Title is required!', 'error');
                 valid = false;
             }
-            
+
             if (!AuditProgdeptId || (selectUserDept && selectUserDept?.length == 0) || !selectUserDept) {
                 setdepartmenterr(true);
                 //Swal.fire('Error', 'Type is required!', 'error');
@@ -2192,7 +2198,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditReportDocs');
                         // const finalDataForSharePoint = {
                         //     ...convertCheckboxValuesForSharePoint(checkboxValues),
                         //     ...checkboxNumberValues
@@ -2268,7 +2274,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                             ShiftId: formData.shiftId,
                             // DepartmentAuditedId: formData.deptId,//old
                             // SubDepartmentId: formData.subdeptId, //old
-                             DepartmentAuditedId: formData.AuditProgdeptId,//new
+                            DepartmentAuditedId: formData.AuditProgdeptId,//new
                             SubDepartmentId: formData.CustodianId,//new
                             Date: formData.date,
                             AuditPlanDate: auditplandate,
@@ -2317,7 +2323,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 NCType: row.nctype,
                                 Description: row.descriptionNC,
                                 DepartmentId: formData.AuditProgdeptId,
-                                CustodianId:formData.CustodianId,
+                                CustodianId: formData.CustodianId,
                                 Title: row.id.toString()
                             }
                             if (row.Id) {
@@ -2515,7 +2521,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId");
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // setTimeout(() => {
@@ -2552,7 +2558,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -2815,7 +2821,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         //Swal.fire('Submitted successfully.', '', 'success');
@@ -2891,7 +2897,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -3011,7 +3017,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 Description: row.descriptionNC,
                                 // DepartmentId: formData.deptId,old
                                 DepartmentId: formData.AuditProgdeptId,
-                                CustodianId:formData.CustodianId,
+                                CustodianId: formData.CustodianId,
                                 Title: row.id.toString()
                             }
                             if (row.Id) {
@@ -3206,7 +3212,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId")
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -3244,7 +3250,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -3372,7 +3378,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                 Description: row.descriptionNC,
                                 // DepartmentId: formData.deptId,
                                 DepartmentId: formData.AuditProgdeptId,
-                                CustodianId:formData.CustodianId,
+                                CustodianId: formData.CustodianId,
                                 Title: row.id.toString()
                             }
                             const postResultNC = await addItemNC(postPayloadNC, sp);
@@ -3490,7 +3496,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // sessionStorage.removeItem("bannerId")
@@ -4300,7 +4306,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     //onKeyDown={handleKeyDown}
                                                                                     isClearable={true}
                                                                                     options={AllDept}
-                                                                                    isDisabled={InputDisabled}
+                                                                                    isDisabled={InputDisabled || !IsDepartmentEditable}
                                                                                     value={currentUserDept}
                                                                                     name="deptId"
                                                                                     //className={`newse`}
@@ -4587,7 +4593,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                                                                         <div >
                                                                             <div
-                                                                                title={formData.AuditProgdept?.label|| "Select department"}
+                                                                                title={formData.AuditProgdept?.label || "Select department"}
                                                                                 style={{ width: "100%" }}
                                                                             >
                                                                                 <Select
@@ -4600,7 +4606,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                     className={`newse  ${(!ValidSubmit && departmenterr) ? "border-on-error" : ""} ${(!ValidDraft && departmenterr) ? "border-on-error" : ""}`}
 
                                                                                     onChange={(selectedOptions: any) => handlesubDepartmentChange(selectedOptions)}
-                                                                                    placeholder="Select Sub-Department"
+                                                                                    placeholder="Select department"
                                                                                 />
                                                                             </div>
                                                                             {/* <div

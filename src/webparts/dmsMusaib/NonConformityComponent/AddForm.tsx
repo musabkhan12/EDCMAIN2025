@@ -36,7 +36,7 @@ import "@pnp/graph/groups";
 import "@pnp/graph/members";
 import "@pnp/sp/webs";
 import "@pnp/sp/site-groups/web";
-
+let IsDepartmentEditable: boolean = false;
 const datePickerErrorStyles: Partial<IDatePickerStyles> = {
   root: {
     border: "1px solid #ffcccb", // Apply red border
@@ -54,8 +54,8 @@ const datePickerErrorStyles: Partial<IDatePickerStyles> = {
 
 
 export class IState {
-  allusersoption:any;
-  Auditeeuser:any;
+  allusersoption: any;
+  Auditeeuser: any;
   Loading: boolean;
   departmentOption: any[];
   AuditProgdepartmentOption: any[];
@@ -115,8 +115,8 @@ export class IState {
   files: FileList;
   siteurl: any;
   requesterDesignation: string;
-  CustodianOption:any[];
-   custodianselected: any;
+  CustodianOption: any[];
+  custodianselected: any;
 }
 let optionsmemoNumbernewnc: any[] = [];
 let optionsmemoNumbernewobs: any[] = [];
@@ -128,12 +128,12 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     const selectedTextDiv = document.getElementById('selectedText');
     selectedTextDiv.style.display = 'none';
     this.state = {
-      allusersoption:[],
-      Auditeeuser:[],
+      allusersoption: [],
+      Auditeeuser: [],
       Loading: false,
       departmentOption: [],
       AuditProgdepartmentOption: [],
-      CustodianOption:[],
+      CustodianOption: [],
       custodianselected: null,
       departmentselected: [],
       fromdepartmentselected: [],
@@ -277,7 +277,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     }
   }
   public changeDepartment = (item: any): void => {
-    let selecteddepartment = this.state.departmentOption.filter((x: any) => x.value == item.value);
+    let selecteddepartment = this.state.AuditProgdepartmentOption.filter((x: any) => x.value == item.value);
     this.setState({ department: item.value, departmentCode: item.data.departmentCode, departmentselected: selecteddepartment });
   };
   public changefromDepartment = (item: any): void => {
@@ -476,19 +476,27 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     };
 
   public async componentDidMount() {
+    const _sp = spfi().using(SPFx(this.props.context));
+
+    const currentUser = await _sp.web.currentUser();
+    const userGroups = await _sp.web.siteUsers.getById(currentUser.Id).groups();
+    const IsDepartmentPermission = userGroups.some(group => group.Title === `DepartmentFieldPermission`);
+    if (IsDepartmentPermission) {
+      IsDepartmentEditable = true;
+    }
     this.setState({ Loading: true });
 
     await this.getAuditreport();
     this.setState({ Loading: false });
     await this.getnctypeoptions();
-   
+
     await this.getDepartment();
     await this.getFiles();
     await this.getchangerequestdetails();
     await this.fetchCustodian();
     // await this.getAuditreport();
 
-    const _sp = spfi().using(SPFx(this.props.context));
+
     const users = await _sp.web.siteUsers();
     const people = users.filter(user => user.PrincipalType === PrincipalType.User);
 
@@ -1024,36 +1032,36 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     }
   }
 
-  public async fetchCustodian () {
-     const sp = spfi().using(SPFx(this.props.context));
-        try {
-            // Fetch the items
-            const items = await sp.web.lists
-                // .getByTitle("LocationMaster") // Your list name
-                .getByTitle("AuditProgramCustodianMaster") // Your list name
-                .items
-                // .filter("IsActive eq 'Yes'") // Filter active items
-                // .select("ID", "Location", "LocationCode") // Select required fields
-                .top(5000) // Limit number of records
-                (); // Call get() to fetch data
-            items.sort((a, b) => a.Custodian.localeCompare(b.Custodian));
-            // Use map on the result to create the desired array structure
-            const custodians = items.map((item: any) => ({
-                custodianId: item.ID, // Store the ID for lookup
-                custodianName: item.Custodian, // Name of the location
-                // locationCode: item.LocationCode, // Code of the location
-                label: item.Custodian,
-                value: item.ID
-            }));
+  public async fetchCustodian() {
+    const sp = spfi().using(SPFx(this.props.context));
+    try {
+      // Fetch the items
+      const items = await sp.web.lists
+        // .getByTitle("LocationMaster") // Your list name
+        .getByTitle("AuditProgramCustodianMaster") // Your list name
+        .items
+        // .filter("IsActive eq 'Yes'") // Filter active items
+        // .select("ID", "Location", "LocationCode") // Select required fields
+        .top(5000) // Limit number of records
+        (); // Call get() to fetch data
+      items.sort((a, b) => a.Custodian.localeCompare(b.Custodian));
+      // Use map on the result to create the desired array structure
+      const custodians = items.map((item: any) => ({
+        custodianId: item.ID, // Store the ID for lookup
+        custodianName: item.Custodian, // Name of the location
+        // locationCode: item.LocationCode, // Code of the location
+        label: item.Custodian,
+        value: item.ID
+      }));
 
-            // Update state with the fetched locations
-            // setCustodianOpt(custodians);
-            this.setState({ CustodianOption: custodians });
-            return custodians;
-        } catch (error) {
-            console.error("Error fetching locations: ", error);
-        }
-    };
+      // Update state with the fetched locations
+      // setCustodianOpt(custodians);
+      this.setState({ CustodianOption: custodians });
+      return custodians;
+    } catch (error) {
+      console.error("Error fetching locations: ", error);
+    }
+  };
 
   public async getCategory() {
     const sp = spfi().using(SPFx(this.props.context));
@@ -1767,11 +1775,11 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                       options={this.state.departmentOption}
                       value={this.state.fromdepartmentselected}
                       name="Department"
-                      isDisabled
+                      isDisabled={!IsDepartmentEditable}
                       isClearable={true}
                       isSearchable={true}
                       className={this.state.errors?.department ? 'border-on-error' : ''}
-                      onChange={(selectedOption: any) => this.changeDepartment(selectedOption)}
+                      onChange={(selectedOption: any) => this.changefromDepartment(selectedOption)}
                       placeholder={"Department"}
 
                     />
@@ -1839,7 +1847,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                       placeholder={"Custodian"}
 
                     />
-                    </TooltipHost>
+                  </TooltipHost>
                   {/* <Dropdown
                     required
                     placeholder="Department"
@@ -2031,27 +2039,27 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                         },
                       }}
                     /></TooltipHost> */}
-                     <label htmlFor="revisionNo">Auditee<span className="text-danger1"> *</span></label>
-                      <div >
-                        <TooltipHost
-                          content={this.state.assignTo}
-                          calloutProps={{ gapSpace: 0 }}
-                          styles={{ root: { display: 'inline-block', width: '100%' } }}
-                        >
-                          <Select
-                            //onKeyDown={handleKeyDown}
-                            isClearable={true}
-                            options={this.state.allusersoption}
+                  <label htmlFor="revisionNo">Auditee<span className="text-danger1"> *</span></label>
+                  <div >
+                    <TooltipHost
+                      content={this.state.assignTo}
+                      calloutProps={{ gapSpace: 0 }}
+                      styles={{ root: { display: 'inline-block', width: '100%' } }}
+                    >
+                      <Select
+                        //onKeyDown={handleKeyDown}
+                        isClearable={true}
+                        options={this.state.allusersoption}
 
-                            value={this.state.Auditeeuser}
-                            name="Auditee"
-                            className={`${this.state.errors.assignTo ? 'border-on-error' : ""}`}
-                            // onChange={(selectedOption: any) => onSelect(selectedOption)}
-                            onChange={(selectedOptions: any) => this.onSelectAuditee(selectedOptions, "assignTo", "assignToId")}
-                            placeholder="Auditee"
-                            isDisabled={false}
-                          /></TooltipHost>
-                      </div>
+                        value={this.state.Auditeeuser}
+                        name="Auditee"
+                        className={`${this.state.errors.assignTo ? 'border-on-error' : ""}`}
+                        // onChange={(selectedOption: any) => onSelect(selectedOption)}
+                        onChange={(selectedOptions: any) => this.onSelectAuditee(selectedOptions, "assignTo", "assignToId")}
+                        placeholder="Auditee"
+                        isDisabled={false}
+                      /></TooltipHost>
+                  </div>
 
                 </div>
                 <div className="form-group col-md-4">

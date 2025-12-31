@@ -575,7 +575,7 @@ const searchResults = searchResultsWithPreview.map(res => ({
                           </a> */}
                           <a
   style={{ padding: '0.85rem', cursor: 'pointer' }}
-  onClick={() => window.open(`https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx?Sharewithme/${result.PreviewUrl}`, '_blank')}
+  onClick={() => window.open(`https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx?Sharewithme/${result.PreviewUrl}`, '_blank')}
 >
   <h4 className='eclipcsss text-dark' style={{ fontSize: '16px' }}>{result.Title}</h4>
   {

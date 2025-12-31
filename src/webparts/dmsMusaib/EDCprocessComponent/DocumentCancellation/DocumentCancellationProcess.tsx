@@ -80,6 +80,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
     const [Loading, setLoading] = React.useState(false);
     const [TemplateDoc, setTemplateDoc] = React.useState<any>([]);
+    const [showDigiSignIcon, setshowDigiSignIcon] = React.useState(false);
     const [FormLoading, setFormLoading] = React.useState(false);
     const [FormItemId, setFormItemId] = React.useState(null);
     const [editID, setEditID] = React.useState(null);
@@ -759,7 +760,10 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                 }
 
-                setTemplateDoc(await getGeneratedTemplateDoc(sp, Number(formitemid)));
+                const TempRes = await getGeneratedTemplateDoc(sp, Number(formitemid));
+
+                setTemplateDoc(TempRes.file);
+                setshowDigiSignIcon(TempRes.hasDigitalSigned);
 
             }
 
@@ -1466,7 +1470,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -1664,7 +1668,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -2023,9 +2027,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
 
-                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -2222,9 +2226,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // }, 1000);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
 
-                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -2448,7 +2452,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire(successMessage, '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -2613,7 +2617,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire(successMessage, '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -2949,7 +2953,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // }, 1000);
                         Swal.fire(successMessage, '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -3250,9 +3254,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                         Swal.fire(successMessage, '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
 
-                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -3395,16 +3399,20 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         const parts = TemplateDoc[0]?.FileRef?.split('/');
                                                                         const folderName = parts && parts[3] ? parts[3] : null;
                                                                         // return folderName === "DocumentCancellationDigitalSignedDocs" ? (
-                                                                        return folderName === "DocumentCancellationAttachDigitalSignedDocs" && TemplateDoc[0]?.IsDigitalSignatureDoc === "Yes" ? (
-                                                                            // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} alt="Download Icon" />
-                                                                            // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/digisigndownload.png")} alt="Digital Sign Download Icon" />
+                                                                        // return folderName === "DocumentCancellationAttachDigitalSignedDocs" && TemplateDoc[0]?.IsDigitalSignatureDoc === "Yes" ? (
+                                                                        //      <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/signicon.png")} alt="Digital Sign Download Icon" />
+
+
+                                                                        // ) : (
+                                                                        //     <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} alt="Download Icon" />
+                                                                        // );
+                                                                        return showDigiSignIcon == true ? (
                                                                             <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/signicon.png")} alt="Digital Sign Download Icon" />
 
 
-                                                                        ) : (
-                                                                            <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} alt="Download Icon" />
-                                                                            // <img style={{ cursor: 'pointer' }} className='mt-0' src={require("../../assets/digisigndownload.png")} alt="Digital Sign Download Icon" />
-                                                                        );
+                                                                       ) : (
+                                                                           <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} alt="Download Icon" />
+                                                                       );
                                                                     })()}
 
 

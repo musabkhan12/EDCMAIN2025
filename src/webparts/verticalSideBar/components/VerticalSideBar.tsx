@@ -151,9 +151,10 @@ const VerticalContext = ({ _context }: any) => {
       console.log(res, "currentuser");
     })
    
-    const siteUrl = "https://edcadae.sharepoint.com/sites/ededms";
+    const siteUrl = "https://edcadae.sharepoint.com/sites/ed";
     let listTitle = 'UtilitySettings'
-    let CurrentsiteID ="ec1d9ac4-4785-46e0-91bf-9e0ce3b8f5e6";
+    // let CurrentsiteID ="ec1d9ac4-4785-46e0-91bf-9e0ce3b8f5e6";
+    const CurrentsiteID = "c28d2cab-4339-4438-a150-0ea93986a4eb";
     siteID = CurrentsiteID;
     response = await _context.web.lists.getByTitle(listTitle).select('Id')();
     console.log("resp",response);
@@ -445,7 +446,7 @@ const VerticalContext = ({ _context }: any) => {
                   {/* <Airplay color="blue" size={48} />
               <FontAwesomeIcon icon={getIcon(item.Icon)} /> */}
                 </span>
-                <a className="link_name1" style={{ textDecoration: 'unset', paddingLeft: '1rem' }} target=''
+                <a className="link_name1 new_menu" style={{ textDecoration: 'unset', paddingLeft: '1rem' }} target=''
                 >  
                  <span 
                 //  className={classNames('navlink', {

@@ -46,7 +46,7 @@ import "@pnp/graph/groups";
 import "@pnp/graph/members";
 import "@pnp/sp/webs";
 import "@pnp/sp/site-groups/web";
-
+let IsDepartmentEditable: boolean = false;
 // let myloader = '../../'
 let newfileupload: any
 let newfilepreview: any;
@@ -452,6 +452,12 @@ const FormContext = ({ props }: any) => {
   };
 
   const ApiCallFunc = async () => {
+    const currentUser = await sp.web.currentUser();
+    const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+    const IsDepartmentPermission = userGroups.some(group => group.Title === `DepartmentFieldPermission`);
+    if (IsDepartmentPermission) {
+      IsDepartmentEditable = true;
+    }
     const me = await graph.me.select(
       "displayName",
       "mail",
@@ -515,9 +521,9 @@ const FormContext = ({ props }: any) => {
     const userProfile = await sp.profiles.myProperties();
     setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
     const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
-    
+
     // setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept));//old
-     setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept));//new
+    setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept));//new
     var allAuditTypes = await getAuditTypes(sp);
     setauditTypes(allAuditTypes);
     const recommendationTypes = await getRecommendationTypes(sp);
@@ -547,7 +553,7 @@ const FormContext = ({ props }: any) => {
         }
       }
       // const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0;//old
-       const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]?.value || 0;//new
+      const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]?.value || 0;//new
 
       const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
       if (listItems.length > 0) {
@@ -1063,7 +1069,7 @@ const FormContext = ({ props }: any) => {
       if (graph) { ApiCallFunc(); }
     }
 
-  
+
     // getMemoNumber();
     const handleScroll = () => {
       // Close the dropdown on scroll
@@ -1615,7 +1621,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditProgramDocs');
 
 
 
@@ -2008,7 +2014,7 @@ const FormContext = ({ props }: any) => {
             // }
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -2070,7 +2076,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditProgramDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2384,7 +2390,7 @@ const FormContext = ({ props }: any) => {
             // }
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -2415,7 +2421,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditProgramDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2852,8 +2858,8 @@ const FormContext = ({ props }: any) => {
             // }
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
-                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -2881,7 +2887,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditProgramDocs');
 
 
             if (FilesArr.length > 0) {
@@ -3157,8 +3163,8 @@ const FormContext = ({ props }: any) => {
             // }, 1000);
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
-                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -3826,7 +3832,7 @@ const FormContext = ({ props }: any) => {
                                         options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
                                         isClearable
 
-                                        isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false)}
+                                        isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false) || !IsDepartmentEditable}
                                         value={selectUserDept}
                                         name="deptId"
                                         id="DeptID"

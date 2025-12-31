@@ -1406,7 +1406,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     }));
     console.log("nmnngfhjagfhjdagfjadfdhjmnm", flatMemoItems, this.state.editmemonumberOptions, optionsmemoNumbernewnc, editoptsmemoAllNC, editoptsmemoAllObs);
     //let departopt = await this.getDepartment();
-    const deptItems = await sp.web.lists.getByTitle("AuditProgramDepartmentMaster").items();
+    const deptItems = await sp.web.lists.getByTitle("ProcessDepartmentMasterList").items();
     const optionsdept = deptItems.map((item: {
       DepartmentCode: any; Title: string; Id: number, ADDepartmentName: string
     }) => ({

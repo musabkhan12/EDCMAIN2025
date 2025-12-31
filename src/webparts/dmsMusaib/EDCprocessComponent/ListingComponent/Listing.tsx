@@ -677,6 +677,105 @@ export class Listing extends React.Component<IListingProps, IListingState> {
             }
         });
 
+        const AnnualAuditReportList = await spfi(this._sp).web.lists.getByTitle("AnnualAuditReportList").items.select('*,ReportCode,Id,Title,Author/Title,Created,Status,ReferenceNumber').expand('Author').filter(`Author/ID eq '${this.props.userid}'`)();
+        AnnualAuditReportList.forEach(async itm => {
+            //debugger
+            if (itm.Status === "Rework") {
+                const processItems2 = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and (Status eq 'Pending' or Status eq 'Save as draft') and (ProcessName eq 'Annual Audit Report' or ProcessName eq 'IMS Audit Report and Checklist') and ListItemId eq ${itm.Id}`)();
+                if (processItems2.length > 0) {
+                    for (const itom of processItems2) {
+
+                        allItems.push({
+                            RequestId: itm.ReportCode ? itm.ReportCode : "",
+                            ReportCode: itm.ReportCode ? itm.ReportCode : "",
+                            Title: itm.MemoNumber ? itm.MemoNumber : "",
+                            ProcessName: "IMS Audit Report and Checklist",
+                            ProcessNameNC:"IMS Audit Report and Checklist",
+                            ReqName: itm.Author ? itm.Author.Title : '',
+                            ReqDt: new Date(itm.Created),
+                            Status: itm.Status,
+                            MainListId: itm.Id,
+                            Id: itm.Id,
+                            ProcessItemId: itom.Id,
+                            SubmitStatus: ''
+                        });
+
+                    }
+
+                }
+                else {
+                    allItems.push({
+                        RequestId: itm.ReportCode ? itm.ReportCode : "",
+                        ReportCode: itm.ReportCode ? itm.ReportCode : "",
+                        Title: itm.MemoNumber ? itm.MemoNumber : "",
+                        ProcessName: "IMS Audit Report and Checklist",
+                        ProcessNameNC:"IMS Audit Report and Checklist",
+                        ReqName: itm.Author ? itm.Author.Title : '',
+                        ReqDt: new Date(itm.Created),
+                        Status: itm.Status,
+                        MainListId: itm.Id,
+                        Id: itm.Id,
+                        SubmitStatus: ''
+                    });
+                }
+            } else if (itm.Status === "Pending") {
+                const processItems2 = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and (Status eq 'Pending' or Status eq 'Save as draft') and ProcessName eq 'Annual Audit Report' and ListItemId eq ${itm.Id}`)();
+                if (processItems2.length > 0) {
+                    for (const itom of processItems2) {
+
+                        allItems.push({
+                            RequestId: itm.ReportCode ? itm.ReportCode : "",
+                            ReportCode: itm.ReportCode ? itm.ReportCode : "",
+                            Title: itm.MemoNumber ? itm.MemoNumber : "",
+                            ProcessName: "IMS Audit Report and Checklist",
+                            ProcessNameNC:"IMS Audit Report and Checklist",
+                            ReqName: itm.Author ? itm.Author.Title : '',
+                            ReqDt: new Date(itm.Created),
+                            Status: itm.Status,
+                            MainListId: itm.Id,
+                            Id: itm.Id,
+                            ProcessItemId: itom.Id,
+                            SubmitStatus: ''
+                        });
+
+                    }
+
+                }
+                else {
+                    allItems.push({
+                        RequestId: itm.ReportCode ? itm.ReportCode : "",
+                        ReportCode: itm.ReportCode ? itm.ReportCode : "",
+                        Title: itm.MemoNumber ? itm.MemoNumber : "",
+                        ProcessName: "IMS Audit Report and Checklist",
+                        ProcessNameNC:"IMS Audit Report and Checklist",
+                        ReqName: itm.Author ? itm.Author.Title : '',
+                        ReqDt: new Date(itm.Created),
+                        Status: itm.Status,
+                        MainListId: itm.Id,
+                        Id: itm.Id,
+                        SubmitStatus: ''
+                    });
+                }
+            }
+            else {
+                allItems.push({
+                    RequestId: itm.ReportCode ? itm.ReportCode : "",
+                    ReportCode: itm.ReportCode ? itm.ReportCode : "",
+                    Title: itm.MemoNumber ? itm.MemoNumber : "",
+                    ProcessName: "IMS Audit Report and Checklist",
+                    ProcessNameNC:"IMS Audit Report and Checklist",
+                    ReqName: itm.Author ? itm.Author.Title : '',
+                    ReqDt: new Date(itm.Created),
+                    Status: itm.Status,
+                    MainListId: itm.Id,
+                    Id: itm.Id,
+                    SubmitStatus: ''
+                });
+
+            }
+
+        });
+
         const MemoItems = await spfi(this._sp).web.lists.getByTitle("Memorandum").items.select('Id,MemoNumber,Title,Author/Title,Created,Status,Subject').expand('Author').filter(`Author/ID eq '${this.props.userid}'`)();
         MemoItems.forEach(async itm => {
             if (itm.Status === "Rework") {
@@ -923,105 +1022,6 @@ export class Listing extends React.Component<IListingProps, IListingState> {
             }
         }
 
-        const AnnualAuditReportList = await spfi(this._sp).web.lists.getByTitle("AnnualAuditReportList").items.select('*,ReportCode,Id,Title,Author/Title,Created,Status,ReferenceNumber').expand('Author').filter(`Author/ID eq '${this.props.userid}'`)();
-        AnnualAuditReportList.forEach(async itm => {
-            //debugger
-            if (itm.Status === "Rework") {
-                const processItems2 = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and (Status eq 'Pending' or Status eq 'Save as draft') and (ProcessName eq 'Annual Audit Report' or ProcessName eq 'IMS Audit Report and Checklist') and ListItemId eq ${itm.Id}`)();
-                if (processItems2.length > 0) {
-                    for (const itom of processItems2) {
-
-                        allItems.push({
-                            RequestId: itm.ReportCode ? itm.ReportCode : "",
-                            ReportCode: itm.ReportCode ? itm.ReportCode : "",
-                            Title: itm.MemoNumber ? itm.MemoNumber : "",
-                            ProcessName: "IMS Audit Report and Checklist",
-                            ProcessNameNC:"IMS Audit Report and Checklist",
-                            ReqName: itm.Author ? itm.Author.Title : '',
-                            ReqDt: new Date(itm.Created),
-                            Status: itm.Status,
-                            MainListId: itm.Id,
-                            Id: itm.Id,
-                            ProcessItemId: itom.Id,
-                            SubmitStatus: ''
-                        });
-
-                    }
-
-                }
-                else {
-                    allItems.push({
-                        RequestId: itm.ReportCode ? itm.ReportCode : "",
-                        ReportCode: itm.ReportCode ? itm.ReportCode : "",
-                        Title: itm.MemoNumber ? itm.MemoNumber : "",
-                        ProcessName: "IMS Audit Report and Checklist",
-                        ProcessNameNC:"IMS Audit Report and Checklist",
-                        ReqName: itm.Author ? itm.Author.Title : '',
-                        ReqDt: new Date(itm.Created),
-                        Status: itm.Status,
-                        MainListId: itm.Id,
-                        Id: itm.Id,
-                        SubmitStatus: ''
-                    });
-                }
-            } else if (itm.Status === "Pending") {
-                const processItems2 = await spfi(this._sp).web.lists.getByTitle("ProcessApprovalList").items.select('*,Title,Author/Title,Created,Status').expand('Author').filter(`IsInitiator eq 'Yes' and (Status eq 'Pending' or Status eq 'Save as draft') and ProcessName eq 'Annual Audit Report' and ListItemId eq ${itm.Id}`)();
-                if (processItems2.length > 0) {
-                    for (const itom of processItems2) {
-
-                        allItems.push({
-                            RequestId: itm.ReportCode ? itm.ReportCode : "",
-                            ReportCode: itm.ReportCode ? itm.ReportCode : "",
-                            Title: itm.MemoNumber ? itm.MemoNumber : "",
-                            ProcessName: "IMS Audit Report and Checklist",
-                            ProcessNameNC:"IMS Audit Report and Checklist",
-                            ReqName: itm.Author ? itm.Author.Title : '',
-                            ReqDt: new Date(itm.Created),
-                            Status: itm.Status,
-                            MainListId: itm.Id,
-                            Id: itm.Id,
-                            ProcessItemId: itom.Id,
-                            SubmitStatus: ''
-                        });
-
-                    }
-
-                }
-                else {
-                    allItems.push({
-                        RequestId: itm.ReportCode ? itm.ReportCode : "",
-                        ReportCode: itm.ReportCode ? itm.ReportCode : "",
-                        Title: itm.MemoNumber ? itm.MemoNumber : "",
-                        ProcessName: "IMS Audit Report and Checklist",
-                        ProcessNameNC:"IMS Audit Report and Checklist",
-                        ReqName: itm.Author ? itm.Author.Title : '',
-                        ReqDt: new Date(itm.Created),
-                        Status: itm.Status,
-                        MainListId: itm.Id,
-                        Id: itm.Id,
-                        SubmitStatus: ''
-                    });
-                }
-            }
-            else {
-                allItems.push({
-                    RequestId: itm.ReportCode ? itm.ReportCode : "",
-                    ReportCode: itm.ReportCode ? itm.ReportCode : "",
-                    Title: itm.MemoNumber ? itm.MemoNumber : "",
-                    ProcessName: "IMS Audit Report and Checklist",
-                    ProcessNameNC:"IMS Audit Report and Checklist",
-                    ReqName: itm.Author ? itm.Author.Title : '',
-                    ReqDt: new Date(itm.Created),
-                    Status: itm.Status,
-                    MainListId: itm.Id,
-                    Id: itm.Id,
-                    SubmitStatus: ''
-                });
-
-            }
-
-        });
-
         const nonconfirmity = await spfi(this._sp).web.lists.getByTitle('NonConformityList').items.select('Id,NCNumber,NCType, Department/ID,Department/Department,DocumentCode ,Author/Title , Status , Created,ProblemDescription , SubmitStatus , NCRNo').expand('Author,Department').filter(`Author/ID eq '${this.props.userid}'`).orderBy("Modified", false)();
         console.log(nonconfirmity, "nonconfirmity")
         for (const item of nonconfirmity) {
@@ -1058,7 +1058,7 @@ export class Listing extends React.Component<IListingProps, IListingState> {
         _self.setState({ items: sortedAllItems, totalItems: sortedAllItems.length });
         // _self.setState({ items: allItems, totalItems: allItems.length });
         // console.log(allItems, "all items");
-        // console.log(allItems.length, "all items length");
+        // console.log(sortedAllItems, "all items length");
         // console.log(this.state.items, "this.state.items");
     }
 }

@@ -46,7 +46,7 @@ import "@pnp/graph/groups";
 import "@pnp/graph/members";
 import "@pnp/sp/webs";
 import "@pnp/sp/site-groups/web";
-
+let IsDepartmentEditable: boolean = false;
 // let myloader = '../../'
 let newfileupload: any
 let newfilepreview: any;
@@ -591,6 +591,13 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     };
 
     const ApiCallFunc = async () => {
+
+        const currentUser = await sp.web.currentUser();
+        const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
+        const IsDepartmentPermission = userGroups.some(group => group.Title === `DepartmentFieldPermission`);
+        if (IsDepartmentPermission) {
+            IsDepartmentEditable = true;
+        }
         const me = await graph.me.select(
             "displayName",
             "mail",
@@ -1833,7 +1840,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditPlanDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditPlanDocs');
 
 
 
@@ -2192,7 +2199,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         // }, 500);
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // }
@@ -2255,7 +2262,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditPlanDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditPlanDocs');
 
 
                         if (FilesArr.length > 0) {
@@ -2530,7 +2537,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         // }
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -2562,7 +2569,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditPlanDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditPlanDocs');
 
 
                         if (FilesArr.length > 0) {
@@ -2969,9 +2976,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         // }
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
 
-                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -3035,7 +3042,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ededms/AnnualAuditPlanDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditPlanDocs');
 
 
                         if (FilesArr.length > 0) {
@@ -3276,8 +3283,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         // }, 1000);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
-                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ededms/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -3398,11 +3405,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     //     const encodedFilePath = encodeURIComponent(serverRelativeUrl);
 
     //     // Example:
-    //     // serverRelativeUrl = "/sites/ededms/test/DocumentLibraryInsideTest/Book.xlsx"
+    //     // serverRelativeUrl = "/sites/ed/test/DocumentLibraryInsideTest/Book.xlsx"
     //     const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
     //     const siteUrl = window.location.origin;
 
-    //     // const previewUrl = `${siteUrl}/sites/ededms/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    //     // const previewUrl = `${siteUrl}/sites/ed/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     //     const previewUrl = `${siteUrl}${locationPath}/ChangeRequestDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     //     // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     //     console.log("Generated Preview URL:", previewUrl);
@@ -4003,7 +4010,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                             <Select
                                                                                 // options={AllDept}
                                                                                 options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
-                                                                                isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false)}
+                                                                                isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false)|| !IsDepartmentEditable}
                                                                                 value={selectUserDept}
                                                                                 // onKeyDown={(e: any) => handleKeyDown(e, 'deptId', 0)}
                                                                                 isClearable
@@ -4879,7 +4886,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                                     className={`coverageClsErr ${(!ValidDRecomm) ? "border-on-error" : ""}`}
                                                                                     value={row.Custodian}
                                                                                     isClearable
-                                                                                   
+
                                                                                     title={row.Custodian?.label || "Select Custodian"} // Added title tooltip
                                                                                     onChange={(selectedOptions: any) => handleCoverageRow(index, 'Custodian', selectedOptions)}
                                                                                     placeholder="Select"

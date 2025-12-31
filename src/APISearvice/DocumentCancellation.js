@@ -871,34 +871,73 @@ export const getDocumentLinkByIDSigned = async (_sp, itemId) => {
 //   return results;
 // }
 
-export const getGeneratedTemplateDoc = async (_sp, itemId, DocCode) => {
-  let results = [];
-  try {
-    // const res = await _sp.web.lists.getByTitle("DocumentCancellationDigitalSignedDocs").items
-    const res = await _sp.web.lists.getByTitle("DocumentCancellationAttachDigitalSignedDocs").items
+// export const getGeneratedTemplateDoc = async (_sp, itemId, DocCode) => {
+//   let results = [];
+//   try {
+//     // const res = await _sp.web.lists.getByTitle("DocumentCancellationDigitalSignedDocs").items
+//     const res = await _sp.web.lists.getByTitle("DocumentCancellationAttachDigitalSignedDocs").items
 
-      .select("*,FileRef, FileLeafRef")
+//       .select("*,FileRef, FileLeafRef")
+//       .filter(`ListItemID/ID eq ${itemId}`)
+//       .orderBy("ID", false)
+//       .top(1)();
+
+//     if (res && res.length > 0) {
+//       results = res;
+//     } else {
+//       const res2 = await _sp.web.lists.getByTitle("DocumentCancellationGeneratedTemplateDoc").items
+//         .select("*,FileRef, FileLeafRef")
+//         .filter(`ListItemID/ID eq ${itemId}`)
+//         .orderBy("ID", false)
+//         .top(1)();
+
+//       results = res2 && res2.length > 0 ? res2 : [];
+
+//     }
+//   } catch (error) {
+//     console.log("Error fetching data: ", error);
+//   }
+//   console.log(results, 'results');
+//   return results;
+// };
+export const getGeneratedTemplateDoc = async (_sp, itemId) => {
+  let result = {
+    hasDigitalSigned: false,
+    file: []
+  };
+
+  try {
+    // 1️⃣ Check if file exists in Digital Signed Docs (ONLY FOR FLAG)
+    const digitalSignedRes = await _sp.web.lists
+      .getByTitle("DocumentCancellationAttachDigitalSignedDocs")
+      .items
+      .select("Id")
+      .filter(`ListItemID/ID eq ${itemId} and IsDigitalSignatureDoc eq 'Yes'`)
+      .top(1)();
+
+    if (digitalSignedRes && digitalSignedRes.length > 0) {
+      result.hasDigitalSigned = true;
+    }
+
+    // 2️⃣ Always fetch file from Generated Template Doc
+    const generatedTemplateRes = await _sp.web.lists
+      .getByTitle("DocumentCancellationGeneratedTemplateDoc")
+      .items
+      .select("*,FileRef,FileLeafRef")
       .filter(`ListItemID/ID eq ${itemId}`)
       .orderBy("ID", false)
       .top(1)();
 
-    if (res && res.length > 0) {
-      results = res;
-    } else {
-      const res2 = await _sp.web.lists.getByTitle("DocumentCancellationGeneratedTemplateDoc").items
-        .select("*,FileRef, FileLeafRef")
-        .filter(`ListItemID/ID eq ${itemId}`)
-        .orderBy("ID", false)
-        .top(1)();
-
-      results = res2 && res2.length > 0 ? res2 : [];
-
+    if (generatedTemplateRes && generatedTemplateRes.length > 0) {
+      result.file = generatedTemplateRes;
     }
+
   } catch (error) {
-    console.log("Error fetching data: ", error);
+    console.log("Error fetching document:", error);
   }
-  console.log(results, 'results');
-  return results;
+
+  // console.log(result, "final result");
+  return result;
 };
 
 export const getGeneratedTemplateDoc2 = async (_sp, itemId, ChangeReqID) => {

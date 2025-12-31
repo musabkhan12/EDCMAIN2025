@@ -170,7 +170,7 @@ export class GraphSearchHelper {
       entityTypes: ['driveItem'],
       query: {
         queryString: query,
-        //queryTemplate: "({searchTerms}) IsDocument:True site:https://edcadae.sharepoint.com/sites/ededms/testhub",
+        //queryTemplate: "({searchTerms}) IsDocument:True site:https://edcadae.sharepoint.com/sites/ed/testhub",
       },
       
       from: 0,

@@ -133,8 +133,8 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         Status: Status,
         ReferenceNumber: isFinalApproval ? test : currentReferenceNo
       };
-      let finalrevisiondate = currentchangerequestLatest[0].RevisionDate == null || currentchangerequestLatest[0].RevisionDate == undefined ? undefined : new Date(currentchangerequestLatest[0].RevisionDate).toISOString();
-      let finalissuedate = currentchangerequestLatest[0].IssueDate == null || currentchangerequestLatest[0].IssueDate == undefined ? undefined : new Date(currentchangerequestLatest[0].IssueDate).toISOString();
+      let finalrevisiondate =currentchangerequestLatest[0]  == undefined|| currentchangerequestLatest[0].RevisionDate == null || currentchangerequestLatest[0].RevisionDate == undefined ? undefined : new Date(currentchangerequestLatest[0].RevisionDate).toISOString();
+      let finalissuedate = currentchangerequestLatest[0]  == undefined|| currentchangerequestLatest[0].IssueDate == null || currentchangerequestLatest[0].IssueDate == undefined ? undefined : new Date(currentchangerequestLatest[0].IssueDate).toISOString();
       if (currentchangerequest[0].RequestType?.RequestCode == "Edit") {
         isFinalApproval ?
           postPayloadapp1 = {
@@ -237,7 +237,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
         //if (postResult) {
         Swal.fire(resultmessage, '', 'success').then(async (result) => {
           if (result.isConfirmed) {
-            window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx`;
+            window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx`;
           }
         });
         // Swal.fire(resultmessage, '', 'success');
@@ -245,7 +245,7 @@ export const WorkflowAction = (props: IWorkflowActionProps) => {
 
         //   // window.location.reload()
 
-        //   window.location.href = `https://edcadae.sharepoint.com/sites/ededms/SitePages/MyApprovals.aspx`;
+        //   window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx`;
 
         // }, 1000);
 

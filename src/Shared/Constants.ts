@@ -28,9 +28,9 @@ export const CONTENTTYPE_AuditPlanTemp  ="AuditPlan";
 export const CONTENTTYPE_ChangeReqTemp  ="Change Request";
 export const TEMPTYPE_Memo ="Memorandum";
 // export const Tenant_URL ="https://edcadae.sharepoint.com"
-// export const SITE_URL ="https://edcadae.sharepoint.com/sites/ededms"
+// export const SITE_URL ="https://edcadae.sharepoint.com/sites/ed"
 export const Tenant_URL ="https://edcadae.sharepoint.com"
-export const SITE_URL ="https://edcadae.sharepoint.com/sites/ededms"
+export const SITE_URL ="https://edcadae.sharepoint.com/sites/ed"
  
 // Content Types
 export const CONTENTTYPE_Event="Event";
