@@ -316,7 +316,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
   const ApiCallFunc = async () => {
     graph = graphfi().using(graphSPFx(props.context));
-    const  graphme = await graph.me.select(
+    const graphme = await graph.me.select(
       "displayName",
       "mail",
       "jobTitle",
@@ -325,7 +325,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       "companyName"
     )();
 
-    // const graphCurrentUserDept = me.department;
+    const graphCurrentUserDept = graphme.department;
+    // const graphCurrentUserDept = "AI Ain Training Department";
     const path1 = window.location.href;
     debugger
     const currentUser = await sp.web.currentUser();
@@ -436,21 +437,31 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       UserEmail: item.Email
     }));
     //const userProfile = await sp.profiles.myProperties();
-    setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
+    setcurrentUserDept(graphCurrentUserDept);
+    // setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
     const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
     // let currentuserdepartment = UserDept == "IT" ? "Information Technology" : UserDept;
     // let currentuserdepartment = UserDept;//old
     let currentuserdepartment = graphme.department;//new
-    let optionsfilterdepart = currentuserdepartment != "" && optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment);
+    // let optionsfilterdepart = currentuserdepartment != "" && optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment);
+    let optionsfilterdepart = currentuserdepartment != "" && optionsDepartment.filter((user: any) => user.adDepartmentName
+      ?.split(',')
+      .map((d: string) => d.trim())
+      .includes(graphCurrentUserDept));
+
     if (currentuserdepartment != "") {
-      setSelectedOptionDepart(optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment));
+      // setSelectedOptionDepart(optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment));//old 
+      setSelectedOptionDepart(optionsDepartment.filter((user: any) => user.adDepartmentName
+        ?.split(',')
+        .map((d: string) => d.trim())
+        .includes(graphCurrentUserDept))[0]);
     }
-    console.log("Current user department", currentuserdepartment, optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment))
+    // console.log("Current user department", currentuserdepartment, optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment))
     // let optionsfilterdepart = optionsDepartment.filter((user) => user.label === currentuserdepartment);
     // setSelectedOptionDepart(optionsDepartment.filter((user) => user.label === currentuserdepartment));
     setRows1(Selectedoptions);
     //Swal.fire('Error', 'Entity is required!', 'error');
-    console.log("rerere", optionsDepartment.filter((user) => user.label === currentuserdepartment));
+    // console.log("rerere", optionsDepartment.filter((user) => user.label === currentuserdepartment));
     setFormData(prevData => ({
       ...prevData,
       RequesterNameId: Currusers?.Id || "",
@@ -519,7 +530,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     setdoccoderows(options);
     console.log("DocCodeArr", DocCodeArr);
     if (optionsfilterdepart.length > 0) {
+      // doccodearrew = options.filter((x: any) => x.DepartmentId == optionsfilterdepart[0]?.value)
       doccodearrew = options.filter((x: any) => x.DepartmentId == optionsfilterdepart[0]?.value)
+
     }
 
     setRows(doccodearrew);
@@ -1005,7 +1018,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
           PreviousAttachmentID: setBannerById[0].PreviousAttachmentID,
           AttachmentJson: setBannerById[0].AttachmentJson,
           Status: setBannerById[0].Status,
-          RequesterName: setBannerById[0].Title,
+          // RequesterName: setBannerById[0].Title,
+          RequesterName: setBannerById[0]?.RequesterName?.Title || "",
           Remark: setBannerById[0].Remarks,
           //RequesterNameId: setBannerById[0].RequesterNameId,
           RequesterDesignation: setBannerById[0].RequesterDesignation,
@@ -1518,7 +1532,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     const isOfficeFile = /\.(docx?|xlsx?|pptx?)$/i.test(fileUrl);
 
     if (isOfficeFile) {
-      return `https://edcadae.sharepoint.com/sites/ed/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(fileUrl)}&action=embedview`;
+      return `https://edcadae.sharepoint.com/sites/EDeDMS/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(fileUrl)}&action=embedview`;
     }
 
     if (/\.pdf$/i.test(fileUrl)) {
@@ -1544,13 +1558,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
     console.log("ttrtrtrtt", obj);
     const tenantUrl = "https://edcadae.sharepoint.com";
-    const docurl = "/sites/ed/ImportantDocuments/SomeFolder/Example.pdf";
+    const docurl = "/sites/EDeDMS/ImportantDocuments/SomeFolder/Example.pdf";
 
     // Extract parent folder from docurl
     const parent = docurl.substring(0, docurl.lastIndexOf("/") + 1);
 
     // Construct the final redirect URL
-    const redirectURLpdf = `${tenantUrl}/sites/ed/ImportantDocuments/Forms/AllItems.aspx?id=${encodeURIComponent(docurl)}&parent=${encodeURIComponent(parent)}&p=true&ga=1`;
+    const redirectURLpdf = `${tenantUrl}/sites/EDeDMS/ImportantDocuments/Forms/AllItems.aspx?id=${encodeURIComponent(docurl)}&parent=${encodeURIComponent(parent)}&p=true&ga=1`;
 
     console.log(redirectURLpdf);
 
@@ -1819,7 +1833,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
   const validateForm = async (fmode: FormSubmissionMode) => {
     debugger
-    const { RequesterName, RequesterDesignation, RequestDate, DocumentCode, IssueNumber, RevisionNumber, ReferenceNumber } = formData;
+    const { RequesterName, RequesterDesignation, RequestDate, DocumentCode, IssueNumber, RevisionNumber, ReferenceNumber, DepartmentId } = formData;
     // const { description } = richTextValues;
     let valid = true;
     let valid1 = true;
@@ -1878,7 +1892,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         setamendmenterr(true);
         valid = false;
       }
-      if (!SelectedOptionDepart) {
+      // if (!SelectedOptionDepart) {
+      //   setdepartmenterr(true);
+      //   valid = false;
+      // }//old
+      if (!DepartmentId) {//new
         setdepartmenterr(true);
         valid = false;
       }
@@ -1988,7 +2006,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
         setdocumentcodeerr(true);
         valid = false;
       }
-      if (!SelectedOptionDepart) {
+      // if (!SelectedOptionDepart) {//old
+      //   setdepartmenterr(true);
+      //   valid = false;
+      // }
+      if (!DepartmentId) {//new
         setdepartmenterr(true);
         valid = false;
       }
@@ -2158,7 +2180,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let DocumentName: string = "";
             let attachmentIds = [];
             debugger
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/ChangeRequestDocs');
             let docCode = selectedOptionReq.requestcode == "New" ? doccode : selectedOption?.DocumentCode;
             let filenamenew: any;
             let newfileName: any;
@@ -2481,13 +2503,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
               }
             });
             //sessionStorage.removeItem("ChangeRequestId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
             // }, 1000);
             // }
           }
@@ -2512,7 +2534,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let DocumentName: string = "";
             let attachmentIds = [];
             debugger
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/ChangeRequestDocs');
             let docCode = selectedOptionReq?.requestcode == "New" ? doccode : selectedOption?.DocumentCode;
             debugger
             if (Attachmentarr.length > 0) {
@@ -2794,14 +2816,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Submitted successfully.', '', 'success');
             // // sessionStorage.removeItem("bannerId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
             // }, 1000);
             // }
 
@@ -2903,7 +2925,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let DocumentName: string = "";
             let attachmentIds = [];
             debugger
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/ChangeRequestDocs');
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
@@ -3071,14 +3093,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Saved successfully.', '', 'success');
             // sessionStorage.removeItem("ChangeRequestId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
             // }, 2000);
             // }
           }
@@ -3101,7 +3123,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/ChangeRequestDocs');
             debugger
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
@@ -3241,14 +3263,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Saved successfully.', '', 'success');
             // // sessionStorage.removeItem("bannerId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
             // }, 1000);
           }
         })
@@ -3501,7 +3523,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx`;
               }
             });
 
@@ -3620,7 +3642,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx`;
               }
             });
             // }
@@ -3722,7 +3744,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/ChangeRequestDocs');
             // if (Attachmentarr.length > 0) {
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
@@ -4054,7 +4076,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -4097,7 +4119,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/ChangeRequestDocs');
 
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
@@ -4425,7 +4447,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -4559,11 +4581,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     const encodedFilePath = encodeURIComponent(serverRelativeUrl);
 
     // Example: 
-    // serverRelativeUrl = "/sites/ed/test/DocumentLibraryInsideTest/Book.xlsx"
+    // serverRelativeUrl = "/sites/EDeDMS/test/DocumentLibraryInsideTest/Book.xlsx"
     const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
     const siteUrl = window.location.origin;
 
-    // const previewUrl = `${siteUrl}/sites/ed/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    // const previewUrl = `${siteUrl}/sites/EDeDMS/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     const previewUrl = `${siteUrl}${locationPath}/ChangeRequestDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     console.log("Generated Preview URL:", previewUrl);
@@ -5289,7 +5311,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
 
                                     <div className="text-dark mt-0"> <span >
-                                      <a onClick={() => setShowModal(true)} ><FontAwesomeIcon icon={faPaperclip} />{DocumentLink && DocumentLink.length == 1 ? "1 file Attached" : "2 files Attached"}</a>
+                                      <a onClick={() => setShowModal(true)} ><FontAwesomeIcon icon={faPaperclip} />{DocumentLink && (DocumentLink?.length == 1 || DocumentLink?.length == 0) ?`${DocumentLink?.length} file Attached` : `${DocumentLink?.length} files Attached`}</a>
 
                                     </span>
                                     </div>
@@ -5793,7 +5815,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                       {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><i className="fe-check-circle me-1"></i> Submit</button>}
 
                       {/* </a> */}
-                        {/* <a href="../sites/ed/SitePages/EDCMAIN.aspx">       */}
+                        {/* <a href="../sites/EDeDMS/SitePages/EDCMAIN.aspx">       */}
                         {/* <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}><i className="fe-x me-1"></i> Cancel</button>
                       {/* </a> */}
                         {/* </div>

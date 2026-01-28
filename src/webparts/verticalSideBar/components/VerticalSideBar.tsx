@@ -151,10 +151,10 @@ const VerticalContext = ({ _context }: any) => {
       console.log(res, "currentuser");
     })
    
-    const siteUrl = "https://edcadae.sharepoint.com/sites/ed";
+    const siteUrl = "https://edcadae.sharepoint.com/sites/EDeDMS";
     let listTitle = 'UtilitySettings'
-    // let CurrentsiteID ="ec1d9ac4-4785-46e0-91bf-9e0ce3b8f5e6";
-    const CurrentsiteID = "c28d2cab-4339-4438-a150-0ea93986a4eb";
+    let CurrentsiteID ="ec1d9ac4-4785-46e0-91bf-9e0ce3b8f5e6";// uat siteId site Id
+    // const CurrentsiteID = "c28d2cab-4339-4438-a150-0ea93986a4eb";// prod siteId site Id
     siteID = CurrentsiteID;
     response = await _context.web.lists.getByTitle(listTitle).select('Id')();
     console.log("resp",response);

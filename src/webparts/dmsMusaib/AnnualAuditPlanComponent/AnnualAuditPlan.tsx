@@ -246,7 +246,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         let listItems = [];
         let onloadDeptId: any;
         if (selectedOption == null) {
-            onloadDeptId = AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]?.value || 0;
+            // onloadDeptId = AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]?.value || 0;
+            onloadDeptId = AllDept.filter((user: any) => user.ADDepartmentName
+            ?.split(',')
+            .map((d: string) => d.trim())
+            .includes(currentUserDept))[0]?.value || 0;
+
 
             listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
 
@@ -290,18 +295,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 memoNo: `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/001`,
                 memoFileName: `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_001`,
             }));
-            // setFormData((prevFormData) => ({
-            //     ...prevFormData,
-            //     MemoListId: memoId,
-            //     memoSerialNo: memo,
-            //     deptId: onloadDeptId,
-            //     memoNo: AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0]
-            //         ? `${AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-            //         : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-            //     memoFileName: AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]
-            //         ? `${AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
-            //         : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
-            // }));
+            
 
 
         }
@@ -607,8 +601,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
             "companyName"
         )();
 
-        const graphCurrentUserDept = me.department;
-
+        const graphCurrentUserDept = me.department||"";
+        // const graphCurrentUserDept = "SharePoint Department Testing"
         console.log("Current user department:", graphCurrentUserDept);
         setAuditPlanType(await getAllAuditType(sp));
 
@@ -663,12 +657,16 @@ const AnnualAuditPlanContext = ({ props }: any) => {
         const Currusers: any = await getCurrentUser(sp, siteUrl);
         setCurrentUser(await getCurrentUser(sp, siteUrl));
         const userProfile = await sp.profiles.myProperties();
-        setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
+        setcurrentUserDept(graphCurrentUserDept);
+        // setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
         const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
         // setselectUserDept(setAllDept1.filter(user => user.label === UserDept));
         // setselectUserDept(setAllDept1.filter(user => user.ADDepartmentName === UserDept)); //old
-        setselectUserDept(setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept));
-
+        // setselectUserDept(setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept));
+        setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName
+            ?.split(',')
+            .map((d: string) => d.trim())
+            .includes(graphCurrentUserDept))[0]);
         const recommendationTypes = await getRecommendationTypes(sp);
         setRecommType(recommendationTypes);
         var ClassificationArr = await getAllClassificationMaster(sp);
@@ -785,7 +783,12 @@ const AnnualAuditPlanContext = ({ props }: any) => {
 
             // const onloadDeptId = setAllDept1.filter((user: any) => user.label === UserDept)[0]?.value || 0;
             // const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0;//old
-            const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]?.value || 0;
+            // const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]?.value || 0;
+            const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName
+                ?.split(',')
+                .map((d: string) => d.trim())
+                .includes(graphCurrentUserDept))[0]?.value || 0;
+
 
 
             const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
@@ -819,12 +822,34 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                 // memoNo: setAllDept1.filter(user => user.label === UserDept)[0]
                 //     ? `${setAllDept1.filter(user => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
                 //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-                memoNo: setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept)[0]
-                    ? `${setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+                //#old
+                // memoNo: setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept)[0]
+                //     ? `${setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+                //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+                // memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
+                //     ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+                //     : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+                //#new
+                memoNo: setAllDept1.filter(user => user.ADDepartmentName
+                    ?.split(',')
+                    .map((d: string) => d.trim())
+                    .includes(graphCurrentUserDept))[0]
+                    ? `${setAllDept1.filter(user => user.ADDepartmentName
+                        ?.split(',')
+                        .map((d: string) => d.trim())
+                        .includes(graphCurrentUserDept))[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
                     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-                memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
-                    ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+                memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName
+                    ?.split(',')
+                    .map((d: string) => d.trim())
+                    .includes(graphCurrentUserDept))[0]
+                    ? `${setAllDept1.filter((user: any) => user.ADDepartmentName
+                        ?.split(',')
+                        .map((d: string) => d.trim())
+                        .includes(graphCurrentUserDept))[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
                     : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+
+
             }));
 
         }
@@ -1840,7 +1865,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditPlanDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditPlanDocs');
 
 
 
@@ -2199,7 +2224,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         // }, 500);
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // }
@@ -2262,7 +2287,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditPlanDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditPlanDocs');
 
 
                         if (FilesArr.length > 0) {
@@ -2537,7 +2562,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         // }
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -2569,7 +2594,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditPlanDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditPlanDocs');
 
 
                         if (FilesArr.length > 0) {
@@ -2976,9 +3001,9 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         // }
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
 
-                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -3042,7 +3067,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditPlanDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditPlanDocs');
 
 
                         if (FilesArr.length > 0) {
@@ -3283,8 +3308,8 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                         // }, 1000);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
-                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -3405,11 +3430,11 @@ const AnnualAuditPlanContext = ({ props }: any) => {
     //     const encodedFilePath = encodeURIComponent(serverRelativeUrl);
 
     //     // Example:
-    //     // serverRelativeUrl = "/sites/ed/test/DocumentLibraryInsideTest/Book.xlsx"
+    //     // serverRelativeUrl = "/sites/EDeDMS/test/DocumentLibraryInsideTest/Book.xlsx"
     //     const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
     //     const siteUrl = window.location.origin;
 
-    //     // const previewUrl = `${siteUrl}/sites/ed/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    //     // const previewUrl = `${siteUrl}/sites/EDeDMS/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     //     const previewUrl = `${siteUrl}${locationPath}/ChangeRequestDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     //     // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     //     console.log("Generated Preview URL:", previewUrl);
@@ -4010,7 +4035,7 @@ const AnnualAuditPlanContext = ({ props }: any) => {
                                                                             <Select
                                                                                 // options={AllDept}
                                                                                 options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
-                                                                                isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false)|| !IsDepartmentEditable}
+                                                                                isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false) || !IsDepartmentEditable}
                                                                                 value={selectUserDept}
                                                                                 // onKeyDown={(e: any) => handleKeyDown(e, 'deptId', 0)}
                                                                                 isClearable

@@ -254,7 +254,15 @@ const MemoContext = ({ props }: any) => {
     let listItems = [];
     let onloadDeptId: any;
     if (selectedOption == null) {
-      onloadDeptId = AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]?.value || 0;
+      // onloadDeptId = AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]?.value || 0;
+
+      onloadDeptId =
+        AllDept.filter((user: any) =>
+          user.ADDepartmentName
+            ?.split(',')
+            .map((d: string) => d.trim())
+            .includes(currentUserDept)
+        )[0]?.value || 0;
 
       listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
 
@@ -293,11 +301,29 @@ const MemoContext = ({ props }: any) => {
         MemoListId: memoId,
         memoSerialNo: memo,
         deptId: onloadDeptId,
-        memoNo: AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0]
-          ? `${AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        // memoNo: AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0]
+        //   ? `${AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        //   : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+        // memoFileName: AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]
+        //   ? `${AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+        //   : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+        memoNo: AllDept.filter(user => user.ADDepartmentName
+          ?.split(',')
+          .map((d: string) => d.trim())
+          .includes(currentUserDept))[0]
+          ? `${AllDept.filter(user => user.ADDepartmentName
+            ?.split(',')
+            .map((d: string) => d.trim())
+            .includes(currentUserDept))[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
           : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-        memoFileName: AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]
-          ? `${AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+        memoFileName: AllDept.filter((user: any) => user.ADDepartmentName
+          ?.split(',')
+          .map((d: string) => d.trim())
+          .includes(currentUserDept))[0]
+          ? `${AllDept.filter((user: any) => user.ADDepartmentName
+            ?.split(',')
+            .map((d: string) => d.trim())
+            .includes(currentUserDept))[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
           : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
       }));
 
@@ -468,6 +494,11 @@ const MemoContext = ({ props }: any) => {
     //     "officeLocation",
     //     "companyName")
     //   ();
+    const allusers = await graph.users
+      .select("*,id,displayName,mail,userPrincipalName,department")
+      .top(999)();
+
+    console.log(allusers, "allusers");
     const currentUser = await sp.web.currentUser();
     const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
     const IsDepartmentPermission = userGroups.some(group => group.Title === `DepartmentFieldPermission`);
@@ -485,7 +516,8 @@ const MemoContext = ({ props }: any) => {
       "companyName"
     )();
 
-    const graphCurrentUserDept = me.department;
+    const graphCurrentUserDept = me.department || "";
+    // const graphCurrentUserDept = "SharePoint Department Testing"
 
     // console.log("UAT user profile:", user);
 
@@ -532,9 +564,13 @@ const MemoContext = ({ props }: any) => {
     const userProfile = await sp.profiles.myProperties();
     const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
     // setcurrentUserDept(UserDept);
+    setcurrentUserDept(graphCurrentUserDept);
     // setselectUserDept(setAllDept1.filter((user: any) => user.label === UserDept));
     // setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]);
-    setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]);
+    setselectUserDept(setAllDept1.filter((user: any) =>  user.ADDepartmentName
+    ?.split(',')
+    .map((d: string) => d.trim())
+    .includes(graphCurrentUserDept))[0]);
     const recommendationTypes = await getRecommendationTypes(sp);
     setRecommType(recommendationTypes);
     var ClassificationArr = await getAllClassificationMaster(sp);
@@ -574,7 +610,10 @@ const MemoContext = ({ props }: any) => {
 
 
       // const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0; //old
-      const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]?.value || 0; //new
+      const onloadDeptId = setAllDept1.filter((user: any) =>  user.ADDepartmentName
+      ?.split(',')
+      .map((d: string) => d.trim())
+      .includes(graphCurrentUserDept))[0]?.value || 0; //new
 
 
       const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
@@ -608,11 +647,29 @@ const MemoContext = ({ props }: any) => {
         // memoNo: setAllDept1.filter((user: any) => user.label === UserDept)[0]
         //   ? `${setAllDept1.filter((user: any) => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
         //   : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-        memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
-          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        // memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
+        //   ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        //   : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+        // memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
+        //   ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+        //   : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+        memoNo: setAllDept1.filter((user: any) =>  user.ADDepartmentName
+        ?.split(',')
+        .map((d: string) => d.trim())
+        .includes(graphCurrentUserDept))[0]
+          ? `${setAllDept1.filter((user: any) =>user.ADDepartmentName
+            ?.split(',')
+            .map((d: string) => d.trim())
+            .includes(graphCurrentUserDept))[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
           : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-        memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
-          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+        memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName
+        ?.split(',')
+        .map((d: string) => d.trim())
+        .includes(graphCurrentUserDept))[0]
+          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName
+            ?.split(',')
+            .map((d: string) => d.trim())
+            .includes(graphCurrentUserDept))[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
           : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
       }));
 
@@ -1486,7 +1543,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumDocs');
 
 
 
@@ -1580,13 +1637,13 @@ const MemoContext = ({ props }: any) => {
 
             if (AdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumAdditionalDocs/Description');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Description');
 
               for (const file of AdditionalFilesArr) {
                 if (!file.ID) {
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ed/MemorandumAdditionalDocs/Description'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Description'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -1631,7 +1688,7 @@ const MemoContext = ({ props }: any) => {
             if (AdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ed/MemorandumAdditionalDocs/Description'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Description'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -1650,13 +1707,13 @@ const MemoContext = ({ props }: any) => {
 
             if (BGAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumAdditionalDocs/Background');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Background');
 
               for (const file of BGAdditionalFilesArr) {
                 if (!file.ID) {
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ed/MemorandumAdditionalDocs/Background'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Background'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -1686,7 +1743,7 @@ const MemoContext = ({ props }: any) => {
             if (BGAdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ed/MemorandumAdditionalDocs/Background'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Background'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -1703,13 +1760,13 @@ const MemoContext = ({ props }: any) => {
             // ////////
             if (RecomAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumAdditionalDocs/Recommadation');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation');
 
               for (const file of RecomAdditionalFilesArr) {
                 if (!file.ID) {
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ed/MemorandumAdditionalDocs/Recommadation'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -1739,7 +1796,7 @@ const MemoContext = ({ props }: any) => {
             if (RecomAdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ed/MemorandumAdditionalDocs/Recommadation'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -1963,7 +2020,7 @@ const MemoContext = ({ props }: any) => {
             // }
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -2017,7 +2074,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2128,7 +2185,7 @@ const MemoContext = ({ props }: any) => {
 
             if (AdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumAdditionalDocs/Description');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Description');
 
               for (const file of AdditionalFilesArr) {
                 if (!file.ID) {
@@ -2165,7 +2222,7 @@ const MemoContext = ({ props }: any) => {
 
             if (BGAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumAdditionalDocs/Background');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Background');
 
               for (const file of BGAdditionalFilesArr) {
                 if (!file.ID) {
@@ -2187,7 +2244,7 @@ const MemoContext = ({ props }: any) => {
             }
             if (RecomAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumAdditionalDocs/Recommadation');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation');
 
               for (const file of RecomAdditionalFilesArr) {
                 if (!file.ID) {
@@ -2345,7 +2402,7 @@ const MemoContext = ({ props }: any) => {
 
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -2377,7 +2434,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2539,14 +2596,14 @@ const MemoContext = ({ props }: any) => {
 
             if (AdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumAdditionalDocs/Description');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Description');
 
               for (const file of AdditionalFilesArr) {
                 if (!file.ID) {
 
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ed/MemorandumAdditionalDocs/Description'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Description'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -2577,7 +2634,7 @@ const MemoContext = ({ props }: any) => {
             if (AdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ed/MemorandumAdditionalDocs/Description'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Description'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -2596,14 +2653,14 @@ const MemoContext = ({ props }: any) => {
 
             if (BGAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumAdditionalDocs/Background');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Background');
 
               for (const file of BGAdditionalFilesArr) {
                 if (!file.ID) {
 
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ed/MemorandumAdditionalDocs/Background'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Background'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -2634,7 +2691,7 @@ const MemoContext = ({ props }: any) => {
             if (BGAdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ed/MemorandumAdditionalDocs/Background'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Background'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -2650,14 +2707,14 @@ const MemoContext = ({ props }: any) => {
 
             if (RecomAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumAdditionalDocs/Recommadation');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation');
 
               for (const file of RecomAdditionalFilesArr) {
                 if (!file.ID) {
 
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ed/MemorandumAdditionalDocs/Recommadation'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -2691,7 +2748,7 @@ const MemoContext = ({ props }: any) => {
             if (RecomAdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ed/MemorandumAdditionalDocs/Recommadation'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -2889,8 +2946,8 @@ const MemoContext = ({ props }: any) => {
 
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
-                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -2918,7 +2975,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -3027,7 +3084,7 @@ const MemoContext = ({ props }: any) => {
 
             if (AdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumAdditionalDocs/Description');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Description');
 
               for (const file of AdditionalFilesArr) {
                 if (!file.ID) {
@@ -3049,7 +3106,7 @@ const MemoContext = ({ props }: any) => {
             }
             if (BGAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumAdditionalDocs/Background');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Background');
 
               for (const file of BGAdditionalFilesArr) {
                 if (!file.ID) {
@@ -3071,7 +3128,7 @@ const MemoContext = ({ props }: any) => {
             }
             if (RecomAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumAdditionalDocs/Recommadation');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation');
 
               for (const file of RecomAdditionalFilesArr) {
                 if (!file.ID) {
@@ -3204,8 +3261,8 @@ const MemoContext = ({ props }: any) => {
             // }, 1000);
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
-                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -4321,15 +4378,15 @@ const MemoContext = ({ props }: any) => {
                                       <div className='row'>
                                         <div className='col-sm-8'>
                                           <label htmlFor="attachment" className="col-form-label">Additional Background Attachment<div> (only image file upto 1 MB)
-                                          <Icon
-                                            iconName="info"
-                                            className="ms-1"
-                                            title={"Note: This attachment will be added to the Memorandum template under the Background section."}
-                                            // data-html={true}
-                                            // data-tip={tooltipText}
-                                            // data-tooltip-id="my-tooltip"
-                                            style={{ fontSize: '14px', cursor: 'pointer' }}
-                                          />
+                                            <Icon
+                                              iconName="info"
+                                              className="ms-1"
+                                              title={"Note: This attachment will be added to the Memorandum template under the Background section."}
+                                              // data-html={true}
+                                              // data-tip={tooltipText}
+                                              // data-tooltip-id="my-tooltip"
+                                              style={{ fontSize: '14px', cursor: 'pointer' }}
+                                            />
                                           </div>
                                           </label>
 
@@ -4403,17 +4460,17 @@ const MemoContext = ({ props }: any) => {
                                     <div className='justify-content-between'>
                                       <div className='row'>
                                         <div className='col-sm-8'>
-                                          <label htmlFor="attachment" className="col-form-label">Additional Description Attachment <div> (only image file upto 1 MB) 
-                                          <Icon
-                                            iconName="info"
-                                            className="ms-1"
-                                            title={"Note: This attachment will be added to the Memorandum template under the Description section."}
-                                            // data-html={true}
-                                            // data-tip={tooltipText}
-                                            // data-tooltip-id="my-tooltip"
-                                            style={{ fontSize: '14px', cursor: 'pointer' }}
-                                          />
-                                            </div></label>
+                                          <label htmlFor="attachment" className="col-form-label">Additional Description Attachment <div> (only image file upto 1 MB)
+                                            <Icon
+                                              iconName="info"
+                                              className="ms-1"
+                                              title={"Note: This attachment will be added to the Memorandum template under the Description section."}
+                                              // data-html={true}
+                                              // data-tip={tooltipText}
+                                              // data-tooltip-id="my-tooltip"
+                                              style={{ fontSize: '14px', cursor: 'pointer' }}
+                                            />
+                                          </div></label>
 
                                         </div>
                                         <div className='col-sm-4'>
@@ -4704,7 +4761,7 @@ const MemoContext = ({ props }: any) => {
                                     <div className='col-sm-8'>
                                       <label htmlFor="attachment" className="col-form-label">
                                         Additional Recommendation Attachment <div> (only image file upto 1 MB)
-                                        <Icon
+                                          <Icon
                                             iconName="info"
                                             className="ms-1"
                                             title={"Note: This attachment will be added to the Memorandum template under the Recommendation section."}
@@ -4713,7 +4770,7 @@ const MemoContext = ({ props }: any) => {
                                             // data-tooltip-id="my-tooltip"
                                             style={{ fontSize: '14px', cursor: 'pointer' }}
                                           />
-                                          </div></label>
+                                        </div></label>
                                     </div>
                                     <div className='col-sm-4'>
 

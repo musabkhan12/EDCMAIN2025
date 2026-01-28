@@ -1,8 +1,8 @@
 import Swal from 'sweetalert2';
-export const getAllDocumentCode = async (_sp, dept) => {
+/*export const getAllDocumentCode = async (_sp, dept) => {
   let arr = [];
   let sts = "Approved";
-    let stsReject = "Rejected";
+  let stsReject = "Rejected";
   // await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`Status eq '${sts}' and Department/ADDepartmentName eq '${dept}'`)
   //   .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId")
   //   .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department")
@@ -12,10 +12,10 @@ export const getAllDocumentCode = async (_sp, dept) => {
     .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department,PreparedBy")
     .orderBy("ID", false)()
     .then(async (res) => {
-      // console.log(res);
+      
 
       const filteredRes = await _sp.web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.filter(`Status ne '${stsReject}'`)
-      .select("*") .orderBy("ID", false).top(5000)()
+        .select("*").orderBy("ID", false).top(5000)()
       // .getAll();
 
       // Filter only latest entry for each unique DocumentCode with the greatest ID
@@ -33,9 +33,9 @@ export const getAllDocumentCode = async (_sp, dept) => {
         }
       });
 
-     // //********************* */
+     
       // Remove records from latestDocuments if their DocumentCode exists in filteredRes
-      if(filteredRes.length >0){
+      if (filteredRes.length > 0) {
         // const filteredDocumentCodes = new Set(filteredRes.map(item => item.DocumentCode));
         // Object.keys(latestDocuments).forEach((key) => {
         //   if (filteredDocumentCodes.has(key)) {
@@ -53,8 +53,8 @@ export const getAllDocumentCode = async (_sp, dept) => {
           }
         });
       }
+
      
-      // //********************* */
 
       const documentIds = Object.values(latestDocuments).map((doc) => doc.ID);
       const chunkSize = 50; // Adjust chunk size as needed
@@ -89,7 +89,115 @@ export const getAllDocumentCode = async (_sp, dept) => {
       console.log("Error fetching data: ", error);
     });
   return arr;
+};*/ //old code
+
+
+//&&&&&&&&&&&&&&&&
+export const getAllDocumentCode = async (_sp, dept) => {
+  let arr = [];
+  let sts = "Approved";
+  let stsReject = "Rejected";
+  // await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`Status eq '${sts}' and Department/ADDepartmentName eq '${dept}'`)
+  //   .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId")
+  //   .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department")
+  //   .orderBy("ID", false)()
+  // await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`Status eq '${sts}' and SignedDocs eq 'Yes'`)
+  //   .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId,PreparedBy/ID,PreparedBy/Title")
+  //   .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department,PreparedBy")
+  //   .orderBy("ID", false)()
+  await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`Status eq '${sts}'`)
+    .select("*,Department/ID,Department/Department,Department/ADDepartmentName,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId")
+    .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department")
+    .orderBy("ID", false).top(5000)() //newest
+    .then(async (res) => {
+
+      res = res.filter((item) =>
+        item.Department?.ADDepartmentName
+          ?.split(',')
+          .map((d) => d.trim())
+          .includes(dept)
+      );
+      
+
+      const filteredRes = await _sp.web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.filter(`Status ne '${stsReject}'`)
+        .select("*").orderBy("ID", false).top(5000)()
+      // .getAll();
+
+      // Filter only latest entry for each unique DocumentCode with the greatest ID
+      const latestDocuments = res.reduce((acc, item) => {
+        if (!acc[item.DocumentCode] || acc[item.DocumentCode].ID < item.ID) {
+          acc[item.DocumentCode] = item;
+        }
+        return acc;
+      }, {});
+
+      // Filter out documents with DocumentCancellationStatus as 'Yes'
+      Object.keys(latestDocuments).forEach((key) => {
+        if (latestDocuments[key].DocumentCancellationStatus === 'Yes') {
+          delete latestDocuments[key];
+        }
+      });
+
+     
+      // Remove records from latestDocuments if their DocumentCode exists in filteredRes
+      if (filteredRes.length > 0) {
+        // const filteredDocumentCodes = new Set(filteredRes.map(item => item.DocumentCode));
+        // Object.keys(latestDocuments).forEach((key) => {
+        //   if (filteredDocumentCodes.has(key)) {
+        //     delete latestDocuments[key];
+        //   }
+        // });
+        const filteredDocumentCodes = new Set(filteredRes.map(item => item.DocumentCode));
+        Object.keys(latestDocuments).forEach((key) => {
+          if (filteredDocumentCodes.has(key)) {
+            const filteredItem = filteredRes.find(item => item.DocumentCode === key);
+            const latestItem = latestDocuments[key];
+            if (filteredItem.RevisionNumber === latestItem.RevisionNumber && filteredItem.IssueNumber === latestItem.IssueNumber) {
+              delete latestDocuments[key];
+            }
+          }
+        });
+      }
+
+     
+
+      const documentIds = Object.values(latestDocuments).map((doc) => doc.ID);
+      const chunkSize = 50; // Adjust chunk size as needed
+      let digitalSignedDocs = [];
+
+      for (let i = 0; i < documentIds.length; i += chunkSize) {
+        const chunk = documentIds.slice(i, i + chunkSize).join(" or ListItemID/ID eq ");
+        const chunkResults = await _sp.web.lists.getByTitle("ChangeRequestAttachDigitalSignedDocs").items
+          .filter(`ListItemID/ID eq ${chunk}`)
+          .select("ID, ListItemID/ID")
+          .expand("ListItemID")
+          .getAll();
+        digitalSignedDocs = digitalSignedDocs.concat(chunkResults);
+      }
+
+      const digitalSignedDocsMap = digitalSignedDocs.reduce((acc, item) => {
+        acc[item.ListItemID.ID] = item;
+        return acc;
+      }, {});
+
+      arr = Object.values(latestDocuments).map((doc) => {
+        const digitalSignedDoc = digitalSignedDocsMap[doc.ID];
+        const DigiSignId = digitalSignedDoc ? [digitalSignedDoc.ID] : [];
+        return {
+          ...doc,
+          AttachmentId: digitalSignedDoc ? [] : doc.AttachmentId,
+          AttachmentDigitalSignatureId: digitalSignedDoc ? DigiSignId : []
+        };
+      });
+    })
+    .catch((error) => {
+      console.log("Error fetching data: ", error);
+    });
+    console.log("cherry",arr);
+  return arr;
 };
+
+//&&&&&&&&&&&&&&&&&
 // const latestDocuments = res.reduce((acc, item) => {
 //   if (!acc[item.DocumentCode]) {
 //     const hasCancellationStatusYes = res.some(doc => doc.DocumentCode === item.DocumentCode && doc.DocumentCancellationStatus === 'Yes');
@@ -440,7 +548,7 @@ export const GetQueryString = (string) =>
 
 export const getApprovalByID = async (_sp, id, processName) => {
 
-  let arr =null;
+  let arr = null;
   let arrs = []
   let bannerimg = []
   const currentUser = await _sp.web.currentUser();
@@ -453,7 +561,7 @@ export const getApprovalByID = async (_sp, id, processName) => {
       // }
 
 
-       // working *********
+      // working *********
 
       // Check if the current user is the assigned user or a delegate
       // Fetch the delegate list to see if the current user is acting as a delegate
@@ -493,7 +601,7 @@ export const getApprovalByID = async (_sp, id, processName) => {
 
       // working *********
 
-   
+
 
     })
     .catch((error) => {
@@ -520,7 +628,7 @@ export const getApprovalByID2 = async (_sp, id, processName) => {
       // }
 
 
-     
+
       // *********************//////
       const today = new Date().toISOString();
       // const today = new Date().toISOString().split('T')[0];
@@ -555,8 +663,8 @@ export const getApprovalByID2 = async (_sp, id, processName) => {
           console.log("Error fetching data: ", error);
         });
 
-        // *********************//////
-     
+      // *********************//////
+
     })
     .catch((error) => {
       console.log("Error fetching data: ", error);
@@ -586,9 +694,9 @@ export const getDraftApprovalByID = async (_sp, id, processName) => {
 
   // ////********************* */
 
-   await _sp.web.lists.getByTitle("ProcessApprovalList").items
+  await _sp.web.lists.getByTitle("ProcessApprovalList").items
     // .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`ListItemId eq '${id}' and AssignedTo/ID  eq '${currentUser.Id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).orderBy("Created", false).top(1)()
-        .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`ListItemId eq '${id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).orderBy("Created", false).top(1)()
+    .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/ID,AssignedTo/Title").expand("Author,RequesterName,AssignedTo").filter(`ListItemId eq '${id}' and ProcessName eq '${processName}' and IsInitiator eq '${val}' and (Status eq '${Sts}' or Status eq '${sts}')`).orderBy("Created", false).top(1)()
 
     .then(async (res) => {
       console.log(res, ' let arrs=[]');
@@ -986,8 +1094,8 @@ export const getGeneratedTemplateDoc2 = async (_sp, itemId, ChangeReqID) => {
             //   .orderBy("ID", false)
             //   .top(1)()
             const latestApprovedItem = await _sp.web.lists.getByTitle("ChangeRequestList").items
-            .getById(ChangeReqID).select("*")()  
- 
+              .getById(ChangeReqID).select("*")()
+
               .then(async (res) => {
                 if (res) {
                   // return res[0];
@@ -1105,25 +1213,57 @@ export const getdigitalsignaturerequestbyID = async (listname, _sp, id) => {
   return arr;
 };
 
+// export const getUserDepartment = async (_sp, dept) => {
+
+
+//   let deptName = "";
+//   // await _sp.web.lists.getByTitle("ProcessDepartmentMasterList").items
+//   //   .select("*,ToUsers/Title,CCUsers/Title").expand("ToUsers,CCUsers").filter(`Active eq 'Yes' and ADDepartmentName eq '${dept}'`)()
+//   //   .then((res) => {//old
+//   await _sp.web.lists.getByTitle("ProcessDepartmentMasterList").items
+//     .select("*,ToUsers/Title,CCUsers/Title").expand("ToUsers,CCUsers").filter(`Active eq 'Yes' and (ADDepartmentName eq '${dept}' or
+//   startswith(ADDepartmentName, '${dept},') or
+//   substringof(',${dept},', concat(',', ADDepartmentName, ','))
+// )`)()
+//     .then((res) => { //new
+
+//       if (res && res.length > 0) {
+//         deptName = res[0].Department;
+//       }
+
+//     })
+//     .catch((error) => {
+//       console.log("Error fetching data: ", error);
+//     });
+//   // console.log(arr, 'arr');
+//   return deptName;
+// }
 export const getUserDepartment = async (_sp, dept) => {
-
-
   let deptName = "";
-  await _sp.web.lists.getByTitle("ProcessDepartmentMasterList").items
-    .select("*,ToUsers/Title,CCUsers/Title").expand("ToUsers,CCUsers").filter(`Active eq 'Yes' and ADDepartmentName eq '${dept}'`)()
-    .then((res) => {
 
-      if (res && res.length > 0) {
-        deptName = res[0].Department;
-      }
+  try {
+    const res = await _sp.web.lists
+      .getByTitle("ProcessDepartmentMasterList")
+      .items
+      .select("Department,ADDepartmentName")
+      .filter(`Active eq 'Yes'`)();
 
-    })
-    .catch((error) => {
-      console.log("Error fetching data: ", error);
-    });
-  // console.log(arr, 'arr');
+    const match = res.find((item) =>
+      item.ADDepartmentName
+        ?.split(',')
+        .map((d) => d.trim())
+        .includes(dept)
+    );
+
+    if (match) {
+      deptName = match.Department;
+    }
+  } catch (e) {
+    console.error(e);
+  }
+
   return deptName;
-}
+};
 
 
 export const getLatestChangeRequestTemplateType = async (_sp, List) => {

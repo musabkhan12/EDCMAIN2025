@@ -165,8 +165,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         CDocumentCode: "",
         CIssueNumber: null,
         CRevisionNumber: null,
-        CRevisionDate: "",
-        CIssueDate: "",
+        CRevisionDate: null,
+        CIssueDate: null,
 
 
         filename: "",
@@ -274,8 +274,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             "companyName"
         )();
 
-        const graphCurrentUserDept = me.department;
-
+        const graphCurrentUserDept = me.department||"";
+        // const graphCurrentUserDept = "SharePoint Department Testing"
         var ReqId = await getRequestTypeID(sp);
         setRequestTypeId(ReqId);
         // setRequestTypeId(await getRequestTypeID(sp));
@@ -307,7 +307,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         const Currusers: any = await getCurrentUser(sp, siteUrl);
         setCurrentUser(await getCurrentUser(sp, siteUrl));
         const userProfile = await sp.profiles.myProperties();
-        setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
+        setcurrentUserDept(graphCurrentUserDept);
+        // setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
         const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
 
         const AllUserRoles = await getDataRoles(sp);
@@ -1059,6 +1060,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         if (fmode == FormSubmissionMode.SUBMIT) {
             if (!RequesterName) {
                 //Swal.fire('Error', 'Title is required!', 'error');
+                document.getElementById("Name")?.classList.add("border-on-error");
+
                 valid = false;
             }
             // else if (!RequesterDesignation) {
@@ -1120,6 +1123,8 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         else {
             if (!RequesterName) {
                 //Swal.fire('Error', 'Title is required!', 'error');
+                document.getElementById("Name")?.classList.add("border-on-error");
+
                 valid = false;
             }
             // else if (!RequesterDesignation) {
@@ -1128,6 +1133,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             // }
             else if (selectedOption == null || !selectedOption.value) {
                 //Swal.fire('Error', 'Entity is required!', 'error');
+                document.getElementById("DocumentCode")?.classList.add("border-on-error");
                 valid = false;
             }
             // else if (cancellReason.length > 0 && cancellReason.every((row: any) => row.description.trim() !== "" && row.reason.trim() !== "") == false) {
@@ -1470,7 +1476,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -1668,7 +1674,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -2027,9 +2033,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
 
-                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -2226,9 +2232,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // }, 1000);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
 
-                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -2452,7 +2458,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire(successMessage, '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -2617,7 +2623,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire(successMessage, '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -2953,7 +2959,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // }, 1000);
                         Swal.fire(successMessage, '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -3254,9 +3260,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                         Swal.fire(successMessage, '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
 
-                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }

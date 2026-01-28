@@ -1,4 +1,63 @@
 import Swal from 'sweetalert2';
+// export const getAllDocumentCode = async (_sp,dept) => {
+//   let arr = [];
+
+//   await _sp.web.lists.getByTitle("ChangeRequestList").items
+//     .select("*,Location/ID,Custodian/ID,DocumentType/ID,AmendmentType/ID,Classification/ID,ChangeRequestType/ID,Author/ID,Author/Title,PreparedBy/ID,PreparedBy/Title,Department/ID,Department/Department,Department/ADDepartmentName")
+//     .expand("DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,PreparedBy,Department")
+//     .filter("Status eq 'Approved' and SignedDocs eq 'Yes'")
+//     .orderBy("ID", false).top(5000)() // Order by Modified descending to get latest first
+//     .then((res) => {
+//       console.log("eeee", res);
+//       res = res.filter((item) =>
+//         item.Department?.ADDepartmentName
+//           ?.split(',')
+//           .map((d) => d.trim())
+//           .includes(dept)
+//       );
+//       debugger
+
+      
+//       // Filter only latest entry for each unique DocumentCode
+//       // const latestDocuments = res.reduce((acc, item) => {
+//       //   if (!acc[item.DocumentCode]) {
+//       //     acc[item.DocumentCode] = item;
+//       //   }
+//       //   return acc;
+//       // }, {});
+
+//       // arr = Object.values(latestDocuments);
+//       var latestByDocumentCode = {};
+
+//       for (var i = 0; i < res.length; i++) {
+//         var item = res[i];
+//         var docCode = item.DocumentCode;
+
+//         // Store the first (latest) item per unique DocumentCode
+//         if (!latestByDocumentCode[docCode]) {
+//           latestByDocumentCode[docCode] = item;
+//         }
+//       }
+
+//       arr = Object.values(latestByDocumentCode).filter(
+//         item => item.DocumentCancellationStatus !== 'Yes'
+//       );
+//       for (const item of res) {
+//         const docCode = item.DocumentCode;
+//         if (docCode && !latestByDocumentCode[docCode]) {
+//           latestByDocumentCode[docCode] = item;
+//         }
+//       }
+
+//       const uniqueLatestItems = Object.values(latestByDocumentCode);
+//       console.log("Filtered latest by DocumentCode: ", uniqueLatestItems);
+//       console.log("arrarr fetching data: ", arr);
+//     })
+//     .catch((error) => {
+//       console.log("Error fetching data: ", error);
+//     });
+//   return arr;
+// };
 export const getAllDocumentCode = async (_sp) => {
   let arr = [];
 
@@ -803,8 +862,8 @@ export const getItemByIDCR = async (_sp, id) => {
   let bannerimg = []
 
   await _sp.web.lists.getByTitle("ChangeRequestList").items.getById(id)
-    .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,RequestType/ID,RequestType/RequestType,RequestType/RequestCode,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId,PreparedBy/ID,PreparedBy/Title,PreparedBy/EMail")
-    .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,RequestType,Author,Department,PreparedBy")
+    .select("*,RequesterName/Title,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,RequestType/ID,RequestType/RequestType,RequestType/RequestCode,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId,PreparedBy/ID,PreparedBy/Title,PreparedBy/EMail")
+    .expand("RequesterName,TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,RequestType,Author,Department,PreparedBy")
     ()
     .then((res) => {
       console.log(res, ' let arrs=[]');

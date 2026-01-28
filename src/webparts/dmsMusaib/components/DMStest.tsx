@@ -10391,7 +10391,7 @@ declare global {
             const encodedFilePath = encodeURIComponent(file.ServerRelativeUrl);
             const parentFolder = file.ServerRelativeUrl.substring(0, file.ServerRelativeUrl.lastIndexOf('/'));
             const siteUrl = window.location.origin;
-            // const previewUrl = `${siteUrl}/sites/ed/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+            // const previewUrl = `${siteUrl}/sites/EDeDMS/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
             const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
              console.log("previewUrl", previewUrl);
   
@@ -11501,7 +11501,7 @@ declare global {
         const siteUrl = window.location.origin;
         console.log(siteUrl, "siteUrl");
         const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
-        // const previewUrl = `${siteUrl}/sites/ed/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
+        // const previewUrl = `${siteUrl}/sites/EDeDMS/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
          preURL = previewUrl;
       }
       console.log("filePath", filePath);
@@ -13168,11 +13168,11 @@ declare global {
         const encodedFilePath = encodeURIComponent(serverRelativeUrl);
   
         // Example: 
-        // serverRelativeUrl = "/sites/ed/test/DocumentLibraryInsideTest/Book.xlsx"
+        // serverRelativeUrl = "/sites/EDeDMS/test/DocumentLibraryInsideTest/Book.xlsx"
         const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
         const siteUrl = window.location.origin;
   
-        // const previewUrl = `${siteUrl}/sites/ed/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+        // const previewUrl = `${siteUrl}/sites/EDeDMS/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
         const previewUrl = `${siteUrl}${locationPath}/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
         // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
         console.log("Generated Preview URL:", previewUrl);
@@ -13407,7 +13407,7 @@ declare global {
       const siteUrl = window.location.origin;
       console.log(siteUrl, "siteUrl");
   
-      // const previewUrl = `${siteUrl}/sites/ed/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
+      // const previewUrl = `${siteUrl}/sites/EDeDMS/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
       const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
   
       if (previewUrl) {
@@ -13673,7 +13673,7 @@ declare global {
           const parentFolder = uploadResult.data.ServerRelativeUrl.substring(0, uploadResult.data.ServerRelativeUrl.lastIndexOf('/'));
           const siteUrl = window.location.origin;
           const encodedFilePath = encodeURIComponent(uploadResult.data.ServerRelativeUrl);
-          // const previewUrl = `${siteUrl}/sites/ed/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+          // const previewUrl = `${siteUrl}/sites/EDeDMS/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
           const previewUrl = `${siteUrl}${locationPath}/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
   
           await listItem.update(payload);

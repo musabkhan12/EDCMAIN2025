@@ -330,7 +330,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     uniqueOptions && uniqueOptions.sort((a, b) => a.label.localeCompare(b.label));
 
     let approvedauditreportselected = this.state.memonumberOptions.filter((x: any) => x.value == item?.value);
-    const selectedOption = this.state.departmentOption.find(user => user?.value === approvedauditreportselected[0]?.department);
+    const selectedOption = this.state.AuditProgdepartmentOption.find(user => user?.value === approvedauditreportselected[0]?.department);
     const CustselectedOption = this.state.CustodianOption.find(user => user?.value === approvedauditreportselected[0]?.custodian);
 
     this.setState({
@@ -991,9 +991,10 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     )();
 
     const graphCurrentUserDept = me.department;
+    // const graphCurrentUserDept = "SharePoint Department Testing"
     try {
       // const deptItems = await sp.web.lists.getByTitle("DepartmentMasterList").items();
-      const deptItems = await sp.web.lists.getByTitle("ProcessDepartmentMasterList").items.orderBy("Title", true)();
+      const deptItems = await sp.web.lists.getByTitle("ProcessDepartmentMasterList").items.filter("Active eq 'Yes'").orderBy("Title", true)();
       const options = deptItems.map((item: {
         DepartmentCode: any; Title: string; Id: number, ADDepartmentName: string
       }) => ({
@@ -1016,7 +1017,12 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       // const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
       // let currentuserdepartment = UserDept || "Strategy & Sustainable Growth";
       // const selectedOption = options.find(user => user?.adDepartmentName === currentuserdepartment);//old
-      const selectedOption = options.find(user => user?.adDepartmentName === graphCurrentUserDept);
+      // const selectedOption = options.find(user => user?.adDepartmentName === graphCurrentUserDept);//new
+      const selectedOption = options.find(user => user?.adDepartmentName
+        ?.split(',')
+        .map((d: string) => d.trim())
+        .includes(graphCurrentUserDept));//newest
+
       this.setState({
         fromdepartment: selectedOption?.value,
         //department: selectedOption?.value, 
@@ -1180,6 +1186,10 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     //   errors.department = "Department is required";
     //   isValid = false;
     // }
+    if (!this.state.fromdepartment) {//new
+      errors.fromdepartment = "Department is required";
+      isValid = false;
+    }
     if (!this.state.criteria) {
       errors.criteria = "Criteria is required";
       isValid = false;
@@ -1778,7 +1788,7 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
                       isDisabled={!IsDepartmentEditable}
                       isClearable={true}
                       isSearchable={true}
-                      className={this.state.errors?.department ? 'border-on-error' : ''}
+                      className={this.state.errors?.fromdepartment ? 'border-on-error' : ''}
                       onChange={(selectedOption: any) => this.changefromDepartment(selectedOption)}
                       placeholder={"Department"}
 

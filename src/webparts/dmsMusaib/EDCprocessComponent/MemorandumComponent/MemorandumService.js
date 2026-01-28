@@ -570,7 +570,7 @@ export const uploadAllFiles = async (files, sp, docLib) => {
 export const uploadFileToLibrary = async (file, sp, docLib) => {
   let arrFIleData = [];
   let fileSize = 0;
-  const folder = sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumDocs');
+  const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumDocs');
   try {
     // await sp.web.lists.getByTitle(docLib).rootFolder
     const result = folder.files.addChunked(file.name, file, (progress, data) => {
@@ -619,7 +619,7 @@ export const getAdditionalDocumentLinkByID = async (_sp, listItemID) => {
   // for (let itemId of AttachmentIds) {
      await _sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
     // .getById(itemId)
-      .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${listItemID} and FileDirRef eq '/sites/ed/MemorandumAdditionalDocs/Description'`)()
+      .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${listItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Description'`)()
       .then((res) => {
         // console.log(res, ' let arrs=[]');
         // results.push(res);
@@ -638,7 +638,7 @@ export const getBGAdditionalDocumentLinkByID = async (_sp, listItemID) => {
   // for (let itemId of AttachmentIds) {
      await _sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
     // .getById(itemId)
-      .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${listItemID} and FileDirRef eq '/sites/ed/MemorandumAdditionalDocs/Background'`)()
+      .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${listItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Background'`)()
       .then((res) => {
         // console.log(res, ' let arrs=[]');
         // results.push(res);
@@ -657,7 +657,7 @@ export const getRecomAdditionalDocumentLinkByID = async (_sp, listItemID) => {
   // for (let itemId of AttachmentIds) {
      await _sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
     // .getById(itemId)
-      .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${listItemID} and FileDirRef eq '/sites/ed/MemorandumAdditionalDocs/Recommadation'`)()
+      .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${listItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation'`)()
       .then((res) => {
         // console.log(res, ' let arrs=[]');
         // results.push(res);
@@ -868,7 +868,7 @@ export const updateMemoNumber = async (itemData, _sp,id) => {
 //       let itemData = {
 //         ListItemIDId: listItemID
 //       }
-//       const folder2 = _sp.web.getFolderByServerRelativePath('/sites/ed/MemorandumAdditionalDocs/Description');
+//       const folder2 = _sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Description');
 
 //       await folder2.files.getByName(fileName).listItemAllFields.update(itemData);
 //       //const newItem = await _sp.web.lists.getByTitle('MemorandumAdditionalDocs/De').items.getById(id).update(itemData);

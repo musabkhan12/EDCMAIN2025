@@ -49,7 +49,7 @@ export const getSP = (context?: WebPartContext): SPFI => {
 //   if (context && (_sp === undefined || _sp === null)) {
 
 //     // 👇 Explicit site URL override
-//     const targetSiteUrl = "https://edcadae.sharepoint.com/sites/ed";
+//     const targetSiteUrl = "https://edcadae.sharepoint.com/sites/EDeDMS";
 
 //     _sp = spfi(targetSiteUrl) // 👈 base URL points to your actual data site
 //       .using(SPFx(context))

@@ -778,7 +778,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     optionsNCNumbernew = optionsNCNumber.length > 0 && await this.getUniqueBy(optionsNCNumber, "ncNo");
     optionsNCNumbernew && optionsNCNumbernew.sort((a, b) => a.label.localeCompare(b.label));
     let approvedauditreportselected = this.state.editmemonumberOptions.filter((x: any) => x.value == item?.value);
-    const selectedOption = this.state.editDepartmentOption.find(user => user?.value === approvedauditreportselected[0]?.department);
+    const selectedOption = this.state.editAditProgDepartmentOption.find(user => user?.value === approvedauditreportselected[0]?.department);
     this.setState({ editNCNumberOptions: optionsNCNumbernew })
     this.setState({
       editApprovedAuditReport: item?.value, editMemoNumber: item?.memoNumber, ApprovedAuditSelected: approvedauditreportselected,
@@ -1406,7 +1406,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
     }));
     console.log("nmnngfhjagfhjdagfjadfdhjmnm", flatMemoItems, this.state.editmemonumberOptions, optionsmemoNumbernewnc, editoptsmemoAllNC, editoptsmemoAllObs);
     //let departopt = await this.getDepartment();
-    const deptItems = await sp.web.lists.getByTitle("ProcessDepartmentMasterList").items();
+    const deptItems = await sp.web.lists.getByTitle("ProcessDepartmentMasterList").items.filter("Active eq 'Yes'").orderBy("Title", true)();
     const optionsdept = deptItems.map((item: {
       DepartmentCode: any; Title: string; Id: number, ADDepartmentName: string
     }) => ({
@@ -2883,7 +2883,7 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
       return false;
     }
     if (this.state.NCNumberselected.length == 0) {
-      editErrors.editApprovedAuditReport = "Memo number is required";
+      editErrors.editNCNumber = "NC number is required";
       this.setState({ editErrors });
       Swal.fire('Please select a NC/Observation number.');
       return false;
@@ -5194,7 +5194,9 @@ export default class EditForm extends React.Component<IAuditPlanProps, IEditStat
                   <div className="previewIcon">
                     <h4 style={{ textAlign: 'left' }} className="text-dark font-16 fw-bold mb-3">Non Conformity / Observation Details</h4>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0px' }}>
-                      {(this.state.editStatus === "Approved" || this.state.editStatus === "Rejected") && !this.state.hidedigisign && this.state.DigitalsignID != null && (
+                      {/* {(this.state.editStatus === "Approved" || this.state.editStatus === "Rejected") && !this.state.hidedigisign && this.state.DigitalsignID != null && ( */}
+                      {(this.state.editStatus === "Approved") && !this.state.hidedigisign && this.state.DigitalsignID != null && (
+
                         <span
                           onClick={() => this.updatedigisignnew()}
                           style={{ cursor: "pointer" }}

@@ -133,6 +133,7 @@ import AnnualAuditReport from "../AnnualAuditReportComponent/AnnualAuditReport";
 import AuditPlan from "../NonConformityComponent/AuditPlan";
 import NonConfirmityApprove from "../NonConformityComponent/EditForm";
 import MemoComponent from "../EDCprocessComponent/MemorandumComponent/Memorandum";
+import IntranetGroupMember from "../EDCprocessComponent/IntranetGroupMember/IntranetGroupMember";
 interface NavItem {
   Title: string;
   Url: string;
@@ -679,6 +680,15 @@ const ArgPoc = ({ props }: any) => {
         cleanUrlInMyRequest=true;
         returnFromMyRequest=true;
         setlistorgriddata('Memorandum')
+      }
+      else if(arrayToStoreURLParameter[1] === 'IntranetMembers' ){
+        //  alert("Document Camcetllation")
+        const get = document.getElementById('files-container')
+        get.innerHTML = '';
+        cleanUrlInMyRequest=true;
+        returnFromMyRequest=true;
+        setlistorgriddata('IntranetMembers')
+        // <IntranetGroupMember sp={sp} />
       }
     }
 
@@ -6053,6 +6063,31 @@ const ArgPoc = ({ props }: any) => {
     console.log("Department", currentDepartment);
 
     const folName = segments[segments.length - 1];
+
+    //  Addhyan - Check for restricted folders
+    const restrictedFolders = [
+    "Change Request",
+    "Document Cancellation",
+    "Memorandum",
+    "IMS Annual Audit Program",
+    "IMS Audit Plan",
+    "IMS Audit Report and Checklist",
+    "Non Conformity / Observation"
+];
+// hide files if they are in restricted folders or subfolders
+const isRestrictedFolder = restrictedFolders.some(folder =>
+    // name => name.toLowerCase() === folName?.toLowerCase()
+        FolderPath?.toLowerCase().includes(`/${folder.toLowerCase()}`)
+
+);
+console.log("FolderPath:", FolderPath);
+console.log("Is Restricted (parent/subfolder):", isRestrictedFolder);
+console.log("Current Folder:", folName);
+console.log("Is Restricted Folder:", isRestrictedFolder);
+
+
+//Addhyan - End
+
     const testidsub = await sp.site.openWebById(siteID);
     let library;
     if (folName === docLibName) {
@@ -6191,16 +6226,59 @@ const ArgPoc = ({ props }: any) => {
 
         const CreateFolder = document.getElementById("CreateFolder");
         const createFileButton = document.getElementById("createFileButton");
-        if (isMemberOfSuperAdmin || isMemberOfGroup) {
+        
+
+        // Addhyan - Restrict buttons in restricted folders
+        if (isRestrictedFolder) {
+
+    if (isMemberOfSuperAdmin) {
+        console.log("Restricted folder + Super Admin → SHOW buttons");
+
+        IsFolderDeligationUser = false;
+
+        if (createFileButton) {
+            createFileButton.style.display = "block";
+        }
+        if (CreateFolder) {
+            CreateFolder.style.display = "block";
+        }
+
+    } else {
+        console.log("Restricted folder + Admin/Other → HIDE buttons");
+
+        IsFolderDeligationUser = false;
+
+        if (createFileButton) {
+            createFileButton.style.display = "none";
+        }
+        if (CreateFolder) {
+            CreateFolder.style.display = "none";
+        }
+    }
+
+}
+        // Addhyan - End
+        
+        
+        else if (isMemberOfSuperAdmin || isMemberOfGroup) {
             console.log(`Current User is admin or super admin`);
             IsFolderDeligationUser = false;
+
+            
             if (createFileButton) {
                 createFileButton.style.display = "block";
             }
             if (CreateFolder) {
                 CreateFolder.style.display = "block";
             }
-        } else if (userPermissions.hasFullControl) {
+        }
+        
+        
+        
+        
+        
+        
+        else if (userPermissions.hasFullControl) {
             console.log(`Current User has full control on the library/Folder and user does not belong to admin or super admin group`);
             if (createFileButton) {
                 createFileButton.style.display = "block";
@@ -13332,7 +13410,7 @@ const ArgPoc = ({ props }: any) => {
           const encodedFilePath = encodeURIComponent(file.ServerRelativeUrl);
           const parentFolder = file.ServerRelativeUrl.substring(0, file.ServerRelativeUrl.lastIndexOf('/'));
           const siteUrl = window.location.origin;
-          // const previewUrl = `${siteUrl}/sites/ed/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+          // const previewUrl = `${siteUrl}/sites/EDeDMS/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
           const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
            console.log("previewUrl", previewUrl);
 
@@ -15043,7 +15121,7 @@ const ArgPoc = ({ props }: any) => {
       const siteUrl = window.location.origin;
       console.log(siteUrl, "siteUrl");
       const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
-      // const previewUrl = `${siteUrl}/sites/ed/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
+      // const previewUrl = `${siteUrl}/sites/EDeDMS/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
        preURL = previewUrl;
     }
     console.log("filePath", filePath);
@@ -16908,11 +16986,11 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
       const encodedFilePath = encodeURIComponent(serverRelativeUrl);
 
       // Example: 
-      // serverRelativeUrl = "/sites/ed/test/DocumentLibraryInsideTest/Book.xlsx"
+      // serverRelativeUrl = "/sites/EDeDMS/test/DocumentLibraryInsideTest/Book.xlsx"
       const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
       const siteUrl = window.location.origin;
 
-      // const previewUrl = `${siteUrl}/sites/ed/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+      // const previewUrl = `${siteUrl}/sites/EDeDMS/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       const previewUrl = `${siteUrl}${locationPath}/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       console.log("Generated Preview URL:", previewUrl);
@@ -17147,7 +17225,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
     const siteUrl = window.location.origin;
     console.log(siteUrl, "siteUrl");
 
-    // const previewUrl = `${siteUrl}/sites/ed/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
+    // const previewUrl = `${siteUrl}/sites/EDeDMS/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
     const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
 
     if (previewUrl) {
@@ -17413,7 +17491,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
         const parentFolder = uploadResult.data.ServerRelativeUrl.substring(0, uploadResult.data.ServerRelativeUrl.lastIndexOf('/'));
         const siteUrl = window.location.origin;
         const encodedFilePath = encodeURIComponent(uploadResult.data.ServerRelativeUrl);
-        // const previewUrl = `${siteUrl}/sites/ed/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+        // const previewUrl = `${siteUrl}/sites/EDeDMS/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
         const previewUrl = `${siteUrl}${locationPath}/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
 
         await listItem.update(payload);
@@ -18123,6 +18201,10 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
         <NonConfirmityApprove 
          {...props}
         />
+      )}
+
+      {listorgriddata === 'IntranetMembers' &&(
+        <IntranetGroupMember sp={sp} props={props}/>
       )}
                       </>
                     )

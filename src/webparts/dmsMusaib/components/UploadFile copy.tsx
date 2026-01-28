@@ -221,8 +221,8 @@ console.log("documentLibraryName" , documentLibraryName)
     const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
     const siteUrl = window.location.origin;
 
-    //  const previewUrl = `${siteUrl}/sites/ed/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
-    //  const previewUrl = `${siteUrl}/sites/ed/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    //  const previewUrl = `${siteUrl}/sites/EDeDMS/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    //  const previewUrl = `${siteUrl}/sites/EDeDMS/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       const previewUrl = `${siteUrl}${locationPath}/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     console.log("Generated Preview URL:", previewUrl);
    if(previewUrl){
@@ -713,8 +713,8 @@ React.useEffect(()=>{
 //       const siteUrl = window.location.origin;
 //       const encodedFilePath = encodeURIComponent(uploadResult.data.ServerRelativeUrl);
 //       console.log(encodedFilePath , "encodedFilePath")
-//         const previewUrl = `${siteUrl}/sites/ed/${currentfolderpath.Entity}/${currentfolderpath.DocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
-//       //  const previewUrl = `${siteUrl}/sites/ed/${currentfolderpath.Entity}/${currentfolderpath.DocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+//         const previewUrl = `${siteUrl}/sites/EDeDMS/${currentfolderpath.Entity}/${currentfolderpath.DocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+//       //  const previewUrl = `${siteUrl}/sites/EDeDMS/${currentfolderpath.Entity}/${currentfolderpath.DocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
 //         //  const previewUrl = `${siteUrl}/sites/IntranetUAT/${currentfolderpath.Entity}/${currentfolderpath.DocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       
 //       console.log("Generated Preview URL:", previewUrl);

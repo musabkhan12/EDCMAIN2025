@@ -936,6 +936,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
         )();
 
         const graphCurrentUserDept = me.department;
+        // const graphCurrentUserDept = "SharePoint Department Testing"; // For testing purpose only, remove this line in production
         const custodianOpt = await fetchCustodian();
         const AuditProgOpt = await AuditProgDept();
         setTimeout(() => {
@@ -1039,7 +1040,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
         //setselectUserDept(setAllDept1.filter(user => user.label === UserDept));
         // let currentuserdepartment = UserDept == "IT" ? "Information Technology" : UserDept;//old
         // setcurrentUserDept(setAllDept1.filter(user => user.label === currentuserdepartment)) //old
-        setcurrentUserDept(setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept));
+        // setcurrentUserDept(setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept));
+        setcurrentUserDept(setAllDept1.filter(user => user.ADDepartmentName
+            ?.split(',')
+            .map((d: string) => d.trim())
+            .includes(graphCurrentUserDept))[0]);
 
         setFormData(prevData => ({
             ...prevData,
@@ -1054,7 +1059,11 @@ const AnnualAuditReportContext = ({ props }: any) => {
         }));
         // console.log("userrrrdeptt", UserDept);
         // setFormData({ ...formData, fromdeptId: setAllDept1.filter(user => user.label === currentuserdepartment)[0]?.value }); //old
-        setFormData({ ...formData, fromdeptId: setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept)[0]?.value });//new
+        // setFormData({ ...formData, fromdeptId: setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept)[0]?.value });//new
+        setFormData({ ...formData, fromdeptId: setAllDept1.filter(user => user.ADDepartmentName
+            ?.split(',')
+            .map((d: string) => d.trim())
+            .includes(graphCurrentUserDept))[0]?.value });//new
 
         const AllUserRoles = await getDataRoles(sp);
         const setRolesValue = AllUserRoles.map((item: any) => ({
@@ -2198,7 +2207,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
                         // const finalDataForSharePoint = {
                         //     ...convertCheckboxValuesForSharePoint(checkboxValues),
                         //     ...checkboxNumberValues
@@ -2521,7 +2530,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId");
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // setTimeout(() => {
@@ -2558,7 +2567,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -2821,7 +2830,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         //Swal.fire('Submitted successfully.', '', 'success');
@@ -2897,7 +2906,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -3212,7 +3221,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId")
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -3250,7 +3259,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -3496,7 +3505,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // sessionStorage.removeItem("bannerId")

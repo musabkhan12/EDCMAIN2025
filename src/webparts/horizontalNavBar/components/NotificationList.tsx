@@ -50,14 +50,14 @@ const NotificationList = ({ NotificationArray, handleNotificationClick, OnCleara
 
         let webUrl = window.location.href;
         const baseUrl = webUrl.substring(0, webUrl.lastIndexOf("/SitePages") + "/SitePages".length);
-        console.log(baseUrl, "notification baseurl"); // Output: https://example.com/webUrl/sites/ed/SitePages
+        console.log(baseUrl, "notification baseurl"); // Output: https://example.com/webUrl/sites/EDeDMS/SitePages
         window.location.href = `${baseUrl}/NotificationDetails.aspx`;
     }
     const goToSettings = () => {
 
         let webUrl = window.location.href;
         const baseUrl = webUrl.substring(0, webUrl.lastIndexOf("/SitePages") + "/SitePages".length);
-        console.log(baseUrl); // Output: https://example.com/webUrl/sites/ed/SitePages
+        console.log(baseUrl); // Output: https://example.com/webUrl/sites/EDeDMS/SitePages
         window.location.href = `${baseUrl}/ManageNotification.aspx`;
     }
     return (

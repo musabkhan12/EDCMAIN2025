@@ -240,7 +240,11 @@ const FormContext = ({ props }: any) => {
     let listItems = [];
     let onloadDeptId: any;
     if (selectedOption == null) {
-      onloadDeptId = AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]?.value || 0;
+      // onloadDeptId = AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]?.value || 0;
+      onloadDeptId = AllDept.filter((user: any) => user.ADDepartmentName
+      ?.split(',')
+      .map((d: string) => d.trim())
+      .includes(currentUserDept))[0]?.value || 0;
 
       listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
 
@@ -284,18 +288,7 @@ const FormContext = ({ props }: any) => {
         memoNo: `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/001`,
         memoFileName: `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_001`,
       }));
-      // setFormData((prevFormData) => ({
-      //   ...prevFormData,
-      //   MemoListId: memoId,
-      //   memoSerialNo: memo,
-      //   deptId: onloadDeptId,
-      //   memoNo: AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0]
-      //     ? `${AllDept.filter(user => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-      //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-      //   memoFileName: AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]
-      //     ? `${AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
-      //     : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
-      // }));
+      
 
     }
     else {
@@ -467,7 +460,8 @@ const FormContext = ({ props }: any) => {
       "companyName"
     )();
 
-    const graphCurrentUserDept = me.department;
+    const graphCurrentUserDept = me.department||"";
+    // const graphCurrentUserDept = "SharePoint Department Testing"
     setAuditProgramType(await getAllAuditType(sp));
 
 
@@ -519,11 +513,16 @@ const FormContext = ({ props }: any) => {
     const Currusers: any = await getCurrentUser(sp, siteUrl);
     setCurrentUser(await getCurrentUser(sp, siteUrl));
     const userProfile = await sp.profiles.myProperties();
-    setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
+    // setcurrentUserDept(userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "")
+    setcurrentUserDept(graphCurrentUserDept);
     const UserDept = userProfile.UserProfileProperties ? userProfile.UserProfileProperties[userProfile.UserProfileProperties.findIndex((obj: any) => obj.Key === "Department")].Value : "";
 
     // setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept));//old
-    setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept));//new
+    // setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept));//new
+    setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName
+    ?.split(',')
+    .map((d: string) => d.trim())
+    .includes(graphCurrentUserDept))[0]);//newest
     var allAuditTypes = await getAuditTypes(sp);
     setauditTypes(allAuditTypes);
     const recommendationTypes = await getRecommendationTypes(sp);
@@ -553,7 +552,11 @@ const FormContext = ({ props }: any) => {
         }
       }
       // const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0;//old
-      const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]?.value || 0;//new
+      // const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]?.value || 0;//new
+      const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName
+                ?.split(',')
+                .map((d: string) => d.trim())
+                .includes(graphCurrentUserDept))[0]?.value || 0;//newest
 
       const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
       if (listItems.length > 0) {
@@ -587,12 +590,33 @@ const FormContext = ({ props }: any) => {
         //   ? `${setAllDept1.filter((user: any) => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
         //   : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
 
-        memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
-          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-          : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-        memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
-          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
-          : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+        // memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
+        //   ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        //   : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+        // memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
+        //   ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+        //   : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+
+
+        memoNo: setAllDept1.filter((user: any) =>user.ADDepartmentName
+        ?.split(',')
+        .map((d: string) => d.trim())
+        .includes(graphCurrentUserDept))[0]
+        ? `${setAllDept1.filter((user: any) => user.ADDepartmentName
+          ?.split(',')
+          .map((d: string) => d.trim())
+          .includes(graphCurrentUserDept))[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+      memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName
+          ?.split(',')
+          .map((d: string) => d.trim())
+          .includes(graphCurrentUserDept))[0]
+        ? `${setAllDept1.filter((user: any) => user.ADDepartmentName
+          ?.split(',')
+          .map((d: string) => d.trim())
+          .includes(graphCurrentUserDept))[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+        : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+    
       }));
 
     }
@@ -1621,7 +1645,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditProgramDocs');
 
 
 
@@ -2014,7 +2038,7 @@ const FormContext = ({ props }: any) => {
             // }
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -2076,7 +2100,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditProgramDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2390,7 +2414,7 @@ const FormContext = ({ props }: any) => {
             // }
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -2421,7 +2445,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditProgramDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2858,8 +2882,8 @@ const FormContext = ({ props }: any) => {
             // }
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
-                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -2887,7 +2911,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/ed/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditProgramDocs');
 
 
             if (FilesArr.length > 0) {
@@ -3163,8 +3187,8 @@ const FormContext = ({ props }: any) => {
             // }, 1000);
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
-                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ed/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ed/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
               }
             });
           }
