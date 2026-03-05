@@ -93,7 +93,7 @@ import Swal from 'sweetalert2';
 
 
 //&&&&&&&&&&&&&&&&
-export const getAllDocumentCode = async (_sp, dept) => {
+export const getAllDocumentCode = async (_sp, dept,entityTitles) => {
   let arr = [];
   let sts = "Approved";
   let stsReject = "Rejected";
@@ -101,22 +101,32 @@ export const getAllDocumentCode = async (_sp, dept) => {
   //   .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId")
   //   .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department")
   //   .orderBy("ID", false)()
-  // await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`Status eq '${sts}' and SignedDocs eq 'Yes'`)
-  //   .select("*,Department/ID,Department/Department,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId,PreparedBy/ID,PreparedBy/Title")
-  //   .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department,PreparedBy")
-  //   .orderBy("ID", false)()
   await _sp.web.lists.getByTitle("ChangeRequestList").items.filter(`Status eq '${sts}'`)
     .select("*,Department/ID,Department/Department,Department/ADDepartmentName,Location/ID,Location/Location,Custodian/ID,Custodian/Custodian,DocumentType/ID,DocumentType/DocumentType,AmendmentType/ID,AmendmentType/AmendmentType,Classification/ID,Classification/Classification,ChangeRequestType/ID,Author/ID,Author/Title,TemplateType/TemplateTypeName,TemplateTypeId")
     .expand("TemplateType,DocumentType,Custodian,Classification,AmendmentType,Location,ChangeRequestType,Author,Department")
     .orderBy("ID", false).top(5000)() //newest
     .then(async (res) => {
 
-      res = res.filter((item) =>
-        item.Department?.ADDepartmentName
-          ?.split(',')
-          .map((d) => d.trim())
-          .includes(dept)
+      // res = res.filter((item) =>
+      //   item.Department?.ADDepartmentName
+      //     ?.split(',')
+      //     .map((d) => d.trim())
+      //     .includes(dept)
+      // );
+      const entitySet = new Set(
+        entityTitles.map(e => e.trim().toLowerCase())
       );
+      res = res.filter(item => {
+        const deptStr = item.Department?.ADDepartmentName;
+        if (!deptStr) return false;
+      
+        const deptList = deptStr
+          .split(',')
+          .map(d => d.trim().toLowerCase());
+      
+        // ✅ exact match with any entity title
+        return deptList.some(d => entitySet.has(d));
+      });
       
 
       const filteredRes = await _sp.web.lists.getByTitle("ChangeRequestDocumentCancellationList").items.filter(`Status ne '${stsReject}'`)

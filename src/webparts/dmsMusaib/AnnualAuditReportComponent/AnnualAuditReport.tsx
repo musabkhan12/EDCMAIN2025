@@ -7,6 +7,7 @@ import Provider from '../../../GlobalContext/provider';
 import VerticalSideBar from '../../verticalSideBar/components/VerticalSideBar';
 
 import HorizontalNavbar from '../../horizontalNavBar/components/HorizontalNavBar';
+import { PermissionKind } from "@pnp/sp/security";
 
 import { getSP } from '../../dmsMusaib/loc/pnpjsConfig';
 import { SPFI } from '@pnp/sp';
@@ -139,6 +140,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const [doccode, setdoccode] = React.useState("");
     const [auditplandate, setauditplandate] = React.useState("");
     const [AllDept, setAllDept] = React.useState([]);
+    const [fromDeptArr, setfromDeptArr] = React.useState([]);
+
     const [AllsubDepartment, setAllsubDepartment] = React.useState([]);
     const [AllsubDept, setAllsubDept] = React.useState([]);
     const [RowErrors, setRowErrors] = React.useState<any[]>([]);
@@ -147,6 +150,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
     // const [cancellReason, setcancellReason] = React.useState([{ id: 0, description: "", reason: "" }]);
     // const [RecommendRows, setRecommendRows] = React.useState([]);
     const [showModal, setShowModal] = React.useState(false);
+    const [uniqueEntitiesArr, setuniqueEntitiesArr] = React.useState([]);
+
     const [ShowModalpre, setShowModalpre] = React.useState(false);
     //error
     const [recommendationRows, setRecommendationRows] = React.useState([
@@ -920,9 +925,63 @@ const AnnualAuditReportContext = ({ props }: any) => {
     const ApiCallFunc = async () => {
         setLoading(true);
         setFormLoading(true);
+        const uniqueEntityMap = new Map();
+        let uniqueEntitiesWithAccess: any = [];
+       // if (props.entities.length == 0) {
+
+            const entityItems = await sp.web.lists
+                .getByTitle("EntityDivisionDepartmentMappingMasterList")
+                .items.select(
+                    "Entitylookup/Title, Entitylookup/SiteURL", "Entitylookup/SiteID", "Entitylookup/IsExternal",
+                    "Devisionlookup/Title",
+                    "Departmentlookup/Title",
+                    "Devisionlookup/Active",
+                    "Departmentlookup/Active"
+                )
+                .expand("Entitylookup", "Devisionlookup", "Departmentlookup")
+                .filter("Entitylookup/Active eq 'Yes' and Entitylookup/IsExternal eq 'No'")();
+            console.log(entityItems, "entityItems 1")
+
+
+            // Loop through each item and check permissions
+            for (const item of entityItems) {
+                const entityTitle = item.Entitylookup.Title;
+                try {
+                    const subsiteWeb = await sp.site.openWebById(item.Entitylookup.SiteID);
+                    const hasAccess = await subsiteWeb.web.currentUserHasPermissions(PermissionKind.ViewListItems);
+
+                    if (hasAccess) {
+                        // Add to uniqueEntitiesWithAccess only if user has access
+                        uniqueEntityMap.set(entityTitle, item); // Store the item or any required data
+                        uniqueEntitiesWithAccess.push(item);
+                        // Add the item to the list of entities with access
+                        console.log(`User has access to site: ${entityTitle}`, item);
+                    } else {
+                        console.log(`User does not have access to site: ${entityTitle}`);
+                    }
+                } catch (error) {
+                    console.error(`Error while checking access for site: ${entityTitle}`, error);
+                }
+            }
+            // setuniqueEntitiesArr(uniqueEntitiesWithAccess);
+       // }
+        // else if (props.entities.length > 0) {
+        //     uniqueEntitiesWithAccess = props.entities;
+        //     // setuniqueEntitiesArr(props.entities);
+        // }
+
+        const entityTitles = [
+            ...new Set(uniqueEntitiesWithAccess.map((item: any) => item.Entitylookup.Title))
+        ]
+        console.log(entityTitles, "entityTitles");
+
+        // ///////
+
         const currentUser = await sp.web.currentUser();
         const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
-        const IsDepartmentPermission = userGroups.some(group => group.Title === `DepartmentFieldPermission`);
+        // const IsDepartmentPermission = userGroups.some(group => group.Title === `DepartmentFieldPermission`);
+        const IsDepartmentPermission = userGroups.some(group => group.Title === `Intranet Member Group`);
+
         if (IsDepartmentPermission) {
             IsDepartmentEditable = true;
         }
@@ -951,9 +1010,25 @@ const AnnualAuditReportContext = ({ props }: any) => {
             label: item.Department,
             itemId: item.ID,
             department: item.Department,
-            departmentcode: item.DepartmentCode
+            departmentcode: item.DepartmentCode,
+            ADDepartmentName:item.ADDepartmentName
         }));
         setAllDept(optionsDepartment);
+        ////
+        const entitySet = new Set(
+            entityTitles
+                .filter((e: any) => typeof e === "string")
+                .map((e: string) => e.toLowerCase())
+        );
+        const setAllDept1 = optionsDepartment.filter((dept: any) =>
+            dept.ADDepartmentName
+                ?.split(",")
+                .map((d: string) => d.trim().toLowerCase())
+                .some((d: string) => entitySet.has(d))
+        );
+        //  setAllDept(setAllDept1);
+        setfromDeptArr(setAllDept1)
+        ////
         var SubDepartmentArr = await getAllSubDepartment(sp);
         SubDepartmentArr.sort((a, b) => a.SubDepartment.localeCompare(b.SubDepartment));
         const optionsSubDepartment = SubDepartmentArr.map((item: any) => ({
@@ -967,7 +1042,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
             departmentId: item.Department?.ID
         }));
         setAllsubDepartment(optionsSubDepartment);
-        var setAllDept1 = await getAllDepartment1(sp);
+        // var setAllDept1 = await getAllDepartment1(sp);
 
         var DocCodeArr = await getAllApprovedAuditplan(sp);
         console.log("DocCodeArrDocCodeArr", DocCodeArr);
@@ -1041,10 +1116,19 @@ const AnnualAuditReportContext = ({ props }: any) => {
         // let currentuserdepartment = UserDept == "IT" ? "Information Technology" : UserDept;//old
         // setcurrentUserDept(setAllDept1.filter(user => user.label === currentuserdepartment)) //old
         // setcurrentUserDept(setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept));
-        setcurrentUserDept(setAllDept1.filter(user => user.ADDepartmentName
-            ?.split(',')
-            .map((d: string) => d.trim())
-            .includes(graphCurrentUserDept))[0]);
+        // setcurrentUserDept(setAllDept1.filter(user => user.ADDepartmentName
+        //     ?.split(',')
+        //     .map((d: string) => d.trim())
+        //     .includes(graphCurrentUserDept))[0]);
+        const selectedDept =
+            setAllDept1.find((user: any) =>
+                user.ADDepartmentName
+                    ?.split(",")
+                    .map((d: string) => d.trim())
+                    .some((d: string) => entityTitles.includes(d))
+            ) || null;
+
+        setcurrentUserDept(selectedDept);
 
         setFormData(prevData => ({
             ...prevData,
@@ -1060,10 +1144,14 @@ const AnnualAuditReportContext = ({ props }: any) => {
         // console.log("userrrrdeptt", UserDept);
         // setFormData({ ...formData, fromdeptId: setAllDept1.filter(user => user.label === currentuserdepartment)[0]?.value }); //old
         // setFormData({ ...formData, fromdeptId: setAllDept1.filter(user => user.ADDepartmentName === graphCurrentUserDept)[0]?.value });//new
-        setFormData({ ...formData, fromdeptId: setAllDept1.filter(user => user.ADDepartmentName
-            ?.split(',')
-            .map((d: string) => d.trim())
-            .includes(graphCurrentUserDept))[0]?.value });//new
+        
+        setFormData({ ...formData, 
+            // fromdeptId: setAllDept1.filter(user => user.ADDepartmentName
+            // ?.split(',')
+            // .map((d: string) => d.trim())
+            // .includes(graphCurrentUserDept))[0]?.value
+            fromdeptId: selectedDept?.value||0
+         });//new
 
         const AllUserRoles = await getDataRoles(sp);
         const setRolesValue = AllUserRoles.map((item: any) => ({
@@ -1304,7 +1392,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
 
                 setselectUsersubDept(AllsubDepartment.filter(user => user.value === setBannerById[0].SubDepartmentId));
                 if (setBannerById[0].DepartmentAuditedId > 0) {
-                    let departmentselected = setAllDept1.filter(user => user.value === setBannerById[0].DepartmentAuditedId)
+                    // let departmentselected = setAllDept1.filter(user => user.value === setBannerById[0].DepartmentAuditedId)
                     // handleDepartmentChange(departmentselected);
                     setSequencesLoaded(false);
                     setIsDepartmentReady(false); // Prevent effects during update
@@ -1335,7 +1423,9 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setIsDepartmentReady(true);
                     }, 2000);
                 }
-                setcurrentUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentId));
+                setcurrentUserDept(optionsDepartment.filter(user => user.value === setBannerById[0].DepartmentId));
+
+                // setcurrentUserDept(setAllDept1.filter(user => user.value === setBannerById[0].DepartmentId));
                 const selectedauditplan = options.filter((cust: { value: any; }) => cust.value === setBannerById[0].ApprovedAuditPlanId) || null;
                 setselectAuditplan(selectedauditplan);
                 setSelectedOption(selectedauditplan);
@@ -2207,7 +2297,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/ED/AnnualAuditReportDocs');
                         // const finalDataForSharePoint = {
                         //     ...convertCheckboxValuesForSharePoint(checkboxValues),
                         //     ...checkboxNumberValues
@@ -2530,7 +2620,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId");
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // setTimeout(() => {
@@ -2567,7 +2657,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/ED/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -2830,7 +2920,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         //Swal.fire('Submitted successfully.', '', 'success');
@@ -2906,7 +2996,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/ED/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -3221,7 +3311,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         sessionStorage.removeItem("DocumentCancelId")
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -3259,7 +3349,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         let bannerImageArray: any = {};
                         let DocumentName: string = "";
                         let attachmentIds = [];
-                        const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditReportDocs');
+                        const folder = sp.web.getFolderByServerRelativePath('/sites/ED/AnnualAuditReportDocs');
                         const formattedData = convertForSharePoint(checkboxValues);
                         const formattedDataNumber = convertForSharePointNumber(checkboxNumberValues);
                         // const finalDataForSharePoint = {
@@ -3505,7 +3595,7 @@ const AnnualAuditReportContext = ({ props }: any) => {
                         setLoading(false);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
                             }
                         });
                         // sessionStorage.removeItem("bannerId")
@@ -4314,7 +4404,8 @@ const AnnualAuditReportContext = ({ props }: any) => {
                                                                                 <Select
                                                                                     //onKeyDown={handleKeyDown}
                                                                                     isClearable={true}
-                                                                                    options={AllDept}
+                                                                                    options={fromDeptArr}
+                                                                                    // options={AllDept}
                                                                                     isDisabled={InputDisabled || !IsDepartmentEditable}
                                                                                     value={currentUserDept}
                                                                                     name="deptId"

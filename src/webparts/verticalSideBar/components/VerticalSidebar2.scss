@@ -188,7 +188,7 @@ a:hover, a:active {
   align-items: center;
   width: 100%;
   // padding: 4px 15px;
-  font-size: 15.2px;
+ 
    border-radius: 0.25rem;
   text-decoration: none;
   color: var(--grey-color);
@@ -341,12 +341,7 @@ a:hover, a:active {
     padding: 0 11px;
 
 }
-.font-14 {
-  font-size: 14px !important;
-}
-.font-16 {
-  font-size: 16px !important;
-}
+
 .logo_item{
   width: 210px;
 }
@@ -841,7 +836,7 @@ background-color: rgb(167, 30, 132);
   px;
 }
 
-@media(max-width:1920px)
+@media(max-width:2560px)
 {
   .inbox-rightbar .card {
    

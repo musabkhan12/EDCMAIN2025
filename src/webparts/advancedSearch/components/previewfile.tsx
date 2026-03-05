@@ -25,8 +25,8 @@
 //     return (
 //       <div>
 //   <iframe src={mypreviewurl2} style={{ width: '100%', height: '600px', border: 'none' }} />
-//       {/* <iframe src={'https://edcadae.sharepoint.com/sites/EDeDMS/HR%20Department%20Testing/Policy/Forms/AllItems.aspx?id=%2Fsites%2FEDeDMS%2FHR%20Department%20Testing%2FPolicy%2FEDC%20Status%2Exlsx&parent=%2Fsites%2FEDeDMS%2FHR%20Department%20Testing%2FPolicy'} style={{ width: '100%', height: '600px', border: 'none' }} />
-//       <iframe src={'https://edcadae.sharepoint.com/sites/EDeDMS/HR%20Department%20Testing/Policy/Forms/AllItems.aspx?id=/sites/EDeDMS/HR%2520Department%2520Testing/Policy/EDC%2520Status.xlsx&parent=/sites/EDeDMS/HR%2520Department%2520Testing/Policy'} style={{ width: '100%', height: '600px', border: 'none' }} /> */}
+//       {/* <iframe src={'https://edcadae.sharepoint.com/sites/ED/HR%20Department%20Testing/Policy/Forms/AllItems.aspx?id=%2Fsites%2FEDeDMS%2FHR%20Department%20Testing%2FPolicy%2FEDC%20Status%2Exlsx&parent=%2Fsites%2FEDeDMS%2FHR%20Department%20Testing%2FPolicy'} style={{ width: '100%', height: '600px', border: 'none' }} />
+//       <iframe src={'https://edcadae.sharepoint.com/sites/ED/HR%20Department%20Testing/Policy/Forms/AllItems.aspx?id=/sites/ED/HR%2520Department%2520Testing/Policy/EDC%2520Status.xlsx&parent=/sites/ED/HR%2520Department%2520Testing/Policy'} style={{ width: '100%', height: '600px', border: 'none' }} /> */}
 //       </div>
     
 //     );
@@ -124,8 +124,8 @@ const PreviewFile = () => {
           <span className="ms-2">Preparing file preview...</span>
         </div>
       )}
-      
-      <iframe
+     {/* thsi was my previous working iframe just issue was pdf was not previewing */}
+      {/* <iframe
         ref={iframeRef}
         src={fileUrl}
         style={{ 
@@ -135,8 +135,23 @@ const PreviewFile = () => {
           display: showIframe ? 'block' : 'none'
         }}
         title="File Preview"
-        sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-      />
+        // sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+      /> */}
+      <iframe
+  ref={iframeRef}
+  src={fileUrl}
+  style={{ 
+    width: '100%', 
+    height: '100%', 
+    border: 'none',
+    display: showIframe ? 'block' : 'none'
+  }}
+  title="File Preview"
+  onLoad={() => {
+    setShowIframe(true);
+    setShowLoader(false);
+  }}
+/>
     </div>
   );
 };

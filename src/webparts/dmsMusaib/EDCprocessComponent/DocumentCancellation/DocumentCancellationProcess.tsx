@@ -45,6 +45,8 @@ import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-con
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from 'react-bootstrap';
+import { PermissionKind } from "@pnp/sp/security";
+
 import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
 import CustomBreadcrumb from '../../ChangerequestComponent/CustomBreadcrumb/CustomBreadcrumb';
 import FileViewer from '../../components/fileviewer';
@@ -265,6 +267,59 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
     };
 
     const ApiCallFunc = async () => {
+
+        const uniqueEntityMap = new Map();
+        let uniqueEntitiesWithAccess: any = [];
+        // if (props.entities.length == 0) {
+
+        const entityItems = await sp.web.lists
+            .getByTitle("EntityDivisionDepartmentMappingMasterList")
+            .items.select(
+                "Entitylookup/Title, Entitylookup/SiteURL", "Entitylookup/SiteID", "Entitylookup/IsExternal",
+                "Devisionlookup/Title",
+                "Departmentlookup/Title",
+                "Devisionlookup/Active",
+                "Departmentlookup/Active"
+            )
+            .expand("Entitylookup", "Devisionlookup", "Departmentlookup")
+            .filter("Entitylookup/Active eq 'Yes' and Entitylookup/IsExternal eq 'No'")();
+        console.log(entityItems, "entityItems 1")
+
+
+        // Loop through each item and check permissions
+        for (const item of entityItems) {
+            const entityTitle = item.Entitylookup.Title;
+            try {
+                const subsiteWeb = await sp.site.openWebById(item.Entitylookup.SiteID);
+                const hasAccess = await subsiteWeb.web.currentUserHasPermissions(PermissionKind.ViewListItems);
+
+                if (hasAccess) {
+                    // Add to uniqueEntitiesWithAccess only if user has access
+                    uniqueEntityMap.set(entityTitle, item); // Store the item or any required data
+                    uniqueEntitiesWithAccess.push(item);
+                    // Add the item to the list of entities with access
+                    console.log(`User has access to site: ${entityTitle}`, item);
+                } else {
+                    console.log(`User does not have access to site: ${entityTitle}`);
+                }
+            } catch (error) {
+                console.error(`Error while checking access for site: ${entityTitle}`, error);
+            }
+        }
+        // setuniqueEntitiesArr(uniqueEntitiesWithAccess);
+        // }
+        // else if (props.entities.length > 0) {
+        //     uniqueEntitiesWithAccess = props.entities;
+        //     // setuniqueEntitiesArr(props.entities);
+        // }
+
+        const entityTitles = [
+            ...new Set(uniqueEntitiesWithAccess.map((item: any) => item.Entitylookup.Title))
+        ]
+        console.log(entityTitles, "entityTitles");
+
+        // ///////
+
         const me = await graph.me.select(
             "displayName",
             "mail",
@@ -274,7 +329,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             "companyName"
         )();
 
-        const graphCurrentUserDept = me.department||"";
+        const graphCurrentUserDept = me.department || "";
         // const graphCurrentUserDept = "SharePoint Department Testing"
         var ReqId = await getRequestTypeID(sp);
         setRequestTypeId(ReqId);
@@ -355,7 +410,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
         }));
         setFormLoading(true);
         // var DocCodeArr = await getAllDocumentCode(sp, UserDept);//old
-        var DocCodeArr = await getAllDocumentCode(sp, graphCurrentUserDept);//new
+        var DocCodeArr = await getAllDocumentCode(sp, graphCurrentUserDept,entityTitles);//new
         // var DocCodeArr = await getAllDocumentCode(sp);
         const options = DocCodeArr.map((item: any) => ({
             value: item.DocumentCode,
@@ -383,11 +438,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
             AttachmentDigitalSignatureId: item.AttachmentDigitalSignatureId || [],
             AttachmentJson: item.AttachmentJson,
 
-            Location: item.Location.Location,
-            Custodian: item.Custodian.Custodian,
-            AmendmentType: item.AmendmentType.AmendmentType,
-            Classification: item.Classification.Classification,
-            DocumentType: item.DocumentType.DocumentType,
+            Location: item?.Location?.Location||"",
+            Custodian: item?.Custodian?.Custodian||"",
+            AmendmentType: item.AmendmentType.AmendmentType||"",
+            Classification: item.Classification.Classification||"",
+            DocumentType: item.DocumentType.DocumentType||"",
             TemplateTypeId: item.TemplateTypeId,
             TemplateTypeValue: item.TemplateType?.TemplateTypeName || "",
 
@@ -1476,7 +1531,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -1674,7 +1729,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -2033,9 +2088,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
 
-                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -2232,9 +2287,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // }, 1000);
                         Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
 
-                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -2458,7 +2513,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire(successMessage, '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -2623,7 +2678,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // // }
                         Swal.fire(successMessage, '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -2959,7 +3014,7 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                         // }, 1000);
                         Swal.fire(successMessage, '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
                             }
                         });
 
@@ -3260,9 +3315,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
 
                         Swal.fire(successMessage, '', 'success').then(async (result) => {
                             if (result.isConfirmed) {
-                                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
 
-                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
                             }
                         });
                     }
@@ -3416,9 +3471,9 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                             <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/signicon.png")} alt="Digital Sign Download Icon" />
 
 
-                                                                       ) : (
-                                                                           <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} alt="Download Icon" />
-                                                                       );
+                                                                        ) : (
+                                                                            <img style={{ cursor: 'pointer', height: '24px' }} className='mt-0' src={require("../../assets/noun-download-5006210.png")} alt="Download Icon" />
+                                                                        );
                                                                     })()}
 
 
@@ -3774,11 +3829,11 @@ const DocumentCancellationProcessContext = ({ props }: any) => {
                                                                         {cancellReason.map((row, index) => (
                                                                             <tr key={index}>
                                                                                 <td style={{ minWidth: "30px", maxWidth: "30px" }}>
-                                                                                    <div
+                                                                                   <div className='d-flex align-items-center justify-content-center'><div
                                                                                         style={{ marginLeft: "5px" }}
                                                                                         className="indexdesign"
                                                                                     >
-                                                                                        {index + 1}</div></td>
+                                                                                        {index + 1}</div></div> </td>
                                                                                 <td>
                                                                                     <textarea id="simpleinput" disabled={InputDisabled}
                                                                                         // className="form-control"                                                                      

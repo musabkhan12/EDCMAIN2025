@@ -16,6 +16,8 @@ import "../../../../CustomCss/mainCustom.scss";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "../../../verticalSideBar/components/VerticalSidebar.scss";
 // import "./annualaudit.scss";
+import { PermissionKind } from "@pnp/sp/security";
+
 import { allowstringonly, getCurrentUser } from '../../../../APISearvice/CustomService';
 import Select from "react-select";
 import Swal from 'sweetalert2';
@@ -109,6 +111,8 @@ const FormContext = ({ props }: any) => {
   const [selectUserDeptTo, setselectUserDeptTo] = React.useState([]);
   const [selectUserDeptCC, setselectUserDeptCC] = React.useState(null);
   const [AllDept, setAllDept] = React.useState([]);
+  const [fromDeptArr, setfromDeptArr] = React.useState([]);
+
   const [AuditProgDept, setAuditProgDept] = React.useState([]);
   const [AuditProgCustodian, setAuditProgCustodian] = React.useState([]);
   const [AuditProgShift, setAuditProgShift] = React.useState([]);
@@ -123,6 +127,7 @@ const FormContext = ({ props }: any) => {
   const [tooltipText1, settooltipText1] = React.useState("");
   const [showModal, setShowModal] = React.useState(false);
   const [auditTypeOption, setAuditTypeOption] = React.useState(null);
+  const [uniqueEntitiesArr, setuniqueEntitiesArr] = React.useState([]);
 
   const [DigitalsignID, setDigitalsignID] = React.useState(null);
   const [hidedigisign, sethidedigisign] = React.useState(false);
@@ -241,10 +246,11 @@ const FormContext = ({ props }: any) => {
     let onloadDeptId: any;
     if (selectedOption == null) {
       // onloadDeptId = AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]?.value || 0;
-      onloadDeptId = AllDept.filter((user: any) => user.ADDepartmentName
-      ?.split(',')
-      .map((d: string) => d.trim())
-      .includes(currentUserDept))[0]?.value || 0;
+      // onloadDeptId = AllDept.filter((user: any) => user.ADDepartmentName
+      // ?.split(',')
+      // .map((d: string) => d.trim())
+      // .includes(currentUserDept))[0]?.value || 0;
+      onloadDeptId = 0;
 
       listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
 
@@ -288,7 +294,7 @@ const FormContext = ({ props }: any) => {
         memoNo: `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/001`,
         memoFileName: `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_001`,
       }));
-      
+
 
     }
     else {
@@ -445,9 +451,61 @@ const FormContext = ({ props }: any) => {
   };
 
   const ApiCallFunc = async () => {
+
+
+    const uniqueEntityMap = new Map();
+    let uniqueEntitiesWithAccess: any = [];
+    // if (props.entities.length == 0) {
+
+    const entityItems = await sp.web.lists
+      .getByTitle("EntityDivisionDepartmentMappingMasterList")
+      .items.select(
+        "Entitylookup/Title, Entitylookup/SiteURL", "Entitylookup/SiteID", "Entitylookup/IsExternal",
+        "Devisionlookup/Title",
+        "Departmentlookup/Title",
+        "Devisionlookup/Active",
+        "Departmentlookup/Active"
+      )
+      .expand("Entitylookup", "Devisionlookup", "Departmentlookup")
+      .filter("Entitylookup/Active eq 'Yes' and Entitylookup/IsExternal eq 'No'")();
+    console.log(entityItems, "entityItems 1")
+
+
+    // Loop through each item and check permissions
+    for (const item of entityItems) {
+      const entityTitle = item.Entitylookup.Title;
+      try {
+        const subsiteWeb = await sp.site.openWebById(item.Entitylookup.SiteID);
+        const hasAccess = await subsiteWeb.web.currentUserHasPermissions(PermissionKind.ViewListItems);
+
+        if (hasAccess) {
+          // Add to uniqueEntitiesWithAccess only if user has access
+          uniqueEntityMap.set(entityTitle, item); // Store the item or any required data
+          uniqueEntitiesWithAccess.push(item);
+          // Add the item to the list of entities with access
+          console.log(`User has access to site: ${entityTitle}`, item);
+        } else {
+          console.log(`User does not have access to site: ${entityTitle}`);
+        }
+      } catch (error) {
+        console.error(`Error while checking access for site: ${entityTitle}`, error);
+      }
+    }
+    // setuniqueEntitiesArr(uniqueEntitiesWithAccess);
+    // }
+
+    const entityTitles = [
+      ...new Set(uniqueEntitiesWithAccess.map((item: any) => item.Entitylookup.Title))
+    ]
+    console.log(entityTitles, "entityTitles");
+
+    // ///////
+
     const currentUser = await sp.web.currentUser();
     const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
-    const IsDepartmentPermission = userGroups.some(group => group.Title === `DepartmentFieldPermission`);
+    // const IsDepartmentPermission = userGroups.some(group => group.Title === `DepartmentFieldPermission`);
+    const IsDepartmentPermission = userGroups.some(group => group.Title === `Intranet Member Group`);
+
     if (IsDepartmentPermission) {
       IsDepartmentEditable = true;
     }
@@ -460,13 +518,30 @@ const FormContext = ({ props }: any) => {
       "companyName"
     )();
 
-    const graphCurrentUserDept = me.department||"";
+    const graphCurrentUserDept = me.department || "";
     // const graphCurrentUserDept = "SharePoint Department Testing"
     setAuditProgramType(await getAllAuditType(sp));
 
 
-    var setAllDept1 = await getAllDepartment(sp);
-    setAllDept(setAllDept1);
+    // var setAllDept1 = await getAllDepartment(sp);
+    // setAllDept(setAllDept1);
+    var setAllDeptNew = await getAllDepartment(sp);
+    // var setAllDept = await getAllDepartment(sp);
+    setAllDept(setAllDeptNew);
+    const entitySet = new Set(
+      entityTitles
+        .filter((e: any) => typeof e === "string")
+        .map((e: string) => e.toLowerCase())
+    );
+    const setAllDept1 = setAllDeptNew.filter((dept: any) =>
+      dept.ADDepartmentName
+        ?.split(",")
+        .map((d: string) => d.trim().toLowerCase())
+        .some((d: string) => entitySet.has(d))
+    );
+    //  setAllDept(setAllDept1);
+    setfromDeptArr(setAllDept1)
+
 
 
     const path1 = window.location.href;
@@ -519,10 +594,19 @@ const FormContext = ({ props }: any) => {
 
     // setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept));//old
     // setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept));//new
-    setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName
-    ?.split(',')
-    .map((d: string) => d.trim())
-    .includes(graphCurrentUserDept))[0]);//newest
+    // setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName
+    //   ?.split(',')
+    //   .map((d: string) => d.trim())
+    //   .includes(graphCurrentUserDept))[0]);//newest
+    const selectedDept =
+      setAllDept1.find((user: any) =>
+        user.ADDepartmentName
+          ?.split(",")
+          .map((d: string) => d.trim())
+          .some((d: string) => entityTitles.includes(d))
+      ) || null;
+
+    setselectUserDept(selectedDept);
     var allAuditTypes = await getAuditTypes(sp);
     setauditTypes(allAuditTypes);
     const recommendationTypes = await getRecommendationTypes(sp);
@@ -553,10 +637,19 @@ const FormContext = ({ props }: any) => {
       }
       // const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0;//old
       // const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]?.value || 0;//new
-      const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName
-                ?.split(',')
-                .map((d: string) => d.trim())
-                .includes(graphCurrentUserDept))[0]?.value || 0;//newest
+      // const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName
+      //   ?.split(',')
+      //   .map((d: string) => d.trim())
+      //   .includes(graphCurrentUserDept))[0]?.value || 0;//newest
+      const matchedDept = setAllDept1.find((user: any) =>
+        user.ADDepartmentName
+          ?.split(",")
+          .map((d: string) => d.trim())
+          .some((d: string) => entityTitles.includes(d))
+      );
+
+      const onloadDeptId = matchedDept?.value || 0;
+
 
       const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
       if (listItems.length > 0) {
@@ -586,37 +679,34 @@ const FormContext = ({ props }: any) => {
         MemoListId: memoId,
         memoSerialNo: memo,
         deptId: onloadDeptId,
-        // memoNo: setAllDept1.filter((user: any) => user.label === UserDept)[0]
-        //   ? `${setAllDept1.filter((user: any) => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-        //   : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
 
-        // memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
-        //   ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        // memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName
+        //   ?.split(',')
+        //   .map((d: string) => d.trim())
+        //   .includes(graphCurrentUserDept))[0]
+        //   ? `${setAllDept1.filter((user: any) => user.ADDepartmentName
+        //     ?.split(',')
+        //     .map((d: string) => d.trim())
+        //     .includes(graphCurrentUserDept))[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
         //   : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-        // memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
-        //   ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+        // memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName
+        //   ?.split(',')
+        //   .map((d: string) => d.trim())
+        //   .includes(graphCurrentUserDept))[0]
+        //   ? `${setAllDept1.filter((user: any) => user.ADDepartmentName
+        //     ?.split(',')
+        //     .map((d: string) => d.trim())
+        //     .includes(graphCurrentUserDept))[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
         //   : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
 
+        memoNo: setAllDept1.filter((user: any) => user.value === onloadDeptId)[0]
+          ? `${setAllDept1.filter((user: any) => user.value === onloadDeptId)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+          : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
 
-        memoNo: setAllDept1.filter((user: any) =>user.ADDepartmentName
-        ?.split(',')
-        .map((d: string) => d.trim())
-        .includes(graphCurrentUserDept))[0]
-        ? `${setAllDept1.filter((user: any) => user.ADDepartmentName
-          ?.split(',')
-          .map((d: string) => d.trim())
-          .includes(graphCurrentUserDept))[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-        : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-      memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName
-          ?.split(',')
-          .map((d: string) => d.trim())
-          .includes(graphCurrentUserDept))[0]
-        ? `${setAllDept1.filter((user: any) => user.ADDepartmentName
-          ?.split(',')
-          .map((d: string) => d.trim())
-          .includes(graphCurrentUserDept))[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
-        : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
-    
+        memoFileName: setAllDept1.filter((user: any) => user.value === onloadDeptId)[0]
+          ? `${setAllDept1.filter((user: any) => user.value === onloadDeptId)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+          : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+
       }));
 
     }
@@ -760,8 +850,10 @@ const FormContext = ({ props }: any) => {
             : memo < 100
               ? `0${memo}`
               : memo;
-          varmemoNum = `${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`;
-          varmemofilename = `${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`;
+          // varmemoNum = `${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`;
+          // varmemofilename = `${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`;
+          varmemoNum = `${setAllDeptNew.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`;
+          varmemofilename = `${setAllDeptNew.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`;
 
         }
         else {
@@ -833,10 +925,13 @@ const FormContext = ({ props }: any) => {
 
 
 
-        setselectUserDept(setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)?.[0] || null);
+        // setselectUserDept(setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)?.[0] || null);
+        setselectUserDept(setAllDeptNew.filter((user: any) => user.value === setBannerById[0].DepartmentId)?.[0] || null);
 
         setselectUserDeptCC(setBannerById[0].CCDepartments?.map((obj: any) => {
-          const filteredDept = setAllDept1.find((dept: any) => dept.value === obj.ID);
+          const filteredDept = setAllDeptNew.find((dept: any) => dept.value === obj.ID);
+
+          // const filteredDept = setAllDept1.find((dept: any) => dept.value === obj.ID);
           if (filteredDept) {
             filteredDeptArrayCC.push(filteredDept);
           }
@@ -1645,7 +1740,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ED/AnnualAuditProgramDocs');
 
 
 
@@ -2038,7 +2133,7 @@ const FormContext = ({ props }: any) => {
             // }
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -2100,7 +2195,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ED/AnnualAuditProgramDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2414,7 +2509,7 @@ const FormContext = ({ props }: any) => {
             // }
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -2445,7 +2540,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ED/AnnualAuditProgramDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2882,8 +2977,8 @@ const FormContext = ({ props }: any) => {
             // }
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
-                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -2911,7 +3006,7 @@ const FormContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/AnnualAuditProgramDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ED/AnnualAuditProgramDocs');
 
 
             if (FilesArr.length > 0) {
@@ -3187,8 +3282,8 @@ const FormContext = ({ props }: any) => {
             // }, 1000);
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
-                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -3852,8 +3947,8 @@ const FormContext = ({ props }: any) => {
                                     <label htmlFor="Department" className="col-form-label">From Department<span className="text-danger1"> *</span></label>
                                     <div title={selectUserDept?.label || "Select Department"}>
                                       <Select
-                                        // options={AllDept}
-                                        options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                        options={fromDeptArr.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                        // options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
                                         isClearable
 
                                         isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false) || !IsDepartmentEditable}

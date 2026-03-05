@@ -8,7 +8,7 @@
   padding-left: 0px;
 }
 .newclasstabls{    overflow-x: auto;
-  width: 827px;}
+  width: auto;}
 .mainsidebardms{
   width: 19%;
   float: left;
@@ -20,7 +20,7 @@
     /* width: 17rem; */
   
     padding: 7px;
-    max-height: 325px;
+    max-height: 350px;
     overflow-y: auto;
     overflow-x: auto;
     
@@ -43,7 +43,7 @@
 #folderContainer2::-webkit-scrollbar-thumb:hover {
   background: #555; 
 }
-p.folder {font-size: 14px; font-weight: 600; margin-bottom: 7px; }
+p.folder {font-size: 17px; font-weight: 600; margin-bottom: 7px; }
 .p3rd{
   width: 45%; float: left;
 }
@@ -764,7 +764,7 @@ top: 0;
     color: #6b6b6b;
     display: flex
 ;
-    font-size: 15px;
+    font-size: 17px;
     padding: 9px 19px;
 
   line-height: 19px;
@@ -842,7 +842,7 @@ height: 23px;
     width: 20px;
   }
   #files-container .card{
-    width: 32.1%; margin: 5px; float: left;
+    width: 24.1%; margin: 5px; float: left;
   } 
  #files-container .card {
     border: 1px solid #f37421 !important;
@@ -900,7 +900,7 @@ height: 23px;
   
   text-overflow: ellipsis;
 }
-   .newbutton button{height: 40px; font-size: 14px; padding: 6px 10px;}
+   .newbutton button{height: 40px; font-size: 17px; padding: 6px 10px;}
 .filestatus {
   font-size: 11px;
   line-height: 19px;
@@ -943,7 +943,7 @@ height: 23px;
   background:#f3f7f9 !important;
   font-weight: 600 !important;
   color: #3c3c3c;
-  font-size: 15px !important;
+  font-size: 18px !important;
 text-align: center;
   min-width: 130px;
   max-width: 130px;
@@ -969,10 +969,10 @@ text-align: center;
 .mtbalenew td {
   min-width: 130px;
   max-width: 130px;
-  padding: 8px 10px; font-size: 15px;
+  padding: 8px 10px; 
   text-align: left;
   background-color: #fff;
-  overflow: hidden; font-size: 14px !important;
+  overflow: hidden; font-size: 17px !important;
   text-overflow: ellipsis;
   white-space: nowrap; color: #6b6b6b;
   border-bottom: 1px solid #e1e1e1;
@@ -1029,7 +1029,7 @@ text-align: center;
   background:#f3f7f9 !important;
   font-weight: 600 !important;
   color: #3c3c3c;
-  font-size: 15px !important;
+  font-size: 18px !important;
 text-align: center;
   min-width: 130px;
   max-width: 130px;
@@ -1050,7 +1050,7 @@ text-align: center;
   padding: 8px 10px; font-size: 15px;
   text-align: left;
   background-color: #fff;
-  overflow: hidden; font-size: 14px !important;
+  overflow: hidden; font-size: 17px !important;
   text-overflow: ellipsis;
   white-space: nowrap; color: #6b6b6b;
   border-bottom: 1px solid #e1e1e1;
@@ -1078,6 +1078,15 @@ text-align: center;
 .main-containeruploadfile h1{color: #000;}
 @media(max-width:1920px)
 {
+  #files-container .card
+    {
+      width: 32.1%;
+    }
+  .mtbalenew th,.mtbalenew td, .sidebardmsButton,p.folder,  .newbutton button {
+
+    font-size: 15px !important;
+  }
+
   .sharedFile{padding-left: 75px;}
   .newclasstabls{   
     width: 1170px;}
@@ -1099,12 +1108,24 @@ text-align: center;
   .sharedFile{padding-left: 54px;}
   .newclasstabls{   
     width: 807px;}
+    .mtbalenew th,.mtbalenew td, .sidebardmsButton,p.folder,  .newbutton button {
+
+      font-size: 14px !important;
+    }
 }
 @media(max-width:1280px)
 {
-  
+  .sidebardmsButton{font-size: 12px; padding: 9px 10px;}
+  p.folder{
+    font-size: 12px;
+  }
+  .mtbalenew th,.mtbalenew td{font-size: 12px !important;}
   .newclasstabls{   
     width: 710px;}
+    .mtbalenew th,.mtbalenew td, .sidebardmsButton,p.folder,  .newbutton button {
+
+      font-size: 12px !important;
+    }
 }
 @media(max-width:640px){
   .mtbalenew{overflow: auto;}

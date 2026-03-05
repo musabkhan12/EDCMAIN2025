@@ -85,7 +85,8 @@
 // }
 
 // export default CheckedFilterDropDown;
-import React, {useState} from 'react';
+import React from "react";
+import { useState, useRef, useEffect } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Button, Form, Container } from 'react-bootstrap';
 
@@ -98,8 +99,25 @@ interface ICheckedFilterDropDownProps {
 const CheckedFilterDropDown: React.FC<ICheckedFilterDropDownProps> = ({options, onChange , Index}) => {
     console.log("CheckedFilterDropDown Index",Index);
     const [selected, setSelected] = useState<Array<{value: string, label: string}>>([]);
-    const [showList, setShowList] = useState(false);
 
+    const dropdownRef = useRef<HTMLDivElement>(null);
+const [showList, setShowList] = useState(false);
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+          if (
+            dropdownRef.current &&
+            !dropdownRef.current.contains(event.target as Node)
+          ) {
+            setShowList(false);
+          }
+        };
+      
+        document.addEventListener("mousedown", handleClickOutside);
+      
+        return () => {
+          document.removeEventListener("mousedown", handleClickOutside);
+        };
+      }, []);
     const handleSelect = (option: {value: string, label: string}) => {
         let selt=[...selected];
         let newsel;
@@ -137,7 +155,8 @@ const CheckedFilterDropDown: React.FC<ICheckedFilterDropDownProps> = ({options, 
     return (
         <>
             <>
-                <div className="mb-0">
+                {/* <div className="mb-0"> */}
+                <div className="mb-0" ref={dropdownRef}>
                     {/* <Form.Label>Filter By</Form.Label> */}
                     <div className="d-flex flex-wrap">
                         {selected.map((item, index) => (

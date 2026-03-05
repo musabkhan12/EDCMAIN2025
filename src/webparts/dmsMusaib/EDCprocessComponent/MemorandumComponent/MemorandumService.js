@@ -326,7 +326,7 @@ export const getApprovalByID = async (_sp, id, processName) => {
     .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
     .then(async (res) => {
       // console.log(res, ' let arrs=[]');
-      // if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName) {
+      // if (res && res.AssignedTo?.Id == currentUser.Id && res.ProcessName === processName) {
       //   arr = res;
       // }
       // Check if the current user is the assigned user or a delegate
@@ -337,19 +337,19 @@ export const getApprovalByID = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo?.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then((result) => {
           if (result.length > 0) {
             // If the current user is a delegate, check if they are acting for the assigned user
             // and if the process name matches
-            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].DelegateNameId) && res.ProcessName === processName) {
+            if (res && (res.AssignedTo?.Id == currentUser.Id || res.AssignedTo?.Id == result[0].DelegateNameId) && res.ProcessName === processName) {
               arr = res;
             }
 
           }
           else {
-            if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName) {
+            if (res && res.AssignedTo?.Id == currentUser.Id && res.ProcessName === processName) {
               arr = res;
             }
 
@@ -379,7 +379,7 @@ export const getApprovalByID2 = async (_sp, id, processName) => {
     .select("*,Author/ID,Author/Title,RequesterName/Id,RequesterName/Title,AssignedTo/Id,AssignedTo/Title").expand("Author,RequesterName,AssignedTo")()
     .then(async (res) => {
       console.log(res, ' let arrs=[]');
-      // if(res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 ){
+      // if(res && res.AssignedTo?.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0 ){
       //   arr = false;
       // }
       // else{
@@ -391,19 +391,19 @@ export const getApprovalByID2 = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo?.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then((result) => {
           if (result.length > 0) {
             // If the current user is a delegate, check if they are acting for the assigned user
             // and if the process name matches
-            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].DelegateNameId) && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+            if (res && (res.AssignedTo?.Id == currentUser.Id || res.AssignedTo?.Id == result[0].DelegateNameId) && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
               arr = false;
             }
 
           }
           else {
-            if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+            if (res && res.AssignedTo?.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
               arr = false;
             }
 
@@ -462,19 +462,19 @@ export const getDraftApprovalByID = async (_sp, id, processName) => {
         .items
         .select("*,Author/ID,Author/Title,Author/EMail,DelegateName/ID,DelegateName/Title,DelegateName/EMail,ActingFor/ID,ActingFor/Title,ActingFor/EMail")
         .expand("Author,DelegateName,ActingFor")
-        .filter(`DelegateName/ID eq '${res.AssignedTo.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
+        .filter(`DelegateName/ID eq '${res.AssignedTo?.Id}' and ActingFor/ID eq '${currentUser.Id}' and Status eq 'Active' and StartDate le '${today}' and EndDate ge '${today}'`)
         .orderBy("Created", false).top(1)()
         .then(async (result) => {
           if (result.length > 0) {
 
-            if (res && (res.AssignedTo.Id == currentUser.Id || res.AssignedTo.Id == result[0].DelegateNameId) && res.ProcessName === processName && (res?.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+            if (res && (res.AssignedTo?.Id == currentUser.Id || res.AssignedTo?.Id == result[0].DelegateNameId) && res.ProcessName === processName && (res?.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
               arr = res;
             }
 
           }
           else {
 
-            if (res && res.AssignedTo.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
+            if (res && res.AssignedTo?.Id == currentUser.Id && res.ProcessName === processName && (res.Status == "Pending" || res?.Status === "Save as draft") && res.Level === 0) {
               arr = res;
             }
 
@@ -570,7 +570,7 @@ export const uploadAllFiles = async (files, sp, docLib) => {
 export const uploadFileToLibrary = async (file, sp, docLib) => {
   let arrFIleData = [];
   let fileSize = 0;
-  const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumDocs');
+  const folder = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumDocs');
   try {
     // await sp.web.lists.getByTitle(docLib).rootFolder
     const result = folder.files.addChunked(file.name, file, (progress, data) => {
@@ -619,7 +619,7 @@ export const getAdditionalDocumentLinkByID = async (_sp, listItemID) => {
   // for (let itemId of AttachmentIds) {
      await _sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
     // .getById(itemId)
-      .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${listItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Description'`)()
+      .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${listItemID} and FileDirRef eq '/sites/ED/MemorandumAdditionalDocs/Description'`)()
       .then((res) => {
         // console.log(res, ' let arrs=[]');
         // results.push(res);
@@ -638,7 +638,7 @@ export const getBGAdditionalDocumentLinkByID = async (_sp, listItemID) => {
   // for (let itemId of AttachmentIds) {
      await _sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
     // .getById(itemId)
-      .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${listItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Background'`)()
+      .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${listItemID} and FileDirRef eq '/sites/ED/MemorandumAdditionalDocs/Background'`)()
       .then((res) => {
         // console.log(res, ' let arrs=[]');
         // results.push(res);
@@ -657,7 +657,7 @@ export const getRecomAdditionalDocumentLinkByID = async (_sp, listItemID) => {
   // for (let itemId of AttachmentIds) {
      await _sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
     // .getById(itemId)
-      .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${listItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation'`)()
+      .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${listItemID} and FileDirRef eq '/sites/ED/MemorandumAdditionalDocs/Recommadation'`)()
       .then((res) => {
         // console.log(res, ' let arrs=[]');
         // results.push(res);
@@ -868,7 +868,7 @@ export const updateMemoNumber = async (itemData, _sp,id) => {
 //       let itemData = {
 //         ListItemIDId: listItemID
 //       }
-//       const folder2 = _sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Description');
+//       const folder2 = _sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumAdditionalDocs/Description');
 
 //       await folder2.files.getByName(fileName).listItemAllFields.update(itemData);
 //       //const newItem = await _sp.web.lists.getByTitle('MemorandumAdditionalDocs/De').items.getById(id).update(itemData);

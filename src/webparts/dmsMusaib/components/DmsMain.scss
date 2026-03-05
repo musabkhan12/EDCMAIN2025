@@ -595,13 +595,13 @@ a:hover
   margin-bottom: 0px !important; 
 }
 #react-select-2-placeholder,.form-check-label,.css-hlgwow div,#react-select-3-placeholder{
-  color: #212529 !important; font-weight: 500 !important;font-size: 1rem !important;
+  color: #212529 !important; font-weight: 500 !important;font-size: 18px !important;
 }
 input[type=password], input[type=text], input[type=file], input:not([type]), select, textarea, .sp-peoplepicker-topLevel, .sp-peoplepicker-topLevelDisabled, .sp-peoplepicker-autoFillContainer, .ms-inputBox{
-  color: #212529 !important;font-weight: 500 !important; font-size: 1rem !important;
+  color: #212529 !important;font-weight: 500 !important; font-size: 18px !important;
 }
 input::placeholder,select::placeholder,textarea::placeholder,#react-select-3-placeholder::placeholder{
-  color: #212529 !important;font-weight: 500 !important;font-size: 1rem !important;
+  color: #212529 !important;font-weight: 500 !important;font-size: 18px !important;
 }
 .newpag .pagination-container{
   justify-content: start !important;
@@ -752,7 +752,7 @@ top: 0;
   font-size: 14px; float:none; margin: 20px auto 0px;
 }
 
-label{font-size: 0.875rem !important; font-weight: 400 !important; color: #6c757d !important;}
+label{font-size: 16px !important; font-weight: 400 !important; color: #6c757d !important;}
 .edit-popup button:hover {
   background-color: #45a049;
 }
@@ -970,7 +970,7 @@ border-radius: 5px;}
 }
 
 #files-container .card{
-  width: 32.1%; margin: 5px; float: left;
+  width: 24.1%; margin: 5px; float: left;
 } 
 #files-container .card {
   border: 1px solid #f37421 !important;
@@ -1105,6 +1105,19 @@ textarea .ms-TextField-field{
   #files-container2 iframe{
     width: 88.2% !important;
   }
+  #files-container .card{
+    width: 32.1%;
+  } 
+  label{font-size: 14px !important;}
+  #react-select-2-placeholder,.form-check-label,.css-hlgwow div,#react-select-3-placeholder{
+    color: #212529 !important; font-weight: 500 !important;font-size: 15px !important;
+  }
+  input[type=password], input[type=text], input[type=file], input:not([type]), select, textarea, .sp-peoplepicker-topLevel, .sp-peoplepicker-topLevelDisabled, .sp-peoplepicker-autoFillContainer, .ms-inputBox{
+    color: #212529 !important;font-weight: 500 !important; font-size: 15px !important;
+  }
+  input::placeholder,select::placeholder,textarea::placeholder,#react-select-3-placeholder::placeholder{
+    color: #212529 !important;font-weight: 500 !important;font-size: 15px !important;
+  }
 }
 @media(max-width:1800px){
   #files-container2 iframe{
@@ -1124,6 +1137,16 @@ textarea .ms-TextField-field{
 @media(max-width:1280px){
   #files-container2 iframe{
     width: 82.5% !important;
+  }
+  label{font-size: 12px !important;}
+  #react-select-2-placeholder,.form-check-label,.css-hlgwow div,#react-select-3-placeholder{
+    color: #212529 !important; font-weight: 500 !important;font-size: 12px !important;
+  }
+  input[type=password], input[type=text], input[type=file], input:not([type]), select, textarea, .sp-peoplepicker-topLevel, .sp-peoplepicker-topLevelDisabled, .sp-peoplepicker-autoFillContainer, .ms-inputBox{
+    color: #212529 !important;font-weight: 500 !important; font-size: 12px !important;
+  }
+  input::placeholder,select::placeholder,textarea::placeholder,#react-select-3-placeholder::placeholder{
+    color: #212529 !important;font-weight: 500 !important;font-size: 12px !important;
   }
 }
 // .pagination-container{clear: both;}

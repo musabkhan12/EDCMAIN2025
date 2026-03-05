@@ -235,6 +235,9 @@ const ArgPoc = ({ props }: any) => {
   const [showWorkflow, setShowWorkflow] = useState(false);
   const [showfolderpermission, setShowfolderpermission] = useState(false);
   const [navItems, setNavItems] = React.useState<NavItem[]>([]);
+  const [uniqueEntitiesArr, setuniqueEntitiesArr] = React.useState([]);
+
+  const [searchText, setSearchText] = useState<string>("");
   let cleanUrlInMyRequest = false;
   // const handleButtonClickShow = () => {
   //   setShowFirstDiv(false);
@@ -798,7 +801,8 @@ const ArgPoc = ({ props }: any) => {
             if (hasAccess) {
               // Add to uniqueEntitiesWithAccess only if user has access
               uniqueEntityMap.set(entityTitle, item); // Store the item or any required data
-              uniqueEntitiesWithAccess.push(item);  // Add the item to the list of entities with access
+              uniqueEntitiesWithAccess.push(item);
+               // Add the item to the list of entities with access
               console.log(`User has access to site: ${entityTitle}`, item);
             } else {
               console.log(`User does not have access to site: ${entityTitle}`);
@@ -809,6 +813,7 @@ const ArgPoc = ({ props }: any) => {
         }
   console.log(uniqueEntityMap , "uniqueEntityMap ......")
   console.log(uniqueEntitiesWithAccess , "uniqueEntitiesWithAccess");
+  setuniqueEntitiesArr(uniqueEntitiesWithAccess) //passing this to every dms process forms
       /// New Code 
 
       // Loop through each item and check permissions
@@ -12307,6 +12312,7 @@ console.log("Is Restricted Folder:", isRestrictedFolder);
     }
     // change the array name in the for loop
     for (const files of filteredFileData) {
+      console.log(files ,"files in folder section")
       let externalFolder = false;
       if (files.External === true) {
         externalFolder = true;
@@ -12344,8 +12350,8 @@ console.log("Is Restricted Folder:", isRestrictedFolder);
   <img class="filextension" src=${folderimg} icon"/>
   </div></div></div>
   <div class="col-md-10"> 
-  <p class="p1st p1stfolder" title={${folderName}}>${folderName}</p>
-  <p class="p2nd">${files.SiteTitle} </p>
+  <p class="p1st p1stfolder" title=${folderName}>${folderName}</p>
+  <p style="width:100%" class="p2nd" title="${files.FolderPath}">${files.SiteTitle} </p>
   <div class="mycreatedfolderpublicorlibrary"> <p class="filestatus">${folderisprivateorpublic} </p> 
   
   <p class="filestatus2 ${files.IsLibrary === true ? 'root-folder' : 'sub-folder'}"> ${files.IsLibrary === true ? 'Root Folder' : 'Sub Folder'} </p> </div>
@@ -13410,7 +13416,7 @@ console.log("Is Restricted Folder:", isRestrictedFolder);
           const encodedFilePath = encodeURIComponent(file.ServerRelativeUrl);
           const parentFolder = file.ServerRelativeUrl.substring(0, file.ServerRelativeUrl.lastIndexOf('/'));
           const siteUrl = window.location.origin;
-          // const previewUrl = `${siteUrl}/sites/EDeDMS/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+          // const previewUrl = `${siteUrl}/sites/ED/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
           const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
            console.log("previewUrl", previewUrl);
 
@@ -15121,7 +15127,7 @@ console.log("Is Restricted Folder:", isRestrictedFolder);
       const siteUrl = window.location.origin;
       console.log(siteUrl, "siteUrl");
       const previewUrl = `${siteUrl}${locationPath}/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
-      // const previewUrl = `${siteUrl}/sites/EDeDMS/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
+      // const previewUrl = `${siteUrl}/sites/ED/${currentEntity}/${currentDocumentLibrary}/Forms/AllItems.aspx?id=${encodeURIComponent(filePath)}&parent=${encodedParentFolder}`;
        preURL = previewUrl;
     }
     console.log("filePath", filePath);
@@ -16986,11 +16992,11 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
       const encodedFilePath = encodeURIComponent(serverRelativeUrl);
 
       // Example: 
-      // serverRelativeUrl = "/sites/EDeDMS/test/DocumentLibraryInsideTest/Book.xlsx"
+      // serverRelativeUrl = "/sites/ED/test/DocumentLibraryInsideTest/Book.xlsx"
       const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
       const siteUrl = window.location.origin;
 
-      // const previewUrl = `${siteUrl}/sites/EDeDMS/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+      // const previewUrl = `${siteUrl}/sites/ED/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       const previewUrl = `${siteUrl}${locationPath}/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
       console.log("Generated Preview URL:", previewUrl);
@@ -17225,7 +17231,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
     const siteUrl = window.location.origin;
     console.log(siteUrl, "siteUrl");
 
-    // const previewUrl = `${siteUrl}/sites/EDeDMS/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
+    // const previewUrl = `${siteUrl}/sites/ED/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
     const previewUrl = `${siteUrl}${locationPath}/${currentSubsite}/${myactualdoclib}/Forms/AllItems.aspx?id=${filePath}&parent=${encodedParentFolder}`;
 
     if (previewUrl) {
@@ -17491,7 +17497,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
         const parentFolder = uploadResult.data.ServerRelativeUrl.substring(0, uploadResult.data.ServerRelativeUrl.lastIndexOf('/'));
         const siteUrl = window.location.origin;
         const encodedFilePath = encodeURIComponent(uploadResult.data.ServerRelativeUrl);
-        // const previewUrl = `${siteUrl}/sites/EDeDMS/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+        // const previewUrl = `${siteUrl}/sites/ED/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
         const previewUrl = `${siteUrl}${locationPath}/${siteName}/${documentLibrary}/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
 
         await listItem.update(payload);
@@ -18081,7 +18087,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
 
                    
                     <div className="col-xl-5">
-                      <div className="search-container position-relative">
+                      {/* <div className="search-container position-relative">
                         <input
                           id="searchinput"
                           type="text"
@@ -18096,14 +18102,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
             
           />
         </a>
-                        {/* <a className="searchbutton" onClick={RemoveSSearchFile}>
-                          <img
-                            src={require("../assets/cross.png")}
-                            alt="Search"
-                            className="search-icon"
-                          />
-                        </a> */}
-                        
+                      
                         <a className="searchbutton" onClick={searchFiles}>
                           <img
                             src={require("../assets/searchicon.png")}
@@ -18111,8 +18110,38 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
                             className="search-icon"
                           />
                         </a>
-                      </div>
+                      </div> */}
+<div className="search-container position-relative">
+  <input
+    id="searchinput"
+    type="text"
+    className="search-input"
+    placeholder="Search files..."
+    value={searchText}
+    onChange={(e) => setSearchText(e.target.value)}
+  />
 
+  {searchText && (
+    <a className="searcclear" onClick={() => {
+      setSearchText("");
+      clearSearch(event);
+    }}>
+      <img
+        className="clearimg"
+        src={require("../assets/cross.png")}
+        alt="Clear"
+      />
+    </a>
+  )}
+
+  <a className="searchbutton" onClick={searchFiles}>
+    <img
+      src={require("../assets/searchicon.png")}
+      alt="Search"
+      className="search-icon"
+    />
+  </a>
+</div>
                     </div>
                     )}
                   </div>
@@ -18140,6 +18169,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
                       <>
                         {listorgriddata === 'MainListView' && (
                           <Listing
+                          entities={uniqueEntitiesArr}
                             userid={currentUserIDref.current}
                             context={props.context}
                             edItm={''}
@@ -18164,6 +18194,7 @@ if (column.ColumnName === "ViewRequest" && displayValue) {
 
                     {listorgriddata === 'Memorandum' && (
                           <MemoComponent
+                           entities={uniqueEntitiesArr}
                             userDisplayName={currentUserEmailRef.current}
                             userid={currentUserIDref.current}
                             context={props.context}

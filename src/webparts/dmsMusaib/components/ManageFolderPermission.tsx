@@ -35,9 +35,13 @@ const ManageFolderPermission : React.FC<ManageFolderPermissionProps> = ({
     }
 
     // New Code
+    // const [rowsForPermission, setRowsForPermission] = React.useState<
+    // { id: number; selectedUserForPermission: string[]; selectedPermission:"" }[]
+    // >([{ id: 0, selectedUserForPermission: [],selectedPermission:"" }]);
+    // srs
     const [rowsForPermission, setRowsForPermission] = React.useState<
-    { id: number; selectedUserForPermission: string[]; selectedPermission:"" }[]
-    >([{ id: 0, selectedUserForPermission: [],selectedPermission:"" }]);
+  { id: number; selectedUserForPermission: any[]; selectedPermission: any }[]
+>([{ id: 0, selectedUserForPermission: [], selectedPermission: null }]);
     console.log("rowsForPermission",rowsForPermission);
     // End
     // creating state variable to store the table data
@@ -557,164 +561,242 @@ const ManageFolderPermission : React.FC<ManageFolderPermissionProps> = ({
     }
     
 
-  const handleCreate=async()=>{
-    console.log("create called");
-    console.log("rowsForPermission",rowsForPermission);
-    // console.log("selected User Array",defaultUser);
-    // console.log("selected permission",selectedPermission);
-    if(!validatePermissionsSelect()){
-      return
-    }
-
-    try {
-        
-        const payloadForDMSFolderPrivacy={
-            SiteName:OthProps.SiteTitle,
-            DocumentLibraryName:OthProps.DocumentLibraryName,
-            CurrentUser:currentUserEmailRef.current,
-            IsModified:true,
-            // UserPermission:selectedPermission[0].value
-        }
-
-        // Add the folder name if its folder
-        if(OthProps.FolderName !== "null"){
-          (payloadForDMSFolderPrivacy as any).FolderName=OthProps.FolderName;
-        }
-        rowsForPermission.forEach((row:any)=>{
-            try {
-                
-                // (payloadForDMSFolderPrivacy as any).User=user.value;
-                // (payloadForDMSFolderPrivacy as any).UserID=user.userId;
-                (payloadForDMSFolderPrivacy as any).UserPermission=row.selectedPermission.value;
-                row.selectedUserForPermission.forEach(async(user:any)=>{
-                  (payloadForDMSFolderPrivacy as any).User=user.value;
-                  (payloadForDMSFolderPrivacy as any).UserID=user.userId;
-                  console.log("Payload for DMSFolderPrivacy",payloadForDMSFolderPrivacy);
-                  const addedItem = await sp.web.lists.getByTitle("DMSFolderPrivacy").items.add(payloadForDMSFolderPrivacy);
-                  console.log("Item added to the list DMSFolderPrivacy after selected value ",addedItem);
-                })
-                
-            } catch (error) {
-                console.log("error adding data to the DMSFolderPrivacy",error);
-            }
-            
-        })
-
-        // Add permission directly to the library/folder 
-        try {
-          const { web } = await sp.site.openWebById(`${OthProps.SiteID}`);
-          let securableObject: any;
-
-          if (OthProps.FolderName !== "null") {
-              // For folder
-              // alert('add permission to folder')
-              const folder =await web.getFolderByServerRelativePath(`${OthProps.FolderPath}`).getItem();
-              // securableObject=await folder.listItemAllFields.select("RoleAssignments").expand("RoleAssignments")();
-              securableObject=folder;
-              const itemData = await folder.select("HasUniqueRoleAssignments")();
-              const breaKRole=itemData.HasUniqueRoleAssignments;
-              if (!breaKRole) {
-                // Break role inheritance, keeping current permissions
-                await folder.breakRoleInheritance(true);
-                console.log("Inheritance broken, retaining previous permissions.");
-              }
-              console.log("securableObject",securableObject);
-          } else {
-            // alert('add permission to doclib')
-              // For document library
-              securableObject =await web.lists.getByTitle(`${OthProps.DocumentLibraryName}`);
-              console.log("securableObject",securableObject);
-              // Break inheritance if needed (optional)
-              const hasUniquePermissions = await securableObject.hasUniqueRoleAssignments;
-              if (!hasUniquePermissions) {
-                  await securableObject.breakRoleInheritance(true); // First `true` copies permissions, second `true` clears unique assignments
-              }
-          }
-          // t222_Admin
-          // const roleDefinition = await web.roleDefinitions.getByName('Edit')();
-          // const roleDefinitionId = roleDefinition.Id;
-          // const group = await sp.web.siteGroups.getByName('t222_Admin')();
-          // await securableObject.roleAssignments.add(group.Id, roleDefinitionId);
-          // Iterate through filteredArray and add role assignments
-          rowsForPermission.forEach(async(row:any)=>{
-              try {
-                        // Get the role definition for the specified role
-                        const roleDefinition = await web.roleDefinitions.getByName(row.selectedPermission.value)();
-                        const roleDefinitionId = roleDefinition.Id;
-                        console.log("roleDefinition",roleDefinition);
-                        console.log("roleDefinitionId",roleDefinitionId);
-                        row.selectedUserForPermission.forEach(async(userOrGroup:any)=>{
-                          const principalId = userOrGroup.userId;
-                          await securableObject.roleAssignments.add(principalId, roleDefinitionId);
-                          console.log(`Adding ${userOrGroup.value} (${principalId}) with ${row.selectedPermission.value} permissions`);
-                        })
-              }catch (error){
-                    console.log("Error in Adding permission to the document/folder directly inside for loop",error)
-              }
-            })
-        } catch (error) {
-          console.log("Error in Adding permission to the document/folder directly",error)
-        }
-
-     
-        defaultValue("Create")
-        setRowsForPermission([{ id: 0, selectedUserForPermission: [],selectedPermission:"" }]);
-        Swal.fire('Added','Users Added Successfully','success');
-    } catch (error) {
-        console.log("error creating data inside the handle create function",error);
-    }
+  // const handleCreate=async()=>{
+  //   console.log("create called");
+  //   console.log("rowsForPermission",rowsForPermission);
+  //   // console.log("selected User Array",defaultUser);
+  //   // console.log("selected permission",selectedPermission);
+  //   if(!validatePermissionsSelect()){
+  //     return
+  //   }
 
   //   try {
-  //     const { web } = await sp.site.openWebById(`${OthProps.SiteID}`);
+  //       const payloadForDMSFolderPrivacy={
+  //           SiteName:OthProps.SiteTitle,
+  //           DocumentLibraryName:OthProps.DocumentLibraryName,
+  //           CurrentUser:currentUserEmailRef.current,
+  //           IsModified:true,
+  //           // UserPermission:selectedPermission[0].value
+  //       }
 
-  //     let securableObject: any;
-
-  //     if (OthProps.FolderName !== "null") {
-  //         // For folder
-  //         const folder =await web.getFolderByServerRelativePath(`${OthProps.FolderPath}`);
-  //         securableObject=folder.listItemAllFields();
-  //         console.log("securableObject",securableObject);
-  //     } else {
-  //         // For document library
-  //         securableObject =await web.lists.getByTitle(`${OthProps.DocumentLibraryName}`);
-  //     }
-      
-  //     // Break inheritance if needed (optional)
-  //     const hasUniquePermissions = await securableObject.hasUniqueRoleAssignments;
-  //     if (!hasUniquePermissions) {
-  //         await securableObject.breakRoleInheritance(true); // First `true` copies permissions, second `true` clears unique assignments
-  //     }
-
-      
-
-  //     // Iterate through filteredArray and add role assignments
-  //     rowsForPermission.forEach(async(row:any)=>{
-  //               try {
-  //                   // Get the role definition for the specified role
-  //                   const roleDefinition = await web.roleDefinitions.getByName(row.selectedPermission.value)();
-  //                   const roleDefinitionId = roleDefinition.Id;
-  //                   console.log("roleDefinition",roleDefinition);
-  //                   console.log("roleDefinitionId",roleDefinitionId);
-  //                   row.selectedUserForPermission.forEach(async(userOrGroup:any)=>{
-  //                     const principalId = userOrGroup.userId;
-  //                     await securableObject.roleAssignments.add(principalId, roleDefinitionId);
-  //                     console.log(`Adding ${userOrGroup.value} (${principalId}) with ${row.selectedPermission.value} permissions`);
-  //                   })
-                    
-  //               } catch (error) {
-  //                   console.log("error adding data to the folder/document library",error);
-  //               }
+  //       // Add the folder name if its folder
+  //       if(OthProps.FolderName !== "null"){
+  //         (payloadForDMSFolderPrivacy as any).FolderName=OthProps.FolderName;
+  //       }
+  //       rowsForPermission.forEach((row:any)=>{
+  //           try {
                 
-  //           })
+  //               // (payloadForDMSFolderPrivacy as any).User=user.value;
+  //               // (payloadForDMSFolderPrivacy as any).UserID=user.userId;
+  //               (payloadForDMSFolderPrivacy as any).UserPermission=row.selectedPermission.value;
+  //               row.selectedUserForPermission.forEach(async(user:any)=>{
+  //                 (payloadForDMSFolderPrivacy as any).User=user.value;
+  //                 (payloadForDMSFolderPrivacy as any).UserID=user.userId;
+  //                 console.log("Payload for DMSFolderPrivacy",payloadForDMSFolderPrivacy);
+  //                 const addedItem = await sp.web.lists.getByTitle("DMSFolderPrivacy").items.add(payloadForDMSFolderPrivacy);
+  //                 console.log("Item added to the list DMSFolderPrivacy after selected value ",addedItem);
+  //               })
+                
+  //           } catch (error) {
+  //               console.log("error adding data to the DMSFolderPrivacy",error);
+  //           }
+            
+  //       })
 
-  //     // console.log("Permissions added successfully!");
-  // } catch (error) {
-  //     console.error("Error adding permissions:", error);
-  // }
+  //       // Add permission directly to the library/folder 
+  //       try {
+  //         const { web } = await sp.site.openWebById(`${OthProps.SiteID}`);
+  //         let securableObject: any;
+
+  //         if (OthProps.FolderName !== "null") {
+  //             // For folder
+  //             // alert('add permission to folder')
+  //             const folder =await web.getFolderByServerRelativePath(`${OthProps.FolderPath}`).getItem();
+  //             // securableObject=await folder.listItemAllFields.select("RoleAssignments").expand("RoleAssignments")();
+  //             securableObject=folder;
+  //             const itemData = await folder.select("HasUniqueRoleAssignments")();
+  //             const breaKRole=itemData.HasUniqueRoleAssignments;
+  //             if (!breaKRole) {
+  //               // Break role inheritance, keeping current permissions
+  //               await folder.breakRoleInheritance(true);
+  //               console.log("Inheritance broken, retaining previous permissions.");
+  //             }
+  //             console.log("securableObject",securableObject);
+  //         } else {
+  //           // alert('add permission to doclib')
+  //             // For document library
+  //             securableObject =await web.lists.getByTitle(`${OthProps.DocumentLibraryName}`);
+  //             console.log("securableObject",securableObject);
+  //             // Break inheritance if needed (optional)
+  //             const hasUniquePermissions = await securableObject.hasUniqueRoleAssignments;
+  //             if (!hasUniquePermissions) {
+  //                 await securableObject.breakRoleInheritance(true); // First `true` copies permissions, second `true` clears unique assignments
+  //             }
+  //         }
+  //         // t222_Admin
+  //         // const roleDefinition = await web.roleDefinitions.getByName('Edit')();
+  //         // const roleDefinitionId = roleDefinition.Id;
+  //         // const group = await sp.web.siteGroups.getByName('t222_Admin')();
+  //         // await securableObject.roleAssignments.add(group.Id, roleDefinitionId);
+  //         // Iterate through filteredArray and add role assignments
+  //         rowsForPermission.forEach(async(row:any)=>{
+  //             try {
+  //                       // Get the role definition for the specified role
+  //                       const roleDefinition = await web.roleDefinitions.getByName(row.selectedPermission.value)();
+  //                       const roleDefinitionId = roleDefinition.Id;
+  //                       console.log("roleDefinition",roleDefinition);
+  //                       console.log("roleDefinitionId",roleDefinitionId);
+  //                       row.selectedUserForPermission.forEach(async(userOrGroup:any)=>{
+  //                         const principalId = userOrGroup.userId;
+  //                         await securableObject.roleAssignments.add(principalId, roleDefinitionId);
+  //                         console.log(`Adding ${userOrGroup.value} (${principalId}) with ${row.selectedPermission.value} permissions`);
+  //                       })
+  //             }catch (error){
+  //                   console.log("Error in Adding permission to the document/folder directly inside for loop",error)
+  //             }
+  //           })
+  //       } catch (error) {
+  //         console.log("Error in Adding permission to the document/folder directly",error)
+  //       }
+
+     
+  //       defaultValue("Create")
+  //       setRowsForPermission([{ id: 0, selectedUserForPermission: [],selectedPermission:"" }]);
+  //       Swal.fire('Added','Users Added Successfully','success');
+  //   } catch (error) {
+  //       console.log("error creating data inside the handle create function",error);
+  //   }
+
+  // //   try {
+  // //     const { web } = await sp.site.openWebById(`${OthProps.SiteID}`);
+
+  // //     let securableObject: any;
+
+  // //     if (OthProps.FolderName !== "null") {
+  // //         // For folder
+  // //         const folder =await web.getFolderByServerRelativePath(`${OthProps.FolderPath}`);
+  // //         securableObject=folder.listItemAllFields();
+  // //         console.log("securableObject",securableObject);
+  // //     } else {
+  // //         // For document library
+  // //         securableObject =await web.lists.getByTitle(`${OthProps.DocumentLibraryName}`);
+  // //     }
+      
+  // //     // Break inheritance if needed (optional)
+  // //     const hasUniquePermissions = await securableObject.hasUniqueRoleAssignments;
+  // //     if (!hasUniquePermissions) {
+  // //         await securableObject.breakRoleInheritance(true); // First `true` copies permissions, second `true` clears unique assignments
+  // //     }
+
+      
+
+  // //     // Iterate through filteredArray and add role assignments
+  // //     rowsForPermission.forEach(async(row:any)=>{
+  // //               try {
+  // //                   // Get the role definition for the specified role
+  // //                   const roleDefinition = await web.roleDefinitions.getByName(row.selectedPermission.value)();
+  // //                   const roleDefinitionId = roleDefinition.Id;
+  // //                   console.log("roleDefinition",roleDefinition);
+  // //                   console.log("roleDefinitionId",roleDefinitionId);
+  // //                   row.selectedUserForPermission.forEach(async(userOrGroup:any)=>{
+  // //                     const principalId = userOrGroup.userId;
+  // //                     await securableObject.roleAssignments.add(principalId, roleDefinitionId);
+  // //                     console.log(`Adding ${userOrGroup.value} (${principalId}) with ${row.selectedPermission.value} permissions`);
+  // //                   })
+                    
+  // //               } catch (error) {
+  // //                   console.log("error adding data to the folder/document library",error);
+  // //               }
+                
+  // //           })
+
+  // //     // console.log("Permissions added successfully!");
+  // // } catch (error) {
+  // //     console.error("Error adding permissions:", error);
+  // // }
 
   
 
-  }
+  // }
+
+
+  // srs 
+ 
+  const handleCreate = async () => {
+    console.log("create called");
+    
+    if (!validatePermissionsSelect()) {
+        return;
+    }
+
+    try {
+        // 1. Fetch the Internal Folder ID from the list
+        let internalFolderID: number | null = null;
+        const existingFolderRecords = await sp.web.lists
+            .getByTitle("DMSFolderPrivacy")
+            .items
+            .filter(`FolderName eq '${OthProps.FolderName}' and SiteName eq '${OthProps.SiteTitle}'`)
+            .select("FolderID")();
+
+        if (existingFolderRecords.length > 0 && existingFolderRecords[0].FolderID) {
+            internalFolderID = existingFolderRecords[0].FolderID;
+            console.log("Fetched FolderID from List:", internalFolderID);
+
+            // 2. MODIFY EXISTING: Set PublicFolderPermission to false for all matching FolderIDs
+            // This ensures older records are marked as 'false' before new ones are added
+            const itemsToUpdate = await sp.web.lists
+                .getByTitle("DMSFolderPrivacy")
+                .items
+                .filter(`FolderID eq ${internalFolderID}`)();
+
+            if (itemsToUpdate.length > 0) {
+                const updatePromises = itemsToUpdate.map(item =>
+                    sp.web.lists.getByTitle("DMSFolderPrivacy").items.getById(item.Id).update({
+                        PublicFolderPermission: false
+                    })
+                );
+                await Promise.all(updatePromises);
+                console.log(`Updated ${itemsToUpdate.length} existing records to false.`);
+            }
+        }
+
+        // 3. ADD NEW ENTRIES: This will trigger your Power Automate flow
+        // We use a for...of loop to handle the async operations correctly
+        for (const row of rowsForPermission) {
+            const basePayload = {
+                SiteName: OthProps.SiteTitle,
+                DocumentLibraryName: OthProps.DocumentLibraryName,
+                CurrentUser: currentUserEmailRef.current,
+                IsModified: true,
+                PublicFolderPermission: false, // New entries set to false
+                FolderID: internalFolderID,
+                UserPermission: row.selectedPermission ? row.selectedPermission.value : "",
+                // Add FolderName if it's not null
+                ...(OthProps.FolderName !== "null" && { FolderName: OthProps.FolderName })
+            };
+
+            // Map each selected user to a separate list item
+            const userAddPromises = row.selectedUserForPermission.map((user: any) => {
+                return sp.web.lists.getByTitle("DMSFolderPrivacy").items.add({
+                    ...basePayload,
+                    User: user.value,
+                    UserID: user.userId
+                });
+            });
+
+            await Promise.all(userAddPromises);
+        }
+
+        // 4. Reset UI
+        defaultValue("Create");
+        setRowsForPermission([{ id: 0, selectedUserForPermission: [], selectedPermission: "" }]);
+        Swal.fire('Success', 'Permissions added successfully!', 'success');
+
+    } catch (error) {
+        console.error("Error updating DMSFolderPrivacy list:", error);
+        Swal.fire('Error', 'Failed to update the privacy list.', 'error');
+    }
+};
 
   const handleDeleteUser=async(userId:any,itemId:number,permission:string)=>{
     console.log("userId",userId);

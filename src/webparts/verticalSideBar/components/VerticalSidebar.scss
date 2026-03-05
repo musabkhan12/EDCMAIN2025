@@ -52,6 +52,8 @@
   margin-right: 5px;}
 .paddb {
   min-height: 100vh;
+  //uat
+  //  padding-top: 35px !important;
 // padding: 50px 34px 30px 18px;min-height: 100vh;
 }
 .card .card-body .quill{max-height: 300px !important; height: 300px !important; overflow-y: auto !important;}
@@ -399,7 +401,7 @@ a:hover, a:active {
 {
   // background:#fff;
   color: #6c757d;    position: relative;
-    padding-left: 0.5rem !important;
+    padding-left: 0.8rem !important;
 }
 .nav_link.active .link_name1:nth-child(1){
   color: #fff;
@@ -409,7 +411,7 @@ a:hover, a:active {
   align-items: center;
   width: 100%;
   // padding: 4px 15px;
-  font-size: 15.2px;
+  font-size: 17px;
   border-radius: 0.25rem;
   text-decoration: none;
   color: var(--grey-color);
@@ -428,7 +430,7 @@ a:hover, a:active {
 // }
 .nav_link:hover {
   color:  var(--blue-color);
-  font-size: 15.2px;
+  font-size: 17px;
 
 }
 
@@ -559,12 +561,22 @@ a:hover, a:active {
     padding: 0 11px;
 
 }
-.font-14 {
-  font-size: 14px !important;
-}
-.font-16 {
-  font-size: 16px !important;
-}
+.sidebar-enable .tabcontentv,.sidebar-enable .tabv{height: 405px !important;}
+  .font-14 {
+      font-size: 18px !important;
+      line-height: 28px !important;
+  }
+  .font-16 {
+      font-size: 20px !important;line-height: 28px !important;
+  }
+  .font-13 {
+      font-size: 16px !important;
+      line-height: 26px !important;
+  }
+  .header-title{font-size: 22px !important;}
+  .font-12 {
+      font-size: 14px !important;
+  }
 .logo_item{
   width: 210px; margin-top: 0rem;
 }
@@ -1073,7 +1085,7 @@ margin: 0px 0px !important ;
     font-weight: 700 !important;
   }
 
-@media(max-width:1920px)
+@media(max-width:2560px)
 {
   .inbox-rightbar .card {
   
@@ -1170,6 +1182,10 @@ margin: 0px 0px !important ;
   }
   // .menu_items{max-height: 800px;}
   .twolinewrap1{height: 85px;}
+}
+@media(max-width:1920px)
+{
+  .sidebar .nav_link, .nav_link:hover{font-size: 15.2px;}
 }
 @media(max-width:1800px)
 {
@@ -1282,6 +1298,7 @@ margin: 0px 0px !important ;
   .internalmedia .gal-box .image-popup {
       height: 225px !important;
   }
+  .sidebar .nav_link, .nav_link:hover{font-size: 14px;}
   .two-line{height: 43px;}
   .file-cards .card{height: 88px !important;}
   .navlink_icon svg{    height: 18;
@@ -1807,7 +1824,7 @@ color: #fff !important;
 
 .inputcss {
   color: #6c757d;
-  font-size: .875rem !important;
+  font-size: 16px !important;
   font-weight: 400 !important;
   height: 40px;
   padding: .55rem .9rem !important;

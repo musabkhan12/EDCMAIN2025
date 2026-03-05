@@ -315,7 +315,7 @@ export const WorkflowAuditHistory = (props: IWorkflowAuditHistoryProps) => {
                     // .map((row: any, index: number) => 
                       <tr>
 
-                        <td style={{ minWidth: '50px', maxWidth: '50px' }}> {index + 1}</td>
+                        <td style={{ minWidth: '50px', maxWidth: '50px', textAlign:'center' }}> {index + 1}</td>
 
 
                         <td title={

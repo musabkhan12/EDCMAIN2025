@@ -23,6 +23,8 @@ import "@pnp/sp/presets/all";
 import { Checkbox } from '@fluentui/react';
 import Swal from 'sweetalert2';
 import moment from 'moment';
+import { PermissionKind } from "@pnp/sp/security";
+
 import CustomBreadcrumb from '../ChangerequestComponent/CustomBreadcrumb/CustomBreadcrumb';
 //import { CONTENTTYPE_NonComformity } from '../../../Shared/Constants';
 import { getLatestChangeRequestTemplateType, getMemoNumberAuditReport, getNCNumbers } from '../AnnualAuditReportComponent/AuditReportService';
@@ -981,6 +983,59 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
     let graph: GraphFI;
     graph = graphfi().using(graphSPFx(this.props.context));
     const sp = spfi().using(SPFx(this.props.context));
+    const uniqueEntityMap = new Map();
+    let uniqueEntitiesWithAccess: any = [];
+    // if (props.entities.length == 0) {
+
+    const entityItems = await sp.web.lists
+      .getByTitle("EntityDivisionDepartmentMappingMasterList")
+      .items.select(
+        "Entitylookup/Title, Entitylookup/SiteURL", "Entitylookup/SiteID", "Entitylookup/IsExternal",
+        "Devisionlookup/Title",
+        "Departmentlookup/Title",
+        "Devisionlookup/Active",
+        "Departmentlookup/Active"
+      )
+      .expand("Entitylookup", "Devisionlookup", "Departmentlookup")
+      .filter("Entitylookup/Active eq 'Yes' and Entitylookup/IsExternal eq 'No'")();
+    console.log(entityItems, "entityItems 1")
+
+
+    // Loop through each item and check permissions
+    for (const item of entityItems) {
+      const entityTitle = item.Entitylookup.Title;
+      try {
+        const subsiteWeb = await sp.site.openWebById(item.Entitylookup.SiteID);
+        const hasAccess = await subsiteWeb.web.currentUserHasPermissions(PermissionKind.ViewListItems);
+
+        if (hasAccess) {
+          // Add to uniqueEntitiesWithAccess only if user has access
+          uniqueEntityMap.set(entityTitle, item); // Store the item or any required data
+          uniqueEntitiesWithAccess.push(item);
+          // Add the item to the list of entities with access
+          console.log(`User has access to site: ${entityTitle}`, item);
+        } else {
+          console.log(`User does not have access to site: ${entityTitle}`);
+        }
+      } catch (error) {
+        console.error(`Error while checking access for site: ${entityTitle}`, error);
+      }
+    }
+    // setuniqueEntitiesArr(uniqueEntitiesWithAccess);
+    // }
+    // else if (props.entities.length > 0) {
+    //     uniqueEntitiesWithAccess = props.entities;
+    //     // setuniqueEntitiesArr(props.entities);
+    // }
+
+    const entityTitles = [
+      ...new Set(uniqueEntitiesWithAccess.map((item: any) => item.Entitylookup.Title))
+    ]
+    console.log(entityTitles, "entityTitles");
+
+    // ///////
+
+    
     const me = await graph.me.select(
       "displayName",
       "mail",
@@ -1001,9 +1056,10 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
         value: item.Id,
         label: item.Title,
         adDepartmentName: item.ADDepartmentName,
+        ADDepartmentName: item.ADDepartmentName,
         data: { departmentCode: item.DepartmentCode },
       }));
-      this.setState({ departmentOption: options });
+      // this.setState({ departmentOption: options });
       const deptItems2 = await sp.web.lists.getByTitle("AuditProgramDepartmentMaster").items.orderBy("Department", true)();
       const options2 = deptItems2.map((item) => ({
         value: item.Id,
@@ -1018,10 +1074,37 @@ export default class AuditPlan extends React.Component<IAuditPlanProps, IState> 
       // let currentuserdepartment = UserDept || "Strategy & Sustainable Growth";
       // const selectedOption = options.find(user => user?.adDepartmentName === currentuserdepartment);//old
       // const selectedOption = options.find(user => user?.adDepartmentName === graphCurrentUserDept);//new
-      const selectedOption = options.find(user => user?.adDepartmentName
-        ?.split(',')
-        .map((d: string) => d.trim())
-        .includes(graphCurrentUserDept));//newest
+      // const selectedOption = options.find(user => user?.adDepartmentName
+      //   ?.split(',')
+      //   .map((d: string) => d.trim())
+      //   .includes(graphCurrentUserDept));//newest
+
+      ////
+      const entitySet = new Set(
+        entityTitles
+          .filter((e: any) => typeof e === "string")
+          .map((e: string) => e.toLowerCase())
+      );
+      const setAllDept1 = options.filter((dept: any) =>
+        dept.ADDepartmentName
+          ?.split(",")
+          .map((d: string) => d.trim().toLowerCase())
+          .some((d: string) => entitySet.has(d))
+      );
+      //  setAllDept(setAllDept1);
+      // setfromDeptArr(setAllDept1);
+      this.setState({ departmentOption: setAllDept1 });
+      const selectedDept =
+        setAllDept1.find((user: any) =>
+          user.ADDepartmentName
+            ?.split(",")
+            .map((d: string) => d.trim())
+            .some((d: string) => entityTitles.includes(d))
+        ) || null;
+
+        // selectedOption(selectedDept);
+        const selectedOption = selectedDept;
+      ////
 
       this.setState({
         fromdepartment: selectedOption?.value,

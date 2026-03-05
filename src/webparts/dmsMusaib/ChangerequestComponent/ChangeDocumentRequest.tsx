@@ -18,6 +18,8 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "../../verticalSideBar/components/VerticalSidebar.scss";
 import "./changeDocumentRequest.scss";
 import "@pnp/sp/files";
+import { PermissionKind } from "@pnp/sp/security";
+
 import { allowstringonly, getCurrentUser } from '../../../APISearvice/CustomService';
 import {
   addAllProcessItem, addApprovalItem, addItem, addItemChangeRequestReasonlist,
@@ -227,9 +229,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   const [disabledforwardarr, setdisabledforwardarr] = React.useState(false);
   const [modeValue, setmode] = React.useState("");
   const [maxlevelAllprocess, setmaxlevelAllprocess] = React.useState("");
+  const [fromDeptArr, setfromDeptArr] = React.useState([]);
 
   const [ValidRemark, setValidRemark] = React.useState(true);
   const [MandatRemark, setMandatRemark] = React.useState(false);
+  const [uniqueEntitiesArr, setuniqueEntitiesArr] = React.useState([]);
 
   const [referencedocCode, setreferencedocCode] = React.useState("");
   const [docCode, setdocCode] = React.useState("");
@@ -315,6 +319,59 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
   };
 
   const ApiCallFunc = async () => {
+
+    const uniqueEntityMap = new Map();
+    let uniqueEntitiesWithAccess: any = [];
+    // if (props.entities.length == 0) {
+
+    const entityItems = await sp.web.lists
+      .getByTitle("EntityDivisionDepartmentMappingMasterList")
+      .items.select(
+        "Entitylookup/Title, Entitylookup/SiteURL", "Entitylookup/SiteID", "Entitylookup/IsExternal",
+        "Devisionlookup/Title",
+        "Departmentlookup/Title",
+        "Devisionlookup/Active",
+        "Departmentlookup/Active"
+      )
+      .expand("Entitylookup", "Devisionlookup", "Departmentlookup")
+      .filter("Entitylookup/Active eq 'Yes' and Entitylookup/IsExternal eq 'No'")();
+    console.log(entityItems, "entityItems 1")
+
+
+    // Loop through each item and check permissions
+    for (const item of entityItems) {
+      const entityTitle = item.Entitylookup.Title;
+      try {
+        const subsiteWeb = await sp.site.openWebById(item.Entitylookup.SiteID);
+        const hasAccess = await subsiteWeb.web.currentUserHasPermissions(PermissionKind.ViewListItems);
+
+        if (hasAccess) {
+          // Add to uniqueEntitiesWithAccess only if user has access
+          uniqueEntityMap.set(entityTitle, item); // Store the item or any required data
+          uniqueEntitiesWithAccess.push(item);
+          // Add the item to the list of entities with access
+          console.log(`User has access to site: ${entityTitle}`, item);
+        } else {
+          console.log(`User does not have access to site: ${entityTitle}`);
+        }
+      } catch (error) {
+        console.error(`Error while checking access for site: ${entityTitle}`, error);
+      }
+    }
+    // setuniqueEntitiesArr(uniqueEntitiesWithAccess);
+    // }
+    // else if (props.entities.length > 0) {
+    //     uniqueEntitiesWithAccess = props.entities;
+    //     // setuniqueEntitiesArr(props.entities);
+    // }
+
+    const entityTitles = [
+      ...new Set(uniqueEntitiesWithAccess.map((item: any) => item.Entitylookup.Title))
+    ]
+    console.log(entityTitles, "entityTitles");
+
+    // ///////
+
     graph = graphfi().using(graphSPFx(props.context));
     const graphme = await graph.me.select(
       "displayName",
@@ -325,7 +382,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       "companyName"
     )();
 
-    const graphCurrentUserDept = graphme.department;
+    const graphCurrentUserDept = graphme.department || "";
     // const graphCurrentUserDept = "AI Ain Training Department";
     const path1 = window.location.href;
     debugger
@@ -336,7 +393,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     if (isMemberOfStrategyandSustainableGrowth || isMemberOfSuperAdmin) {
       enableTemplatetype = true;
     }
-    const IsDepartmentPermission = userGroups.some(group => group.Title === `DepartmentFieldPermission`);
+    const IsDepartmentPermission = userGroups.some(group => group.Title === `Intranet Member Group`);
+
+    // const IsDepartmentPermission = userGroups.some(group => group.Title === `DepartmentFieldPermission`);
     if (IsDepartmentPermission) {
       IsDepartmentEditable = true;
     }
@@ -382,7 +441,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       itemId: item.ID,
       department: item.Department,
       adDepartmentName: item.ADDepartmentName,
-      departmentcode: item.DepartmentCode
+      departmentcode: item.DepartmentCode,
+      ADDepartmentName: item.ADDepartmentName,
     }));
     setDepartment(optionsDepartment);
     var TemplateTypeArr = await getAllTemplateType(sp);
@@ -449,13 +509,40 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       .map((d: string) => d.trim())
       .includes(graphCurrentUserDept));
 
-    if (currentuserdepartment != "") {
-      // setSelectedOptionDepart(optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment));//old 
-      setSelectedOptionDepart(optionsDepartment.filter((user: any) => user.adDepartmentName
-        ?.split(',')
-        .map((d: string) => d.trim())
-        .includes(graphCurrentUserDept))[0]);
-    }
+
+    ////
+    const entitySet = new Set(
+      entityTitles
+        .filter((e: any) => typeof e === "string")
+        .map((e: string) => e.toLowerCase())
+    );
+    const setAllDept1 = optionsDepartment.filter((dept: any) =>
+      dept.ADDepartmentName
+        ?.split(",")
+        .map((d: string) => d.trim().toLowerCase())
+        .some((d: string) => entitySet.has(d))
+    );
+    //  setAllDept(setAllDept1);
+    setfromDeptArr(setAllDept1);
+    const selectedDept =
+      setAllDept1.find((user: any) =>
+        user.ADDepartmentName
+          ?.split(",")
+          .map((d: string) => d.trim())
+          .some((d: string) => entityTitles.includes(d))
+      ) || null;
+
+    setSelectedOptionDepart(selectedDept);
+    ////
+    // setSelectedOptionDepart(optionsDepartment.filter((user) => user.label === currentuserdepartment));
+
+    // if (currentuserdepartment != "") {
+    //   // setSelectedOptionDepart(optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment));//old 
+    //   setSelectedOptionDepart(optionsDepartment.filter((user: any) => user.adDepartmentName
+    //     ?.split(',')
+    //     .map((d: string) => d.trim())
+    //     .includes(graphCurrentUserDept))[0]);
+    // }
     // console.log("Current user department", currentuserdepartment, optionsDepartment.filter((user) => user.adDepartmentName === currentuserdepartment))
     // let optionsfilterdepart = optionsDepartment.filter((user) => user.label === currentuserdepartment);
     // setSelectedOptionDepart(optionsDepartment.filter((user) => user.label === currentuserdepartment));
@@ -469,7 +556,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
       RequesterName: userProfile?.DisplayName || "",
       RequestDate: new Date().toLocaleDateString("en-CA"),
       // Department: UserDept
-      DepartmentId: optionsfilterdepart && optionsfilterdepart[0]?.value
+      DepartmentId: selectedDept && selectedDept?.value || 0
+      // DepartmentId: optionsfilterdepart && optionsfilterdepart[0]?.value
       //RequestedDate: new Date().toISOString().split("T")[0] // Format as YYYY-MM-DD
 
     }));
@@ -529,9 +617,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     }));
     setdoccoderows(options);
     console.log("DocCodeArr", DocCodeArr);
-    if (optionsfilterdepart.length > 0) {
+    // if (optionsfilterdepart.length > 0) {
+    //   // doccodearrew = options.filter((x: any) => x.DepartmentId == optionsfilterdepart[0]?.value)
+    //   doccodearrew = options.filter((x: any) => x.DepartmentId == optionsfilterdepart[0]?.value)
+
+    // }
+    if (selectedDept) {
       // doccodearrew = options.filter((x: any) => x.DepartmentId == optionsfilterdepart[0]?.value)
-      doccodearrew = options.filter((x: any) => x.DepartmentId == optionsfilterdepart[0]?.value)
+      doccodearrew = options.filter((x: any) => x.DepartmentId == selectedDept?.value)
 
     }
 
@@ -1532,7 +1625,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     const isOfficeFile = /\.(docx?|xlsx?|pptx?)$/i.test(fileUrl);
 
     if (isOfficeFile) {
-      return `https://edcadae.sharepoint.com/sites/EDeDMS/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(fileUrl)}&action=embedview`;
+      return `https://edcadae.sharepoint.com/sites/ED/_layouts/15/WopiFrame.aspx?sourcedoc=${encodeURIComponent(fileUrl)}&action=embedview`;
     }
 
     if (/\.pdf$/i.test(fileUrl)) {
@@ -1558,13 +1651,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
 
     console.log("ttrtrtrtt", obj);
     const tenantUrl = "https://edcadae.sharepoint.com";
-    const docurl = "/sites/EDeDMS/ImportantDocuments/SomeFolder/Example.pdf";
+    const docurl = "/sites/ED/ImportantDocuments/SomeFolder/Example.pdf";
 
     // Extract parent folder from docurl
     const parent = docurl.substring(0, docurl.lastIndexOf("/") + 1);
 
     // Construct the final redirect URL
-    const redirectURLpdf = `${tenantUrl}/sites/EDeDMS/ImportantDocuments/Forms/AllItems.aspx?id=${encodeURIComponent(docurl)}&parent=${encodeURIComponent(parent)}&p=true&ga=1`;
+    const redirectURLpdf = `${tenantUrl}/sites/ED/ImportantDocuments/Forms/AllItems.aspx?id=${encodeURIComponent(docurl)}&parent=${encodeURIComponent(parent)}&p=true&ga=1`;
 
     console.log(redirectURLpdf);
 
@@ -2180,7 +2273,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let DocumentName: string = "";
             let attachmentIds = [];
             debugger
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ED/ChangeRequestDocs');
             let docCode = selectedOptionReq.requestcode == "New" ? doccode : selectedOption?.DocumentCode;
             let filenamenew: any;
             let newfileName: any;
@@ -2503,13 +2596,13 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
               }
             });
             //sessionStorage.removeItem("ChangeRequestId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
             // }, 1000);
             // }
           }
@@ -2534,9 +2627,10 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let DocumentName: string = "";
             let attachmentIds = [];
             debugger
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ED/ChangeRequestDocs');
             let docCode = selectedOptionReq?.requestcode == "New" ? doccode : selectedOption?.DocumentCode;
             debugger
+            console.log(Attachmentarr.length);
             if (Attachmentarr.length > 0) {
               if (Attachmentarr[0]?.files?.length > 0) {
                 for (const file of Attachmentarr[0].files) {
@@ -2547,11 +2641,22 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                     const pattern = new RegExp(`^(${docCode})-(\\d+)-(\\d+)-(.*)$`);
                     const match = file.name.match(pattern);
 
-                    if (!match) return file.name; // If it doesn't match expected structure, return original
+                    //code was added by riya
+                    //if (!match) return file.name; // If it doesn't match expected structure, return original
+                    //const [, code, , , rest] = match;
+                    //filenamenew = `${code}-${issueno}-${revisionno}-${rest}`;
+                    // end here
 
-                    const [, code, , , rest] = match;
-
-                    filenamenew = `${code}-${issueno}-${revisionno}-${rest}`;
+                    //Code added by satish on 03/03/2026
+                    if (match) {
+                      const [, , , , rest] = match;
+                      // Remove existing docCode structure and rebuild
+                      filenamenew = `${docCode}-${issueno}-${revisionno}-${rest}`;
+                    } else {
+                      // If structure does not match, remove only docCode from name
+                      const cleanedFileName = file.name.replace(docCode, "").replace(/^[-_]+/, "");
+                      filenamenew = `${docCode}-${issueno}-${revisionno}-${cleanedFileName}`;
+                    } //end here
                   }
 
                   let newfileNameNew = file.name.includes(docCode) ? filenamenew : newfileNameNewX;
@@ -2816,14 +2921,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Submitted successfully.', '', 'success');
             // // sessionStorage.removeItem("bannerId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
             // }, 1000);
             // }
 
@@ -2925,7 +3030,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let DocumentName: string = "";
             let attachmentIds = [];
             debugger
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ED/ChangeRequestDocs');
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
                 //bannerImageArray = await uploadFile(file, sp, "ChangeRequestDocs", tenantUrl);
@@ -3093,14 +3198,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Saved successfully.', '', 'success');
             // sessionStorage.removeItem("ChangeRequestId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
             // }, 2000);
             // }
           }
@@ -3123,7 +3228,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ED/ChangeRequestDocs');
             debugger
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
@@ -3263,14 +3368,14 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             sessionStorage.removeItem("ChangeRequestId")
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
               }
             });
             // Swal.fire('Saved successfully.', '', 'success');
             // // sessionStorage.removeItem("bannerId")
             // setTimeout(() => {
             //   //window.location.reload();
-            //   window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+            //   window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
             // }, 1000);
           }
         })
@@ -3523,7 +3628,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx`;
               }
             });
 
@@ -3642,7 +3747,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx`;
               }
             });
             // }
@@ -3744,7 +3849,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ED/ChangeRequestDocs');
             // if (Attachmentarr.length > 0) {
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
@@ -4076,7 +4181,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -4119,7 +4224,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/ChangeRequestDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ED/ChangeRequestDocs');
 
             if (Attachmentarr.length > 0 && Attachmentarr[0]?.files?.length > 0) {
               for (const file of Attachmentarr[0].files) {
@@ -4447,7 +4552,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
             Swal.fire(successMessage, '', 'success').then(async (result) => {
               if (result.isConfirmed) {
                 sessionStorage.removeItem("ChangeRequestId")
-                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -4581,11 +4686,11 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
     const encodedFilePath = encodeURIComponent(serverRelativeUrl);
 
     // Example: 
-    // serverRelativeUrl = "/sites/EDeDMS/test/DocumentLibraryInsideTest/Book.xlsx"
+    // serverRelativeUrl = "/sites/ED/test/DocumentLibraryInsideTest/Book.xlsx"
     const parentFolder = serverRelativeUrl.substring(0, serverRelativeUrl.lastIndexOf('/'));
     const siteUrl = window.location.origin;
 
-    // const previewUrl = `${siteUrl}/sites/EDeDMS/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
+    // const previewUrl = `${siteUrl}/sites/ED/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     const previewUrl = `${siteUrl}${locationPath}/ChangeRequestDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     // const previewUrl = `${siteUrl}/sites/SPFXDemo/DMSOrphanDocs/Forms/AllItems.aspx?id=${encodedFilePath}&parent=${encodeURIComponent(parentFolder)}`;
     console.log("Generated Preview URL:", previewUrl);
@@ -4944,7 +5049,8 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     <Select
                                       //onKeyDown={handleKeyDown}
                                       isClearable={true}
-                                      options={Departopt}
+                                      // options={Departopt}
+                                      options={fromDeptArr}
                                       value={SelectedOptionDepart}
                                       name="Department"
                                       className={`${(!ValidDraft && departmenterr) ? "border-on-error" : ""} ${(!ValidSubmit && departmenterr) ? "border-on-error" : ""}`}
@@ -5311,7 +5417,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     {/* <input type="text" id="example-email" name="example-email" className="form-control" placeholder="Search Document Code" value={formData.DocumentCode} /> */}
 
                                     <div className="text-dark mt-0"> <span >
-                                      <a onClick={() => setShowModal(true)} ><FontAwesomeIcon icon={faPaperclip} />{DocumentLink && (DocumentLink?.length == 1 || DocumentLink?.length == 0) ?`${DocumentLink?.length} file Attached` : `${DocumentLink?.length} files Attached`}</a>
+                                      <a onClick={() => setShowModal(true)} ><FontAwesomeIcon icon={faPaperclip} />{DocumentLink && (DocumentLink?.length == 1 || DocumentLink?.length == 0) ? `${DocumentLink?.length} file Attached` : `${DocumentLink?.length} files Attached`}</a>
 
                                     </span>
                                     </div>
@@ -5351,7 +5457,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                               <div className='col-sm-12'>
                                 <h3 className="text-dark font-16 fw-bold mb-3">Change Request Type<span className="text-danger1">*</span></h3>
                                 {/* <label className="form-label text-muted font-16">Change Request Type</label> */}
-                                <p style={{ fontSize: '11px', color: '#6c757d', marginTop: '-12px', marginBottom: '8px' }}>
+                                <p style={{ fontSize: '14px', color: '#6c757d', marginTop: '-12px', marginBottom: '8px' }}>
                                   In case of "New Documented Information" choose the Addition in Preface, Chapters, Annexures, others and<br />
                                   In case of "Change in Existing Documented Information" choose the Revision in Preface, Chapters, Annexures, others
                                 </p>
@@ -5411,9 +5517,9 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                                     return (
                                       <tr key={index} className={hasRowError ? "row-error" : ""}>
                                         <td className="text-center" style={{ minWidth: "30px", maxWidth: "30px" }}>
-                                          <div className="indexdesign" style={{ marginLeft: "0px" }}>
+                                          <div className='d-flex align-items-center justify-content-center'> <div className="indexdesign" style={{ marginLeft: "0px" }}>
                                             {index + 1}
-                                          </div>
+                                          </div></div>
                                         </td>
 
                                         <td title={row.description}>
@@ -5815,7 +5921,7 @@ const ChangeDocumentRequestContext = ({ props }: any) => {
                       {((editID?.Status === "Pending" || editID?.Status === "Save as draft") && (editID.Level === 0 && editID.CurrentUserRole !== "OES" && editID.IsInitiator == "Yes")) && (modeValue === "approve") && <button type="button" className="btn btn-primary waves-effect waves-light m-1" onClick={() => ForwardInitiatorApproval("Approved")}><i className="fe-check-circle me-1"></i> Submit</button>}
 
                       {/* </a> */}
-                        {/* <a href="../sites/EDeDMS/SitePages/EDCMAIN.aspx">       */}
+                        {/* <a href="../sites/ED/SitePages/EDCMAIN.aspx">       */}
                         {/* <button type="button" className="btn cancel-btn waves-effect waves-light m-1" onClick={handleCancel}><i className="fe-x me-1"></i> Cancel</button>
                       {/* </a> */}
                         {/* </div>

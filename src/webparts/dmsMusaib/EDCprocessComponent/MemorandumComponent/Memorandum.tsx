@@ -16,6 +16,7 @@ import "../../../../CustomCss/mainCustom.scss";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "../../../verticalSideBar/components/VerticalSidebar.scss";
 // import "./annualaudit.scss";
+import { PermissionKind } from "@pnp/sp/security";
 import { allowstringonly, getCurrentUser } from '../../../../APISearvice/CustomService';
 import Select from "react-select";
 import Swal from 'sweetalert2';
@@ -127,6 +128,7 @@ const MemoContext = ({ props }: any) => {
   const [selectUserDeptTo, setselectUserDeptTo] = React.useState([]);
   const [selectUserDeptCC, setselectUserDeptCC] = React.useState(null);
   const [AllDept, setAllDept] = React.useState([]);
+  const [fromDeptArr, setfromDeptArr] = React.useState([]);
   const [RecommType, setRecommType] = React.useState([]);
   const [DocumentLink, setDocumentLink] = React.useState(null);
   const [DraftApprovalItem, setDraftApprovalItem] = React.useState(null);
@@ -141,7 +143,7 @@ const MemoContext = ({ props }: any) => {
   const [selectedFileArrName, setselectedFileArrName] = React.useState("");
 
   const [auditTypeOption, setAuditTypeOption] = React.useState(null);
-
+  const [uniqueEntitiesArr, setuniqueEntitiesArr] = React.useState([]);
   const [DigitalsignID, setDigitalsignID] = React.useState(null);
   const [hidedigisign, sethidedigisign] = React.useState(false);
 
@@ -256,13 +258,15 @@ const MemoContext = ({ props }: any) => {
     if (selectedOption == null) {
       // onloadDeptId = AllDept.filter((user: any) => user.ADDepartmentName === currentUserDept)[0]?.value || 0;
 
-      onloadDeptId =
-        AllDept.filter((user: any) =>
-          user.ADDepartmentName
-            ?.split(',')
-            .map((d: string) => d.trim())
-            .includes(currentUserDept)
-        )[0]?.value || 0;
+      // onloadDeptId =
+      //   AllDept.filter((user: any) =>
+      //     user.ADDepartmentName
+      //       ?.split(',')
+      //       .map((d: string) => d.trim())
+      //       .includes(currentUserDept)
+      //   )[0]?.value || 0;
+      onloadDeptId = 0;
+
 
       listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
 
@@ -485,15 +489,57 @@ const MemoContext = ({ props }: any) => {
   };
 
   const ApiCallFunc = async () => {
-    // const userEmail = "s.Saleem@edcad.ae";
-    // const user = await graph.users
-    //   .filter(`mail eq '${userEmail}'`)
-    //   .select("*,id,displayName,mail",
-    //     "jobTitle",
-    //     "department",
-    //     "officeLocation",
-    //     "companyName")
-    //   ();
+    const uniqueEntityMap = new Map();
+    let uniqueEntitiesWithAccess: any = [];
+    if (props.entities.length == 0) {
+
+      const entityItems = await sp.web.lists
+        .getByTitle("EntityDivisionDepartmentMappingMasterList")
+        .items.select(
+          "Entitylookup/Title, Entitylookup/SiteURL", "Entitylookup/SiteID", "Entitylookup/IsExternal",
+          "Devisionlookup/Title",
+          "Departmentlookup/Title",
+          "Devisionlookup/Active",
+          "Departmentlookup/Active"
+        )
+        .expand("Entitylookup", "Devisionlookup", "Departmentlookup")
+        .filter("Entitylookup/Active eq 'Yes' and Entitylookup/IsExternal eq 'No'")();
+      console.log(entityItems, "entityItems 1")
+
+
+      // Loop through each item and check permissions
+      for (const item of entityItems) {
+        const entityTitle = item.Entitylookup.Title;
+        try {
+          const subsiteWeb = await sp.site.openWebById(item.Entitylookup.SiteID);
+          const hasAccess = await subsiteWeb.web.currentUserHasPermissions(PermissionKind.ViewListItems);
+
+          if (hasAccess) {
+            // Add to uniqueEntitiesWithAccess only if user has access
+            uniqueEntityMap.set(entityTitle, item); // Store the item or any required data
+            uniqueEntitiesWithAccess.push(item);
+            // Add the item to the list of entities with access
+            console.log(`User has access to site: ${entityTitle}`, item);
+          } else {
+            console.log(`User does not have access to site: ${entityTitle}`);
+          }
+        } catch (error) {
+          console.error(`Error while checking access for site: ${entityTitle}`, error);
+        }
+      }
+      // setuniqueEntitiesArr(uniqueEntitiesWithAccess);
+    }
+    else if (props.entities.length > 0) {
+      uniqueEntitiesWithAccess = props.entities;
+      // setuniqueEntitiesArr(props.entities);
+    }
+
+    const entityTitles = [
+      ...new Set(uniqueEntitiesWithAccess.map((item: any) => item.Entitylookup.Title))
+    ]
+    console.log(entityTitles, "entityTitles");
+
+    // ///////
     const allusers = await graph.users
       .select("*,id,displayName,mail,userPrincipalName,department")
       .top(999)();
@@ -501,7 +547,7 @@ const MemoContext = ({ props }: any) => {
     console.log(allusers, "allusers");
     const currentUser = await sp.web.currentUser();
     const userGroups = await sp.web.siteUsers.getById(currentUser.Id).groups();
-    const IsDepartmentPermission = userGroups.some(group => group.Title === `DepartmentFieldPermission`);
+    const IsDepartmentPermission = userGroups.some(group => group.Title === `Intranet Member Group`);
     if (IsDepartmentPermission) {
       IsDepartmentEditable = true;
     }
@@ -521,9 +567,24 @@ const MemoContext = ({ props }: any) => {
 
     // console.log("UAT user profile:", user);
 
-    var setAllDept1 = await getAllDepartment(sp);
-
-
+    // var setAllDept1 = await getAllDepartment(sp);
+    var setAllDeptNew = await getAllDepartment(sp);
+    // let setAllDept1 = setAllDeptNew.filter((dept: any) => entityTitles.includes(dept.ADDepartmentName));
+    // let setAllDept1 = setAllDeptNew.filter((dept: any) => dept.ADDepartmentName?.split(",").some((d: string) => entityTitles.includes(d.trim())));
+    // let setAllDept1 = setAllDeptNew.filter((dept: any) => entityTitles.includes(dept.ADDepartmentName));
+    const entitySet = new Set(
+      entityTitles
+        .filter((e: any) => typeof e === "string")
+        .map((e: string) => e.toLowerCase())
+    );
+    const setAllDept1 = setAllDeptNew.filter((dept: any) =>
+      dept.ADDepartmentName
+        ?.split(",")
+        .map((d: string) => d.trim().toLowerCase())
+        .some((d: string) => entitySet.has(d))
+    );
+    //  setAllDept(setAllDept1);
+    setfromDeptArr(setAllDept1)
     const path1 = window.location.href;
     const path = window.location.href;
     const segments = path.split('/').filter(Boolean); // Remove empty elements
@@ -567,10 +628,23 @@ const MemoContext = ({ props }: any) => {
     setcurrentUserDept(graphCurrentUserDept);
     // setselectUserDept(setAllDept1.filter((user: any) => user.label === UserDept));
     // setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]);
-    setselectUserDept(setAllDept1.filter((user: any) =>  user.ADDepartmentName
-    ?.split(',')
-    .map((d: string) => d.trim())
-    .includes(graphCurrentUserDept))[0]);
+    // setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName
+    //   ?.split(',')
+    //   .map((d: string) => d.trim())
+    //   .includes(graphCurrentUserDept))[0]);
+    // setselectUserDept(setAllDept1.filter((user: any) => user.ADDepartmentName
+    // ?.split(',')
+    // .map((d: string) => d.trim())
+    // .includes(entityTitles[0]))[0]||null);
+    const selectedDept =
+      setAllDept1.find((user: any) =>
+        user.ADDepartmentName
+          ?.split(",")
+          .map((d: string) => d.trim())
+          .some((d: string) => entityTitles.includes(d))
+      ) || null;
+
+    setselectUserDept(selectedDept);
     const recommendationTypes = await getRecommendationTypes(sp);
     setRecommType(recommendationTypes);
     var ClassificationArr = await getAllClassificationMaster(sp);
@@ -610,10 +684,25 @@ const MemoContext = ({ props }: any) => {
 
 
       // const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName === UserDept)[0]?.value || 0; //old
-      const onloadDeptId = setAllDept1.filter((user: any) =>  user.ADDepartmentName
-      ?.split(',')
-      .map((d: string) => d.trim())
-      .includes(graphCurrentUserDept))[0]?.value || 0; //new
+      // const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName
+      //   ?.split(',')
+      //   .map((d: string) => d.trim())
+      //   .includes(graphCurrentUserDept))[0]?.value || 0; //new
+      // const onloadDeptId = setAllDept1.filter((user: any) => user.ADDepartmentName
+      //   ?.split(',')
+      //   .map((d: string) => d.trim())
+      //   .includes(entityTitles[0]))[0]?.value || 0; //new
+
+      // const onloadDeptId = setAllDept1[0]?.value || 0; //latest
+
+      const matchedDept = setAllDept1.find((user: any) =>
+        user.ADDepartmentName
+          ?.split(",")
+          .map((d: string) => d.trim())
+          .some((d: string) => entityTitles.includes(d))
+      );
+
+      const onloadDeptId = matchedDept?.value || 0;
 
 
       const listItems = await sp.web.lists.getByTitle("MemoNumberLogic").items.filter(`Department/ID eq ${onloadDeptId}`).orderBy("SerialNumber", false).top(1)();
@@ -638,39 +727,67 @@ const MemoContext = ({ props }: any) => {
         : memo < 100
           ? `0${memo}`
           : memo;
-
+      // setFormData((prevFormData) => ({
+      //   ...prevFormData,
+      //   MemoListId: memoId,
+      //   memoSerialNo: memo,
+      //   deptId: onloadDeptId,
+      //   memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName
+      //     ?.split(',')
+      //     .map((d: string) => d.trim())
+      //     .includes(graphCurrentUserDept))[0]
+      //     ? `${setAllDept1.filter((user: any) => user.ADDepartmentName
+      //       ?.split(',')
+      //       .map((d: string) => d.trim())
+      //       .includes(graphCurrentUserDept))[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+      //     : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+      //   memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName
+      //     ?.split(',')
+      //     .map((d: string) => d.trim())
+      //     .includes(graphCurrentUserDept))[0]
+      //     ? `${setAllDept1.filter((user: any) => user.ADDepartmentName
+      //       ?.split(',')
+      //       .map((d: string) => d.trim())
+      //       .includes(graphCurrentUserDept))[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+      //     : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+      // }));
       setFormData((prevFormData) => ({
         ...prevFormData,
         MemoListId: memoId,
         memoSerialNo: memo,
         deptId: onloadDeptId,
-        // memoNo: setAllDept1.filter((user: any) => user.label === UserDept)[0]
-        //   ? `${setAllDept1.filter((user: any) => user.label === UserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-        //   : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        memoNo: setAllDept1.filter((user: any) => user.value === onloadDeptId)[0]
+          ? `${setAllDept1.filter((user: any) => user.value === onloadDeptId)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+          : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+
+        memoFileName:  setAllDept1.filter((user: any) => user.value === onloadDeptId)[0]
+          ? `${setAllDept1.filter((user: any) => user.value === onloadDeptId)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+          : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+
         // memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
         //   ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
         //   : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
         // memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0]
         //   ? `${setAllDept1.filter((user: any) => user.ADDepartmentName === graphCurrentUserDept)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
         //   : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
-        memoNo: setAllDept1.filter((user: any) =>  user.ADDepartmentName
-        ?.split(',')
-        .map((d: string) => d.trim())
-        .includes(graphCurrentUserDept))[0]
-          ? `${setAllDept1.filter((user: any) =>user.ADDepartmentName
-            ?.split(',')
-            .map((d: string) => d.trim())
-            .includes(graphCurrentUserDept))[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
-          : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
-        memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName
-        ?.split(',')
-        .map((d: string) => d.trim())
-        .includes(graphCurrentUserDept))[0]
-          ? `${setAllDept1.filter((user: any) => user.ADDepartmentName
-            ?.split(',')
-            .map((d: string) => d.trim())
-            .includes(graphCurrentUserDept))[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
-          : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
+        // memoNo: setAllDept1.filter((user: any) => user.ADDepartmentName
+        //   ?.split(',')
+        //   .map((d: string) => d.trim())
+        //   .includes(graphCurrentUserDept))[0]
+        //   ? `${setAllDept1.filter((user: any) => user.ADDepartmentName
+        //     ?.split(',')
+        //     .map((d: string) => d.trim())
+        //     .includes(graphCurrentUserDept))[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`
+        //   : `0/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`,
+        // memoFileName: setAllDept1.filter((user: any) => user.ADDepartmentName
+        //   ?.split(',')
+        //   .map((d: string) => d.trim())
+        //   .includes(graphCurrentUserDept))[0]
+        //   ? `${setAllDept1.filter((user: any) => user.ADDepartmentName
+        //     ?.split(',')
+        //     .map((d: string) => d.trim())
+        //     .includes(graphCurrentUserDept))[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`
+        //   : `0_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`,
       }));
 
     }
@@ -790,8 +907,11 @@ const MemoContext = ({ props }: any) => {
             : memo < 100
               ? `0${memo}`
               : memo;
-          varmemoNum = `${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`;
-          varmemofilename = `${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`;
+          // varmemoNum = `${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`;
+          // varmemofilename = `${setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`;
+          varmemoNum = `${setAllDeptNew.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${formattedMemoSerialNo}`;
+          varmemofilename = `${setAllDeptNew.filter((user: any) => user.value === setBannerById[0].DepartmentId)[0].DepartmentCode}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${formattedMemoSerialNo}`;
+        
         }
         else {
           varmemoNum = setBannerById[0].MemoNumber;
@@ -867,8 +987,9 @@ const MemoContext = ({ props }: any) => {
         // setClassificationopt( optionsclassification.filter((docType: { value: any; }) => docType.value === setBannerById[0].ClassificationId) || null);
 
 
+        setselectUserDept(setAllDeptNew.filter((user: any) => user.value === setBannerById[0].DepartmentId)?.[0] || null);
 
-        setselectUserDept(setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)?.[0] || null);
+        // setselectUserDept(setAllDept1.filter((user: any) => user.value === setBannerById[0].DepartmentId)?.[0] || null);
 
         setselectUserDeptCC(setBannerById[0].CCDepartments?.map((obj: any) => {
           const filteredDept = setAllDept1.find((dept: any) => dept.value === obj.ID);
@@ -1543,7 +1664,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumDocs');
 
 
 
@@ -1637,13 +1758,13 @@ const MemoContext = ({ props }: any) => {
 
             if (AdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Description');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumAdditionalDocs/Description');
 
               for (const file of AdditionalFilesArr) {
                 if (!file.ID) {
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Description'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ED/MemorandumAdditionalDocs/Description'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -1688,7 +1809,7 @@ const MemoContext = ({ props }: any) => {
             if (AdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Description'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ED/MemorandumAdditionalDocs/Description'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -1707,13 +1828,13 @@ const MemoContext = ({ props }: any) => {
 
             if (BGAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Background');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumAdditionalDocs/Background');
 
               for (const file of BGAdditionalFilesArr) {
                 if (!file.ID) {
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Background'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ED/MemorandumAdditionalDocs/Background'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -1743,7 +1864,7 @@ const MemoContext = ({ props }: any) => {
             if (BGAdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Background'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ED/MemorandumAdditionalDocs/Background'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -1760,13 +1881,13 @@ const MemoContext = ({ props }: any) => {
             // ////////
             if (RecomAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumAdditionalDocs/Recommadation');
 
               for (const file of RecomAdditionalFilesArr) {
                 if (!file.ID) {
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ED/MemorandumAdditionalDocs/Recommadation'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -1796,7 +1917,7 @@ const MemoContext = ({ props }: any) => {
             if (RecomAdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ED/MemorandumAdditionalDocs/Recommadation'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -2020,7 +2141,7 @@ const MemoContext = ({ props }: any) => {
             // }
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -2074,7 +2195,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2185,7 +2306,7 @@ const MemoContext = ({ props }: any) => {
 
             if (AdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Description');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumAdditionalDocs/Description');
 
               for (const file of AdditionalFilesArr) {
                 if (!file.ID) {
@@ -2222,7 +2343,7 @@ const MemoContext = ({ props }: any) => {
 
             if (BGAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Background');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumAdditionalDocs/Background');
 
               for (const file of BGAdditionalFilesArr) {
                 if (!file.ID) {
@@ -2244,7 +2365,7 @@ const MemoContext = ({ props }: any) => {
             }
             if (RecomAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumAdditionalDocs/Recommadation');
 
               for (const file of RecomAdditionalFilesArr) {
                 if (!file.ID) {
@@ -2402,7 +2523,7 @@ const MemoContext = ({ props }: any) => {
 
             Swal.fire('Submitted successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
               }
             });
 
@@ -2434,7 +2555,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -2596,14 +2717,14 @@ const MemoContext = ({ props }: any) => {
 
             if (AdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Description');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumAdditionalDocs/Description');
 
               for (const file of AdditionalFilesArr) {
                 if (!file.ID) {
 
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Description'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ED/MemorandumAdditionalDocs/Description'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -2634,7 +2755,7 @@ const MemoContext = ({ props }: any) => {
             if (AdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Description'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ED/MemorandumAdditionalDocs/Description'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -2653,14 +2774,14 @@ const MemoContext = ({ props }: any) => {
 
             if (BGAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Background');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumAdditionalDocs/Background');
 
               for (const file of BGAdditionalFilesArr) {
                 if (!file.ID) {
 
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Background'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ED/MemorandumAdditionalDocs/Background'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -2691,7 +2812,7 @@ const MemoContext = ({ props }: any) => {
             if (BGAdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Background'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ED/MemorandumAdditionalDocs/Background'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -2707,14 +2828,14 @@ const MemoContext = ({ props }: any) => {
 
             if (RecomAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumAdditionalDocs/Recommadation');
 
               for (const file of RecomAdditionalFilesArr) {
                 if (!file.ID) {
 
                   await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                     // .getById(itemId)
-                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation'`)()
+                    .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ED/MemorandumAdditionalDocs/Recommadation'`)()
                     .then(async (res) => {
                       if (res.length > 0) {
                         res.forEach(async (element) => {
@@ -2748,7 +2869,7 @@ const MemoContext = ({ props }: any) => {
             if (RecomAdditionalFilesArr.length == 0) {
               await sp.web.lists.getByTitle("MemorandumAdditionalDocs").items
                 // .getById(itemId)
-                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation'`)()
+                .select("*,FileRef, FileLeafRef,FileDirRef").filter(`ListItemID eq ${editItemID} and FileDirRef eq '/sites/ED/MemorandumAdditionalDocs/Recommadation'`)()
                 .then(async (res) => {
                   if (res.length > 0) {
                     res.forEach(async (element) => {
@@ -2946,8 +3067,8 @@ const MemoContext = ({ props }: any) => {
 
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
-                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -2975,7 +3096,7 @@ const MemoContext = ({ props }: any) => {
             let bannerImageArray: any = {};
             let DocumentName: string = "";
             let attachmentIds = [];
-            const folder = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumDocs');
+            const folder = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumDocs');
 
 
             if (FilesArr.length > 0) {
@@ -3084,7 +3205,7 @@ const MemoContext = ({ props }: any) => {
 
             if (AdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Description');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumAdditionalDocs/Description');
 
               for (const file of AdditionalFilesArr) {
                 if (!file.ID) {
@@ -3106,7 +3227,7 @@ const MemoContext = ({ props }: any) => {
             }
             if (BGAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Background');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumAdditionalDocs/Background');
 
               for (const file of BGAdditionalFilesArr) {
                 if (!file.ID) {
@@ -3128,7 +3249,7 @@ const MemoContext = ({ props }: any) => {
             }
             if (RecomAdditionalFilesArr.length > 0) {
               // let additionalFileID = null;
-              const folder2 = sp.web.getFolderByServerRelativePath('/sites/EDeDMS/MemorandumAdditionalDocs/Recommadation');
+              const folder2 = sp.web.getFolderByServerRelativePath('/sites/ED/MemorandumAdditionalDocs/Recommadation');
 
               for (const file of RecomAdditionalFilesArr) {
                 if (!file.ID) {
@@ -3261,8 +3382,8 @@ const MemoContext = ({ props }: any) => {
             // }, 1000);
             Swal.fire('Saved successfully.', '', 'success').then(async (result) => {
               if (result.isConfirmed) {
-                window.location.href = `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
-                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/EDeDMS/SitePages/EDCMAIN.aspx`;
+                window.location.href = `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
+                // window.location.href = modeValue == "approve" ? `https://edcadae.sharepoint.com/sites/ED/SitePages/MyApprovals.aspx` : `https://edcadae.sharepoint.com/sites/ED/SitePages/EDCMAIN.aspx`;
               }
             });
           }
@@ -3959,8 +4080,8 @@ const MemoContext = ({ props }: any) => {
                                     <div
                                       title={selectUserDept?.label || "Select Department"}>
                                       <Select
-                                        // options={AllDept}
-                                        options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                        options={fromDeptArr.sort((a: any, b: any) => a.label.localeCompare(b.label))}
+                                        // options={AllDept.sort((a: any, b: any) => a.label.localeCompare(b.label))}
                                         isClearable
                                         isDisabled={InputDisabled || (DraftApprovalItem != null && DraftApprovalItem != undefined && DraftApprovalItem.length > 0 ? true : false) || !IsDepartmentEditable}
                                         value={selectUserDept}
